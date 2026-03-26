@@ -82,7 +82,7 @@ When context is genuinely ambiguous, ask once: "Should I do a PR-level code revi
 
 **Steps:**
 1. Read `debt-guide.md` in this directory for the debt classification framework
-2. If you have insufficient evidence, ask the user 2-3 targeted questions (e.g., "Which part of the codebase is most painful to change?")
+2. If you have insufficient evidence, ask the user ONE targeted question (e.g., "Which part of the codebase is most painful to change?") then proceed with available evidence — do not ask multiple rounds of questions.
 3. Classify identified debt into the 5 categories from the guide
 4. Output the report using the Output Format below, including the debt repayment roadmap
 
@@ -137,6 +137,7 @@ All modes produce a report in this structure:
 - Read `brooks-principles.md` when you need the exact rubric for a score
 - 5 = exemplary, 4 = good, 3 = acceptable with caveats, 2 = needs attention, 1 = critical
 - Mark healthy dimensions as ✅ and move on — do not write padding
+- If a dimension has no evidence (e.g., Second System Effect in a single-function review), mark it as N/A with one-line reason and exclude it from the overall health calculation.
 - Overall health: weighted mean where Conceptual Integrity and Communication Overhead count double
 
 ## Reference Files
