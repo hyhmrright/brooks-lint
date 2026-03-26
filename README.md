@@ -9,11 +9,10 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a> •
+  <a href="#installation">Installation</a> •
   <a href="#the-7-dimensions">The 7 Dimensions</a> •
-  <a href="#usage">Usage</a> •
   <a href="#claude-code-skill">Claude Code Skill</a> •
-  <a href="references/brooks-principles.md">Brooks Principles Guide</a>
+  <a href="#project-structure">Project Structure</a>
 </p>
 
 <p align="center">
@@ -37,32 +36,35 @@ It catches the problems that regular linters miss:
 - 🔮 **Second System Effect** — Are you over-engineering for requirements that don't exist?
 - 🪤 **Tar Pit Detection** — Where is your codebase slowly sinking?
 
-## Quick Start
+## Installation
 
-### As a CLI tool
-
-```bash
-# Analyze a single file
-python3 scripts/complexity_analyzer.py your_code.py
-
-# Analyze an entire project
-python3 scripts/complexity_analyzer.py --mode=project ./your-project/
-
-# Run a tech debt assessment
-python3 scripts/complexity_analyzer.py --mode=debt ./your-project/
-```
-
-### As a Claude Code Skill
+### Via Claude Code Plugin Marketplace (recommended)
 
 ```bash
-# Install the skill
-claude install brooks-lint.skill
-
-# Then just ask Claude naturally:
-# "Review this code with brooks-lint"
-# "Run a tech debt assessment on my project"
-# "Check the architectural health of this codebase"
+/plugin install brooks-lint@hyhmrright-marketplace
 ```
+
+### Manual install (any Claude Code project)
+
+Copy the skill into your project's Claude skills directory:
+
+```bash
+cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
+```
+
+Then in your Claude session, the skill will be available automatically.
+
+### Slash Commands
+
+Once installed, use these explicit triggers:
+
+| Command | What it does |
+|---------|-------------|
+| `/brooks-review` | PR-level code review across 7 Brooks dimensions |
+| `/brooks-audit` | Full architecture audit with module dependency map |
+| `/brooks-debt` | Tech debt classification and repayment roadmap |
+
+The skill also triggers automatically when you discuss code quality, architecture, or maintainability.
 
 ## The 7 Dimensions
 
@@ -201,14 +203,25 @@ The problems Brooks identified in 1975 are more relevant than ever:
 
 ```
 brooks-lint/
-├── SKILL.md                     # Claude Code skill definition
-├── scripts/
-│   └── complexity_analyzer.py   # Core analysis engine
-├── references/
-│   ├── brooks-principles.md     # Detailed principle guide (CJK + EN)
-│   └── review-checklists.md     # Ready-to-use checklists by scenario
+├── .claude-plugin/              # Plugin metadata for /plugin install
+│   ├── plugin.json
+│   └── marketplace.json
+├── skills/
+│   └── brooks-lint/             # The skill itself
+│       ├── SKILL.md             # Main skill definition (mode-switch pattern)
+│       ├── brooks-principles.md # Scoring rubrics for all 7 dimensions
+│       ├── pr-review-guide.md   # Mode 1: PR review checklist
+│       ├── architecture-guide.md# Mode 2: Architecture audit framework
+│       └── debt-guide.md        # Mode 3: Tech debt classification
+├── hooks/                       # SessionStart hook
+│   ├── hooks.json
+│   └── session-start
+├── commands/                    # Slash commands
+│   ├── brooks-review.md         # /brooks-review
+│   ├── brooks-audit.md          # /brooks-audit
+│   └── brooks-debt.md           # /brooks-debt
 └── assets/
-    └── logo.svg                 # Project logo
+    └── logo.svg
 ```
 
 ## Roadmap
