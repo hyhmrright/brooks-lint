@@ -16,9 +16,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
-  <img src="https://img.shields.io/badge/Claude_Code-Skill-blueviolet.svg" alt="Claude Code Skill">
+  <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/github/stars/hyhmrright/brooks-lint?style=social" alt="GitHub Stars">
 </p>
 
@@ -82,59 +81,31 @@ brooks-lint evaluates your code across **7 dimensions** derived from Brooks's co
 
 ## Usage
 
-### File Analysis
+brooks-lint is **fully prompt-driven** — no scripts to run. Install the plugin and Claude does the analysis.
 
-```bash
-$ python3 scripts/complexity_analyzer.py app/services/user_service.py
+### PR Review
+
+```
+/brooks-review
 ```
 
-```json
-{
-  "filepath": "app/services/user_service.py",
-  "language": "python",
-  "total_lines": 342,
-  "code_lines": 267,
-  "max_complexity": 15,
-  "avg_complexity": 4.2,
-  "naming_consistency": 0.87,
-  "god_functions": ["process_user_registration"],
-  "todo_count": 3,
-  "hack_count": 1
-}
+Paste a diff or point Claude at changed files. Claude scores each of the 7 dimensions with specific findings.
+
+### Architecture Audit
+
+```
+/brooks-audit
 ```
 
-### Project Analysis
-
-```bash
-$ python3 scripts/complexity_analyzer.py --mode=project ./my-project/
-```
-
-```json
-{
-  "total_files": 47,
-  "total_code_lines": 8234,
-  "brooks_scores": {
-    "conceptual_integrity": "⬛⬛⬛⬛⬜ 3.8/5",
-    "module_autonomy": "⬛⬛⬛⬜⬜ 3.2/5",
-    "communication_overhead": "⬛⬛⬜⬜⬜ 2.4/5",
-    "tar_pit_health": "⬛⬛⬛⬜⬜ 3.0/5",
-    "throwaway_readiness": "⬛⬛⬛⬛⬜ 4.0/5"
-  },
-  "debt_markers": {
-    "total_todos": 12,
-    "total_hacks": 3,
-    "total_fixmes": 5
-  }
-}
-```
+Describe your project structure or share key files. Claude maps module dependencies and identifies conceptual integrity issues.
 
 ### Tech Debt Assessment
 
-```bash
-$ python3 scripts/complexity_analyzer.py --mode=debt ./my-project/
+```
+/brooks-debt
 ```
 
-Produces a classified debt report with Brooks-based categorization:
+Claude classifies your debt across 5 categories and produces a prioritized repayment roadmap:
 
 | Debt Type | Brooks Principle | Severity |
 |-----------|-----------------|----------|
@@ -176,16 +147,6 @@ Overall Health: ★★★☆☆
 | Tar Pit Score          | ⬛⬛⬛⬛⬜ 4/5 | 5 TODOs, oldest: 6 months      |
 ```
 
-## Language Support
-
-| Language | Analysis Depth |
-|----------|---------------|
-| Python | 🟢 Deep (AST-based): cyclomatic complexity, nesting depth, docstring coverage |
-| JavaScript/TypeScript | 🟡 Standard (regex-based): structure, naming, imports |
-| Go | 🟡 Standard |
-| Java | 🟡 Standard |
-| Rust | 🟡 Standard |
-
 ## Why Brooks, Why Now?
 
 In the age of AI-assisted coding, we're writing more code faster than ever. But Brooks's core insight hasn't changed:
@@ -226,9 +187,8 @@ brooks-lint/
 
 ## Roadmap
 
-- [ ] **v0.2**: JavaScript/TypeScript AST-based deep analysis  
-- [ ] **v0.3**: Dependency graph visualization (Mermaid output)
-- [ ] **v0.4**: Git history integration — track Brooks scores over time
+- [x] **v0.2**: Plugin infrastructure (`.claude-plugin/`, hooks, slash commands)
+- [ ] **v0.3**: Multi-platform support (Cursor, Codex, Gemini), automated tests
 - [ ] **v0.5**: GitHub Action for CI/CD integration
 - [ ] **v1.0**: VS Code extension
 
@@ -236,7 +196,7 @@ brooks-lint/
 
 Contributions are welcome! Whether you're fixing a bug, adding a language, or improving the Brooks principle mappings — open a PR.
 
-See our [review checklists](references/review-checklists.md) for the kind of things we value in code reviews (yes, we dogfood our own tool).
+Run `/brooks-review` on your PR to see the kind of things we value in code reviews (yes, we dogfood our own tool).
 
 ## License
 
