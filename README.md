@@ -40,7 +40,8 @@ It catches the problems that regular linters miss:
 ### Via Claude Code Plugin Marketplace (recommended)
 
 ```bash
-/plugin install brooks-lint@hyhmrright-marketplace
+/plugin marketplace add hyhmrright/brooks-lint
+/plugin install brooks-lint@hyhmrright-brooks-lint
 ```
 
 ### Manual install (any Claude Code project)
