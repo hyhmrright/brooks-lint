@@ -60,9 +60,9 @@ Once installed, use these explicit triggers:
 
 | Command | What it does |
 |---------|-------------|
-| `/brooks-review` | PR-level code review across 7 Brooks dimensions |
-| `/brooks-audit` | Full architecture audit with module dependency map |
-| `/brooks-debt` | Tech debt classification and repayment roadmap |
+| `/brooks-lint:brooks-review` | PR-level code review across 7 Brooks dimensions |
+| `/brooks-lint:brooks-audit` | Full architecture audit with module dependency map |
+| `/brooks-lint:brooks-debt` | Tech debt classification and repayment roadmap |
 
 The skill also triggers automatically when you discuss code quality, architecture, or maintainability.
 
@@ -87,7 +87,7 @@ brooks-lint is **fully prompt-driven** — no scripts to run. Install the plugin
 ### PR Review
 
 ```
-/brooks-review
+/brooks-lint:brooks-review
 ```
 
 Paste a diff or point Claude at changed files. Claude scores each of the 7 dimensions with specific findings.
@@ -95,7 +95,7 @@ Paste a diff or point Claude at changed files. Claude scores each of the 7 dimen
 ### Architecture Audit
 
 ```
-/brooks-audit
+/brooks-lint:brooks-audit
 ```
 
 Describe your project structure or share key files. Claude maps module dependencies and identifies conceptual integrity issues.
@@ -103,7 +103,7 @@ Describe your project structure or share key files. Claude maps module dependenc
 ### Tech Debt Assessment
 
 ```
-/brooks-debt
+/brooks-lint:brooks-debt
 ```
 
 Claude classifies your debt across 5 categories and produces a prioritized repayment roadmap:
@@ -197,7 +197,7 @@ brooks-lint/
 
 Contributions are welcome! Whether you're fixing a bug, adding a language, or improving the Brooks principle mappings — open a PR.
 
-Run `/brooks-review` on your PR to see the kind of things we value in code reviews (yes, we dogfood our own tool).
+Run `/brooks-lint:brooks-review` on your PR to see the kind of things we value in code reviews (yes, we dogfood our own tool).
 
 ## License
 
