@@ -41,7 +41,7 @@ It catches the problems that regular linters miss:
 
 ```bash
 /plugin marketplace add hyhmrright/brooks-lint
-/plugin install brooks-lint@hyhmrright-brooks-lint
+/plugin install brooks-lint@brooks-lint-marketplace
 ```
 
 ### Manual install (any Claude Code project)
