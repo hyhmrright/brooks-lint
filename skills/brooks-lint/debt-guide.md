@@ -101,6 +101,31 @@ Choose the single question most relevant to what you already know. After one ans
 
 **Repayment approach:** Documentation sprints + pairing. Write ADRs (Architecture Decision Records) for the most obscure decisions. Knowledge debt is repaid by spreading, not by refactoring.
 
+**子类：ADR 健康度**
+
+什么是 ADR：Architecture Decision Record，记录"为什么做出这个决策"的简短文档。Brooks 在 Ch.10 称之为"项目手册"——团队间共享的唯一事实来源。
+
+识别特征（ADR 债务）：
+- 代码库中不存在任何 ADR 或等价文档（`docs/decisions/`、`docs/adr/`、`docs/rfcs/` 均不存在）
+- ADR 存在但与当前实现不一致（记录的决策已被推翻，文档未更新）
+- 重要的架构转折点无对应 ADR（如：从单体迁移到微服务、更换核心框架）
+- ADR 只记录"做什么"，未记录"为什么"和"放弃了哪些替代方案"
+
+如何检测：
+1. 查找 `docs/`、`RFC`、`decisions/`、`adr/` 等目录是否存在
+2. 若存在，抽查 2-3 个 ADR：内容是否与当前代码一致？
+3. 识别代码中的重大架构特征，检验是否有对应 ADR 解释决策背景
+
+ADR 偿还方式：
+- 不要补写历史 ADR（成本高、准确性低）
+- 从当下开始：下一个重要决策必须配套 ADR
+- 对"无人敢动"的模块写"反向 ADR"——记录当前理解，哪怕不完整
+- ADR 最小可行模板：
+  - **背景：** 当时面对什么问题
+  - **决策：** 我们选择了什么
+  - **放弃了什么：** 考虑过但未选的替代方案
+  - **后果：** 预期的权衡与影响
+
 ---
 
 ### Category 5: Test Debt
@@ -121,6 +146,36 @@ Choose the single question most relevant to what you already know. After one ans
 - **Low:** Low coverage on stable, low-risk utility modules
 
 **Repayment approach:** Write tests for the highest-risk paths first (not the highest-traffic paths). A test that catches a $1M bug is worth more than 100 tests for string utilities.
+
+---
+
+---
+
+### Dimension 8 in Tech Debt Context
+
+在 Tech Debt 评估中，Documentation Completeness 的评估方式：
+
+代码级识别特征：
+- 公共接口无文档，理解模块必须读实现
+- 复杂业务规则内嵌于代码，无任何说明 why 的注释
+- 注释与代码不一致（描述旧行为）
+
+架构级识别特征：
+- 架构决策无 ADR，只活在原作者记忆中
+- 跨团队接口文档缺失或过时
+- 系统 README 描述的架构已被重构，文档未更新
+
+严重度：
+- **高：** 核心业务逻辑无文档 + 无 ADR → 新人上手成本极高，修改风险无法评估
+- **中：** 有部分文档但覆盖不均，架构级文档有明显滞后
+- **低：** 仅工具/脚本类代码缺文档，核心路径覆盖良好
+
+报告中 Knowledge Debt 行可细化显示：
+
+| Category | Severity | Key Evidence | Estimated Impact |
+|----------|----------|-------------|-----------------|
+| Knowledge Debt — ADR | High | 零 ADR，3 次明显架构演化无记录 | 新团队上手需 2-3 周访谈 |
+| Knowledge Debt — 人员 | Medium | 支付模块仅一人理解 | Bus factor = 1 |
 
 ---
 
