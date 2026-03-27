@@ -4,6 +4,12 @@ All notable changes to brooks-lint are documented here.
 
 ## [0.4.0] - 2026-03-27
 
+### Documentation & Benchmark
+- **README:** Full rewrite with persuasion-funnel structure — benchmark data (94% vs 16%),
+  real eval output showcase, four-column comparison table (vs ESLint/Copilot/Plain Claude)
+- **CONTRIBUTING.md:** New file — three contribution paths, local testing guide, PR conventions
+- **evals/evals.json:** Benchmark test suite added to repository (3 real-world scenarios)
+
 ### Changed
 - **Framework redesign:** Replaced eight Brooks-only scoring dimensions with six cross-book
   decay risk dimensions synthesized from six classic engineering books
