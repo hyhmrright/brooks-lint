@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="#installation">Installation</a> •
-  <a href="#the-7-dimensions">The 7 Dimensions</a> •
+  <a href="#the-8-dimensions">The 8 Dimensions</a> •
   <a href="#claude-code-skill">Claude Code Skill</a> •
   <a href="#project-structure">Project Structure</a>
 </p>
@@ -60,15 +60,15 @@ Once installed, use these explicit triggers:
 
 | Command | What it does |
 |---------|-------------|
-| `/brooks-lint:brooks-review` | PR-level code review across 7 Brooks dimensions |
+| `/brooks-lint:brooks-review` | PR-level code review across 8 Brooks dimensions |
 | `/brooks-lint:brooks-audit` | Full architecture audit with module dependency map |
 | `/brooks-lint:brooks-debt` | Tech debt classification and repayment roadmap |
 
 The skill also triggers automatically when you discuss code quality, architecture, or maintainability.
 
-## The 7 Dimensions
+## The 8 Dimensions
 
-brooks-lint evaluates your code across **7 dimensions** derived from Brooks's core principles:
+brooks-lint evaluates your code across **8 dimensions** derived from Brooks's core principles:
 
 | Dimension | What It Catches | Brooks Principle |
 |-----------|----------------|-----------------|
@@ -79,6 +79,7 @@ brooks-lint evaluates your code across **7 dimensions** derived from Brooks's co
 | **Communication Overhead** | Circular dependencies, wide interfaces, high change propagation radius | *Brooks's Law: n(n-1)/2* |
 | **Throwaway Readiness** | Prototype code in production, tightly coupled modules, missing test coverage | *"Plan to throw one away; you will, anyhow."* |
 | **Tar Pit Score** | TODO/HACK accumulation, dead code, "don't touch" zones, documentation decay | *The Tar Pit* |
+| **Documentation Completeness** | Undocumented public interfaces, missing ADRs, architecture knowledge trapped in people's heads | *"The Tower of Babel failed not from lack of vision, but lack of communication."* |
 
 ## Usage
 
@@ -90,7 +91,7 @@ brooks-lint is **fully prompt-driven** — no scripts to run. Install the plugin
 /brooks-lint:brooks-review
 ```
 
-Paste a diff or point Claude at changed files. Claude scores each of the 7 dimensions with specific findings.
+Paste a diff or point Claude at changed files. Claude scores each of the 8 dimensions with specific findings.
 
 ### Architecture Audit
 
@@ -130,22 +131,23 @@ brooks-lint ships as a **Claude Code Skill** — a plugin that makes Claude your
 
 ### Report Format
 
-Claude generates structured reports with the 7-dimension scoring:
+Claude generates structured reports with the 8-dimension scoring:
 
 ```
 🏗️ Brooks-Lint Quality Report
 
 Overall Health: ★★★☆☆
 
-| Dimension              | Score         | Key Finding                    |
-|------------------------|---------------|--------------------------------|
-| Conceptual Integrity   | ⬛⬛⬛⬜⬜ 3/5 | Mixed naming in services/      |
-| Module Autonomy        | ⬛⬛⬜⬜⬜ 2/5 | UserService is a god class     |
-| Essential vs Accidental| ⬛⬛⬛⬛⬜ 4/5 | Clean domain logic             |
-| Second System Effect   | ⬛⬛⬛⬜⬜ 3/5 | 12 unused config options       |
-| Communication Overhead | ⬛⬛⬜⬜⬜ 2/5 | 3 circular dependencies found  |
-| Throwaway Readiness    | ⬛⬛⬛⬜⬜ 3/5 | DB layer tightly coupled       |
-| Tar Pit Score          | ⬛⬛⬛⬛⬜ 4/5 | 5 TODOs, oldest: 6 months      |
+| Dimension              | Score         | Key Finding                              |
+|------------------------|---------------|------------------------------------------|
+| Conceptual Integrity   | ⬛⬛⬛⬜⬜ 3/5 | Mixed naming in services/                |
+| Module Autonomy        | ⬛⬛⬜⬜⬜ 2/5 | UserService is a god class               |
+| Essential vs Accidental| ⬛⬛⬛⬛⬜ 4/5 | Clean domain logic                       |
+| Second System Effect   | ⬛⬛⬛⬜⬜ 3/5 | 12 unused config options                 |
+| Communication Overhead | ⬛⬛⬜⬜⬜ 2/5 | 3 circular dependencies found            |
+| Throwaway Readiness    | ⬛⬛⬛⬜⬜ 3/5 | DB layer tightly coupled                 |
+| Tar Pit Score          | ⬛⬛⬛⬛⬜ 4/5 | 5 TODOs, oldest: 6 months                |
+| Documentation          | ⬛⬛⬜⬜⬜ 2/5 | code-level 3/5 · arch-level 1/5 → avg 2 |
 ```
 
 ## Why Brooks, Why Now?
@@ -171,7 +173,7 @@ brooks-lint/
 ├── skills/
 │   └── brooks-lint/             # The skill itself
 │       ├── SKILL.md             # Main skill definition (mode-switch pattern)
-│       ├── brooks-principles.md # Scoring rubrics for all 7 dimensions
+│       ├── brooks-principles.md # Scoring rubrics for all 8 dimensions
 │       ├── pr-review-guide.md   # Mode 1: PR review checklist
 │       ├── architecture-guide.md# Mode 2: Architecture audit framework
 │       └── debt-guide.md        # Mode 3: Tech debt classification
