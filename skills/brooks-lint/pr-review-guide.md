@@ -137,3 +137,26 @@ Questions:
 **Score 3:** 1-2 TODO markers with context (issue number or clear explanation).
 **Score 2:** Multiple unmarked TODOs or commented-out code left in.
 **Score 1:** The change deliberately incurs debt with no stated repayment plan.
+
+---
+
+## Dimension 8: Documentation Completeness
+
+**Quick skip（代码级）：** PR 新增的所有公共函数/接口都有说明？复杂逻辑有 why 注释？两者皆是 → ✅ 代码级跳过。
+
+**Quick skip（架构级）：** PR 不涉及架构决策或跨团队接口变更？→ ✅ 架构级 N/A。
+
+代码级检查问题：
+- 新增的公共函数/方法是否有说明调用者行为的注释？
+- 复杂逻辑或非显而易见的实现是否有 why 注释（而非 what）？
+- 修改了已有公共接口，是否同步更新了对应文档？
+- 新增参数名称是否自解释，或是否有说明？
+
+架构级检查问题（仅当 PR 涉及重要架构决策时）：
+- 是否需要新建或更新 ADR？
+- 跨团队接口变更是否有对应的接口规范更新？
+
+**Score 4-5:** 新增公共接口有完整说明，复杂逻辑有 why 注释。架构变更无或已同步 ADR。
+**Score 3:** 1-2 处公共接口缺失说明，或架构变更无 ADR 但影响有限。
+**Score 2:** 多处公共接口无文档，或重要架构变更未更新 ADR。
+**Score 1:** 大量新接口无文档，或重大架构决策无任何记录。
