@@ -2,6 +2,32 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [0.4.0] - 2026-03-27
+
+### Changed
+- **Framework redesign:** Replaced eight Brooks-only scoring dimensions with six cross-book
+  decay risk dimensions synthesized from six classic engineering books
+- **Behavioral model:** Replaced dimension scoring (1–5) with diagnosis chain
+  (Symptom → Source → Consequence → Remedy) and severity labels (🔴/🟡/🟢)
+- **Health score:** Replaced weighted average of dimension scores with deduction-based score
+  (100 − 15×Critical − 5×Warning − 1×Suggestion)
+- **SKILL.md:** Rewrote entry point with strengthened Iron Law and new report template
+- **pr-review-guide.md:** Rewrote with six-risk scan process ordered by PR-relevance
+- **architecture-guide.md:** Rewrote with six-risk audit process + Conway's Law check
+- **debt-guide.md:** Rewrote with Pain×Spread priority formula and Debt Summary Table
+- **commands/\*.md:** Updated descriptions to reference six-book framework
+
+### Added
+- `decay-risks.md`: New core knowledge file — six decay risks with full symptom lists,
+  source attributions for all six books, and severity guides
+- Six new source books: Code Complete (McConnell), Refactoring (Fowler),
+  Clean Architecture (Martin), The Pragmatic Programmer (Hunt & Thomas),
+  Domain-Driven Design (Evans)
+
+### Removed
+- `brooks-principles.md`: Replaced by `decay-risks.md`
+- Eight-dimension scoring table from output format
+
 ## [0.2.0] - 2026-03-26
 
 ### Added

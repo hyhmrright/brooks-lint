@@ -1,205 +1,105 @@
-# Tech Debt Assessment Guide — Mode 3 Framework
+# Tech Debt Assessment Guide — Mode 3
 
-**Core principle:** Not all debt is equal. Classify before prioritizing — the urgency of debt depends on how much it compounds and how much it blocks future work.
+**Purpose:** Identify, classify, and prioritize technical debt across the entire codebase.
+Every finding must follow the Iron Law: Symptom → Source → Consequence → Remedy.
 
 ---
 
 ## Evidence Gathering
 
-Before classifying, ask the user ONE targeted question if you lack sufficient evidence, then proceed with available evidence:
+If you have insufficient evidence to assess the codebase, ask the user ONE question —
+choose the single question most relevant to what you already know:
 
 1. "Which part of the codebase takes the longest to modify for a typical feature?"
 2. "Which module do developers avoid touching, and why?"
-3. "How has time-to-merge for PRs changed over the past 6 months?"
-4. "Which parts of the system have the fewest tests and the most bugs?"
-5. "Is there a module that only one person understands?"
+3. "Which parts of the system have the fewest tests and the most bugs?"
+4. "Is there a module that only one person fully understands?"
 
-Choose the single question most relevant to what you already know. After one answer, proceed — do not continue asking.
-
-If the user declines to answer or says they don't know, proceed with the available evidence and note in the report which areas could not be assessed due to missing context. Do not block the assessment on a response.
-
----
-
-## The 5 Debt Categories
-
-### Category 1: Conceptual Debt
-
-**Brooks principle:** Conceptual Integrity
-**Definition:** The codebase has no coherent design philosophy. Multiple competing patterns coexist.
-
-**Identification features:**
-- Multiple naming conventions in the same module (camelCase + snake_case, mix of languages)
-- Multiple error-handling strategies (exceptions + error codes + nulls) with no rule for which to use
-- Multiple data access patterns (ORM + raw SQL + stored procedures) without clear rules
-- API inconsistency: some endpoints return `{data: ..., error: ...}`, others return raw objects
-
-**Severity:**
-- **High:** Inconsistency in core domain logic or public API — affects every developer, every day
-- **Medium:** Inconsistency confined to one subsystem or integration layer
-- **Low:** Inconsistency in tooling, scripts, or configuration files only
-
-**Repayment approach:** Establish the canonical pattern, document it, then migrate opportunistically (fix on touch, not in bulk).
+After one answer, proceed. Do not ask more than one question.
+If the user declines or says they don't know, proceed with available evidence and note
+which areas could not be assessed.
 
 ---
 
-### Category 2: Structural Debt
+## Analysis Process
 
-**Brooks principle:** The Tar Pit / Communication Overhead
-**Definition:** Module boundaries have eroded. Dependencies are tangled.
+Work through these three steps in order.
 
-**Identification features:**
-- Circular dependencies between modules
-- "God" modules that everything depends on
-- Business logic scattered across layers (domain logic in HTTP handlers, UI logic in services)
-- Shared mutable global state
-- A change in one module reliably breaks something in an unrelated module
+### Step 1: Full Decay Risk Scan
 
-**Severity:**
-- **High:** Circular dependencies in core modules, or business logic in infrastructure — blocks refactoring and testing
-- **Medium:** Circular dependencies in peripheral modules, or mild layer violations
-- **Low:** Slightly oversized modules with clear responsibility despite the size
+Scan for all six decay risks across the entire codebase. List every finding before scoring
+any of them. This prevents anchoring on early findings and missing systemic patterns.
 
-**Repayment approach:** Strangler Fig pattern — introduce clean interfaces at module boundaries and migrate code behind them incrementally. Do not attempt big-bang refactors.
+For each risk, look for:
 
----
+**Cognitive Overload:** Are there widespread naming problems, deeply nested logic, or
+excessively long functions spread across many modules?
 
-### Category 3: Over-Engineering Debt
+**Change Propagation:** Which modules cause the most ripple effects when changed?
+Are there modules that everyone must modify when adding a new feature?
 
-**Brooks principle:** Second System Effect
-**Definition:** The system is more complex than the problem requires. Abstractions have only one implementation.
+**Knowledge Duplication:** How many times is the same concept implemented independently?
+Is the domain vocabulary consistent across the codebase?
 
-**Identification features:**
-- Interfaces with exactly one implementing class, unchanged for 6+ months
-- Configuration options never set to non-default values
-- Plugin or extension systems with only one plugin
-- Framework code larger than the application code it supports
-- Features that exist "for flexibility" but have never been used by any real user
+**Accidental Complexity:** Are there architectural layers or abstractions that add no value?
+Is the infrastructure overhead proportional to the problem being solved?
 
-**Severity:**
-- **High:** Core user flows require navigating multiple indirection layers to trace or modify
-- **Medium:** Over-engineering in supporting infrastructure (e.g., config system)
-- **Low:** A single unused abstraction in a low-traffic path
+**Dependency Disorder:** Are there dependency cycles? Does domain logic depend on infrastructure?
+Are there modules with no clear layering position?
 
-**Repayment approach:** YAGNI enforcement — delete unused abstractions, simplify interfaces to their actual usage. This type of debt is uniquely easy to repay (deletion is cheap).
+**Domain Model Distortion:** Is business logic in the right layer?
+Do code names match business names? Are domain objects anemic?
 
----
+### Step 2: Score Each Finding with Pain × Spread
 
-### Category 4: Knowledge Debt
+After listing all findings, score each one:
 
-**Brooks principle:** Surgical Team Principle
-**Definition:** Critical knowledge about the system is held by one person or lost entirely.
+**Pain score (1–3):** How much does this slow down development today?
+- 3: Developers actively avoid touching this area; it causes bugs on most changes
+- 2: This area is noticeably slower to work in than the rest of the codebase
+- 1: This is a quality issue but not currently causing active pain
 
-**Identification features:**
-- Modules commented "DO NOT TOUCH without asking [name]"
-- No tests in critical modules (can't verify correctness of changes without the original author)
-- Business rules embedded in code with no documentation of *why* they exist
-- Only one person makes PRs in a given module over a 3-month window
-- Onboarding a new developer in this area takes > 1 week
+**Spread score (1–3):** How many files, modules, or developers does this affect?
+- 3: Affects 5+ modules or all developers on the team
+- 2: Affects 2–4 modules or a subset of the team
+- 1: Isolated to one module or one developer's area
 
-**Severity:**
-- **High:** Knowledge about core business rules exists only in one person's head — single point of failure
-- **Medium:** One person is the primary expert but others could figure it out with significant effort
-- **Low:** One person is the most efficient expert but documentation exists
+**Priority = Pain × Spread** (max 9)
 
-**Repayment approach:** Documentation sprints + pairing. Write ADRs (Architecture Decision Records) for the most obscure decisions. Knowledge debt is repaid by spreading, not by refactoring.
+| Priority | Classification | Action |
+|----------|---------------|--------|
+| 7–9 | Critical debt | Address in next sprint |
+| 4–6 | Scheduled debt | Plan within quarter |
+| 1–3 | Monitored debt | Log and watch |
 
-**Sub-category: ADR Health**
+### Step 3: Group by Decay Risk
 
-What is an ADR: An Architecture Decision Record is a short document recording "why this decision was made." Brooks calls it the "project workbook" in Ch.10 — the single source of truth shared across teams.
-
-**Identification features (ADR debt):**
-- No ADRs or equivalent documents exist in the codebase (`docs/decisions/`, `docs/adr/`, `docs/rfcs/` all absent)
-- ADRs exist but are inconsistent with the current implementation (recorded decisions have been reversed without updating docs)
-- Major architectural turning points have no corresponding ADR (e.g., migrating from monolith to microservices, replacing a core framework)
-- ADRs record only "what" without recording "why" and "what alternatives were considered"
-
-**How to detect:**
-1. Check whether `docs/`, `RFC`, `decisions/`, `adr/` directories exist
-2. If they exist, sample 2-3 ADRs: does the content match the current code?
-3. Identify major architectural characteristics in the code; verify whether a corresponding ADR explains the decision context
-
-**ADR repayment approach:**
-- Do not back-fill historical ADRs (high cost, low accuracy)
-- Start from now: every significant future decision must be accompanied by an ADR
-- Write "reverse ADRs" for modules no one dares touch — record current understanding, even if incomplete
-- Minimum viable ADR template:
-  - **Context:** What problem were we facing at the time
-  - **Decision:** What we chose
-  - **Rejected alternatives:** What we considered but did not choose
-  - **Consequences:** Expected trade-offs and impact
+Report findings grouped by risk type, not by file or module.
+Grouping by risk reveals systemic patterns:
+- "Change Propagation is systemic" → architectural intervention needed
+- "Cognitive Overload is isolated" → localized refactoring sufficient
 
 ---
 
-### Category 5: Test Debt
+## Output
 
-**Brooks principle:** Plan to Throw One Away
-**Definition:** Critical paths cannot be safely changed because there is no way to verify correctness.
+Use the standard Report Template from `SKILL.md`.
+Mode: Tech Debt Assessment
 
-**Identification features:**
-- Coverage < 40% on modules that change frequently
-- Tests that only test the happy path with no edge cases
-- Tests that rely on mocking so heavily they don't test real behavior
-- Integration tests that are flaky or disabled
-- A module where the last 5 PRs all introduced regressions
-
-**Severity:**
-- **High:** Core business logic or data mutation paths have no tests — dangerous to modify
-- **Medium:** Edge cases uncovered in important paths, or tests exist but are unreliable
-- **Low:** Low coverage on stable, low-risk utility modules
-
-**Repayment approach:** Write tests for the highest-risk paths first (not the highest-traffic paths). A test that catches a $1M bug is worth more than 100 tests for string utilities.
-
----
-
-### Dimension 8 in Tech Debt Context
-
-Use the scoring rubric in `brooks-principles.md` to score the Documentation dimension. In a Tech Debt report, the severity mapping is:
-
-Severity:
-- **High:** Core business logic undocumented + no ADRs → extremely high onboarding cost, modification risk cannot be assessed
-- **Medium:** Partial documentation with uneven coverage, arch-level docs noticeably lagging
-- **Low:** Only tooling/scripts lack documentation; core paths are well covered
-
-The Knowledge Debt row in the report can be broken down as:
-
-| Category | Severity | Key Evidence | Estimated Impact |
-|----------|----------|-------------|-----------------|
-| Knowledge Debt — ADR | High | Zero ADRs, 3 major architecture changes unrecorded | New team onboarding requires 2-3 weeks of interviews |
-| Knowledge Debt — Personnel | Medium | Payment module understood by only one person | Bus factor = 1 |
-
----
-
-## Debt Report Template
-
-Use this structure in the output:
+After the Findings section, append a Debt Summary Table:
 
 ```
-## Tech Debt Classification
+## Debt Summary
 
-### Dominant Debt Type: [Category Name]
-[1-2 sentences on why this is the dominant type and what evidence supports it]
+| Risk | Findings | Avg Priority | Dominant Classification |
+|------|----------|-------------|------------------------|
+| Cognitive Overload | N | X.X | Monitored / Scheduled / Critical |
+| Change Propagation | N | X.X | ... |
+| Knowledge Duplication | N | X.X | ... |
+| Accidental Complexity | N | X.X | ... |
+| Dependency Disorder | N | X.X | ... |
+| Domain Model Distortion | N | X.X | ... |
 
-### Full Debt Inventory
-
-| Category | Severity | Key Evidence | Estimated Impact |
-|----------|----------|-------------|-----------------|
-| Conceptual Debt | High | Mixed error handling in auth module | Slows every PR that touches auth |
-| Structural Debt | Medium | Circular dep: UserService ↔ NotificationService | Risk of cascading failures |
-| Over-Engineering Debt | Low | PluginSystem with one plugin | Minor cognitive overhead |
-| Knowledge Debt | High | Payment module: only Alice understands it | Bus factor = 1 |
-| Test Debt | Medium | <20% coverage on checkout flow | Regressions in last 3 deploys |
-
-## Debt Repayment Roadmap
-
-### P0 — Address this sprint (blocking growth)
-[Items that are actively blocking feature development or causing frequent incidents]
-
-### P1 — Address next sprint (compounding)
-[Items that get worse over time if ignored]
-
-### P2 — Backlog (stable, low-urgency)
-[Items that are real debt but stable — track them, address opportunistically]
-
-### Not debt — Accept as-is
-[Things that look like debt but are actually justified complexity]
+**Recommended focus:** [The one or two risks with the highest average priority — these are
+where investment will have the most impact.]
 ```

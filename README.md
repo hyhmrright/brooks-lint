@@ -5,12 +5,12 @@
 <h1 align="center">brooks-lint</h1>
 
 <p align="center">
-  <strong>Code quality through the lens of <em>The Mythical Man-Month</em></strong>
+  <strong>Code quality reviews drawing on six classic engineering books: <em>The Mythical Man-Month</em>, <em>Code Complete</em>, <em>Refactoring</em>, <em>Clean Architecture</em>, <em>The Pragmatic Programmer</em>, and <em>Domain-Driven Design</em>.</strong>
 </p>
 
 <p align="center">
   <a href="#installation">Installation</a> •
-  <a href="#the-8-dimensions">The 8 Dimensions</a> •
+  <a href="#the-six-decay-risks">The Six Decay Risks</a> •
   <a href="#claude-code-skill">Claude Code Skill</a> •
   <a href="#project-structure">Project Structure</a>
 </p>
@@ -26,14 +26,16 @@
 > *"The bearing of a child takes nine months, no matter how many women are assigned."*
 > — Frederick Brooks, *The Mythical Man-Month* (1975)
 
-**50 years later, Brooks was still right.** Most code quality tools count lines and cyclomatic complexity. **brooks-lint** goes deeper — it evaluates your code against the timeless software engineering principles from *The Mythical Man-Month*.
+**50 years later, Brooks was still right — and so were McConnell, Fowler, Martin, Hunt & Thomas, and Evans.** Most code quality tools count lines and cyclomatic complexity. **brooks-lint** goes deeper — it diagnoses your code against six decay risk dimensions synthesized from six classic engineering books.
 
 It catches the problems that regular linters miss:
 
-- 🏗️ **Conceptual Integrity** — Does your codebase look like one person designed it, or a committee?
-- 🕸️ **Communication Overhead** — Is your module graph a clean tree or a spider web?
-- 🔮 **Second System Effect** — Are you over-engineering for requirements that don't exist?
-- 🪤 **Tar Pit Detection** — Where is your codebase slowly sinking?
+- 🧠 **Cognitive Overload** — How much mental effort does it take to understand this code?
+- 🔗 **Change Propagation** — How many unrelated things break on one change?
+- 📋 **Knowledge Duplication** — Is the same decision expressed in multiple places?
+- 🌀 **Accidental Complexity** — Is the code more complex than the problem it solves?
+- 🏗️ **Dependency Disorder** — Do dependencies flow in a consistent direction?
+- 🗺️ **Domain Model Distortion** — Does the code faithfully represent the domain?
 
 ## Installation
 
@@ -60,26 +62,24 @@ Once installed, use these explicit triggers:
 
 | Command | What it does |
 |---------|-------------|
-| `/brooks-lint:brooks-review` | PR-level code review across 8 Brooks dimensions |
+| `/brooks-lint:brooks-review` | PR-level code review across six decay risk dimensions |
 | `/brooks-lint:brooks-audit` | Full architecture audit with module dependency map |
 | `/brooks-lint:brooks-debt` | Tech debt classification and repayment roadmap |
 
 The skill also triggers automatically when you discuss code quality, architecture, or maintainability.
 
-## The 8 Dimensions
+## The Six Decay Risks
 
-brooks-lint evaluates your code across **8 dimensions** derived from Brooks's core principles:
+brooks-lint evaluates your code across **six decay risk dimensions** synthesized from six classic engineering books:
 
-| Dimension | What It Catches | Brooks Principle |
-|-----------|----------------|-----------------|
-| **Conceptual Integrity** | Mixed naming conventions, inconsistent error handling, clashing design patterns | *"I will contend that conceptual integrity is the most important consideration in system design."* |
-| **Module Autonomy** | God classes, leaky abstractions, modules that can't be understood in isolation | *Surgical Team* |
-| **Essential vs Accidental Complexity** | Framework bloat, unnecessary indirection, tools fighting the developer | *No Silver Bullet* |
-| **Second System Effect** | YAGNI violations, over-abstraction, config explosion | *"The second is the most dangerous system a man ever designs."* |
-| **Communication Overhead** | Circular dependencies, wide interfaces, high change propagation radius | *Brooks's Law: n(n-1)/2* |
-| **Throwaway Readiness** | Prototype code in production, tightly coupled modules, missing test coverage | *"Plan to throw one away; you will, anyhow."* |
-| **Tar Pit Score** | TODO/HACK accumulation, dead code, "don't touch" zones, documentation decay | *The Tar Pit* |
-| **Documentation Completeness** | Undocumented public interfaces, missing ADRs, architecture knowledge trapped in people's heads | *"The Tower of Babel failed not from lack of vision, but lack of communication."* |
+| Decay Risk | Diagnostic Question | Sources |
+|------------|---------------------|---------|
+| Cognitive Overload | How much mental effort to understand this? | Code Complete, Refactoring, DDD |
+| Change Propagation | How many unrelated things break on one change? | Refactoring, Clean Architecture, Pragmatic |
+| Knowledge Duplication | Is the same decision expressed in multiple places? | Pragmatic, Refactoring, DDD |
+| Accidental Complexity | Is the code more complex than the problem? | Refactoring, Code Complete, Brooks |
+| Dependency Disorder | Do dependencies flow in a consistent direction? | Clean Architecture, Brooks, Pragmatic |
+| Domain Model Distortion | Does the code faithfully represent the domain? | DDD, Refactoring |
 
 ## Usage
 
@@ -91,7 +91,7 @@ brooks-lint is **fully prompt-driven** — no scripts to run. Install the plugin
 /brooks-lint:brooks-review
 ```
 
-Paste a diff or point Claude at changed files. Claude scores each of the 8 dimensions with specific findings.
+Paste a diff or point Claude at changed files. Claude diagnoses each of the six decay risks with specific findings.
 
 ### Architecture Audit
 
@@ -107,15 +107,7 @@ Describe your project structure or share key files. Claude maps module dependenc
 /brooks-lint:brooks-debt
 ```
 
-Claude classifies your debt across 5 categories and produces a prioritized repayment roadmap:
-
-| Debt Type | Brooks Principle | Severity |
-|-----------|-----------------|----------|
-| Conceptual Debt | Conceptual Integrity | 🔴 HIGH |
-| Structural Debt | The Tar Pit | 🔴 HIGH |
-| Over-engineering Debt | Second System Effect | 🟡 MEDIUM |
-| Knowledge Debt | Surgical Team | 🔴 HIGH |
-| Coupling Debt | Brooks's Law | 🟡 MEDIUM |
+Claude classifies your debt across the six decay risks and produces a prioritized repayment roadmap ranked by Pain × Spread.
 
 ## Claude Code Skill
 
@@ -131,37 +123,44 @@ brooks-lint ships as a **Claude Code Skill** — a plugin that makes Claude your
 
 ### Report Format
 
-Claude generates structured reports with the 8-dimension scoring:
+Claude generates structured reports using a diagnosis chain (Symptom → Source → Consequence → Remedy):
 
 ```
-🏗️ Brooks-Lint Quality Report
+**Health Score: 72/100**
+This codebase has solid naming conventions but structural coupling is slowing feature development.
 
-Overall Health: ★★★☆☆
+---
 
-| Dimension              | Score         | Key Finding                              |
-|------------------------|---------------|------------------------------------------|
-| Conceptual Integrity   | ⬛⬛⬛⬜⬜ 3/5 | Mixed naming in services/                |
-| Module Autonomy        | ⬛⬛⬜⬜⬜ 2/5 | UserService is a god class               |
-| Essential vs Accidental| ⬛⬛⬛⬛⬜ 4/5 | Clean domain logic                       |
-| Second System Effect   | ⬛⬛⬛⬜⬜ 3/5 | 12 unused config options                 |
-| Communication Overhead | ⬛⬛⬜⬜⬜ 2/5 | 3 circular dependencies found            |
-| Throwaway Readiness    | ⬛⬛⬛⬜⬜ 3/5 | DB layer tightly coupled                 |
-| Tar Pit Score          | ⬛⬛⬛⬛⬜ 4/5 | 5 TODOs, oldest: 6 months                |
-| Documentation          | ⬛⬛⬜⬜⬜ 2/5 | code-level 3/5 · arch-level 1/5 → avg 2 |
+**Findings**
+
+🔴 Change Propagation — UserService does three jobs
+  Symptom: UserService.updateProfile() modifies user data, sends notifications, and updates
+    loyalty points in a single method
+  Source: Fowler — Refactoring: Divergent Change
+  Consequence: Any change to notification logic risks breaking profile updates and vice versa;
+    regression test scope grows with every feature
+  Remedy: Extract NotificationService and LoyaltyService; UserService calls them via interfaces
+
+🟡 Dependency Disorder — Domain imports infrastructure
+  Symptom: OrderDomain directly imports PostgresOrderRepository (concrete class)
+  Source: Martin — Clean Architecture: Dependency Inversion Principle
+  Consequence: Switching databases or adding a test double requires modifying domain code
+  Remedy: Introduce IOrderRepository interface; inject the concrete implementation
 ```
 
-## Why Brooks, Why Now?
+## Why These Books, Why Now?
 
-In the age of AI-assisted coding, we're writing more code faster than ever. But Brooks's core insight hasn't changed:
+In the age of AI-assisted coding, we're writing more code faster than ever. But the insights from six decades of software engineering haven't changed:
 
 > *"The complexity of software is an essential property, not an accidental one."*
+> — Frederick Brooks
 
-AI can help you write code faster, but it can't tell you whether you're building a cathedral or a tar pit. **brooks-lint bridges that gap** — it brings 50 years of hard-won software engineering wisdom into your modern development workflow.
+AI can help you write code faster, but it can't tell you whether you're building a cathedral or a tar pit. **brooks-lint bridges that gap** — it brings the hard-won wisdom of six classic engineering books into your modern development workflow.
 
-The problems Brooks identified in 1975 are more relevant than ever:
-- **Adding AI assistants** to a project doesn't fix conceptual integrity problems
-- **Generating more code** doesn't reduce communication overhead between modules
-- **Moving faster** makes the second system effect even more dangerous
+The decay risks these authors identified are more relevant than ever:
+- **Adding AI assistants** doesn't fix cognitive overload or domain model distortion
+- **Generating more code** increases change propagation and knowledge duplication
+- **Moving faster** makes accidental complexity and dependency disorder even more dangerous
 
 ## Project Structure
 
@@ -173,7 +172,7 @@ brooks-lint/
 ├── skills/
 │   └── brooks-lint/             # The skill itself
 │       ├── SKILL.md             # Main skill definition (mode-switch pattern)
-│       ├── brooks-principles.md # Scoring rubrics for all 8 dimensions
+│       ├── decay-risks.md       # Six decay risks with symptom lists and source attributions
 │       ├── pr-review-guide.md   # Mode 1: PR review checklist
 │       ├── architecture-guide.md# Mode 2: Architecture audit framework
 │       └── debt-guide.md        # Mode 3: Tech debt classification
@@ -191,7 +190,8 @@ brooks-lint/
 ## Roadmap
 
 - [x] **v0.2**: Plugin infrastructure (`.claude-plugin/`, hooks, slash commands)
-- [ ] **v0.3**: Multi-platform support (Cursor, Codex, Gemini), automated tests
+- [x] **v0.3**: Eight Brooks dimensions, scoring rubrics, documentation completeness
+- [x] **v0.4**: Six-book framework, decay risk dimensions, diagnosis chain (Symptom → Source → Consequence → Remedy)
 - [ ] **v0.5**: GitHub Action for CI/CD integration
 - [ ] **v1.0**: VS Code extension
 
@@ -207,13 +207,22 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-This project stands on the shoulders of Frederick P. Brooks Jr., whose *The Mythical Man-Month* (1975, Anniversary Edition 1995) remains the most important book in software engineering. The principles encoded in this tool are our interpretation of his ideas, applied to modern code quality assessment.
+This project stands on the shoulders of six giants whose books have shaped software engineering:
+
+- Frederick P. Brooks Jr. — *The Mythical Man-Month* (1975, Anniversary Edition 1995)
+- Steve McConnell — *Code Complete* (1993, 2nd ed. 2004)
+- Martin Fowler — *Refactoring* (1999, 2nd ed. 2018)
+- Robert C. Martin — *Clean Architecture* (2017)
+- Andrew Hunt & David Thomas — *The Pragmatic Programmer* (1999, 20th Anniversary Ed. 2019)
+- Eric Evans — *Domain-Driven Design* (2003)
+
+The decay risks encoded in this tool are our synthesis of their ideas, applied to modern code quality assessment.
 
 ---
 
 <p align="center">
-  <em>"Adding manpower to a late software project makes it later."</em><br>
-  — Brooks's Law
+  <em>"The bearing of a child takes nine months, no matter how many women are assigned."</em><br>
+  — Frederick Brooks, <em>The Mythical Man-Month</em>
 </p>
 
 <p align="center">
