@@ -149,21 +149,9 @@ ADR 偿还方式：
 
 ---
 
----
-
 ### Dimension 8 in Tech Debt Context
 
-在 Tech Debt 评估中，Documentation Completeness 的评估方式：
-
-代码级识别特征：
-- 公共接口无文档，理解模块必须读实现
-- 复杂业务规则内嵌于代码，无任何说明 why 的注释
-- 注释与代码不一致（描述旧行为）
-
-架构级识别特征：
-- 架构决策无 ADR，只活在原作者记忆中
-- 跨团队接口文档缺失或过时
-- 系统 README 描述的架构已被重构，文档未更新
+使用 `brooks-principles.md` 中的评分 rubric 对 Documentation 维度评分。在 Tech Debt 报告中，该维度的严重度映射如下：
 
 严重度：
 - **高：** 核心业务逻辑无文档 + 无 ADR → 新人上手成本极高，修改风险无法评估

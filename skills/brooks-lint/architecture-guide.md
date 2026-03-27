@@ -52,11 +52,6 @@ Evaluate each module against these questions:
 - Are there any upward dependencies (low-level modules depending on high-level ones)?
 - Can you trace a user request from entry to exit in a straight line, or does it bounce between layers?
 
-**Conway's Law check:**
-- Does the module structure match the team structure?
-- Are there "seam" points between modules that correspond to team or service boundaries?
-- If the team structure changed, which module boundaries would need to change?
-
 **Conceptual integrity at scale:**
 - Does the architecture look like it was designed by one mind or assembled by committee?
 - Are there multiple approaches to the same architectural problem coexisting (e.g., two different ways to handle cross-cutting concerns like logging, auth, or errors)?
@@ -139,11 +134,10 @@ Cross-cutting concerns:
 
 ## Step 5: Conway's Law Check（组织结构镜像检验）
 
-**前提：** 此节需要用户提供团队结构信息。若用户未提供，跳过本节并在报告中注明：
-> "Conway 检验需要团队结构信息，本次跳过。如需执行，请描述团队划分（哪些团队负责哪些模块）。"
-
-**若用户未主动提供，请求如下：**
+**前提：** 此节需要用户提供团队结构信息。若用户尚未提供，主动请求一次：
 > "Conway 法则检验需要了解团队划分。请简要描述：哪些团队负责哪些模块？例如：'前端团队负责 UI/，平台团队负责 core/ 和 api/'"
+
+若用户明确表示无法提供或不需要此检验，则跳过本节并在报告末注明："Conway 检验已跳过（未提供团队结构）。"
 
 ---
 
