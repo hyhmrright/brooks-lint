@@ -32,7 +32,7 @@ Violating this law produces reviews that fight the problem domain instead of imp
 - User shares code and asks "what do you think?" or "is this good?"
 - User discusses architecture, module structure, or system design
 - User asks why the codebase is hard to maintain, why velocity is declining, or why adding developers isn't helping
-- User mentions: Brooks's Law, Mythical Man-Month, conceptual integrity, second system effect, no silver bullet, tar pit, surgical team
+- User mentions: Brooks's Law, Mythical Man-Month, conceptual integrity, second system effect, no silver bullet, tar pit, surgical team, Conway's Law, ADR, architecture decision record, 团队边界, documentation coverage
 
 **Slash command triggers** (forced mode, skip mode detection):
 - `/brooks-review` → Mode 1: PR Review
@@ -110,6 +110,7 @@ All modes produce a report in this structure:
 | Communication Overhead | ⬛⬛⬜⬜⬜ 2/5 | |
 | Throwaway Readiness | ⬛⬛⬛⬜⬜ 3/5 | |
 | Tar Pit Score | ⬛⬛⬛⬛⬜ 4/5 | ✅ |
+| Documentation | ⬛⬛⬜⬜⬜ 2/5 | 代码级 2/5 · 架构级 1/5 |
 
 ## Key Findings
 
@@ -138,7 +139,7 @@ All modes produce a report in this structure:
 - 5 = exemplary, 4 = good, 3 = acceptable with caveats, 2 = needs attention, 1 = critical
 - Mark healthy dimensions as ✅ and move on — do not write padding
 - If a dimension has no evidence (e.g., Second System Effect in a single-function review), mark it as N/A with one-line reason and exclude it from the overall health calculation.
-- Overall health: weighted mean where Conceptual Integrity and Communication Overhead count double
+- Overall health: weighted mean where Conceptual Integrity and Communication Overhead count double (denominator = 10)
 
 ## Reference Files
 
