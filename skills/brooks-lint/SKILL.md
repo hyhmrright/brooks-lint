@@ -1,10 +1,13 @@
 ---
 name: brooks-lint
 description: >
-  Use for code review, architecture review, or tech debt assessment.
-  Triggers when: user asks to review code, check a pull request, review a PR,
-  discuss architecture health, assess maintainability, or mentions Brooks's Law /
-  Mythical Man-Month / conceptual integrity / second system effect / no silver bullet.
+  Code quality review drawing on six classic engineering books: The Mythical Man-Month,
+  Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer, and
+  Domain-Driven Design. Triggers when: user asks to review code, check a PR, review a
+  pull request, discuss architecture health, assess tech debt, assess maintainability,
+  or mentions Brooks's Law / Mythical Man-Month / conceptual integrity / second system
+  effect / no silver bullet / code smells / refactoring / clean architecture / DDD /
+  domain-driven design / SOLID principles.
   Also triggers when user asks why the codebase is hard to maintain,
   why adding developers isn't helping, or why complexity keeps growing.
   Use this skill proactively whenever code, a diff, or a PR is shared for review.
@@ -12,147 +15,154 @@ description: >
 
 # Brooks-Lint
 
-Code quality reviews through the lens of *The Mythical Man-Month* (Frederick Brooks, 1975).
+Code quality diagnosis using principles from six classic software engineering books.
 
 ## The Iron Law
 
-**Every system has two kinds of complexity: essential (inherent to the problem domain) and accidental (introduced by implementation choices).**
-
-The sole purpose of a Brooks-Lint review is to identify and eliminate accidental complexity. Essential complexity must be accepted — never flag it as a problem.
-
 ```
-NO REVIEW WITHOUT FIRST ASKING: IS THIS COMPLEXITY ESSENTIAL OR ACCIDENTAL?
+NEVER suggest fixes before completing risk diagnosis.
+EVERY finding must follow: Symptom → Source → Consequence → Remedy.
 ```
 
-Violating this law produces reviews that fight the problem domain instead of improving the implementation.
+Violating this law produces reviews that list rule violations without explaining why they
+matter. A finding without a consequence and a remedy is not a finding — it is noise.
 
 ## When to Use
 
-**Auto-triggers** (the Skill tool loads this skill when relevant):
+**Auto-triggers:**
 - User asks to review code, check a PR, or assess code quality
 - User shares code and asks "what do you think?" or "is this good?"
 - User discusses architecture, module structure, or system design
-- User asks why the codebase is hard to maintain, why velocity is declining, or why adding developers isn't helping
-- User mentions: Brooks's Law, Mythical Man-Month, conceptual integrity, second system effect, no silver bullet, tar pit, surgical team, Conway's Law, ADR, architecture decision record, team boundaries, documentation coverage
+- User asks why the codebase is hard to maintain, why velocity is declining
+- User mentions: code smells, refactoring, clean architecture, DDD, SOLID, Brooks,
+  conceptual integrity, second system effect, tech debt, ubiquitous language
 
-**Slash command triggers** (forced mode, skip mode detection):
-- `/brooks-review` → Mode 1: PR Review
-- `/brooks-audit` → Mode 2: Architecture Audit
-- `/brooks-debt` → Mode 3: Tech Debt Assessment
+**Slash command triggers (forced mode — skip mode detection):**
+- `/brooks-lint:brooks-review` → Mode 1: PR Review
+- `/brooks-lint:brooks-audit` → Mode 2: Architecture Audit
+- `/brooks-lint:brooks-debt` → Mode 3: Tech Debt Assessment
 
 ## Mode Detection
 
-Choose the mode that matches available context:
+Read the context and pick ONE mode before doing anything else.
 
-| Context Available | Mode |
-|-------------------|------|
-| Code diff, specific files/functions to review, PR description, or user says "review this" | **Mode 1: PR Review** |
-| Project directory structure, or user asks an architectural question about how modules fit together | **Mode 2: Architecture Audit** |
-| User asks why the codebase is hard/slow/getting worse, requests a health check, or provides code but asks about systemic debt rather than specific findings | **Mode 3: Tech Debt Assessment** |
+| Context | Mode |
+|---------|------|
+| Code diff, specific files/functions, PR description, "review this" | **Mode 1: PR Review** |
+| Project directory structure, module questions, "audit the architecture" | **Mode 2: Architecture Audit** |
+| "tech debt", "where to refactor", health check, systemic maintainability questions | **Mode 3: Tech Debt Assessment** |
 | User used a slash command | **Forced to that command's mode** |
 
-**Tiebreaker — Mode 1 vs Mode 2:** If the user shares multiple files but asks no architectural question, default to Mode 1 and note you're doing a code-level review. If they share the whole project structure or ask about module boundaries, use Mode 2.
+**If context is genuinely ambiguous after reading:** ask once — "Should I do a PR-level code
+review, a broader architecture audit, or a tech debt assessment?" — then proceed without
+further clarification questions.
 
-When context is still genuinely ambiguous after applying the tiebreaker, ask once: "Should I do a PR-level code review, a broader architecture audit, or a tech debt assessment?"
+## The Six Decay Risks
 
-## Mode 1: PR Review
+(Full definitions, symptoms, sources, and severity guides are in `decay-risks.md` — read it
+after selecting a mode.)
 
-**Trigger:** User provides specific code, a diff, or asks to review a particular file or function.
+| Risk | Diagnostic Question |
+|------|---------------------|
+| Cognitive Overload | How much mental effort to understand this? |
+| Change Propagation | How many unrelated things break on one change? |
+| Knowledge Duplication | Is the same decision expressed in multiple places? |
+| Accidental Complexity | Is the code more complex than the problem? |
+| Dependency Disorder | Do dependencies flow in a consistent direction? |
+| Domain Model Distortion | Does the code faithfully represent the domain? |
 
-**Steps:**
-1. Read `pr-review-guide.md` in this directory for the complete review checklist
-2. Evaluate the code across all 8 Brooks dimensions using that guide
-3. Skip any dimension that clearly scores 4-5 — do not manufacture problems for healthy code
-4. Output the report using the Output Format below
+## Modes
 
-**Focus:** Specific, actionable findings at the code level. Report only what you find — a short report with real problems beats a long report with padding.
+### Mode 1: PR Review
 
-## Mode 2: Architecture Audit
+1. Read `pr-review-guide.md` in this directory for the analysis process
+2. Read `decay-risks.md` in this directory for symptom definitions and source attributions
+3. Scan the diff or code for each decay risk in the order specified in the guide
+4. Apply the Iron Law to every finding
+5. Output using the Report Template below
 
-**Trigger:** User provides project directory structure, multiple related files, or asks about system-level design.
+### Mode 2: Architecture Audit
 
-**Steps:**
-1. Read `architecture-guide.md` in this directory for the full audit framework
-2. Draw the module dependency structure in text form using the template in that guide
-3. Evaluate across all 8 Brooks dimensions at the system level
-4. Output the report using the Output Format below
+1. Read `architecture-guide.md` in this directory for the analysis process
+2. Read `decay-risks.md` in this directory for symptom definitions and source attributions
+3. Draw the module dependency map
+4. Scan for each decay risk in the order specified in the guide
+5. Run the Conway's Law check
+6. Output using the Report Template below
 
-**Focus:** Module boundaries, dependency direction, communication overhead, conceptual integrity across the whole system.
+### Mode 3: Tech Debt Assessment
 
-## Mode 3: Tech Debt Assessment
+1. Read `debt-guide.md` in this directory for the analysis process
+2. Read `decay-risks.md` in this directory for symptom definitions and source attributions
+3. Scan for all six decay risks; list every finding before scoring any of them
+4. Apply the Pain × Spread priority formula
+5. Output using the Report Template below, plus the Debt Summary Table
 
-**Trigger:** User asks why the system is hard to maintain, why velocity is declining, or requests a health check without providing specific code.
-
-**Steps:**
-1. Read `debt-guide.md` in this directory for the debt classification framework
-2. If you have insufficient evidence, ask the user ONE targeted question (e.g., "Which part of the codebase is most painful to change?") then proceed with available evidence — do not ask multiple rounds of questions.
-3. Classify identified debt into the 5 categories from the guide
-4. Output the report using the Output Format below, including the debt repayment roadmap
-
-**Focus:** Systemic patterns, not individual files. Identify which Brooks principles are being violated at scale and why.
-
-## Output Format
-
-All modes produce a report in this structure:
+## Report Template
 
 ```
-# 🏗️ Brooks-Lint Review
+# Brooks-Lint Review
 
 **Mode:** [PR Review / Architecture Audit / Tech Debt Assessment]
 **Scope:** [file(s), directory, or description of what was reviewed]
-**Overall Health:** ★★★☆☆
+**Health Score:** XX/100
 
-## Brooks 8-Dimension Scores
+[One sentence overall verdict]
 
-| Dimension | Score | Key Finding |
-|-----------|-------|-------------|
-| Conceptual Integrity | ⬛⬛⬛⬜⬜ 3/5 | [one-line finding, or ✅ if clearly healthy] |
-| Module Autonomy | ⬛⬛⬜⬜⬜ 2/5 | |
-| Essential vs Accidental | ⬛⬛⬛⬛⬜ 4/5 | ✅ |
-| Second System Effect | ⬛⬛⬛⬜⬜ 3/5 | |
-| Communication Overhead | ⬛⬛⬜⬜⬜ 2/5 | |
-| Throwaway Readiness | ⬛⬛⬛⬜⬜ 3/5 | |
-| Tar Pit Score | ⬛⬛⬛⬛⬜ 4/5 | ✅ |
-| Documentation | ⬛⬛⬜⬜⬜ 2/5 | code-level 2/5 · arch-level 1/5 → avg 1.5/5 |
-| Second System Effect | N/A | Single-function review — not enough context for system-level judgment |
+---
 
-## Key Findings
+## Findings
 
-### 🔴 Critical (fix immediately / before merge)
-[Only include if any dimension scores ≤ 2. Skip section if none.]
+<!-- Sort all findings by severity: Critical first, then Warning, then Suggestion -->
+<!-- If no findings in a severity tier, omit that tier's heading -->
 
-### 🟡 Warning (plan to address)
-[Issues that compound over time if ignored.]
+### 🔴 Critical
 
-### 🟢 Strengths
-[What's working well. Always include at least one — even struggling codebases have things worth keeping.]
+**[Risk Name] — [Short descriptive title]**
+Symptom: [exactly what was observed in the code]
+Source: [Book title — Principle or Smell name]
+Consequence: [what breaks or gets worse if this is not fixed]
+Remedy: [concrete, specific action]
 
-## Recommendations
+### 🟡 Warning
 
-### P0 (blocking — do this sprint)
-### P1 (important — next sprint)
-### P2 (backlog — tech debt register)
+**[Risk Name] — [Short descriptive title]**
+Symptom: ...
+Source: ...
+Consequence: ...
+Remedy: ...
 
-## Brooks Quote
+### 🟢 Suggestion
 
-> [One quote from The Mythical Man-Month that best illuminates the most important finding in this review]
+**[Risk Name] — [Short descriptive title]**
+Symptom: ...
+Source: ...
+Consequence: ...
+Remedy: ...
+
+---
+
+## Summary
+
+[2–3 sentences: what is the most important action, and what is the overall trend]
 ```
 
-**Scoring rules:**
-- Read `brooks-principles.md` when you need the exact rubric for a score
-- 5 = exemplary, 4 = good, 3 = acceptable with caveats, 2 = needs attention, 1 = critical
-- Mark healthy dimensions as ✅ and move on — do not write padding
-- If a dimension has no evidence (e.g., Second System Effect in a single-function review), mark it as N/A with one-line reason and exclude it from the overall health calculation
-- **Documentation** scores as the average of its two sub-scores: `(code-level + arch-level) / 2`. Show both in the Key Finding column (e.g., `code-level 3/5 · arch-level 2/5 → avg 2.5/5`)
-- **Overall health formula:** weighted mean across all scored dimensions. Conceptual Integrity and Communication Overhead count double; all others count once. Denominator = sum of weights for scored dimensions only (max 10 when all 8 are scored). Stars: ≥4.5=★★★★★, ≥3.5=★★★★☆, ≥2.5=★★★☆☆, ≥1.5=★★☆☆☆, <1.5=★☆☆☆☆
+## Health Score Calculation
+
+Base score: 100
+Deductions:
+- Each 🔴 Critical finding: −15
+- Each 🟡 Warning finding: −5
+- Each 🟢 Suggestion finding: −1
+Floor: 0 (score cannot go below 0)
 
 ## Reference Files
 
-Read these files on demand — do not preload all of them:
+Read on demand — do not preload all files:
 
 | File | When to Read |
 |------|-------------|
-| `brooks-principles.md` | When you need the exact scoring rubric for any dimension |
-| `pr-review-guide.md` | At the start of every Mode 1 (PR Review) execution |
-| `architecture-guide.md` | At the start of every Mode 2 (Architecture Audit) execution |
-| `debt-guide.md` | At the start of every Mode 3 (Tech Debt Assessment) execution |
+| `decay-risks.md` | After selecting a mode, before starting the review |
+| `pr-review-guide.md` | At the start of every Mode 1 (PR Review) |
+| `architecture-guide.md` | At the start of every Mode 2 (Architecture Audit) |
+| `debt-guide.md` | At the start of every Mode 3 (Tech Debt Assessment) |
