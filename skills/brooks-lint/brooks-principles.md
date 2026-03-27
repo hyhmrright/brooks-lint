@@ -163,3 +163,56 @@
 | 3 | Acceptable | Some TODO/HACK accumulation. Minor documentation lag. No "untouchable" zones. |
 | 2 | Needs attention | Multiple HACK markers in critical paths. Some dead code. At least one module avoided by the team. |
 | 1 | Critical | Significant portions of the codebase are effectively frozen — too risky to modify without extensive archaeology. |
+
+---
+
+## 8. Documentation Completeness（文档完整性）
+
+**Brooks's insight:** "The other face of a program is the documentation it needs... the program must be used — and this requires documentation." *(Ch. 15)*
+And: "The Tower of Babel failed not from lack of vision, but lack of communication." *(Ch. 7)*
+
+**两个子维度，各自独立评分。报告中显示为：`代码级 X/5 · 架构级 Y/5`，整体分取均值。**
+
+---
+
+### 8a. Code-Level Documentation（代码级文档）
+
+覆盖：函数/类注释、公共 API 说明、非显而易见的实现决策。
+
+**Symptoms of violation:**
+- 公共函数无注释，调用者必须读实现才能理解行为
+- 复杂算法或业务规则无任何解释
+- 参数含义依赖命名猜测（`processData(x, y, flag)`）
+- 注释描述 what（代码本身已说清楚），而非 why
+
+**Scoring rubric:**
+
+| Score | Meaning | Observable Evidence |
+|-------|---------|---------------------|
+| 5 | Exemplary | 每个公共接口有完整说明。复杂逻辑有 why 注释。新开发者无需追溯实现即可使用任意模块 |
+| 4 | Good | 主要公共接口有说明，1-2 处非关键路径缺失 |
+| 3 | Acceptable | 核心接口有说明，边缘功能缺失。复杂逻辑部分有解释 |
+| 2 | Needs attention | 公共接口普遍缺乏说明。理解模块必须读实现 |
+| 1 | Critical | 几乎无文档。代码库对新人不可访问 |
+
+---
+
+### 8b. Architecture-Level Documentation（架构级文档）
+
+覆盖：ADR、设计文档、跨团队接口规范、系统级 README。
+
+**Symptoms of violation:**
+- 架构决策无记录（"为什么用这个框架？" 无人能答）
+- 跨团队接口无规范文档，只靠口头协议
+- 系统级 README 不存在或描述过时架构
+- 重要决策只存在于某人的 Slack 消息里
+
+**Scoring rubric:**
+
+| Score | Meaning | Observable Evidence |
+|-------|---------|---------------------|
+| 5 | Exemplary | ADR 存在且与当前实现一致。跨团队接口有规范文档。新团队成员可通过文档理解系统，无需访谈原作者 |
+| 4 | Good | 主要架构决策有记录，1-2 个重要决策缺失 ADR |
+| 3 | Acceptable | 有部分设计文档但不完整或有滞后。关键接口有说明 |
+| 2 | Needs attention | 架构文档几乎不存在。跨团队接口靠约定俗成 |
+| 1 | Critical | 无任何架构级文档。系统知识完全在人脑中 |
