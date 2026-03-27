@@ -32,7 +32,7 @@ Violating this law produces reviews that fight the problem domain instead of imp
 - User shares code and asks "what do you think?" or "is this good?"
 - User discusses architecture, module structure, or system design
 - User asks why the codebase is hard to maintain, why velocity is declining, or why adding developers isn't helping
-- User mentions: Brooks's Law, Mythical Man-Month, conceptual integrity, second system effect, no silver bullet, tar pit, surgical team, Conway's Law, ADR, architecture decision record, 团队边界, documentation coverage
+- User mentions: Brooks's Law, Mythical Man-Month, conceptual integrity, second system effect, no silver bullet, tar pit, surgical team, Conway's Law, ADR, architecture decision record, team boundaries, documentation coverage
 
 **Slash command triggers** (forced mode, skip mode detection):
 - `/brooks-review` → Mode 1: PR Review
@@ -110,7 +110,7 @@ All modes produce a report in this structure:
 | Communication Overhead | ⬛⬛⬜⬜⬜ 2/5 | |
 | Throwaway Readiness | ⬛⬛⬛⬜⬜ 3/5 | |
 | Tar Pit Score | ⬛⬛⬛⬛⬜ 4/5 | ✅ |
-| Documentation | ⬛⬛⬜⬜⬜ 2/5 | 代码级 2/5 · 架构级 1/5 |
+| Documentation | ⬛⬛⬜⬜⬜ 2/5 | code-level 2/5 · arch-level 1/5 |
 
 ## Key Findings
 

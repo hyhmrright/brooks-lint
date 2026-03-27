@@ -89,15 +89,15 @@ For each dimension, apply these architecture-specific criteria:
 
 **Documentation Completeness (architecture level):**
 
-代码级：
-- 5: 抽样公共接口均有完整说明，复杂逻辑有 why 注释，新人无需读实现即可使用任意模块
-- 3: 主要接口有说明，边缘功能或复杂逻辑部分缺失
-- 1: 几乎无文档，理解任意模块都必须读实现
+Code-level:
+- 5: All sampled public interfaces have complete documentation, complex logic has why-comments, new developers can use any module without reading its implementation.
+- 3: Main interfaces documented; edge cases or complex logic partially missing.
+- 1: Almost no documentation; understanding any module requires reading its implementation.
 
-架构级：
-- 5: ADR 完整且与当前实现一致，跨团队接口有规范文档，README 描述当前架构
-- 3: 有部分 ADR 但覆盖不全或有滞后，关键接口有说明
-- 1: 无 ADR，无接口规范，README 描述历史架构或不存在
+Architecture-level:
+- 5: ADRs complete and consistent with current implementation; cross-team interfaces have spec documents; README describes current architecture.
+- 3: Partial ADR coverage or lagging; key interfaces have some description.
+- 1: No ADRs, no interface specs; README describes historical architecture or doesn't exist.
 
 ---
 
@@ -132,59 +132,59 @@ Cross-cutting concerns:
 
 ---
 
-## Step 5: Conway's Law Check（组织结构镜像检验）
+## Step 5: Conway's Law Check
 
-**前提：** 此节需要用户提供团队结构信息。若用户尚未提供，主动请求一次：
-> "Conway 法则检验需要了解团队划分。请简要描述：哪些团队负责哪些模块？例如：'前端团队负责 UI/，平台团队负责 core/ 和 api/'"
+**Prerequisite:** This section requires team structure information from the user. If not yet provided, request it once:
+> "The Conway's Law check requires understanding your team structure. Please briefly describe: which teams own which modules? For example: 'Frontend team owns UI/, platform team owns core/ and api/'"
 
-若用户明确表示无法提供或不需要此检验，则跳过本节并在报告末注明："Conway 检验已跳过（未提供团队结构）。"
+If the user explicitly states they cannot provide this or do not need this check, skip this section and note at the end of the report: "Conway's Law check skipped (team structure not provided)."
 
 ---
 
-### 5a. 结构吻合度
+### 5a. Structural Alignment
 
-将用户描述的团队边界与代码模块边界对照：
+Compare the team boundaries described by the user against the code module boundaries:
 
-- 团队边界与模块边界是否吻合？
-  - ✅ 吻合：每个团队拥有清晰独立的模块集合
-  - ⚠️ 部分吻合：某些模块跨团队共同维护
-  - ❌ 不吻合：核心模块被多个团队交叉修改
+- Do team boundaries align with module boundaries?
+  - ✅ Aligned: each team owns a clear, independent set of modules
+  - ⚠️ Partial: some modules are co-maintained across teams
+  - ❌ Misaligned: core modules are modified by multiple teams
 
-- 跨团队依赖方向是否合理？
-  - ✅ 单向依赖（A 团队模块依赖 B 团队模块，反向无依赖）
-  - ❌ 双向依赖（A 依赖 B，B 也依赖 A → 暗示团队间沟通成本极高）
+- Is the cross-team dependency direction reasonable?
+  - ✅ Unidirectional (Team A's modules depend on Team B's modules, not vice versa)
+  - ❌ Bidirectional (A depends on B, B depends on A → implies very high cross-team coordination cost)
 
-### 5b. 巴别塔风险识别
+### 5b. Tower of Babel Risk Assessment
 
-Brooks 在 Ch.7 指出巴别塔失败的两个根本原因：
+Brooks identifies in Ch.7 two root causes of the Tower of Babel's failure:
 
-**1. 没有公共语言**（在代码中表现为）：
-- 跨团队接口是否有统一的数据格式/协议规范？
-- 不同团队的模块是否使用不同的命名约定、错误处理策略？
-- 是否存在"接口由一个团队定义，另一个团队按自己理解实现"的情况？
+**1. No common language** (as seen in code):
+- Do cross-team interfaces have a unified data format / protocol specification?
+- Do modules from different teams use different naming conventions or error-handling strategies?
+- Are there cases where one team defines an interface and another team implements it according to their own interpretation?
 
-**2. 没有组织**（在代码中表现为）：
-- 是否存在"无主模块"（没有团队明确负责的共享代码）？
-- 跨团队变更是否需要协调多个团队才能完成一个功能？
-- 是否有模块因为"不知道该找谁"而长期无人维护？
+**2. No organization** (as seen in code):
+- Are there "ownerless modules" (shared code no team is clearly responsible for)?
+- Do cross-team changes require coordinating multiple teams to complete a single feature?
+- Are there modules left unmaintained long-term because no one knows who to contact?
 
-### 5c. 报告输出格式
+### 5c. Report Output Format
 
-在 Architecture Audit 报告末尾追加：
+Append to the end of the Architecture Audit report:
 
 ```
 ## Conway's Law Check
 
-**团队结构：** [用户提供的描述]
-**结构吻合度：** ✅ 良好 / ⚠️ 部分问题 / ❌ 严重错位
+**Team Structure:** [description provided by user]
+**Structural Alignment:** ✅ Good / ⚠️ Partial issues / ❌ Severe misalignment
 
-| 检验项 | 状态 | 发现 |
-|--------|------|------|
-| 团队边界 ↔ 模块边界吻合 | ✅/⚠️/❌ | [一行描述] |
-| 跨团队依赖方向 | ✅/⚠️/❌ | [一行描述] |
-| 公共语言（接口规范） | ✅/⚠️/❌ | [一行描述] |
-| 无主模块风险 | ✅/⚠️/❌ | [一行描述] |
+| Check | Status | Finding |
+|-------|--------|---------|
+| Team boundaries ↔ module boundaries | ✅/⚠️/❌ | [one-line description] |
+| Cross-team dependency direction | ✅/⚠️/❌ | [one-line description] |
+| Common language (interface specs) | ✅/⚠️/❌ | [one-line description] |
+| Ownerless module risk | ✅/⚠️/❌ | [one-line description] |
 
-**巴别塔风险等级：** 低 / 中 / 高
-[2-3 句总结最关键的发现]
+**Tower of Babel Risk Level:** Low / Medium / High
+[2-3 sentences summarizing the most critical findings]
 ```

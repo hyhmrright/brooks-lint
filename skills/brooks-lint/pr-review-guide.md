@@ -142,21 +142,21 @@ Questions:
 
 ## Dimension 8: Documentation Completeness
 
-**Quick skip（代码级）：** PR 新增的所有公共函数/接口都有说明？复杂逻辑有 why 注释？两者皆是 → ✅ 代码级跳过。
+**Quick skip (code-level):** Do all new public functions/interfaces have explanatory comments? Do complex logic blocks have why-comments? If both yes → ✅ skip code-level.
 
-**Quick skip（架构级）：** PR 不涉及架构决策或跨团队接口变更？→ ✅ 架构级 N/A。
+**Quick skip (arch-level):** Does this PR involve no architectural decisions or cross-team interface changes? → ✅ arch-level N/A.
 
-代码级检查问题：
-- 新增的公共函数/方法是否有说明调用者行为的注释？
-- 复杂逻辑或非显而易见的实现是否有 why 注释（而非 what）？
-- 修改了已有公共接口，是否同步更新了对应文档？
-- 新增参数名称是否自解释，或是否有说明？
+Code-level questions:
+- Do newly added public functions/methods have comments describing their behavior to callers?
+- Do complex or non-obvious implementations have why-comments (not what-comments)?
+- If an existing public interface was modified, was its documentation updated accordingly?
+- Are new parameter names self-explanatory, or are they explained in a comment?
 
-架构级检查问题（仅当 PR 涉及重要架构决策时）：
-- 是否需要新建或更新 ADR？
-- 跨团队接口变更是否有对应的接口规范更新？
+Arch-level questions (only when the PR involves significant architectural decisions):
+- Does this change require creating or updating an ADR?
+- If cross-team interfaces changed, is there a corresponding interface spec update?
 
-**Score 4-5:** 新增公共接口有完整说明，复杂逻辑有 why 注释。架构变更无或已同步 ADR。
-**Score 3:** 1-2 处公共接口缺失说明，或架构变更无 ADR 但影响有限。
-**Score 2:** 多处公共接口无文档，或重要架构变更未更新 ADR。
-**Score 1:** 大量新接口无文档，或重大架构决策无任何记录。
+**Score 4-5:** New public interfaces have complete documentation, complex logic has why-comments. No architectural changes, or ADR already updated.
+**Score 3:** 1-2 public interfaces missing documentation, or architectural change has no ADR but impact is limited.
+**Score 2:** Multiple public interfaces undocumented, or significant architectural change with no ADR update.
+**Score 1:** Large number of new interfaces undocumented, or major architectural decision with no record at all.
