@@ -92,6 +92,18 @@ For each dimension, apply these architecture-specific criteria:
 - 3: Some over-engineering at the edges (e.g., plugin system with one plugin).
 - 1: More architecture than product. The system is primarily a framework.
 
+**Documentation Completeness (architecture level):**
+
+代码级：
+- 5: 抽样公共接口均有完整说明，复杂逻辑有 why 注释，新人无需读实现即可使用任意模块
+- 3: 主要接口有说明，边缘功能或复杂逻辑部分缺失
+- 1: 几乎无文档，理解任意模块都必须读实现
+
+架构级：
+- 5: ADR 完整且与当前实现一致，跨团队接口有规范文档，README 描述当前架构
+- 3: 有部分 ADR 但覆盖不全或有滞后，关键接口有说明
+- 1: 无 ADR，无接口规范，README 描述历史架构或不存在
+
 ---
 
 ## Module Dependency Map Template
@@ -121,4 +133,64 @@ Cross-cutting concerns:
   [ServiceX] ──► [Database]  (bypasses repository abstraction)
   [ComponentA] ──► [ServiceY]  (presentation depends on domain ✓)
   [ServiceX] ──► [ComponentB]  (domain depends on presentation ✗)
+```
+
+---
+
+## Step 5: Conway's Law Check（组织结构镜像检验）
+
+**前提：** 此节需要用户提供团队结构信息。若用户未提供，跳过本节并在报告中注明：
+> "Conway 检验需要团队结构信息，本次跳过。如需执行，请描述团队划分（哪些团队负责哪些模块）。"
+
+**若用户未主动提供，请求如下：**
+> "Conway 法则检验需要了解团队划分。请简要描述：哪些团队负责哪些模块？例如：'前端团队负责 UI/，平台团队负责 core/ 和 api/'"
+
+---
+
+### 5a. 结构吻合度
+
+将用户描述的团队边界与代码模块边界对照：
+
+- 团队边界与模块边界是否吻合？
+  - ✅ 吻合：每个团队拥有清晰独立的模块集合
+  - ⚠️ 部分吻合：某些模块跨团队共同维护
+  - ❌ 不吻合：核心模块被多个团队交叉修改
+
+- 跨团队依赖方向是否合理？
+  - ✅ 单向依赖（A 团队模块依赖 B 团队模块，反向无依赖）
+  - ❌ 双向依赖（A 依赖 B，B 也依赖 A → 暗示团队间沟通成本极高）
+
+### 5b. 巴别塔风险识别
+
+Brooks 在 Ch.7 指出巴别塔失败的两个根本原因：
+
+**1. 没有公共语言**（在代码中表现为）：
+- 跨团队接口是否有统一的数据格式/协议规范？
+- 不同团队的模块是否使用不同的命名约定、错误处理策略？
+- 是否存在"接口由一个团队定义，另一个团队按自己理解实现"的情况？
+
+**2. 没有组织**（在代码中表现为）：
+- 是否存在"无主模块"（没有团队明确负责的共享代码）？
+- 跨团队变更是否需要协调多个团队才能完成一个功能？
+- 是否有模块因为"不知道该找谁"而长期无人维护？
+
+### 5c. 报告输出格式
+
+在 Architecture Audit 报告末尾追加：
+
+```
+## Conway's Law Check
+
+**团队结构：** [用户提供的描述]
+**结构吻合度：** ✅ 良好 / ⚠️ 部分问题 / ❌ 严重错位
+
+| 检验项 | 状态 | 发现 |
+|--------|------|------|
+| 团队边界 ↔ 模块边界吻合 | ✅/⚠️/❌ | [一行描述] |
+| 跨团队依赖方向 | ✅/⚠️/❌ | [一行描述] |
+| 公共语言（接口规范） | ✅/⚠️/❌ | [一行描述] |
+| 无主模块风险 | ✅/⚠️/❌ | [一行描述] |
+
+**巴别塔风险等级：** 低 / 中 / 高
+[2-3 句总结最关键的发现]
 ```
