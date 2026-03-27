@@ -9,7 +9,9 @@
 1. Read through the diff or code provided
 2. For each dimension, answer the questions below
 3. Record findings only where you find problems (score ≤ 3)
-4. Use the quick-skip rule: if the first 2 questions for a dimension are clearly fine, score it ✅ and skip to the next dimension
+4. Use the quick-skip rule: each dimension has a quick-skip condition — if it's clearly satisfied, score that dimension ✅ and move on without reading all the questions
+
+**Auto-generated code:** If the diff contains generated files (protobuf stubs, OpenAPI clients, ORM migrations, lock files, minified bundles), skip those files entirely for all dimensions — generated code reflects tool choices, not developer decisions, and flagging its style or structure produces noise without value. Note in the report which files were skipped and why.
 
 ---
 
@@ -52,7 +54,7 @@ Questions:
 
 ## Dimension 3: Essential vs Accidental Complexity
 
-**Quick skip:** Does every new abstraction have at least 2 call sites in this diff? If yes → ✅ skip.
+**Quick skip:** Does every new abstraction have at least 2 call sites in the current codebase (including this diff)? If yes → ✅ skip.
 
 Questions:
 - Does every new function, class, or interface have at least 2 call sites in the current codebase (including this diff)?
@@ -88,7 +90,7 @@ Questions:
 
 ## Dimension 5: Communication Overhead
 
-**Quick skip:** Does the diff touch fewer than 3 modules? If yes → ✅ skip.
+**Quick skip:** Does the diff touch fewer than 3 modules AND introduce no new imports between previously unconnected modules? If yes → ✅ skip.
 
 Questions:
 - Does the diff introduce any new dependency from a higher-level module to a lower-level one?

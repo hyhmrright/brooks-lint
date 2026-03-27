@@ -1,6 +1,6 @@
 # Brooks Principles — Scoring Rubrics
 
-**Core principle:** Read this file when you need the exact criteria to assign a score to any of the 7 dimensions. Each dimension has: the original Brooks insight, observable code-level symptoms, and a 1-5 rubric.
+**Core principle:** Read this file when you need the exact criteria to assign a score to any of the 8 dimensions. Each dimension has: the original Brooks insight, observable code-level symptoms, and a 1-5 rubric.
 
 ---
 

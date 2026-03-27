@@ -16,6 +16,8 @@ Before classifying, ask the user ONE targeted question if you lack sufficient ev
 
 Choose the single question most relevant to what you already know. After one answer, proceed — do not continue asking.
 
+If the user declines to answer or says they don't know, proceed with the available evidence and note in the report which areas could not be assessed due to missing context. Do not block the assessment on a response.
+
 ---
 
 ## The 5 Debt Categories

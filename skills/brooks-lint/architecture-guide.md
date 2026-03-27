@@ -2,6 +2,8 @@
 
 **Core principle:** Architecture reveals intent. Before scoring, draw the dependency graph — it makes violations visible that prose descriptions hide.
 
+**Monorepo note:** In a monorepo, treat each deployable service or library as a top-level module in the dependency map. Draw dependencies between services (not between their internal packages). Apply the Conway's Law check at the service ownership level, not the file level. Within a single service, apply the standard module-level analysis.
+
 ---
 
 ## Step 1: Draw the Module Dependency Map
@@ -86,6 +88,21 @@ For each dimension, apply these architecture-specific criteria:
 - 5: Architecture solves the problems the system actually has. No speculative infrastructure.
 - 3: Some over-engineering at the edges (e.g., plugin system with one plugin).
 - 1: More architecture than product. The system is primarily a framework.
+
+**Essential vs Accidental Complexity (architecture level):**
+- 5: The dependency graph reflects the problem domain. Framework and infrastructure choices are invisible — they serve the domain without imposing their structure on it.
+- 3: Infrastructure overhead is noticeable but domain logic remains the primary concern.
+- 1: Infrastructure or framework constraints dominate the architecture. Developers spend more time satisfying the framework than solving the actual problem.
+
+**Throwaway Readiness (architecture level):**
+- 5: Every module is replaceable independently. Clear interface contracts at all boundaries. Critical paths have test coverage sufficient to verify a replacement.
+- 3: Core modules are replaceable; integration and infrastructure modules are more tightly coupled.
+- 1: No module can be replaced without cascading changes throughout the system. Interfaces are absent or tightly implementation-coupled.
+
+**Tar Pit Score (architecture level):**
+- 5: No "forbidden zones." All modules have active ownership. Architectural documentation matches current implementation.
+- 3: Some accumulated cruft (deprecated modules still in the dependency graph, orphaned services). No truly untouchable areas.
+- 1: Significant portions of the architecture are effectively frozen — too risky to modify because no one understands them or tests cover them.
 
 **Documentation Completeness (architecture level):**
 

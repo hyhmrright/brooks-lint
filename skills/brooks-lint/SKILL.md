@@ -2,11 +2,12 @@
 name: brooks-lint
 description: >
   Use for code review, architecture review, or tech debt assessment.
-  Triggers when: user asks to review code, discuss architecture health,
-  assess maintainability, or mentions Brooks's Law / Mythical Man-Month /
-  conceptual integrity / second system effect / no silver bullet.
+  Triggers when: user asks to review code, check a pull request, review a PR,
+  discuss architecture health, assess maintainability, or mentions Brooks's Law /
+  Mythical Man-Month / conceptual integrity / second system effect / no silver bullet.
   Also triggers when user asks why the codebase is hard to maintain,
   why adding developers isn't helping, or why complexity keeps growing.
+  Use this skill proactively whenever code, a diff, or a PR is shared for review.
 ---
 
 # Brooks-Lint
@@ -45,12 +46,14 @@ Choose the mode that matches available context:
 
 | Context Available | Mode |
 |-------------------|------|
-| Code diff, specific files, functions to review, PR description | **Mode 1: PR Review** |
-| Project directory structure, multiple files, architectural question | **Mode 2: Architecture Audit** |
-| User asks "why is it slow/hard/getting worse?" without providing specific code | **Mode 3: Tech Debt Assessment** |
+| Code diff, specific files/functions to review, PR description, or user says "review this" | **Mode 1: PR Review** |
+| Project directory structure, or user asks an architectural question about how modules fit together | **Mode 2: Architecture Audit** |
+| User asks why the codebase is hard/slow/getting worse, requests a health check, or provides code but asks about systemic debt rather than specific findings | **Mode 3: Tech Debt Assessment** |
 | User used a slash command | **Forced to that command's mode** |
 
-When context is genuinely ambiguous, ask once: "Should I do a PR-level code review, a broader architecture audit, or a tech debt assessment?"
+**Tiebreaker — Mode 1 vs Mode 2:** If the user shares multiple files but asks no architectural question, default to Mode 1 and note you're doing a code-level review. If they share the whole project structure or ask about module boundaries, use Mode 2.
+
+When context is still genuinely ambiguous after applying the tiebreaker, ask once: "Should I do a PR-level code review, a broader architecture audit, or a tech debt assessment?"
 
 ## Mode 1: PR Review
 
@@ -58,7 +61,7 @@ When context is genuinely ambiguous, ask once: "Should I do a PR-level code revi
 
 **Steps:**
 1. Read `pr-review-guide.md` in this directory for the complete review checklist
-2. Evaluate the code across the 7 Brooks dimensions using that guide
+2. Evaluate the code across all 8 Brooks dimensions using that guide
 3. Skip any dimension that clearly scores 4-5 — do not manufacture problems for healthy code
 4. Output the report using the Output Format below
 
@@ -71,7 +74,7 @@ When context is genuinely ambiguous, ask once: "Should I do a PR-level code revi
 **Steps:**
 1. Read `architecture-guide.md` in this directory for the full audit framework
 2. Draw the module dependency structure in text form using the template in that guide
-3. Evaluate across the 7 Brooks dimensions at the system level
+3. Evaluate across all 8 Brooks dimensions at the system level
 4. Output the report using the Output Format below
 
 **Focus:** Module boundaries, dependency direction, communication overhead, conceptual integrity across the whole system.
@@ -99,7 +102,7 @@ All modes produce a report in this structure:
 **Scope:** [file(s), directory, or description of what was reviewed]
 **Overall Health:** ★★★☆☆
 
-## Brooks 7-Dimension Scores
+## Brooks 8-Dimension Scores
 
 | Dimension | Score | Key Finding |
 |-----------|-------|-------------|
@@ -110,7 +113,8 @@ All modes produce a report in this structure:
 | Communication Overhead | ⬛⬛⬜⬜⬜ 2/5 | |
 | Throwaway Readiness | ⬛⬛⬛⬜⬜ 3/5 | |
 | Tar Pit Score | ⬛⬛⬛⬛⬜ 4/5 | ✅ |
-| Documentation | ⬛⬛⬜⬜⬜ 2/5 | code-level 2/5 · arch-level 1/5 |
+| Documentation | ⬛⬛⬜⬜⬜ 2/5 | code-level 2/5 · arch-level 1/5 → avg 1.5/5 |
+| Second System Effect | N/A | Single-function review — not enough context for system-level judgment |
 
 ## Key Findings
 
@@ -138,8 +142,9 @@ All modes produce a report in this structure:
 - Read `brooks-principles.md` when you need the exact rubric for a score
 - 5 = exemplary, 4 = good, 3 = acceptable with caveats, 2 = needs attention, 1 = critical
 - Mark healthy dimensions as ✅ and move on — do not write padding
-- If a dimension has no evidence (e.g., Second System Effect in a single-function review), mark it as N/A with one-line reason and exclude it from the overall health calculation.
-- Overall health: weighted mean where Conceptual Integrity and Communication Overhead count double (denominator = 10)
+- If a dimension has no evidence (e.g., Second System Effect in a single-function review), mark it as N/A with one-line reason and exclude it from the overall health calculation
+- **Documentation** scores as the average of its two sub-scores: `(code-level + arch-level) / 2`. Show both in the Key Finding column (e.g., `code-level 3/5 · arch-level 2/5 → avg 2.5/5`)
+- **Overall health formula:** weighted mean across all scored dimensions. Conceptual Integrity and Communication Overhead count double; all others count once. Denominator = sum of weights for scored dimensions only (max 10 when all 8 are scored). Stars: ≥4.5=★★★★★, ≥3.5=★★★★☆, ≥2.5=★★★☆☆, ≥1.5=★★☆☆☆, <1.5=★☆☆☆☆
 
 ## Reference Files
 
