@@ -137,8 +137,8 @@ the mocks are set up correctly — and they always are, because the developer wr
 | Symptom | Book | Principle / Smell |
 |---------|------|-------------------|
 | Mock count > 3 | Osherove — The Art of Unit Testing | Mock usage guidelines |
-| Testing mock behavior | obra/superpowers TDD | testing-anti-patterns: Testing Mock Behavior |
-| Test-only production methods | obra/superpowers TDD | testing-anti-patterns: Test-Only Methods in Production |
+| Testing mock behavior | Meszaros — xUnit Test Patterns | Behavior Verification (p.544) |
+| Test-only production methods | Feathers — Working Effectively with Legacy Code | Ch.3: Sensing and Separation |
 | Hard-Coded Test Data | Meszaros — xUnit Test Patterns | Hard-Coded Test Data (p.534) |
 | Incomplete Mock | Osherove — The Art of Unit Testing | Mock completeness requirement |
 
@@ -175,7 +175,7 @@ because the number says they are covered.
 | Symptom | Book | Principle / Smell |
 |---------|------|-------------------|
 | Legacy code = no tests | Feathers — Working Effectively with Legacy Code | Ch.1: "Legacy code is code without tests" |
-| Change coverage vs line coverage | Google — How Google Tests Software | Test coverage strategy |
+| Change coverage vs line coverage | Google — How Google Tests Software | Ch.11: Testing at Google Scale |
 | Happy-path only | Osherove — The Art of Unit Testing | Test completeness principle |
 
 ### Severity Guide
