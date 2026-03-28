@@ -9,8 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Install
 
 ```bash
-# Via plugin manager (recommended)
-/plugin install hyhmrright/brooks-lint
+# Via plugin marketplace (recommended)
+/plugin marketplace add hyhmrright/brooks-lint
+/plugin install brooks-lint@brooks-lint-marketplace
 
 # Manual
 cp -r skills/brooks-lint/ ~/.claude/skills/brooks-lint
