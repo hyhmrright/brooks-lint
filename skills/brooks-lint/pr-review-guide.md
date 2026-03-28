@@ -15,7 +15,7 @@ tool choices, not developer decisions. Note in the report which files were skipp
 
 ## Analysis Process
 
-Work through these six steps in order. Do not skip steps.
+Work through these seven steps in order. Do not skip steps.
 
 ### Step 1: Understand the scope
 
@@ -96,3 +96,57 @@ cannot state a consequence, you have not understood the risk well enough — re-
 Use the standard Report Template from `SKILL.md`.
 Mode: PR Review
 Scope: list the files reviewed (excluding skipped generated files).
+
+---
+
+### Step 7: Quick Test Check
+
+*Run this last. Three signals only — this is not a full Mode 4 review.*
+
+If the diff contains only generated files, configuration, or documentation with no
+production logic changes → skip Step 7 entirely.
+
+**Signal 1: Do tests exist for the changed behavior?**
+
+- Does the diff modify production code?
+- Are corresponding test file changes included in the diff?
+- If new public behavior was added with no new tests:
+  → 🟡 Warning: Coverage Illusion — new behavior is untested
+  → Source: Feathers — Working Effectively with Legacy Code, Ch.1
+- If the change is a pure refactor and existing tests cover the behavior → no finding.
+
+**Signal 2: Quick Mock Abuse sniff**
+
+Only check if the diff includes test file changes.
+
+- Is mock setup code in new/modified tests obviously longer than the test logic?
+- Are the primary assertions `expect(mock).toHaveBeenCalledWith(...)` with no behavior verification?
+- Does the diff add any methods to production classes that are only called from test files?
+
+If any of these are true:
+  → 🟡 Warning: Mock Abuse — test complexity exceeds behavior complexity
+  → Source: Osherove — The Art of Unit Testing, mock usage guidelines
+
+**Signal 3: Quick Test Obscurity sniff**
+
+Only check if the diff includes test file changes.
+
+- Do new test names express scenario and expected outcome?
+  (Pattern: `methodName_scenario_expectedResult` or equivalent)
+- Are there new tests with multiple assertions and no message strings on any of them?
+
+If test names are vague or assertions lack messages:
+  → 🟢 Suggestion: Test Obscurity — test intent is unclear from the test name or assertions
+  → Source: Meszaros — xUnit Test Patterns, Assertion Roulette (p.224)
+
+**Output rule:**
+
+If all three signals are clean → write no Test findings. Proceed directly to the report.
+
+If findings exist → add them to the Findings section using the standard Iron Law format.
+Label the risk as the test decay risk name (e.g., "Coverage Illusion", "Mock Abuse",
+"Test Obscurity").
+
+> **Note:** Step 7 is a fast check, not a full test audit. When systemic test problems
+> are found, note in the Summary: "Consider running `/brooks-lint:brooks-test` for a
+> complete test quality diagnosis."

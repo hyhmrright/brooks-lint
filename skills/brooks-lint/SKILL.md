@@ -10,7 +10,10 @@ description: >
   domain-driven design / SOLID principles.
   Also triggers when user asks why the codebase is hard to maintain,
   why adding developers isn't helping, or why complexity keeps growing.
+  Also triggers when user asks about test quality, flaky tests, mock abuse,
+  test debt, or legacy code testability.
   Use this skill proactively whenever code, a diff, or a PR is shared for review.
+  Use this skill proactively whenever test files are shared for review.
 ---
 
 # Brooks-Lint
@@ -35,12 +38,15 @@ matter. A finding without a consequence and a remedy is not a finding — it is 
 - User discusses architecture, module structure, or system design
 - User asks why the codebase is hard to maintain, why velocity is declining
 - User mentions: code smells, refactoring, clean architecture, DDD, SOLID, Brooks,
-  conceptual integrity, second system effect, tech debt, ubiquitous language
+  conceptual integrity, second system effect, tech debt, ubiquitous language,
+  test smells, test debt, unit testing quality, flaky tests, mock abuse,
+  legacy code testability, characterization tests
 
 **Slash command triggers (forced mode — skip mode detection):**
 - `/brooks-lint:brooks-review` → Mode 1: PR Review
 - `/brooks-lint:brooks-audit` → Mode 2: Architecture Audit
 - `/brooks-lint:brooks-debt` → Mode 3: Tech Debt Assessment
+- `/brooks-lint:brooks-test` → Mode 4: Test Quality Review
 
 ## Mode Detection
 
@@ -51,6 +57,7 @@ Read the context and pick ONE mode before doing anything else.
 | Code diff, specific files/functions, PR description, "review this" | **Mode 1: PR Review** |
 | Project directory structure, module questions, "audit the architecture" | **Mode 2: Architecture Audit** |
 | "tech debt", "where to refactor", health check, systemic maintainability questions | **Mode 3: Tech Debt Assessment** |
+| Test files shared, "are our tests good?", test debt, flaky tests, mock abuse, legacy code testability | **Mode 4: Test Quality Review** |
 | User used a slash command | **Forced to that command's mode** |
 
 **If context is genuinely ambiguous after reading:** ask once — "Should I do a PR-level code
@@ -97,6 +104,14 @@ after selecting a mode.)
 3. Scan for all six decay risks; list every finding before scoring any of them
 4. Apply the Pain × Spread priority formula
 5. Output using the Report Template below, plus the Debt Summary Table
+
+### Mode 4: Test Quality Review
+
+1. Read `test-guide.md` in this directory for the analysis process
+2. Read `test-decay-risks.md` in this directory for symptom definitions and source attributions
+3. Build the test suite map (unit/integration/E2E counts and ratio)
+4. Scan for each test decay risk in the order specified in the guide
+5. Output using the Report Template below
 
 ## Report Template
 
@@ -166,3 +181,5 @@ Read on demand — do not preload all files:
 | `pr-review-guide.md` | At the start of every Mode 1 (PR Review) |
 | `architecture-guide.md` | At the start of every Mode 2 (Architecture Audit) |
 | `debt-guide.md` | At the start of every Mode 3 (Tech Debt Assessment) |
+| `test-guide.md` | At the start of every Mode 4 (Test Quality Review) |
+| `test-decay-risks.md` | After selecting Mode 4, before starting the review |
