@@ -20,13 +20,15 @@ explanation of why it matters.
 
 ### 2. Improve a guide file (no code required)
 
-The three guide files define how Claude analyzes each scenario:
+The guide files define how Claude analyzes each scenario:
 
 | File | What it controls |
 |------|-----------------|
-| `skills/brooks-lint/pr-review-guide.md` | How PR reviews are structured |
+| `skills/brooks-lint/pr-review-guide.md` | How PR reviews are structured (incl. Step 7 Quick Test Check) |
 | `skills/brooks-lint/architecture-guide.md` | How architecture audits run |
 | `skills/brooks-lint/debt-guide.md` | How tech debt is classified and scored |
+| `skills/brooks-lint/test-guide.md` | How test quality reviews run (Mode 4) |
+| `skills/brooks-lint/test-decay-risks.md` | Six test-space decay risks with book citations |
 
 Better heuristics here mean better reviews for every user. If you find the skill
 misses something important or produces a finding that's consistently wrong, the
@@ -79,6 +81,7 @@ Then open Claude Code and run one of the slash commands:
 /brooks-lint:brooks-review
 /brooks-lint:brooks-audit
 /brooks-lint:brooks-debt
+/brooks-lint:brooks-test
 ```
 
 ## PR Conventions

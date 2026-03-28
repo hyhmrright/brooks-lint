@@ -2,6 +2,42 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [0.5.0] - 2026-03-28
+
+### Added
+
+- **Mode 4: Test Quality Review** — new dedicated mode for diagnosing test suite health,
+  triggered by `/brooks-lint:brooks-test` or automatically when test files are shared
+- `test-decay-risks.md`: Six test-space decay risks mirroring the six production decay risks,
+  sourced from four classic testing books:
+  - T1: Test Obscurity (Meszaros — Assertion Roulette, Mystery Guest)
+  - T2: Test Brittleness (Meszaros — Eager Test; Osherove — isolation principle)
+  - T3: Test Duplication (Meszaros — Lazy Test; Hunt & Thomas — DRY)
+  - T4: Mock Abuse (Osherove — mock guidelines; Meszaros — Hard-Coded Test Data)
+  - T5: Coverage Illusion (Feathers — "legacy code = no tests"; Google — coverage strategy)
+  - T6: Architecture Mismatch (Google — 70:20:10 pyramid; Feathers — Seam Model)
+- `test-guide.md`: Mode 4 five-step analysis process with test suite map
+- `commands/brooks-test.md`: `/brooks-lint:brooks-test` slash command
+- **PR Review Step 7: Quick Test Check** — lightweight three-signal test scan appended
+  to every Mode 1 review (Coverage Illusion, Mock Abuse, Test Obscurity signals)
+
+### Changed
+
+- `SKILL.md`: Added Mode 4 to mode detection table, trigger words, slash command list,
+  and Reference Files table
+- `pr-review-guide.md`: Added Step 7 Quick Test Check; updated "six steps" → "seven steps"
+- `CLAUDE.md`: Updated architecture description, directory tree, "How the skill works"
+  steps, and Roadmap to reflect v0.5 state
+
+### Source Books Added (Test Quality Framework)
+
+- Gerard Meszaros — *xUnit Test Patterns* (2007)
+- Roy Osherove — *The Art of Unit Testing* (2009, 3rd ed. 2023)
+- Google Engineering — *How Google Tests Software* (2012)
+- Michael Feathers — *Working Effectively with Legacy Code* (2004)
+
+---
+
 ## [0.4.0] - 2026-03-27
 
 ### Documentation & Benchmark

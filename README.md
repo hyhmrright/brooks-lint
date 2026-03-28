@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.4.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.5.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/github/stars/hyhmrright/brooks-lint?style=social" alt="GitHub Stars">
@@ -139,8 +139,9 @@ cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
 | `/brooks-lint:brooks-review` | PR-level code review across six decay risk dimensions |
 | `/brooks-lint:brooks-audit` | Full architecture audit with module dependency map |
 | `/brooks-lint:brooks-debt` | Tech debt classification ranked by Pain × Spread |
+| `/brooks-lint:brooks-test` | Test suite health review across six test decay risks |
 
-The skill also triggers automatically when you discuss code quality, architecture, or maintainability.
+The skill also triggers automatically when you discuss code quality, architecture, maintainability, or test health.
 
 ## Usage
 
@@ -168,6 +169,14 @@ Describe your project structure or share key files. Claude maps module dependenc
 
 Claude classifies your debt across the six decay risks, scores each finding by Pain × Spread priority, and produces a prioritized repayment roadmap with Critical / Scheduled / Monitored classification.
 
+### Test Quality Review
+
+```
+/brooks-lint:brooks-test
+```
+
+Claude audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically.
+
 ## Why These Books, Why Now?
 
 In the age of AI-assisted coding, we're writing more code faster than ever. But the insights from six decades of software engineering haven't changed:
@@ -190,11 +199,13 @@ brooks-lint/
 ├── skills/brooks-lint/          # The skill itself
 │   ├── SKILL.md                 # Main skill — Iron Law, mode detection, report template
 │   ├── decay-risks.md           # Six decay risks with symptoms and book citations
-│   ├── pr-review-guide.md       # Mode 1: PR review process
+│   ├── pr-review-guide.md       # Mode 1: PR review process (incl. Step 7 Quick Test Check)
 │   ├── architecture-guide.md    # Mode 2: Architecture audit + Conway's Law
-│   └── debt-guide.md            # Mode 3: Pain×Spread scoring + Debt Summary Table
+│   ├── debt-guide.md            # Mode 3: Pain×Spread scoring + Debt Summary Table
+│   ├── test-decay-risks.md      # Six test-space decay risks with book citations
+│   └── test-guide.md            # Mode 4: Test quality review process
 ├── hooks/                       # SessionStart hook
-├── commands/                    # /brooks-review, /brooks-audit, /brooks-debt
+├── commands/                    # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
 ├── evals/                       # Benchmark test cases
 │   └── evals.json
 └── assets/
@@ -206,7 +217,8 @@ brooks-lint/
 - [x] **v0.2**: Plugin infrastructure (`.claude-plugin/`, hooks, slash commands)
 - [x] **v0.3**: Eight Brooks dimensions, documentation completeness scoring
 - [x] **v0.4**: Six-book framework, decay risk dimensions, diagnosis chain, benchmark suite
-- [ ] **v0.5**: GitHub Action for CI/CD integration
+- [x] **v0.5**: Test Quality Review (Mode 4) — four testing books, six test decay risks
+- [ ] **v0.6**: GitHub Action for CI/CD integration
 - [ ] **v1.0**: VS Code extension
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -223,14 +235,21 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-This project stands on the shoulders of six giants:
+This project stands on the shoulders of ten giants:
 
+**Code Quality Framework (v0.4)**
 - Frederick P. Brooks Jr. — *The Mythical Man-Month* (1975, Anniversary Edition 1995)
 - Steve McConnell — *Code Complete* (1993, 2nd ed. 2004)
 - Martin Fowler — *Refactoring* (1999, 2nd ed. 2018)
 - Robert C. Martin — *Clean Architecture* (2017)
 - Andrew Hunt & David Thomas — *The Pragmatic Programmer* (1999, 20th Anniversary Ed. 2019)
 - Eric Evans — *Domain-Driven Design* (2003)
+
+**Test Quality Framework (v0.5)**
+- Gerard Meszaros — *xUnit Test Patterns* (2007)
+- Roy Osherove — *The Art of Unit Testing* (2009, 3rd ed. 2023)
+- Google Engineering — *How Google Tests Software* (2012)
+- Michael Feathers — *Working Effectively with Legacy Code* (2004)
 
 The decay risks encoded in this tool are our synthesis of their ideas, applied to modern code quality assessment.
 
