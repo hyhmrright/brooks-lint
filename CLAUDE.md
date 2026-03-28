@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-**brooks-lint** is a Claude Code Plugin that operationalizes insights from *The Mythical Man-Month* (Frederick Brooks) as an executable code quality review framework across eight scoring dimensions. The primary artifact is `skills/brooks-lint/SKILL.md` — the skill definition installed and used by Claude Code.
+**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from six classic software engineering books. It surfaces decay risks across three review modes (PR Review, Architecture Audit, Tech Debt Assessment) plus a dedicated Test Quality Review mode. The primary artifact is `skills/brooks-lint/SKILL.md` — the skill definition installed and used by Claude Code.
 
 ## Install
 
@@ -25,22 +25,24 @@ brooks-lint/
 ├── .claude-plugin/          # Plugin metadata for /plugin install
 ├── skills/brooks-lint/      # The skill itself
 │   ├── SKILL.md             # Main skill — self-contained workflow + mode detection
-│   ├── brooks-principles.md # Scoring rubrics for all 8 dimensions (read on demand)
+│   ├── decay-risks.md       # Six decay risk definitions with symptoms + sources
 │   ├── pr-review-guide.md   # Mode 1: PR review checklist (read when running Mode 1)
 │   ├── architecture-guide.md# Mode 2: Architecture audit framework
-│   └── debt-guide.md        # Mode 3: Tech debt classification
+│   ├── debt-guide.md        # Mode 3: Tech debt classification
+│   ├── test-decay-risks.md  # Six test-space decay risks (read when running Mode 4)
+│   └── test-guide.md        # Mode 4: Test quality review framework
 ├── hooks/                   # SessionStart hook for session-level awareness
-└── commands/                # /brooks-review, /brooks-audit, /brooks-debt
+└── commands/                # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
 ```
 
 ### How the skill works
 
 1. `hooks/session-start` injects a brief note into every session: "brooks-lint is installed, use Skill tool to load it for code reviews"
 2. When triggered, Claude loads `skills/brooks-lint/SKILL.md` via the Skill tool
-3. SKILL.md detects the mode (PR Review / Architecture Audit / Tech Debt) from context
-4. Claude reads the relevant guide file (`pr-review-guide.md`, `architecture-guide.md`, or `debt-guide.md`)
-5. Claude scores across 8 Brooks dimensions using `brooks-principles.md` as the scoring rubric
-6. Output follows the standard report template in SKILL.md
+3. SKILL.md detects the mode (PR Review / Architecture Audit / Tech Debt / Test Quality Review) from context
+4. Claude reads the relevant guide file and `decay-risks.md` (or `test-decay-risks.md` for Mode 4)
+5. Each finding follows the Iron Law: Symptom → Source → Consequence → Remedy
+6. Output follows the standard report template with Health Score (base 100, deductions per finding)
 
 ## Development Gotchas
 
@@ -53,9 +55,9 @@ brooks-lint/
 - **package.json:** `"type": "module"` is a placeholder for the v0.3 JS/TS phase; no JS code currently exists, does not affect runtime.
 - **Slash command namespace:** Use the `/brooks-lint:` prefix for all slash commands (e.g. `/brooks-lint:brooks-review`). Using `/brooks-review` alone will fail with "Unknown skill".
 
-## Roadmap (development notes)
+## Roadmap
 
-- v0.3: Mermaid dependency graph output
-- v0.4: Git history integration, track Brooks score trends over time
-- v0.5: GitHub Action
+- v0.5 ✅: Test Quality Review (Mode 4) — xUnit Test Patterns, Art of Unit Testing, Google Testing, WELC
+- v0.6: Mermaid dependency graph output
+- v0.7: GitHub Action
 - v1.0: VS Code extension
