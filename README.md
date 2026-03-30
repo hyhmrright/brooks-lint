@@ -123,7 +123,7 @@ The gap isn't what Claude *can* find — it's what it *consistently* finds, with
 
 #### Via Extension
 ```bash
-/extensions install hyhmrright/brooks-lint
+/extensions install https://github.com/hyhmrright/brooks-lint
 ```
 
 #### Manual Install
