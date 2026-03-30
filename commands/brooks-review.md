@@ -2,9 +2,8 @@
 description: Run a Brooks-Lint PR review on the current code or diff
 ---
 
-Use the brooks-lint skill to perform a PR review (Mode 1).
-Load the skill via the Skill tool, then analyze the current code, diff, or
-file the user has provided using the six decay risk framework (drawing from
-The Mythical Man-Month, Code Complete, Refactoring, Clean Architecture,
-The Pragmatic Programmer, and Domain-Driven Design).
-Read pr-review-guide.md from the skill directory for the detailed process.
+Execute Mode 1: PR Review of the brooks-lint skill.
+You MUST first load the 'brooks-lint' skill using your available skill/plugin activation tool.
+Once loaded, analyze the provided code, diff, or files using the "Six Decay Risks" framework.
+Follow the specific instructions in 'skills/brooks-lint/pr-review-guide.md'.
+Strictly adhere to the Iron Law: Symptom → Source → Consequence → Remedy.

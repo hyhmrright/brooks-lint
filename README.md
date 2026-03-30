@@ -119,46 +119,79 @@ The gap isn't what Claude *can* find — it's what it *consistently* finds, with
 
 ## Installation
 
-### Via Claude Code Plugin Marketplace (recommended)
+### Gemini CLI (Recommended)
 
+#### Via Extension
+```bash
+/extensions install hyhmrright/brooks-lint
+```
+
+#### Manual Install
+```bash
+cp -r skills/brooks-lint ~/.gemini/skills/brooks-lint
+```
+
+### Claude Code
+
+#### Via Plugin Marketplace
 ```bash
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-### Manual install
-
+#### Manual Install
 ```bash
 cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
 ```
 
-### Slash Commands
+## Slash Commands
 
-| Command | What it does |
-|---------|-------------|
-| `/brooks-lint:brooks-review` | PR-level code review across six decay risk dimensions |
-| `/brooks-lint:brooks-audit` | Full architecture audit with module dependency map |
-| `/brooks-lint:brooks-debt` | Tech debt classification ranked by Pain × Spread |
-| `/brooks-lint:brooks-test` | Test suite health review across six test decay risks |
+### Gemini CLI
+| Command | Action |
+|---------|--------|
+| `/brooks-review` | PR-level code review |
+| `/brooks-audit` | Full architecture audit |
+| `/brooks-debt` | Tech debt assessment |
+| `/brooks-test` | Test suite health review |
+
+### Claude Code
+| Command | Action |
+|---------|--------|
+| `/brooks-lint:brooks-review` | PR-level code review |
+| `/brooks-lint:brooks-audit` | Full architecture audit |
+| `/brooks-lint:brooks-debt` | Tech debt assessment |
+| `/brooks-lint:brooks-test` | Test suite health review |
 
 The skill also triggers automatically when you discuss code quality, architecture, maintainability, or test health.
 
 ## Usage
 
-### PR Review
+### Gemini CLI
 
+#### PR Review
+```
+/brooks-review
+```
+Paste a diff or point Gemini at changed files.
+
+#### Architecture Audit
+```
+/brooks-audit
+```
+Describe your project structure or share key files.
+
+### Claude Code
+
+#### PR Review
 ```
 /brooks-lint:brooks-review
 ```
-
 Paste a diff or point Claude at changed files. Claude diagnoses each of the six decay risks with specific findings in Symptom → Source → Consequence → Remedy format.
 
-### Architecture Audit
-
+#### Architecture Audit
 ```
 /brooks-lint:brooks-audit
 ```
-
 Describe your project structure or share key files. Claude maps module dependencies, identifies circular dependencies, and checks Conway's Law alignment.
 
 ### Tech Debt Assessment

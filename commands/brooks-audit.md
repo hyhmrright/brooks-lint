@@ -1,10 +1,10 @@
 ---
-description: Run a Brooks-Lint architecture audit on the current project
+description: Run a Brooks-Lint architecture audit on the project
 ---
 
-Use the brooks-lint skill to perform an architecture audit (Mode 2).
-Load the skill via the Skill tool, then analyze the project structure,
-module dependencies, and architectural patterns using the six decay risk
-framework (drawing from The Mythical Man-Month, Code Complete, Refactoring,
-Clean Architecture, The Pragmatic Programmer, and Domain-Driven Design).
-Read architecture-guide.md from the skill directory for the audit framework.
+Execute Mode 2: Architecture Audit of the brooks-lint skill.
+You MUST first load the 'brooks-lint' skill using your available skill/plugin activation tool.
+Once loaded, analyze the module structure, dependencies, and Conway's Law alignment.
+Follow the specific instructions in 'skills/brooks-lint/architecture-guide.md'.
+Draw a module dependency map and identify any structural decay risks.
+Strictly adhere to the Iron Law: Symptom → Source → Consequence → Remedy.
