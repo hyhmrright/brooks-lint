@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.5.2-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.6.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/github/stars/hyhmrright/brooks-lint?style=social" alt="GitHub Stars">
@@ -82,6 +82,44 @@ brooks-lint produces:
 **Remedy:** Capture `old_email = user['email']` before any mutation. Compare against `old_email`, not `user['email']`.
 
 *(+ 6 more findings including SQL injection, dependency disorder, magic numbers)*
+
+### Architecture Audit with Dependency Graph
+
+In Mode 2 (Architecture Audit), brooks-lint generates a **Mermaid dependency graph** at the top of the report. Modules are color-coded by severity: red = Critical findings, yellow = Warning, green = clean.
+
+```mermaid
+graph TD
+    subgraph src/api
+        AuthController
+        UserController
+    end
+    subgraph src/domain
+        UserService
+        OrderService
+    end
+    subgraph src/infra
+        Database
+        EmailClient
+    end
+
+    AuthController --> UserService
+    UserController --> UserService
+    UserController --> OrderService
+    OrderService --> UserService
+    OrderService --> EmailClient
+    UserService --> Database
+    EmailClient -.->|circular| OrderService
+
+    classDef critical fill:#ff6b6b,stroke:#c92a2a,color:#fff
+    classDef warning fill:#ffd43b,stroke:#e67700
+    classDef clean fill:#51cf66,stroke:#2b8a3e,color:#fff
+
+    class OrderService,EmailClient critical
+    class AuthController warning
+    class UserService,UserController,Database clean
+```
+
+The graph renders natively in GitHub, VS Code, and Notion — no extra tools needed.
 
 ---
 

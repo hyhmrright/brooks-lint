@@ -92,10 +92,11 @@ after selecting a mode.)
 
 1. Read `architecture-guide.md` in this directory for the analysis process
 2. Read `decay-risks.md` in this directory for symptom definitions and source attributions
-3. Draw the module dependency map
+3. Draw the module dependency graph as a Mermaid diagram (Step 1 of the guide)
 4. Scan for each decay risk in the order specified in the guide
-5. Run the Conway's Law check
-6. Output using the Report Template below
+5. Assign node colors in the Mermaid diagram based on findings (red/yellow/green)
+6. Run the Conway's Law check
+7. Output using the Report Template below — Mermaid graph FIRST, then Findings
 
 ### Mode 3: Tech Debt Assessment
 
@@ -115,14 +116,26 @@ after selecting a mode.)
 
 ## Report Template
 
-```
+````
 # Brooks-Lint Review
 
-**Mode:** [PR Review / Architecture Audit / Tech Debt Assessment]
+**Mode:** [PR Review / Architecture Audit / Tech Debt Assessment / Test Quality Review]
 **Scope:** [file(s), directory, or description of what was reviewed]
 **Health Score:** XX/100
 
 [One sentence overall verdict]
+
+---
+
+## Module Dependency Graph
+
+<!-- Mode 2 (Architecture Audit) ONLY — omit this section for other modes -->
+<!-- classDef colors: see architecture-guide.md Step 1 Rule 6 -->
+
+```mermaid
+graph TD
+    ...
+```
 
 ---
 
