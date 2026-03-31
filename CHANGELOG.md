@@ -2,6 +2,28 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [0.6.0] - 2026-03-31
+
+### Added
+
+- **Mermaid Dependency Graph in Architecture Audit (Mode 2)** — the plain-text ASCII
+  dependency map is replaced with a Mermaid diagram that renders as a visual graph
+  in GitHub, VS Code, Notion, and other Markdown environments
+- Node color coding by severity: red (Critical), yellow (Warning), green (clean)
+- Automatic grouping by project folder structure using Mermaid subgraphs
+- Circular dependencies visually marked with dotted labeled edges
+- Graph appears at the top of the audit report for immediate architectural overview
+
+### Changed
+
+- `architecture-guide.md`: Step 1 now produces Mermaid syntax instead of ASCII arrows;
+  added color scheme reference, node limit constraint (~50), and rendering order note
+- `SKILL.md`: Mode 2 steps updated (7 steps, up from 6); Report Template includes
+  "Module Dependency Graph" section for Mode 2
+- All version references bumped to 0.6.0
+
+---
+
 ## [0.5.2] - 2026-03-31
 
 ### Added

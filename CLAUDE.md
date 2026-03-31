@@ -59,6 +59,6 @@ brooks-lint/
 ## Roadmap
 
 - v0.5 ✅: Test Quality Review (Mode 4) — xUnit Test Patterns, Art of Unit Testing, Google Testing, WELC
-- v0.6: Mermaid dependency graph output
+- v0.6 ✅: Mermaid dependency graph output — visual Mermaid diagrams in Architecture Audit
 - v0.7: GitHub Action
 - v1.0: VS Code extension
