@@ -14,24 +14,55 @@ check at the service ownership level. Within a single service, apply standard mo
 
 Work through these five steps in order.
 
-### Step 1: Draw the Module Dependency Map
+### Step 1: Draw the Module Dependency Graph (Mermaid)
 
-Before evaluating any risk, map the dependencies in this format:
+Before evaluating any risk, map the dependencies as a Mermaid diagram. Use this format:
 
-```
-[ModuleA] ──► [ModuleB]     (depends on)
-[ModuleA] ──► [ModuleC]
-[ModuleB] ──► [ModuleD]
-[ModuleC] ──► [ModuleD]
+````mermaid
+graph TD
+  subgraph UI
+    WebApp
+    MobileApp
+  end
 
-Circular: [ModuleX] ──► [ModuleY] ──► [ModuleX]  ⚠️
-```
+  subgraph Domain
+    AuthService
+    OrderService
+    PaymentService
+  end
+
+  subgraph Infrastructure
+    Database
+    MessageQueue
+  end
+
+  WebApp --> AuthService
+  WebApp --> OrderService
+  MobileApp --> AuthService
+  MobileApp --> OrderService
+  OrderService --> PaymentService
+  OrderService --> Database
+  OrderService --> MessageQueue
+  PaymentService --> Database
+  AuthService -.->|circular| OrderService
+
+  classDef critical fill:#ff6b6b,stroke:#d63031,color:#fff
+  classDef warning fill:#ffd43b,stroke:#f0c000,color:#333
+  classDef clean fill:#51cf66,stroke:#37b24d,color:#fff
+
+  class PaymentService critical
+  class OrderService warning
+  class Database,MessageQueue,AuthService,WebApp,MobileApp clean
+````
 
 Rules:
-- Arrows point FROM the depending module TO the dependency
-- Group by layer: UI → Domain → Infrastructure (arrows should generally flow downward)
-- Mark circular dependencies with ⚠️
-- Note any module with fan-out greater than 5 (imports from more than 5 others)
+1. **Nodes** — Use top-level directories or services as nodes, not individual files
+2. **Grouping** — One `subgraph` per architectural layer or top-level directory (e.g., UI, Domain, Infrastructure)
+3. **Edges** — Solid arrows (`-->`) point FROM the depending module TO the dependency; use dotted arrows with label (`-.->|circular|`) for circular dependencies
+4. **Node limit** — Keep the graph to ~50 nodes maximum; collapse low-risk leaf modules into their parent if needed
+5. **Fan-out** — Add a comment note (`%% fan-out: 7`) next to any node that imports from more than 5 others
+6. **Colors** — Apply `classDef` colors AFTER completing Steps 2-4: `critical` (red `#ff6b6b`) for nodes with Critical findings, `warning` (yellow `#ffd43b`) for Warning findings, `clean` (green `#51cf66`) for nodes with no findings
+7. **Direction** — Default to `graph TD` (top-down); use `graph LR` only if the architecture is clearly a left-to-right pipeline
 
 ### Step 2: Scan for Dependency Disorder
 
@@ -106,5 +137,8 @@ Use the standard Report Template from `SKILL.md`.
 Mode: Architecture Audit
 Scope: the project or directory audited.
 
-Include the dependency map as a code block in the report before the Findings section,
-labeled "Module Dependency Map".
+Place the Mermaid dependency graph FIRST in the report, before the Findings section,
+under the heading "Module Dependency Graph". In each finding, reference the relevant
+node by name (e.g., "See the red node `PaymentService` in the graph above") so the
+reader can cross-reference visually. The `classDef` color assignments must be added
+LAST, after all findings have been identified and severity levels determined.
