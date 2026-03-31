@@ -2,6 +2,23 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [0.5.2] - 2026-03-31
+
+### Added
+
+- **Gemini CLI support** — brooks-lint now works as a Gemini CLI extension
+  - `GEMINI.md`: Project guidance file for Gemini CLI sessions
+  - `gemini-extension.json`: Extension manifest for `/extensions install`
+  - README updated with dual-platform installation, slash commands, and usage docs
+
+### Changed
+
+- README: Claude Code restored as recommended install method; Gemini CLI listed as secondary
+- README: Usage sections unified with inline dual-platform command examples
+- All version references synchronized to 0.5.2
+
+---
+
 ## [0.5.0] - 2026-03-28
 
 ### Added
