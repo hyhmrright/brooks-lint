@@ -1,10 +1,11 @@
 ---
-description: Assess technical debt using the Brooks-Lint framework
+description: Run a Brooks-Lint tech debt assessment on the current codebase
 ---
 
-Execute Mode 3: Tech Debt Assessment of the brooks-lint skill.
-You MUST first load the 'brooks-lint' skill using your available skill/plugin activation tool.
-Once loaded, scan for all six decay risks and classify findings by Pain × Spread.
-Follow the specific instructions in 'skills/brooks-lint/debt-guide.md'.
-Produce a prioritized repayment roadmap with Critical / Scheduled / Monitored categories.
-Strictly adhere to the Iron Law: Symptom → Source → Consequence → Remedy.
+Use the brooks-lint skill to perform a tech debt assessment (Mode 3).
+Load the skill via the Skill tool, then classify and prioritize technical
+debt using the six decay risk framework and Pain×Spread priority formula
+(drawing from The Mythical Man-Month, Code Complete, Refactoring,
+Clean Architecture, The Pragmatic Programmer, and Domain-Driven Design).
+Read debt-guide.md from the skill directory for the debt classification
+framework and Debt Summary Table template.

@@ -119,19 +119,7 @@ The gap isn't what Claude *can* find — it's what it *consistently* finds, with
 
 ## Installation
 
-### Gemini CLI (Recommended)
-
-#### Via Extension
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint
-```
-
-#### Manual Install
-```bash
-cp -r skills/brooks-lint ~/.gemini/skills/brooks-lint
-```
-
-### Claude Code
+### Claude Code (Recommended)
 
 #### Via Plugin Marketplace
 ```bash
@@ -144,15 +132,19 @@ cp -r skills/brooks-lint ~/.gemini/skills/brooks-lint
 cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
 ```
 
-## Slash Commands
-
 ### Gemini CLI
-| Command | Action |
-|---------|--------|
-| `/brooks-review` | PR-level code review |
-| `/brooks-audit` | Full architecture audit |
-| `/brooks-debt` | Tech debt assessment |
-| `/brooks-test` | Test suite health review |
+
+#### Via Extension
+```bash
+/extensions install https://github.com/hyhmrright/brooks-lint
+```
+
+#### Manual Install
+```bash
+cp -r skills/brooks-lint ~/.gemini/skills/brooks-lint
+```
+
+## Slash Commands
 
 ### Claude Code
 | Command | Action |
@@ -162,53 +154,53 @@ cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
 | `/brooks-lint:brooks-debt` | Tech debt assessment |
 | `/brooks-lint:brooks-test` | Test suite health review |
 
+### Gemini CLI
+| Command | Action |
+|---------|--------|
+| `/brooks-review` | PR-level code review |
+| `/brooks-audit` | Full architecture audit |
+| `/brooks-debt` | Tech debt assessment |
+| `/brooks-test` | Test suite health review |
+
 The skill also triggers automatically when you discuss code quality, architecture, maintainability, or test health.
 
 ## Usage
 
-### Gemini CLI
+### PR Review
 
-#### PR Review
 ```
-/brooks-review
+/brooks-lint:brooks-review          # Claude Code
+/brooks-review                      # Gemini CLI
 ```
-Paste a diff or point Gemini at changed files.
 
-#### Architecture Audit
-```
-/brooks-audit
-```
-Describe your project structure or share key files.
+Paste a diff or point the AI at changed files. Diagnoses each of the six decay risks with specific findings in Symptom → Source → Consequence → Remedy format.
 
-### Claude Code
+### Architecture Audit
 
-#### PR Review
 ```
-/brooks-lint:brooks-review
+/brooks-lint:brooks-audit           # Claude Code
+/brooks-audit                       # Gemini CLI
 ```
-Paste a diff or point Claude at changed files. Claude diagnoses each of the six decay risks with specific findings in Symptom → Source → Consequence → Remedy format.
 
-#### Architecture Audit
-```
-/brooks-lint:brooks-audit
-```
-Describe your project structure or share key files. Claude maps module dependencies, identifies circular dependencies, and checks Conway's Law alignment.
+Describe your project structure or share key files. It maps module dependencies, identifies circular dependencies, and checks Conway's Law alignment.
 
 ### Tech Debt Assessment
 
 ```
-/brooks-lint:brooks-debt
+/brooks-lint:brooks-debt            # Claude Code
+/brooks-debt                        # Gemini CLI
 ```
 
-Claude classifies your debt across the six decay risks, scores each finding by Pain × Spread priority, and produces a prioritized repayment roadmap with Critical / Scheduled / Monitored classification.
+Classifies your debt across the six decay risks, scores each finding by Pain × Spread priority, and produces a prioritized repayment roadmap with Critical / Scheduled / Monitored classification.
 
 ### Test Quality Review
 
 ```
-/brooks-lint:brooks-test
+/brooks-lint:brooks-test            # Claude Code
+/brooks-test                        # Gemini CLI
 ```
 
-Claude audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically.
+Audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically.
 
 ## Why These Books, Why Now?
 
