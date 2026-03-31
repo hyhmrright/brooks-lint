@@ -116,7 +116,7 @@ after selecting a mode.)
 
 ## Report Template
 
-```
+````
 # Brooks-Lint Review
 
 **Mode:** [PR Review / Architecture Audit / Tech Debt Assessment / Test Quality Review]
@@ -130,6 +130,7 @@ after selecting a mode.)
 ## Module Dependency Graph
 
 <!-- Mode 2 (Architecture Audit) ONLY — omit this section for other modes -->
+<!-- classDef colors: see architecture-guide.md Step 1 Rule 6 -->
 
 ```mermaid
 graph TD

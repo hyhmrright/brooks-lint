@@ -46,22 +46,28 @@ graph TD
   PaymentService --> Database
   AuthService -.->|circular| OrderService
 
-  classDef critical fill:#ff6b6b,stroke:#d63031,color:#fff
-  classDef warning fill:#ffd43b,stroke:#f0c000,color:#333
-  classDef clean fill:#51cf66,stroke:#37b24d,color:#fff
+  classDef critical fill:#ff6b6b,stroke:#c92a2a,color:#fff
+  classDef warning fill:#ffd43b,stroke:#e67700
+  classDef clean fill:#51cf66,stroke:#2b8a3e,color:#fff
 
   class PaymentService critical
   class OrderService warning
   class Database,MessageQueue,AuthService,WebApp,MobileApp clean
 ````
 
+**Phase A (during Step 1):** Generate the graph structure only — nodes, subgraphs, and edges.
+Do NOT add `classDef` or `class` lines yet. You need findings from Steps 2-4 before coloring.
+
+**Phase B (after Step 4):** Add `classDef` definitions and `class` assignments based on findings.
+The example above shows the final output after both phases.
+
 Rules:
 1. **Nodes** — Use top-level directories or services as nodes, not individual files
 2. **Grouping** — One `subgraph` per architectural layer or top-level directory (e.g., UI, Domain, Infrastructure)
-3. **Edges** — Solid arrows (`-->`) point FROM the depending module TO the dependency; use dotted arrows with label (`-.->|circular|`) for circular dependencies
+3. **Edges** — Solid arrows (`-->`) point FROM the depending module TO the dependency; use dotted arrows with label (`-.->|circular|`) for circular dependencies. If no circular dependencies exist, use only solid arrows
 4. **Node limit** — Keep the graph to ~50 nodes maximum; collapse low-risk leaf modules into their parent if needed
-5. **Fan-out** — Add a comment note (`%% fan-out: 7`) next to any node that imports from more than 5 others
-6. **Colors** — Apply `classDef` colors AFTER completing Steps 2-4: `critical` (red `#ff6b6b`) for nodes with Critical findings, `warning` (yellow `#ffd43b`) for Warning findings, `clean` (green `#51cf66`) for nodes with no findings
+5. **Fan-out** — For any node with fan-out > 5, use a descriptive label: `HighFanOutModule["ModuleName (fan-out: 7)"]`
+6. **Colors** — Apply `classDef` colors AFTER completing Steps 2-4: `critical` (red `#ff6b6b`) for nodes with Critical findings, `warning` (yellow `#ffd43b`) for Warning findings, `clean` (green `#51cf66`) for nodes with no findings or only Suggestions. If no findings at all, classify all nodes as `clean`
 7. **Direction** — Default to `graph TD` (top-down); use `graph LR` only if the architecture is clearly a left-to-right pipeline
 
 ### Step 2: Scan for Dependency Disorder
@@ -142,3 +148,18 @@ under the heading "Module Dependency Graph". In each finding, reference the rele
 node by name (e.g., "See the red node `PaymentService` in the graph above") so the
 reader can cross-reference visually. The `classDef` color assignments must be added
 LAST, after all findings have been identified and severity levels determined.
+
+---
+
+## Design Note: Analysis-Render Separation
+
+The dependency graph follows a two-step conceptual model:
+
+1. **Analysis** — Identify nodes (modules), edges (dependencies), groups (folders/layers),
+   and severity per node. This produces a logical dependency structure independent of
+   any diagram format.
+2. **Render** — Convert the logical structure to Mermaid syntax (graph TD, subgraph,
+   classDef, etc.).
+
+This separation means adding an alternative output format (D2, Graphviz, SVG) in the
+future only requires a new renderer — the analysis logic stays the same.
