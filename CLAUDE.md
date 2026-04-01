@@ -23,7 +23,8 @@ cp -r skills/brooks-lint/ ~/.claude/skills/brooks-lint
 
 ```
 brooks-lint/
-├── .claude-plugin/          # Plugin metadata for /plugin install
+├── .claude-plugin/          # Claude Code plugin metadata
+├── .codex-plugin/           # Codex CLI plugin metadata
 ├── skills/brooks-lint/      # The skill itself
 │   ├── SKILL.md             # Main skill — self-contained workflow + mode detection
 │   ├── decay-risks.md       # Six decay risk definitions with symptoms + sources
@@ -33,7 +34,8 @@ brooks-lint/
 │   ├── test-decay-risks.md  # Six test-space decay risks (read when running Mode 4)
 │   └── test-guide.md        # Mode 4: Test quality review framework
 ├── hooks/                   # SessionStart hook for session-level awareness
-└── commands/                # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
+├── commands/                # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
+└── AGENTS.md                # Codex CLI project instructions
 ```
 
 ### How the skill works

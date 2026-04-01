@@ -2,6 +2,17 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [Unreleased] - Codex CLI Support
+
+### Added
+
+- **Codex CLI support** — brooks-lint now works as a Codex CLI plugin
+  - `.codex-plugin/plugin.json`: Plugin manifest for Codex CLI
+  - `AGENTS.md`: Project instructions file for Codex CLI sessions
+  - README updated with triple-platform installation and usage docs
+
+---
+
 ## [0.6.0] - 2026-03-31
 
 ### Added

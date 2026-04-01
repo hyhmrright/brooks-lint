@@ -20,6 +20,7 @@
   <img src="https://img.shields.io/badge/version-0.6.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
+  <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
   <img src="https://img.shields.io/github/stars/hyhmrright/brooks-lint?style=social" alt="GitHub Stars">
 </p>
 
@@ -182,6 +183,26 @@ cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
 cp -r skills/brooks-lint ~/.gemini/skills/brooks-lint
 ```
 
+### Codex CLI
+
+#### Via Skill Installer (in Codex session)
+```
+Install the brooks-lint skill from hyhmrright/brooks-lint
+```
+
+#### Command Line
+```bash
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
+  --repo hyhmrright/brooks-lint --path skills/brooks-lint --name brooks-lint
+```
+
+#### Manual Install
+```bash
+git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
+mkdir -p ~/.codex/skills/brooks-lint
+cp -r /tmp/brooks-lint/skills/brooks-lint/* ~/.codex/skills/brooks-lint/
+```
+
 ## Slash Commands
 
 ### Claude Code
@@ -200,6 +221,10 @@ cp -r skills/brooks-lint ~/.gemini/skills/brooks-lint
 | `/brooks-debt` | Tech debt assessment |
 | `/brooks-test` | Test suite health review |
 
+### Codex CLI
+
+Activate the skill with `$brooks-lint`, then describe the task. Mode is auto-detected from context.
+
 The skill also triggers automatically when you discuss code quality, architecture, maintainability, or test health.
 
 ## Usage
@@ -209,6 +234,7 @@ The skill also triggers automatically when you discuss code quality, architectur
 ```
 /brooks-lint:brooks-review          # Claude Code
 /brooks-review                      # Gemini CLI
+$brooks-lint                        # Codex CLI (then say "review this PR")
 ```
 
 Paste a diff or point the AI at changed files. Diagnoses each of the six decay risks with specific findings in Symptom → Source → Consequence → Remedy format.
@@ -218,6 +244,7 @@ Paste a diff or point the AI at changed files. Diagnoses each of the six decay r
 ```
 /brooks-lint:brooks-audit           # Claude Code
 /brooks-audit                       # Gemini CLI
+$brooks-lint                        # Codex CLI (then say "audit the architecture")
 ```
 
 Describe your project structure or share key files. It maps module dependencies, identifies circular dependencies, and checks Conway's Law alignment.
@@ -227,6 +254,7 @@ Describe your project structure or share key files. It maps module dependencies,
 ```
 /brooks-lint:brooks-debt            # Claude Code
 /brooks-debt                        # Gemini CLI
+$brooks-lint                        # Codex CLI (then say "assess tech debt")
 ```
 
 Classifies your debt across the six decay risks, scores each finding by Pain × Spread priority, and produces a prioritized repayment roadmap with Critical / Scheduled / Monitored classification.
@@ -236,6 +264,7 @@ Classifies your debt across the six decay risks, scores each finding by Pain × 
 ```
 /brooks-lint:brooks-test            # Claude Code
 /brooks-test                        # Gemini CLI
+$brooks-lint                        # Codex CLI (then say "review test quality")
 ```
 
 Audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically.
@@ -258,8 +287,9 @@ The decay risks these authors identified are more relevant than ever:
 
 ```
 brooks-lint/
-├── .claude-plugin/              # Plugin metadata for /plugin install
-├── skills/brooks-lint/          # The skill itself
+├── .claude-plugin/              # Claude Code plugin metadata
+├── .codex-plugin/               # Codex CLI plugin metadata
+├── skills/brooks-lint/          # The skill itself (canonical source)
 │   ├── SKILL.md                 # Main skill — Iron Law, mode detection, report template
 │   ├── decay-risks.md           # Six decay risks with symptoms and book citations
 │   ├── pr-review-guide.md       # Mode 1: PR review process (incl. Step 7 Quick Test Check)
@@ -281,7 +311,8 @@ brooks-lint/
 - [x] **v0.3**: Eight Brooks dimensions, documentation completeness scoring
 - [x] **v0.4**: Six-book framework, decay risk dimensions, diagnosis chain, benchmark suite
 - [x] **v0.5**: Test Quality Review (Mode 4) — four testing books, six test decay risks
-- [ ] **v0.6**: GitHub Action for CI/CD integration
+- [x] **v0.6**: Mermaid dependency graph in Architecture Audit
+- [ ] **v0.7**: GitHub Action for CI/CD integration
 - [ ] **v1.0**: VS Code extension
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
