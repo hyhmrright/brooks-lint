@@ -2,7 +2,7 @@
 
 All notable changes to brooks-lint are documented here.
 
-## [Unreleased] - Codex CLI Support
+## [0.6.1] - 2026-04-01
 
 ### Added
 
