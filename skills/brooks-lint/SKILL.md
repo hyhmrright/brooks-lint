@@ -116,6 +116,13 @@ after selecting a mode.)
 
 ## Report Template
 
+**Language rule:** Output the report in the same language the user is using. Translate the
+per-finding content and the one-sentence verdict to match the user's language. Keep the
+following in English: Iron Law field labels (Symptom / Source / Consequence / Remedy),
+book titles, principle and smell names (e.g. "Shotgun Surgery", "Divergent Change"),
+and fixed structural headers from the template below (`Findings`, `Summary`,
+`Module Dependency Graph`, `Critical`, `Warning`, `Suggestion`).
+
 ````
 # Brooks-Lint Review
 
