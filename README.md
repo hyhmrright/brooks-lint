@@ -122,6 +122,10 @@ graph TD
 
 The graph renders natively in GitHub, VS Code, and Notion — no extra tools needed.
 
+## See More Examples
+
+The [Full Gallery](docs/gallery.md) has real brooks-lint output across Python, TypeScript, Go, and Java — including PR reviews, architecture audits with Mermaid dependency graphs, tech debt assessments, and test quality reviews.
+
 ---
 
 ## Benchmark

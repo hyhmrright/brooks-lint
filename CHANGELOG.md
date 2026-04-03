@@ -2,6 +2,19 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [Unreleased]
+
+### Added
+
+- **Eval benchmark suite expanded to 37 scenarios** — covers all 6 production decay risks
+  and all 6 test decay risks across Python, TypeScript, Go, and Java; each risk tested at
+  Critical, Warning, and Clean severity levels
+- **Gallery page** (`docs/gallery.md`) — 7 curated real brooks-lint outputs organized by Mode,
+  including Mermaid dependency graphs for Architecture Audit
+- **README:** added "See More Examples" section with link to gallery page
+
+---
+
 ## [0.6.1] - 2026-04-01
 
 ### Added
