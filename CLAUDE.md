@@ -46,10 +46,21 @@ brooks-lint/
 
 1. `hooks/session-start` injects a brief note into every session: "brooks-lint is installed, use Skill tool to load it for code reviews"
 2. When triggered, Claude loads `skills/brooks-lint/SKILL.md` via the Skill tool
-3. SKILL.md detects the mode (PR Review / Architecture Audit / Tech Debt / Test Quality Review) from context
-4. Claude reads the relevant guide file and `decay-risks.md` (or `test-decay-risks.md` for Mode 4)
-5. Each finding follows the Iron Law: Symptom → Source → Consequence → Remedy
-6. Output follows the standard report template with Health Score (base 100, deductions per finding)
+3. SKILL.md checks for a `.brooks-lint.yaml` config file in the project root and applies it
+4. SKILL.md detects the mode (PR Review / Architecture Audit / Tech Debt / Test Quality Review) from context
+5. Claude reads the relevant guide file and `decay-risks.md` (or `test-decay-risks.md` for Mode 4)
+6. Each finding follows the Iron Law: Symptom → Source → Consequence → Remedy
+7. Output follows the standard report template with Health Score (base 100, deductions per finding)
+
+### Project Config (`.brooks-lint.yaml`)
+
+Teams can place a `.brooks-lint.yaml` in their project root to customize review behavior:
+- `disable` — skip specific risk codes (e.g. `T3` for projects without coverage requirements)
+- `severity` — override severity tier for a risk (e.g. downgrade `R1` to `suggestion`)
+- `ignore` — glob patterns for files to exclude (e.g. `**/vendor/**`)
+- `focus` — evaluate only listed risks
+
+Copy `.brooks-lint.example.yaml` from this repo as a starting template.
 
 ## Multi-Platform Support
 
@@ -84,5 +95,6 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
 - v0.5 ✅: Test Quality Review (Mode 4)
 - v0.6 ✅: Mermaid dependency graph, Codex CLI support, eval suite (37 scenarios), gallery
-- v0.7: GitHub Action
+- v0.7 ✅: `.brooks-lint.yaml` project config, Mode 2 proactive codebase context gathering
+- v0.8: GitHub Action
 - v1.0: VS Code extension

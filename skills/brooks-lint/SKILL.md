@@ -64,6 +64,68 @@ Read the context and pick ONE mode before doing anything else.
 review, a broader architecture audit, or a tech debt assessment?" — then proceed without
 further clarification questions.
 
+## Project Config
+
+Before executing any mode, attempt to read `.brooks-lint.yaml` from the project root.
+If the file exists, parse and apply its settings before proceeding.
+If the file does not exist, continue with defaults (all risks enabled, no ignores).
+
+In a multi-mode session, re-read only if the user says the config has changed.
+
+### Supported settings
+
+**`disable`** — list of risk codes to skip entirely. Findings for disabled risks are
+silently omitted from the report and do not affect the Health Score.
+Valid codes: `R1` `R2` `R3` `R4` `R5` `R6` `T1` `T2` `T3` `T4` `T5` `T6`
+
+**`severity`** — override the severity of a specific risk for this project.
+Valid values: `critical` `warning` `suggestion`
+Example: `R1: suggestion` means every R1 finding is downgraded to Suggestion regardless
+of what the guide says.
+
+**`ignore`** — list of glob patterns. Files matching any pattern are excluded from
+analysis. Findings that arise solely from ignored files are omitted.
+Common entries: `**/*.generated.*`, `**/vendor/**`, `**/migrations/**`
+
+**`focus`** — non-empty list of risk codes to evaluate; all others are skipped.
+Omit this key (or leave it empty) to evaluate all non-disabled risks.
+Cannot be combined with a non-empty `disable` list.
+
+### Example `.brooks-lint.yaml`
+
+```yaml
+version: 1
+
+disable:
+  - T3   # no coverage metrics enforced on this project
+
+severity:
+  R1: suggestion   # high cognitive load is accepted in this domain
+
+ignore:
+  - "**/*.generated.*"
+  - "**/vendor/**"
+```
+
+### Config Validation
+
+Before applying, check for errors and mention each in the report:
+- Invalid risk code (not R1–R6 or T1–T6): skip it, note `"Config warning: X is not a valid risk code"`
+- Invalid severity value (not `critical`/`warning`/`suggestion`): skip it, note the error
+- Both `disable` and `focus` are non-empty: treat as a config error, ignore both, note it
+
+If the YAML fails to parse entirely, skip config loading and proceed with defaults.
+
+### Reporting
+
+If a config file was found and applied, add this line immediately after the **Scope** line
+in the report:
+`Config: .brooks-lint.yaml applied (N risks disabled, M paths ignored)`
+
+Include N and M even if zero. Omit this line if no config file was found.
+
+---
+
 ## The Six Decay Risks
 
 (Full definitions, symptoms, sources, and severity guides are in `decay-risks.md` — read it

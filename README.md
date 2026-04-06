@@ -273,6 +273,36 @@ $brooks-lint                        # Codex CLI (then say "review test quality")
 
 Audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically.
 
+## Configuration
+
+Place a `.brooks-lint.yaml` in your project root to customize review behavior:
+
+```yaml
+version: 1
+
+disable:
+  - T3   # skip coverage metrics check — we don't enforce coverage
+
+severity:
+  R1: suggestion   # downgrade Cognitive Overload findings for this domain
+
+ignore:
+  - "**/*.generated.*"
+  - "**/vendor/**"
+```
+
+Copy [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) as a starting point.
+All settings are optional — omit the file entirely for default behavior.
+
+| Setting | Description |
+|---------|-------------|
+| `disable` | Risk codes to skip (`R1`–`R6`, `T1`–`T6`) |
+| `severity` | Override severity tier (`critical` / `warning` / `suggestion`) |
+| `ignore` | Glob patterns for files to exclude |
+| `focus` | Evaluate only these risk codes (cannot combine with `disable`) |
+
+---
+
 ## Why These Books, Why Now?
 
 In the age of AI-assisted coding, we're writing more code faster than ever. But the insights from six decades of software engineering haven't changed:
@@ -316,7 +346,8 @@ brooks-lint/
 - [x] **v0.4**: Six-book framework, decay risk dimensions, diagnosis chain, benchmark suite
 - [x] **v0.5**: Test Quality Review (Mode 4) — four testing books, six test decay risks
 - [x] **v0.6**: Mermaid dependency graph in Architecture Audit
-- [ ] **v0.7**: GitHub Action for CI/CD integration
+- [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context gathering
+- [ ] **v0.8**: GitHub Action for CI/CD integration
 - [ ] **v1.0**: VS Code extension
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
