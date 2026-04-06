@@ -12,7 +12,39 @@ check at the service ownership level. Within a single service, apply standard mo
 
 ## Analysis Process
 
-Work through these five steps in order.
+Work through these six steps in order.
+
+### Step 0: Gather Codebase Context
+
+Before drawing anything, establish what you can see.
+
+**If the user provided a full directory tree or pasted relevant file contents:** skip the
+proactive reading below and proceed to Step 1.
+
+**Otherwise, proactively read the project using these tools:**
+
+1. **Top-level structure** — glob top two levels to identify module boundaries:
+   ```
+   Glob: **/*(depth 2, directories only)
+   ```
+2. **Entry points** — read the package manifest or main config file (e.g., `package.json`,
+   `go.mod`, `pom.xml`, `Cargo.toml`, `pyproject.toml`) to confirm language, framework,
+   and declared dependencies.
+3. **Dependency edges** — grep import statements to discover inter-module calls. Run once
+   per language present; limit to the first 200 matches to avoid token overrun:
+   ```
+   Grep: "^\s*(import|from|require\(|use )" across *.ts|*.py|*.go|*.rs|*.java
+   ```
+4. **Large modules** — for any top-level directory with > 10 files, read the file matching
+   `index.*`, `main.*`, or `__init__.*` to understand its stated responsibility.
+
+**Stop when you can answer all three:**
+- What are the top-level modules (names and count)?
+- Which modules import from which other modules?
+- Which module has the highest fan-in or fan-out?
+
+If the project has > 100 top-level files or > 4 levels of nesting, note which areas were
+sampled vs. inferred, and flag this in the report scope line.
 
 ### Step 1: Draw the Module Dependency Graph (Mermaid)
 
