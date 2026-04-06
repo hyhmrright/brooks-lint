@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.6.2-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.7.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -227,12 +227,12 @@ cp -r /tmp/brooks-lint/skills/brooks-lint/* ~/.codex/skills/brooks-lint/
 ## Slash Commands
 
 ### Claude Code
-| Command | Action |
-|---------|--------|
-| `/brooks-lint:brooks-review` | PR-level code review |
-| `/brooks-lint:brooks-audit` | Full architecture audit |
-| `/brooks-lint:brooks-debt` | Tech debt assessment |
-| `/brooks-lint:brooks-test` | Test suite health review |
+| Short command | Full command | Action |
+|---------------|-------------|--------|
+| `/brooks-review` | `/brooks-lint:brooks-review` | PR-level code review |
+| `/brooks-audit` | `/brooks-lint:brooks-audit` | Full architecture audit |
+| `/brooks-debt` | `/brooks-lint:brooks-debt` | Tech debt assessment |
+| `/brooks-test` | `/brooks-lint:brooks-test` | Test suite health review |
 
 ### Gemini CLI
 | Command | Action |
@@ -363,7 +363,7 @@ brooks-lint/
 - [x] **v0.4**: Six-book framework, decay risk dimensions, diagnosis chain, benchmark suite
 - [x] **v0.5**: Test Quality Review (Mode 4) — four testing books, six test decay risks
 - [x] **v0.6**: Mermaid dependency graph in Architecture Audit
-- [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context gathering
+- [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion, short-form commands
 - [ ] **v0.8**: GitHub Action for CI/CD integration
 - [ ] **v1.0**: VS Code extension
 

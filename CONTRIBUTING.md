@@ -44,7 +44,7 @@ current skill misses is the highest-value contribution.
 
 ```json
 {
-  "id": 4,
+  "id": 38,
   "name": "your-scenario-name",
   "prompt": "The user prompt that triggers the review",
   "expected_output": "Description of what a good review should contain",
@@ -52,6 +52,7 @@ current skill misses is the highest-value contribution.
 }
 ```
 
+Use the next sequential `id` after the last entry in the array (currently 37).
 In your PR, show the before/after: what the skill produced before your change
 and what it produces after. Even a screenshot or paste of the output is enough.
 
@@ -67,7 +68,7 @@ bash hooks/session-start
 CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start
 ```
 
-Expected output: a JSON object with a `hookType` and `message` key.
+Expected output: a JSON object with an `additionalContext` or `hookSpecificOutput` key.
 
 To test the skill itself, install it into your Claude Code session:
 

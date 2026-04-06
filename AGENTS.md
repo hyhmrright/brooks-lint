@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository is an AI-powered code quality tool grounded in six classic engineering books (e.g., *The Mythical Man-Month*, *Code Complete*).
+This repository is an AI-powered code quality tool grounded in ten classic engineering books (e.g., *The Mythical Man-Month*, *Code Complete*, *A Philosophy of Software Design*, *Software Engineering at Google*).
 
 ## Core Purpose
 **brooks-lint** is a Codex CLI plugin used to diagnose code quality across six "decay risk" dimensions: Cognitive Overload, Change Propagation, Knowledge Duplication, Accidental Complexity, Dependency Disorder, and Domain Model Distortion.
@@ -13,12 +13,13 @@ This repository is an AI-powered code quality tool grounded in six classic engin
 - **Comment Preference:** All internal documentation and configuration should remain in English for international consistency.
 - **The Iron Law:** NEVER suggest fixes before completing risk diagnosis. Every finding MUST follow: **Symptom → Source → Consequence → Remedy**.
 - **Scoring System:** Base score 100. Deductions: 🔴 Critical (−15), 🟡 Warning (−5), 🟢 Suggestion (−1). Floor is 0.
+- **Project Config:** If a `.brooks-lint.yaml` exists in the project root, read and apply it before running any review mode.
 
 ## Project Structure
 - `skills/brooks-lint/`: Core skill definitions and diagnostic guides.
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `commands/`: Claude Code slash command definitions (not used by Codex CLI).
-- `evals/`: Performance benchmark test cases.
+- `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6).
 
 ---
 **Note:** Codex CLI should prioritize instructions found in `AGENTS.md` when operating in this repository.

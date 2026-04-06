@@ -88,13 +88,13 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
 - **Skill sync:** `skills/brooks-lint/` and the marketplace install path (`~/.claude/plugins/...`) are two independent copies — reinstall manually after edits.
 - **package.json:** `"type": "module"` is a placeholder for the v0.3 JS/TS phase; no JS code currently exists, does not affect runtime.
-- **Slash command namespace:** Must use the `/brooks-lint:` prefix (see examples in Development Commands above). Bare `/brooks-review` will fail.
+- **Slash command namespace:** Registered commands use `/brooks-lint:brooks-review` etc. Short-form `/brooks-review` also works — the session-start hook teaches Claude to route it correctly.
 - **Version sync:** Version string is duplicated across `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json`, and `gemini-extension.json` — update all five when bumping.
 
 ## Roadmap
 
 - v0.5 ✅: Test Quality Review (Mode 4)
 - v0.6 ✅: Mermaid dependency graph, Codex CLI support, eval suite (37 scenarios), gallery
-- v0.7 ✅: `.brooks-lint.yaml` project config, Mode 2 proactive codebase context gathering
+- v0.7 ✅: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion, short-form commands
 - v0.8: GitHub Action
 - v1.0: VS Code extension
