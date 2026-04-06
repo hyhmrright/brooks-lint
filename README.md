@@ -29,22 +29,39 @@
 > *"The bearing of a child takes nine months, no matter how many women are assigned."*
 > — Frederick Brooks, *The Mythical Man-Month* (1975)
 
-**50 years later, Brooks was still right — and so were McConnell, Fowler, Martin, Hunt & Thomas, and Evans.**
+**50 years later, Brooks was still right — and so were McConnell, Fowler, Martin, Hunt & Thomas, Evans, Ousterhout, Winters, Meszaros, Osherove, Feathers, and the Google Testing team.**
 
-Most code quality tools count lines and cyclomatic complexity. **brooks-lint** goes deeper — it diagnoses your code against six decay risk dimensions synthesized from six classic engineering books, producing structured findings with book citations, severity labels, and concrete remedies every time.
+Most code quality tools count lines and cyclomatic complexity. **brooks-lint** goes deeper — it diagnoses your code against six decay risk dimensions synthesized from ten classic engineering books, producing structured findings with book citations, severity labels, and concrete remedies every time.
+
+## The Ten Books
+
+| Book | Author | Contributes to |
+|------|--------|----------------|
+| *The Mythical Man-Month* | Frederick Brooks | R2, R4, R5 |
+| *Code Complete* | Steve McConnell | R1, R4 |
+| *Refactoring* | Martin Fowler | R1, R2, R3, R4, R6 |
+| *Clean Architecture* | Robert C. Martin | R2, R5 |
+| *The Pragmatic Programmer* | Hunt & Thomas | R2, R3, R4, R5, T2, T3 |
+| *Domain-Driven Design* | Eric Evans | R1, R3, R6 |
+| *A Philosophy of Software Design* | John Ousterhout | R1, R4 |
+| *Software Engineering at Google* | Winters, Manshreck & Wright | R2, R5 |
+| *Working Effectively with Legacy Code* | Michael Feathers | T4, T5, T6 |
+| *xUnit Test Patterns* | Gerard Meszaros | T1, T2, T3, T4 |
 
 ## The Six Decay Risks
 
-brooks-lint evaluates your code across **six decay risk dimensions** synthesized from six classic engineering books:
+brooks-lint evaluates your code across **six decay risk dimensions** synthesized from ten classic engineering books:
 
 | Decay Risk | Diagnostic Question | Sources |
 |------------|---------------------|---------|
-| 🧠 Cognitive Overload | How much mental effort to understand this? | Code Complete, Refactoring, DDD |
-| 🔗 Change Propagation | How many unrelated things break on one change? | Refactoring, Clean Architecture, Pragmatic |
+| 🧠 Cognitive Overload | How much mental effort to understand this? | Code Complete, Refactoring, DDD, Philosophy of SD |
+| 🔗 Change Propagation | How many unrelated things break on one change? | Refactoring, Clean Architecture, Pragmatic, SE@Google |
 | 📋 Knowledge Duplication | Is the same decision expressed in multiple places? | Pragmatic, Refactoring, DDD |
-| 🌀 Accidental Complexity | Is the code more complex than the problem? | Refactoring, Code Complete, Brooks |
-| 🏗️ Dependency Disorder | Do dependencies flow in a consistent direction? | Clean Architecture, Brooks, Pragmatic |
+| 🌀 Accidental Complexity | Is the code more complex than the problem? | Refactoring, Code Complete, Brooks, Philosophy of SD |
+| 🏗️ Dependency Disorder | Do dependencies flow in a consistent direction? | Clean Architecture, Brooks, Pragmatic, SE@Google |
 | 🗺️ Domain Model Distortion | Does the code faithfully represent the domain? | DDD, Refactoring |
+
+> Philosophy of SD = *A Philosophy of Software Design* (Ousterhout) · SE@Google = *Software Engineering at Google* (Winters et al.)
 
 ## What It Looks Like
 

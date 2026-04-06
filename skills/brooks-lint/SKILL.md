@@ -1,13 +1,15 @@
 ---
 name: brooks-lint
 description: >
-  Code quality review drawing on six classic engineering books: The Mythical Man-Month,
-  Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer, and
-  Domain-Driven Design. Triggers when: user asks to review code, check a PR, review a
-  pull request, discuss architecture health, assess tech debt, assess maintainability,
-  or mentions Brooks's Law / Mythical Man-Month / conceptual integrity / second system
-  effect / no silver bullet / code smells / refactoring / clean architecture / DDD /
-  domain-driven design / SOLID principles.
+  Code quality review drawing on ten classic engineering books: The Mythical Man-Month,
+  Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer,
+  Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
+  Working Effectively with Legacy Code, and xUnit Test Patterns.
+  Triggers when: user asks to review code, check a PR, review a pull request, discuss
+  architecture health, assess tech debt, assess maintainability, or mentions Brooks's Law /
+  Mythical Man-Month / conceptual integrity / second system effect / no silver bullet /
+  code smells / refactoring / clean architecture / DDD / domain-driven design /
+  SOLID principles / Hyrum's Law / deep modules / tactical programming.
   Also triggers when user asks why the codebase is hard to maintain,
   why adding developers isn't helping, or why complexity keeps growing.
   Also triggers when user asks about test quality, flaky tests, mock abuse,
@@ -18,7 +20,7 @@ description: >
 
 # Brooks-Lint
 
-Code quality diagnosis using principles from six classic software engineering books.
+Code quality diagnosis using principles from ten classic software engineering books.
 
 ## The Iron Law
 

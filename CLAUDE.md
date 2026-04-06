@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from six classic software engineering books. It surfaces decay risks across four review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review). The primary artifact is `skills/brooks-lint/SKILL.md` — the skill definition installed and used by Claude Code.
+**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from ten classic software engineering books. It surfaces decay risks across four review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review). The primary artifact is `skills/brooks-lint/SKILL.md` — the skill definition installed and used by Claude Code.
 
 ## Install
 

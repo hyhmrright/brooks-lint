@@ -26,6 +26,8 @@ that would make it easier to understand.
 - Boolean expressions with 3 or more conditions combined
 - Train-wreck chains: `a.getB().getC().doD()`
 - Code names that do not match what the business calls the same concept
+- Shallow module: the interface or documentation of a component is more complex relative to
+  the functionality it provides
 
 ### Sources
 
@@ -38,6 +40,7 @@ that would make it easier to understand.
 | Variable naming | McConnell — Code Complete | Ch. 11: The Power of Variable Names |
 | Magic numbers | McConnell — Code Complete | Ch. 12: Fundamental Data Types |
 | Domain name mismatch | Evans — Domain-Driven Design | Ubiquitous Language |
+| Shallow Module | Ousterhout — A Philosophy of Software Design | Ch. 4: Modules Should Be Deep |
 
 ### Severity Guide
 
@@ -63,6 +66,8 @@ and multiplies regression risk on every change.
 - A method uses more data from another class than from its own class
 - Two classes know each other's internal state directly
 - Changing one module requires recompiling or retesting many unrelated modules
+- Any observable behavior (including internal implementation details) is depended upon
+  by callers, creating a de facto interface beyond the declared API
 
 ### Sources
 
@@ -75,6 +80,7 @@ and multiplies regression risk on every change.
 | Orthogonality violation | Hunt & Thomas — The Pragmatic Programmer | Ch. 2: Orthogonality |
 | DIP violation | Martin — Clean Architecture | Dependency Inversion Principle |
 | High change propagation radius | Brooks — The Mythical Man-Month | Ch. 2: Brooks's Law (communication overhead) |
+| Hyrum's Law | Winters et al. — Software Engineering at Google | Ch. 1: Hyrum's Law |
 
 ### Severity Guide
 
@@ -140,6 +146,8 @@ burden grows until developers spend more time maintaining the scaffolding than s
 - Switch statements that signal missing polymorphism
 - Configuration options that have never been changed from their defaults
 - Framework code larger than the application it powers
+- Code grown under sustained tactical shortcuts: each workaround seemed small, but
+  accumulated shortcuts mean every new feature requires fighting the existing structure
 
 ### Sources
 
@@ -152,6 +160,7 @@ burden grows until developers spend more time maintaining the scaffolding than s
 | Second System Effect | Brooks — The Mythical Man-Month | Ch. 5: The Second-System Effect |
 | YAGNI violations | McConnell — Code Complete | Ch. 5: Design in Construction |
 | Over-engineering | Hunt & Thomas — The Pragmatic Programmer | Ch. 2: The Evils of Duplication (YAGNI corollary) |
+| Tactical programming debt | Ousterhout — A Philosophy of Software Design | Ch. 3: Strategic vs. Tactical Programming |
 
 ### Severity Guide
 
@@ -181,6 +190,8 @@ dependencies make it impossible to understand or test any component in isolation
 - Module fan-out greater than 5 (imports from more than 5 other modules)
 - The system feels like "one mind did not design this" — different modules use
   incompatible architectural patterns with no clear rule for which to use where
+- Direct version-pinned dependencies on transitive packages (diamond dependency risk);
+  upgrading one library requires coordinating multiple unrelated teams or repositories
 
 ### Sources
 
@@ -193,6 +204,7 @@ dependencies make it impossible to understand or test any component in isolation
 | Conceptual integrity | Brooks — The Mythical Man-Month | Ch. 4: Conceptual Integrity |
 | Law of Demeter | Hunt & Thomas — The Pragmatic Programmer | Ch. 5: Decoupling and the Law of Demeter |
 | SOLID violations | Martin — Clean Architecture | Single Responsibility, Open/Closed Principles |
+| Diamond dependency / upgrade blockage | Winters et al. — Software Engineering at Google | Ch. 21: Dependency Management |
 
 ### Severity Guide
 
