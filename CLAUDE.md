@@ -36,7 +36,7 @@ brooks-lint/
 ├── hooks/                   # SessionStart hook for session-level awareness
 ├── commands/                # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
 ├── evals/                   # Benchmark suite (37 scenarios across 4 modes)
-├── docs/                    # Gallery, design specs, and plans
+├── docs/gallery.md          # Visual output examples (used for README/promotion)
 ├── AGENTS.md                # Codex CLI project instructions
 ├── GEMINI.md                # Gemini CLI project instructions
 └── gemini-extension.json    # Gemini CLI extension manifest
@@ -70,6 +70,8 @@ brooks-lint runs on three AI coding platforms: Claude Code, Codex CLI, and Gemin
 
 `evals/evals.json` contains 37 benchmark scenarios covering R1-R6 (code decay) and T1-T6 (test decay). Each scenario is a JSON object with input context and expected findings. To add a scenario, append to the `evals` array with the next sequential `id` and the relevant risk code.
 
+There is no automated runner — evals are validated manually by running the skill against the scenario's input and comparing output to `expected_output`. Each eval has `id`, `name`, `prompt`, `expected_output`, and `files` fields.
+
 ## Development Commands
 
 ```bash
@@ -91,10 +93,7 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 - **Slash command namespace:** Registered commands use `/brooks-lint:brooks-review` etc. Short-form `/brooks-review` also works — the session-start hook teaches Claude to route it correctly.
 - **Version sync:** Version string is duplicated across `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json`, and `gemini-extension.json` — update all five when bumping.
 
-## Roadmap
+## Next Up
 
-- v0.5 ✅: Test Quality Review (Mode 4)
-- v0.6 ✅: Mermaid dependency graph, Codex CLI support, eval suite (37 scenarios), gallery
-- v0.7 ✅: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion, short-form commands
 - v0.8: GitHub Action
 - v1.0: VS Code extension

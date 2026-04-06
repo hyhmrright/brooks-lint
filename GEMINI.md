@@ -22,7 +22,7 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
 ## Project Structure
 - `skills/brooks-lint/`: Core skill definitions and diagnostic guides.
 - `commands/`: Detailed instruction sets for different review modes.
-- `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6).
+- `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6). No automated runner — validate manually by running the skill against each scenario's input.
 
 ## Development & Debugging
 - **Skill Testing:** After modifying `skills/brooks-lint/` locally, refresh using `gemini skills reload`.

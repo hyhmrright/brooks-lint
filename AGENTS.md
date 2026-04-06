@@ -19,7 +19,7 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
 - `skills/brooks-lint/`: Core skill definitions and diagnostic guides.
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `commands/`: Claude Code slash command definitions (not used by Codex CLI).
-- `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6).
+- `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6). No automated runner — validate manually by running the skill against each scenario's input.
 
 ---
 **Note:** Codex CLI should prioritize instructions found in `AGENTS.md` when operating in this repository.
