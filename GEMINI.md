@@ -12,6 +12,7 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
   - `/brooks-audit`: Architecture Audit (loads `skills/brooks-audit/`)
   - `/brooks-debt`: Tech Debt Assessment (loads `skills/brooks-debt/`)
   - `/brooks-test`: Test Quality Review (loads `skills/brooks-test/`)
+- **After activation (CRITICAL):** Once a skill is activated via slash command, you MUST immediately read the skill's `SKILL.md` and follow every step in its **Setup** and **Process** sections — do NOT wait for additional user input. Treat the slash command as the trigger to start the review right away.
 
 ## Engineering Standards
 - **Comment Preference:** All internal documentation and configuration should remain in English for international consistency.
