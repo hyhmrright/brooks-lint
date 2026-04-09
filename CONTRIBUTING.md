@@ -79,15 +79,15 @@ cp -r skills/ ~/.claude/skills/brooks-lint
 Then open Claude Code and run one of the slash commands:
 
 ```
-/brooks-review
-/brooks-audit
-/brooks-debt
-/brooks-test
+/brooks-review                  # or /brooks-lint:brooks-review
+/brooks-audit                   # or /brooks-lint:brooks-audit
+/brooks-debt                    # or /brooks-lint:brooks-debt
+/brooks-test                    # or /brooks-lint:brooks-test
 ```
 
 ## PR Conventions
 
-- Run `/brooks-review` on your own diff before opening a PR.
+- Run `/brooks-review` (or `/brooks-lint:brooks-review`) on your own diff before opening a PR.
   Paste the Health Score and any Critical findings into your PR description.
   (Yes, we review our own contributions with the tool we're building.)
 

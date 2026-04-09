@@ -4,13 +4,30 @@
 
 set -euo pipefail
 
+# Auto-install short-form commands to ~/.claude/commands/
+# Plugin skills register as /brooks-lint:brooks-review etc.
+# These wrappers enable /brooks-review (no namespace prefix).
+# Versioned sentinel ensures files refresh on plugin upgrade.
+cmd_dir="$HOME/.claude/commands"
+plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
+version="0.8.1"
+sentinel="$cmd_dir/.brooks-lint-v${version}"
+
+if [ ! -f "$sentinel" ]; then
+    mkdir -p "$cmd_dir"
+    cp "$plugin_dir"/commands/brooks-*.md "$cmd_dir/"
+    # Clean up old sentinel files and write current version
+    rm -f "$cmd_dir"/.brooks-lint-v* "$cmd_dir"/.brooks-lint-installed
+    touch "$sentinel"
+fi
+
 # The context injected must be SHORT (<150 words).
 # Do NOT inject the full SKILL.md — it loads on demand via the Skill tool.
 context="You have the brooks-lint plugin installed. It provides four independent skills — load the relevant one via the Skill tool:
-  brooks-review  → PR code review
-  brooks-audit   → Architecture audit
-  brooks-debt    → Tech debt assessment
-  brooks-test    → Test quality review
+  brooks-lint:brooks-review  → PR code review
+  brooks-lint:brooks-audit   → Architecture audit
+  brooks-lint:brooks-debt    → Tech debt assessment
+  brooks-lint:brooks-test    → Test quality review
 
 Triggers when the user asks to review code, discuss architecture, assess tech debt, or discuss test quality. Also triggers when the user mentions: Brooks's Law / Mythical Man-Month / conceptual integrity / second system effect / Hyrum's Law / deep modules / tactical programming / code smells / refactoring / clean architecture / DDD."
 

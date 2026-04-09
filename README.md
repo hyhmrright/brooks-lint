@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.7.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.8.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -187,6 +187,11 @@ The gap isn't what Claude *can* find — it's what it *consistently* finds, with
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
+Short-form commands (`/brooks-review`) are auto-installed on first session start. To install manually:
+```bash
+cp commands/*.md ~/.claude/commands/
+```
+
 #### Manual Install
 ```bash
 cp -r skills/ ~/.claude/skills/brooks-lint
@@ -227,12 +232,14 @@ cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 ## Slash Commands
 
 ### Claude Code
-| Command | Action |
-|---------|--------|
-| `/brooks-review` | PR-level code review |
-| `/brooks-audit` | Full architecture audit |
-| `/brooks-debt` | Tech debt assessment |
-| `/brooks-test` | Test suite health review |
+| Command | Short Form | Action |
+|---------|------------|--------|
+| `/brooks-lint:brooks-review` | `/brooks-review` | PR-level code review |
+| `/brooks-lint:brooks-audit` | `/brooks-audit` | Full architecture audit |
+| `/brooks-lint:brooks-debt` | `/brooks-debt` | Tech debt assessment |
+| `/brooks-lint:brooks-test` | `/brooks-test` | Test suite health review |
+
+> Short-form commands are auto-installed on first session start by the session-start hook.
 
 ### Gemini CLI
 | Command | Action |
@@ -258,7 +265,8 @@ The skills also trigger automatically when you discuss code quality, architectur
 ### PR Review
 
 ```
-/brooks-review                      # Claude Code / Gemini CLI
+/brooks-review                      # Claude Code (short form) / Gemini CLI
+/brooks-lint:brooks-review          # Claude Code (full form)
 $brooks-review                      # Codex CLI
 ```
 
@@ -267,7 +275,8 @@ Paste a diff or point the AI at changed files. Diagnoses each of the six decay r
 ### Architecture Audit
 
 ```
-/brooks-audit                       # Claude Code / Gemini CLI
+/brooks-audit                       # Claude Code (short form) / Gemini CLI
+/brooks-lint:brooks-audit           # Claude Code (full form)
 $brooks-audit                       # Codex CLI
 ```
 
@@ -276,7 +285,8 @@ Describe your project structure or share key files. It maps module dependencies,
 ### Tech Debt Assessment
 
 ```
-/brooks-debt                        # Claude Code / Gemini CLI
+/brooks-debt                        # Claude Code (short form) / Gemini CLI
+/brooks-lint:brooks-debt            # Claude Code (full form)
 $brooks-debt                        # Codex CLI
 ```
 
@@ -285,7 +295,8 @@ Classifies your debt across the six decay risks, scores each finding by Pain × 
 ### Test Quality Review
 
 ```
-/brooks-test                        # Claude Code / Gemini CLI
+/brooks-test                        # Claude Code (short form) / Gemini CLI
+/brooks-lint:brooks-test            # Claude Code (full form)
 $brooks-test                        # Codex CLI
 ```
 
@@ -359,7 +370,7 @@ brooks-lint/
 │       ├── SKILL.md
 │       └── test-guide.md
 ├── hooks/                       # SessionStart hook
-├── commands/                    # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
+├── commands/                    # Short-form command wrappers (auto-installed by hook)
 ├── evals/                       # Benchmark test cases
 │   └── evals.json
 └── assets/
@@ -373,8 +384,9 @@ brooks-lint/
 - [x] **v0.4**: Six-book framework, decay risk dimensions, diagnosis chain, benchmark suite
 - [x] **v0.5**: Test Quality Review (Mode 4) — four testing books, six test decay risks
 - [x] **v0.6**: Mermaid dependency graph in Architecture Audit
-- [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion, short-form commands
-- [ ] **v0.8**: GitHub Action for CI/CD integration
+- [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion
+- [x] **v0.8**: Independent skill architecture with namespaced commands
+- [ ] **v0.9**: GitHub Action for CI/CD integration
 - [ ] **v1.0**: VS Code extension
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).

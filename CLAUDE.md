@@ -15,6 +15,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Manual
 cp -r skills/ ~/.claude/skills/brooks-lint
+
+# Short-form commands (/brooks-review) are auto-installed by the session-start hook.
+# To install manually: cp commands/*.md ~/.claude/commands/
 ```
 
 ## Architecture
@@ -43,7 +46,7 @@ brooks-lint/
 │       ├── SKILL.md
 │       └── test-guide.md
 ├── hooks/                   # SessionStart hook for session-level awareness
-├── commands/                # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
+├── commands/                # Short-form command wrappers (auto-installed by hook, or manual copy)
 ├── evals/                   # Benchmark suite (37 scenarios across 4 modes)
 ├── docs/gallery.md          # Visual output examples (used for README/promotion)
 ├── AGENTS.md                # Codex CLI project instructions
@@ -87,18 +90,18 @@ There is no automated runner — evals are validated manually by running the ski
 bash hooks/session-start                        # local branch
 CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
-# Run the skills in Claude Code
-/brooks-review    # PR review
-/brooks-audit     # Architecture audit
-/brooks-debt      # Tech debt assessment
-/brooks-test      # Test quality review
+# Run the skills in Claude Code (short form auto-installed by session-start hook)
+/brooks-review    # Short form (or /brooks-lint:brooks-review)
+/brooks-audit     # Short form (or /brooks-lint:brooks-audit)
+/brooks-debt      # Short form (or /brooks-lint:brooks-debt)
+/brooks-test      # Short form (or /brooks-lint:brooks-test)
 ```
 
 ## Development Gotchas
 
 - **Skill sync:** `skills/` and the marketplace install path (`~/.claude/plugins/...`) are two independent copies — reinstall manually after edits.
 - **package.json:** `"type": "module"` is a placeholder for the v0.3 JS/TS phase; no JS code currently exists, does not affect runtime.
-- **Slash commands:** Each skill registers as a short-form command (`/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`).
+- **Slash commands:** Plugin skills register as namespaced commands (`/brooks-lint:brooks-review`). Short-form commands (`/brooks-review`) are auto-installed to `~/.claude/commands/` by the session-start hook. These are thin wrappers that delegate to the plugin skills.
 - **`_shared/` convention:** `skills/_shared/` holds common framework files (Iron Law, Report Template, decay risk definitions). It is NOT a skill directory — Claude Code ignores directories without `SKILL.md` when registering commands.
 - **Version sync:** Update version in all five files when bumping:
   1. `package.json`

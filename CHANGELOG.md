@@ -6,6 +6,94 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [0.8.1] - 2026-04-09
+
+### Fixed
+
+- **Short-form slash commands now work** — `/brooks-review`, `/brooks-audit`, `/brooks-debt`,
+  `/brooks-test` are auto-installed to `~/.claude/commands/` on first session start. Previously
+  these commands were only registered as namespaced `/brooks-lint:brooks-review` etc., which is
+  a Claude Code plugin system limitation (all plugin skills/commands carry a `pluginname:` prefix).
+  The session-start hook now copies thin wrapper files from `commands/` to `~/.claude/commands/`,
+  enabling the short-form `/brooks-review` slash commands without namespace prefix.
+- **Versioned sentinel file** — command wrappers auto-refresh on plugin upgrade. The sentinel
+  file at `~/.claude/commands/.brooks-lint-v{version}` encodes the plugin version, so upgrading
+  from e.g. 0.8.1 to 0.8.2 will re-copy the wrappers automatically. Old sentinel files are
+  cleaned up on upgrade.
+- **macOS bash 3.2 compatibility** — replaced `declare -A` (bash 4+ only) with `case` statement
+  in session-start hook. macOS ships `/bin/bash` 3.2 by default; the hook now works regardless
+  of which bash version `env bash` resolves to.
+- **Single source of truth for command wrappers** — the hook now copies canonical files from
+  `commands/` directory instead of regenerating from an inline template, eliminating content drift
+  between the two sources.
+
+### Changed
+
+- **`commands/*.md`** — simplified from verbose multi-paragraph instructions to thin one-line
+  wrappers that delegate to the corresponding `brooks-lint:brooks-*` plugin skill via the Skill
+  tool. This matches what the hook installs to `~/.claude/commands/`.
+- **`hooks/session-start`** — added auto-install block with versioned sentinel, `case` statement
+  for descriptions, and `cp` from `commands/` directory. Context injection updated to show
+  namespaced skill names (`brooks-lint:brooks-review` etc.).
+- **Documentation updated across 8 files** — CLAUDE.md, README.md, CONTRIBUTING.md, AGENTS.md,
+  GEMINI.md, and pr-review-guide.md all updated to reflect both command forms (short-form
+  `/brooks-review` and full-form `/brooks-lint:brooks-review`). README slash commands table now
+  shows both forms with a note about auto-installation.
+- **README version badge** updated to 0.8.1
+- **All five version files** synchronized to 0.8.1
+
+---
+
+## [0.8.0] - 2026-04-09
+
+### Changed
+
+- **Independent skill architecture** — split monolithic `skills/brooks-lint/` into four
+  independent skill directories, each with its own `SKILL.md` entry point:
+  - `skills/brooks-review/` — PR Review (Mode 1)
+  - `skills/brooks-audit/` — Architecture Audit (Mode 2)
+  - `skills/brooks-debt/` — Tech Debt Assessment (Mode 3)
+  - `skills/brooks-test/` — Test Quality Review (Mode 4)
+- **Shared framework extracted** — `skills/_shared/` now holds `common.md` (Iron Law, Project
+  Config, Report Template, Health Score), `decay-risks.md`, and `test-decay-risks.md`. Each
+  skill's SKILL.md references these shared files via relative paths.
+- **`common.md` created** — consolidated the Iron Law, Project Config loader, Report Template,
+  and Health Score rules (previously embedded in the monolithic SKILL.md) into a single shared
+  file that all four skills reference.
+
+### Removed
+
+- `skills/brooks-lint/` — the monolithic skill directory. All content migrated to the four
+  independent skill directories and `_shared/`.
+
+---
+
+## [0.7.0] - 2026-04-09
+
+### Added
+
+- **`.brooks-lint.yaml` project config** — teams can customize review behavior per-project:
+  `disable` (skip risk codes), `severity` (override tiers), `ignore` (file globs), `focus`
+  (evaluate only listed risks). Includes `.brooks-lint.example.yaml` template.
+- **Mode 2 proactive context** — Architecture Audit (Step 0) now scans the codebase
+  automatically before analysis, gathering module structure, dependency patterns, and
+  configuration files without requiring the user to paste code.
+- **10-book expansion** — added four new source books to the framework:
+  - *A Philosophy of Software Design* (Ousterhout) — contributes to R1, R4
+  - *Software Engineering at Google* (Winters et al.) — contributes to R2, R5
+  - *Working Effectively with Legacy Code* (Feathers) — contributes to T4, T5, T6
+  - *xUnit Test Patterns* (Meszaros) — contributes to T1, T2, T3, T4
+- **CI quality gate** — Codex plugin scanner workflow (GitHub Actions) for manifest linting
+- **Community health files** — SECURITY.md, issue templates, PR template, GitHub Discussions
+
+### Changed
+
+- README: updated from "six books" to "ten books" throughout, expanded book table, refreshed
+  decay risk source attributions
+- All version references synchronized to 0.7.0
+
+---
+
 ## [0.6.2] - 2026-04-03
 
 ### Added

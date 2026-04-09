@@ -1,12 +1,5 @@
 ---
-description: Run a Brooks-Lint architecture audit on the current project
+description: Run a Brooks-Lint architecture audit
 ---
 
-Use the brooks-audit skill to perform an architecture audit.
-Load the skill via the Skill tool, then analyze the project structure,
-module dependencies, and architectural patterns using the ten-book decay risk
-framework (drawing from The Mythical Man-Month, Code Complete, Refactoring,
-Clean Architecture, The Pragmatic Programmer, Domain-Driven Design,
-A Philosophy of Software Design, Software Engineering at Google,
-and Working Effectively with Legacy Code).
-Read architecture-guide.md from the skill directory for the audit framework.
+Use the Skill tool to invoke the `brooks-lint:brooks-audit` skill, then follow its instructions exactly.

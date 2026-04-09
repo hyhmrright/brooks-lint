@@ -25,7 +25,8 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
 - `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
 - `skills/brooks-test/`: Test Quality Review skill and guide.
 - `skills/_shared/`: Shared framework (common.md, decay-risks.md, test-decay-risks.md).
-- `commands/`: Detailed instruction sets for different review modes.
+- `commands/`: Short-form command wrappers (used by Claude Code, not Gemini CLI).
+- `hooks/`: SessionStart hook for Claude Code session-level awareness.
 - `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6). No automated runner — validate manually by running the skill against each scenario's input.
 
 ## Development & Debugging
