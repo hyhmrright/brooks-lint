@@ -15,13 +15,13 @@
 
 <!-- List the skill files touched. Helps reviewers focus. -->
 
-- [ ] `skills/brooks-lint/SKILL.md`
-- [ ] `skills/brooks-lint/decay-risks.md`
-- [ ] `skills/brooks-lint/pr-review-guide.md`
-- [ ] `skills/brooks-lint/architecture-guide.md`
-- [ ] `skills/brooks-lint/debt-guide.md`
-- [ ] `skills/brooks-lint/test-guide.md`
-- [ ] `skills/brooks-lint/test-decay-risks.md`
+- [ ] `skills/_shared/common.md`
+- [ ] `skills/_shared/decay-risks.md`
+- [ ] `skills/_shared/test-decay-risks.md`
+- [ ] `skills/brooks-review/`
+- [ ] `skills/brooks-audit/`
+- [ ] `skills/brooks-debt/`
+- [ ] `skills/brooks-test/`
 - [ ] `evals/evals.json`
 - [ ] Other: ___
 

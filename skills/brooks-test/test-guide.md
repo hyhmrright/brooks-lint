@@ -111,13 +111,13 @@ Remedy: [concrete, specific action]
 ```
 
 Do not write a finding you cannot complete. If you can identify a symptom but cannot
-state a consequence, re-read `test-decay-risks.md` for that risk before writing the finding.
+state a consequence, re-read `../_shared/test-decay-risks.md` for that risk before writing the finding.
 
 ---
 
 ## Output
 
-Use the standard Report Template from `SKILL.md`.
+Use the standard Report Template from `../_shared/common.md`.
 Mode: Test Quality Review
 Scope: the test files or directory reviewed.
 

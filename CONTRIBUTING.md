@@ -8,7 +8,7 @@ zero code.
 
 ### 1. Add a finding to an existing decay risk (easiest)
 
-Edit `skills/brooks-lint/decay-risks.md`. Each of the six decay risks has a
+Edit `skills/_shared/decay-risks.md`. Each of the six decay risks has a
 `Symptoms` list and a `Sources` table. You can:
 
 - Add a new symptom pattern you've seen in real codebases
@@ -24,11 +24,11 @@ The guide files define how Claude analyzes each scenario:
 
 | File | What it controls |
 |------|-----------------|
-| `skills/brooks-lint/pr-review-guide.md` | How PR reviews are structured (incl. Step 7 Quick Test Check) |
-| `skills/brooks-lint/architecture-guide.md` | How architecture audits run |
-| `skills/brooks-lint/debt-guide.md` | How tech debt is classified and scored |
-| `skills/brooks-lint/test-guide.md` | How test quality reviews run (Mode 4) |
-| `skills/brooks-lint/test-decay-risks.md` | Six test-space decay risks with book citations |
+| `skills/brooks-review/pr-review-guide.md` | How PR reviews are structured (incl. Step 7 Quick Test Check) |
+| `skills/brooks-audit/architecture-guide.md` | How architecture audits run |
+| `skills/brooks-debt/debt-guide.md` | How tech debt is classified and scored |
+| `skills/brooks-test/test-guide.md` | How test quality reviews run |
+| `skills/_shared/test-decay-risks.md` | Six test-space decay risks with book citations |
 
 Better heuristics here mean better reviews for every user. If you find the skill
 misses something important or produces a finding that's consistently wrong, the
@@ -73,21 +73,21 @@ Expected output: a JSON object with an `additionalContext` or `hookSpecificOutpu
 To test the skill itself, install it into your Claude Code session:
 
 ```bash
-cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
+cp -r skills/ ~/.claude/skills/brooks-lint
 ```
 
 Then open Claude Code and run one of the slash commands:
 
 ```
-/brooks-lint:brooks-review
-/brooks-lint:brooks-audit
-/brooks-lint:brooks-debt
-/brooks-lint:brooks-test
+/brooks-review
+/brooks-audit
+/brooks-debt
+/brooks-test
 ```
 
 ## PR Conventions
 
-- Run `/brooks-lint:brooks-review` on your own diff before opening a PR.
+- Run `/brooks-review` on your own diff before opening a PR.
   Paste the Health Score and any Critical findings into your PR description.
   (Yes, we review our own contributions with the tool we're building.)
 

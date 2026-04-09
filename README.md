@@ -189,7 +189,7 @@ The gap isn't what Claude *can* find — it's what it *consistently* finds, with
 
 #### Manual Install
 ```bash
-cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
+cp -r skills/ ~/.claude/skills/brooks-lint
 ```
 
 ### Gemini CLI
@@ -201,7 +201,7 @@ cp -r skills/brooks-lint ~/.claude/skills/brooks-lint
 
 #### Manual Install
 ```bash
-cp -r skills/brooks-lint ~/.gemini/skills/brooks-lint
+cp -r skills/ ~/.gemini/skills/brooks-lint
 ```
 
 ### Codex CLI
@@ -214,25 +214,25 @@ Install the brooks-lint skill from hyhmrright/brooks-lint
 #### Command Line
 ```bash
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo hyhmrright/brooks-lint --path skills/brooks-lint --name brooks-lint
+  --repo hyhmrright/brooks-lint --path skills --name brooks-lint
 ```
 
 #### Manual Install
 ```bash
 git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
 mkdir -p ~/.codex/skills/brooks-lint
-cp -r /tmp/brooks-lint/skills/brooks-lint/* ~/.codex/skills/brooks-lint/
+cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 ```
 
 ## Slash Commands
 
 ### Claude Code
-| Short command | Full command | Action |
-|---------------|-------------|--------|
-| `/brooks-review` | `/brooks-lint:brooks-review` | PR-level code review |
-| `/brooks-audit` | `/brooks-lint:brooks-audit` | Full architecture audit |
-| `/brooks-debt` | `/brooks-lint:brooks-debt` | Tech debt assessment |
-| `/brooks-test` | `/brooks-lint:brooks-test` | Test suite health review |
+| Command | Action |
+|---------|--------|
+| `/brooks-review` | PR-level code review |
+| `/brooks-audit` | Full architecture audit |
+| `/brooks-debt` | Tech debt assessment |
+| `/brooks-test` | Test suite health review |
 
 ### Gemini CLI
 | Command | Action |
@@ -244,18 +244,22 @@ cp -r /tmp/brooks-lint/skills/brooks-lint/* ~/.codex/skills/brooks-lint/
 
 ### Codex CLI
 
-Activate the skill with `$brooks-lint`, then describe the task. Mode is auto-detected from context.
+| Command | Action |
+|---------|--------|
+| `$brooks-review` | PR-level code review |
+| `$brooks-audit` | Full architecture audit |
+| `$brooks-debt` | Tech debt assessment |
+| `$brooks-test` | Test suite health review |
 
-The skill also triggers automatically when you discuss code quality, architecture, maintainability, or test health.
+The skills also trigger automatically when you discuss code quality, architecture, maintainability, or test health.
 
 ## Usage
 
 ### PR Review
 
 ```
-/brooks-lint:brooks-review          # Claude Code
-/brooks-review                      # Gemini CLI
-$brooks-lint                        # Codex CLI (then say "review this PR")
+/brooks-review                      # Claude Code / Gemini CLI
+$brooks-review                      # Codex CLI
 ```
 
 Paste a diff or point the AI at changed files. Diagnoses each of the six decay risks with specific findings in Symptom → Source → Consequence → Remedy format.
@@ -263,9 +267,8 @@ Paste a diff or point the AI at changed files. Diagnoses each of the six decay r
 ### Architecture Audit
 
 ```
-/brooks-lint:brooks-audit           # Claude Code
-/brooks-audit                       # Gemini CLI
-$brooks-lint                        # Codex CLI (then say "audit the architecture")
+/brooks-audit                       # Claude Code / Gemini CLI
+$brooks-audit                       # Codex CLI
 ```
 
 Describe your project structure or share key files. It maps module dependencies, identifies circular dependencies, and checks Conway's Law alignment.
@@ -273,9 +276,8 @@ Describe your project structure or share key files. It maps module dependencies,
 ### Tech Debt Assessment
 
 ```
-/brooks-lint:brooks-debt            # Claude Code
-/brooks-debt                        # Gemini CLI
-$brooks-lint                        # Codex CLI (then say "assess tech debt")
+/brooks-debt                        # Claude Code / Gemini CLI
+$brooks-debt                        # Codex CLI
 ```
 
 Classifies your debt across the six decay risks, scores each finding by Pain × Spread priority, and produces a prioritized repayment roadmap with Critical / Scheduled / Monitored classification.
@@ -283,9 +285,8 @@ Classifies your debt across the six decay risks, scores each finding by Pain × 
 ### Test Quality Review
 
 ```
-/brooks-lint:brooks-test            # Claude Code
-/brooks-test                        # Gemini CLI
-$brooks-lint                        # Codex CLI (then say "review test quality")
+/brooks-test                        # Claude Code / Gemini CLI
+$brooks-test                        # Codex CLI
 ```
 
 Audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically.
@@ -340,14 +341,23 @@ The decay risks these authors identified are more relevant than ever:
 brooks-lint/
 ├── .claude-plugin/              # Claude Code plugin metadata
 ├── .codex-plugin/               # Codex CLI plugin metadata
-├── skills/brooks-lint/          # The skill itself (canonical source)
-│   ├── SKILL.md                 # Main skill — Iron Law, mode detection, report template
-│   ├── decay-risks.md           # Six decay risks with symptoms and book citations
-│   ├── pr-review-guide.md       # Mode 1: PR review process (incl. Step 7 Quick Test Check)
-│   ├── architecture-guide.md    # Mode 2: Architecture audit + Conway's Law
-│   ├── debt-guide.md            # Mode 3: Pain×Spread scoring + Debt Summary Table
-│   ├── test-decay-risks.md      # Six test-space decay risks with book citations
-│   └── test-guide.md            # Mode 4: Test quality review process
+├── skills/
+│   ├── _shared/                 # Shared framework files
+│   │   ├── common.md            # Iron Law, Project Config, Report Template, Health Score
+│   │   ├── decay-risks.md       # Six decay risks with symptoms and book citations
+│   │   └── test-decay-risks.md  # Six test-space decay risks with book citations
+│   ├── brooks-review/           # Mode 1: PR Review
+│   │   ├── SKILL.md
+│   │   └── pr-review-guide.md
+│   ├── brooks-audit/            # Mode 2: Architecture Audit
+│   │   ├── SKILL.md
+│   │   └── architecture-guide.md
+│   ├── brooks-debt/             # Mode 3: Tech Debt Assessment
+│   │   ├── SKILL.md
+│   │   └── debt-guide.md
+│   └── brooks-test/             # Mode 4: Test Quality Review
+│       ├── SKILL.md
+│       └── test-guide.md
 ├── hooks/                       # SessionStart hook
 ├── commands/                    # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
 ├── evals/                       # Benchmark test cases
@@ -373,7 +383,7 @@ Want to help? The best contributions right now are new eval test cases and impro
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add findings, improve guides, or expand the benchmark suite.
 
-Run `/brooks-lint:brooks-review` on your own PR — we review contributions with the tool we're building.
+Run `/brooks-review` on your own PR — we review contributions with the tool we're building.
 
 ## License
 

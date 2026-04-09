@@ -171,7 +171,7 @@ Remedy: [concrete architectural action]
 
 ## Output
 
-Use the standard Report Template from `SKILL.md`.
+Use the standard Report Template from `../_shared/common.md`.
 Mode: Architecture Audit
 Scope: the project or directory audited.
 

@@ -6,8 +6,8 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
 **brooks-lint** is a Codex CLI plugin used to diagnose code quality across six "decay risk" dimensions: Cognitive Overload, Change Propagation, Knowledge Duplication, Accidental Complexity, Dependency Disorder, and Domain Model Distortion.
 
 ## Skill Integration
-- **Auto-trigger:** You **must** proactively use the `brooks-lint` skill (located at `skills/brooks-lint/`) whenever discussing code quality, PR reviews, architecture health, test quality, or technical debt.
-- **Skill invocation:** Activate with `$brooks-lint`, then describe the task (e.g., "review this PR", "audit the architecture", "assess tech debt", "review test quality").
+- **Auto-trigger:** You **must** proactively use the appropriate skill whenever discussing code quality, PR reviews, architecture health, test quality, or technical debt.
+- **Skill invocation:** Activate the matching skill with `$brooks-review`, `$brooks-audit`, `$brooks-debt`, or `$brooks-test`.
 
 ## Engineering Standards
 - **Comment Preference:** All internal documentation and configuration should remain in English for international consistency.
@@ -16,7 +16,11 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
 - **Project Config:** If a `.brooks-lint.yaml` exists in the project root, read and apply it before running any review mode.
 
 ## Project Structure
-- `skills/brooks-lint/`: Core skill definitions and diagnostic guides.
+- `skills/brooks-review/`: PR Review skill and guide.
+- `skills/brooks-audit/`: Architecture Audit skill and guide.
+- `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
+- `skills/brooks-test/`: Test Quality Review skill and guide.
+- `skills/_shared/`: Shared framework (common.md, decay-risks.md, test-decay-risks.md).
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `commands/`: Claude Code slash command definitions (not used by Codex CLI).
 - `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6). No automated runner — validate manually by running the skill against each scenario's input.

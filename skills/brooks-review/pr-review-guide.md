@@ -87,13 +87,13 @@ Remedy: [concrete action, specific to this code]
 
 Do not write a finding that you cannot complete fully. If you can identify a symptom but
 cannot state a consequence, you have not understood the risk well enough — re-read
-`decay-risks.md` for that risk before writing the finding.
+`../_shared/decay-risks.md` for that risk before writing the finding.
 
 ---
 
 ## Output
 
-Use the standard Report Template from `SKILL.md`.
+Use the standard Report Template from `../_shared/common.md`.
 Mode: PR Review
 Scope: list the files reviewed (excluding skipped generated files).
 
@@ -148,5 +148,5 @@ Label the risk as the test decay risk name (e.g., "Coverage Illusion", "Mock Abu
 "Test Obscurity").
 
 > **Note:** Step 7 is a fast check, not a full test audit. When systemic test problems
-> are found, note in the Summary: "Consider running `/brooks-lint:brooks-test` for a
+> are found, note in the Summary: "Consider running `/brooks-test` for a
 > complete test quality diagnosis."

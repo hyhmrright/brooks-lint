@@ -6,12 +6,12 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
 **brooks-lint** is a Gemini CLI extension used to diagnose code quality across six "decay risk" dimensions: Cognitive Overload, Change Propagation, Knowledge Duplication, Accidental Complexity, Dependency Disorder, and Domain Model Distortion.
 
 ## Skill Integration
-- **Auto-trigger:** You **must** proactively activate and use the `skills/brooks-lint` skill whenever discussing code quality, PR reviews, architecture health, or technical debt.
+- **Auto-trigger:** You **must** proactively activate the appropriate skill whenever discussing code quality, PR reviews, architecture health, test quality, or technical debt.
 - **Command Mapping:** 
-  - `/brooks-review`: Executes Mode 1 (PR Review)
-  - `/brooks-audit`: Executes Mode 2 (Architecture Audit)
-  - `/brooks-debt`: Executes Mode 3 (Tech Debt Assessment)
-  - `/brooks-test`: Executes Mode 4 (Test Quality Review)
+  - `/brooks-review`: PR Review (loads `skills/brooks-review/`)
+  - `/brooks-audit`: Architecture Audit (loads `skills/brooks-audit/`)
+  - `/brooks-debt`: Tech Debt Assessment (loads `skills/brooks-debt/`)
+  - `/brooks-test`: Test Quality Review (loads `skills/brooks-test/`)
 
 ## Engineering Standards
 - **Comment Preference:** All internal documentation and configuration should remain in English for international consistency.
@@ -20,12 +20,16 @@ This repository is an AI-powered code quality tool grounded in ten classic engin
 - **Project Config:** If a `.brooks-lint.yaml` exists in the project root, read and apply it before running any review mode.
 
 ## Project Structure
-- `skills/brooks-lint/`: Core skill definitions and diagnostic guides.
+- `skills/brooks-review/`: PR Review skill and guide.
+- `skills/brooks-audit/`: Architecture Audit skill and guide.
+- `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
+- `skills/brooks-test/`: Test Quality Review skill and guide.
+- `skills/_shared/`: Shared framework (common.md, decay-risks.md, test-decay-risks.md).
 - `commands/`: Detailed instruction sets for different review modes.
 - `evals/`: Performance benchmark test cases (37 scenarios across R1–R6 and T1–T6). No automated runner — validate manually by running the skill against each scenario's input.
 
 ## Development & Debugging
-- **Skill Testing:** After modifying `skills/brooks-lint/` locally, refresh using `gemini skills reload`.
+- **Skill Testing:** After modifying `skills/` locally, refresh using `gemini skills reload`.
 - **Extension Installation:** Users can install the extension in the current workspace via `/extensions install .`.
 
 ---

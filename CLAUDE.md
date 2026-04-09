@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from ten classic software engineering books. It surfaces decay risks across four review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review). The primary artifact is `skills/brooks-lint/SKILL.md` — the skill definition installed and used by Claude Code.
+**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from ten classic software engineering books. It surfaces decay risks across four review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review). Each mode is an independent skill under `skills/` — installed and used by Claude Code.
 
 ## Install
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 /plugin install brooks-lint@brooks-lint-marketplace
 
 # Manual
-cp -r skills/brooks-lint/ ~/.claude/skills/brooks-lint
+cp -r skills/ ~/.claude/skills/brooks-lint
 ```
 
 ## Architecture
@@ -25,14 +25,23 @@ cp -r skills/brooks-lint/ ~/.claude/skills/brooks-lint
 brooks-lint/
 ├── .claude-plugin/          # Claude Code plugin metadata
 ├── .codex-plugin/           # Codex CLI plugin metadata
-├── skills/brooks-lint/      # The skill itself
-│   ├── SKILL.md             # Main skill — self-contained workflow + mode detection
-│   ├── decay-risks.md       # Six decay risk definitions with symptoms + sources
-│   ├── pr-review-guide.md   # Mode 1: PR review checklist (read when running Mode 1)
-│   ├── architecture-guide.md # Mode 2: Architecture audit framework
-│   ├── debt-guide.md        # Mode 3: Tech debt classification
-│   ├── test-decay-risks.md  # Six test-space decay risks (read when running Mode 4)
-│   └── test-guide.md        # Mode 4: Test quality review framework
+├── skills/
+│   ├── _shared/             # Shared framework files
+│   │   ├── common.md        # Iron Law, Project Config, Report Template, Health Score
+│   │   ├── decay-risks.md   # Six decay risk definitions with symptoms + sources
+│   │   └── test-decay-risks.md  # Six test-space decay risks
+│   ├── brooks-review/       # Mode 1: PR Review
+│   │   ├── SKILL.md         # Skill entry point
+│   │   └── pr-review-guide.md
+│   ├── brooks-audit/        # Mode 2: Architecture Audit
+│   │   ├── SKILL.md
+│   │   └── architecture-guide.md
+│   ├── brooks-debt/         # Mode 3: Tech Debt Assessment
+│   │   ├── SKILL.md
+│   │   └── debt-guide.md
+│   └── brooks-test/         # Mode 4: Test Quality Review
+│       ├── SKILL.md
+│       └── test-guide.md
 ├── hooks/                   # SessionStart hook for session-level awareness
 ├── commands/                # /brooks-review, /brooks-audit, /brooks-debt, /brooks-test
 ├── evals/                   # Benchmark suite (37 scenarios across 4 modes)
@@ -42,15 +51,14 @@ brooks-lint/
 └── gemini-extension.json    # Gemini CLI extension manifest
 ```
 
-### How the skill works
+### How the skills work
 
-1. `hooks/session-start` injects a brief note into every session: "brooks-lint is installed, use Skill tool to load it for code reviews"
-2. When triggered, Claude loads `skills/brooks-lint/SKILL.md` via the Skill tool
-3. SKILL.md checks for a `.brooks-lint.yaml` config file in the project root and applies it
-4. SKILL.md detects the mode (PR Review / Architecture Audit / Tech Debt / Test Quality Review) from context
-5. Claude reads the relevant guide file and `decay-risks.md` (or `test-decay-risks.md` for Mode 4)
-6. Each finding follows the Iron Law: Symptom → Source → Consequence → Remedy
-7. Output follows the standard report template with Health Score (base 100, deductions per finding)
+1. `hooks/session-start` injects a brief note into every session listing the four available skills
+2. When triggered, Claude loads the appropriate skill's `SKILL.md` via the Skill tool
+3. Each SKILL.md instructs Claude to read `_shared/common.md` for the Iron Law, Config, and Report Template
+4. Claude reads the mode-specific guide and the relevant decay-risks file from `_shared/`
+5. Each finding follows the Iron Law: Symptom → Source → Consequence → Remedy
+6. Output follows the standard report template with Health Score (base 100, deductions per finding)
 
 ### Project Config (`.brooks-lint.yaml`)
 
@@ -79,21 +87,23 @@ There is no automated runner — evals are validated manually by running the ski
 bash hooks/session-start                        # local branch
 CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
-# Run the skill in Claude Code
-/brooks-lint:brooks-review    # PR review
-/brooks-lint:brooks-audit     # Architecture audit
-/brooks-lint:brooks-debt      # Tech debt assessment
-/brooks-lint:brooks-test      # Test quality review
+# Run the skills in Claude Code
+/brooks-review    # PR review
+/brooks-audit     # Architecture audit
+/brooks-debt      # Tech debt assessment
+/brooks-test      # Test quality review
 ```
 
 ## Development Gotchas
 
-- **Skill sync:** `skills/brooks-lint/` and the marketplace install path (`~/.claude/plugins/...`) are two independent copies — reinstall manually after edits.
+- **Skill sync:** `skills/` and the marketplace install path (`~/.claude/plugins/...`) are two independent copies — reinstall manually after edits.
 - **package.json:** `"type": "module"` is a placeholder for the v0.3 JS/TS phase; no JS code currently exists, does not affect runtime.
-- **Slash command namespace:** Registered commands use `/brooks-lint:brooks-review` etc. Short-form `/brooks-review` also works — the session-start hook teaches Claude to route it correctly.
-- **Version sync:** Version string is duplicated across `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json`, and `gemini-extension.json` — update all five when bumping.
+- **Slash commands:** Each skill registers as a short-form command (`/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`).
+- **`_shared/` convention:** `skills/_shared/` holds common framework files (Iron Law, Report Template, decay risk definitions). It is NOT a skill directory — Claude Code ignores directories without `SKILL.md` when registering commands.
+- **Version sync:** Update version in all five files when bumping:
+  1. `package.json`
+  2. `.claude-plugin/plugin.json`
+  3. `.claude-plugin/marketplace.json`
+  4. `.codex-plugin/plugin.json`
+  5. `gemini-extension.json`
 
-## Next Up
-
-- v0.8: GitHub Action
-- v1.0: VS Code extension

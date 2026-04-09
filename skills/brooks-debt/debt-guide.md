@@ -83,7 +83,7 @@ Grouping by risk reveals systemic patterns:
 
 ## Output
 
-Use the standard Report Template from `SKILL.md`.
+Use the standard Report Template from `../_shared/common.md`.
 Mode: Tech Debt Assessment
 
 After the Findings section, append a Debt Summary Table:
