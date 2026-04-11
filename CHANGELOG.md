@@ -4,16 +4,20 @@ All notable changes to brooks-lint are documented here.
 
 ## [Unreleased]
 
+---
+
+## [0.8.4] - 2026-04-11
+
 ### Added
 
-- **12-book source coverage matrix** — `skills/_shared/source-coverage.md` now maps every source book to encoded concepts, important nuances, false-positive guards, and review questions.
+- **12-book source coverage matrix** — `skills/_shared/source-coverage.md` maps every source book to encoded concepts, important nuances, false-positive guards, and review questions.
 - **Judgment guardrails in shared risk references** — `decay-risks.md` and `test-decay-risks.md` now include explicit "What Not to Flag" sections to reduce template-driven over-reporting.
 - **Benchmark suite expanded to 43 scenarios** — added tradeoff and false-positive cases covering deep modules, Hyrum's Law, justified protocol switches, composition roots, acceptable transaction scripts, and risk-shaped legacy test portfolios.
 
 ### Changed
 
 - **All four skills now read the source coverage matrix** before risk-specific references, making book-level scope and exceptions part of the default workflow.
-- **README, AGENTS.md, and CONTRIBUTING.md** now document the source coverage matrix and the expanded benchmark suite.
+- **README, AGENTS.md, CLAUDE.md, and CONTRIBUTING.md** now document the source coverage matrix and the expanded benchmark suite, and surface `node scripts/validate-repo.mjs` as a first-class consistency gate.
 
 ---
 
