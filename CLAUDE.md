@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from ten classic software engineering books. It surfaces decay risks across four review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review). Each mode is an independent skill under `skills/` — installed and used by Claude Code.
+**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from twelve classic software engineering books. It surfaces decay risks across four review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review). Each mode is an independent skill under `skills/` — installed and used by Claude Code.
 
 ## Install
 
@@ -31,6 +31,7 @@ brooks-lint/
 ├── skills/
 │   ├── _shared/             # Shared framework files
 │   │   ├── common.md        # Iron Law, Project Config, Report Template, Health Score
+│   │   ├── source-coverage.md  # 12-book coverage matrix + false-positive guards
 │   │   ├── decay-risks.md   # Six decay risk definitions with symptoms + sources
 │   │   └── test-decay-risks.md  # Six test-space decay risks
 │   ├── brooks-review/       # Mode 1: PR Review
@@ -47,7 +48,8 @@ brooks-lint/
 │       └── test-guide.md
 ├── hooks/                   # SessionStart hook for session-level awareness
 ├── commands/                # Short-form command wrappers (auto-installed by hook, or manual copy)
-├── evals/                   # Benchmark suite (37 scenarios across 4 modes)
+├── evals/                   # Benchmark suite (43 scenarios across 4 modes)
+├── scripts/                 # Repo validation (validate-repo.mjs — consistency CI gate)
 ├── docs/gallery.md          # Visual output examples (used for README/promotion)
 ├── AGENTS.md                # Codex CLI project instructions
 ├── GEMINI.md                # Gemini CLI project instructions
@@ -79,13 +81,16 @@ brooks-lint runs on three AI coding platforms: Claude Code, Codex CLI, and Gemin
 
 ## Eval Suite
 
-`evals/evals.json` contains 37 benchmark scenarios covering R1-R6 (code decay) and T1-T6 (test decay). Each scenario is a JSON object with input context and expected findings. To add a scenario, append to the `evals` array with the next sequential `id` and the relevant risk code.
+`evals/evals.json` contains 43 benchmark scenarios covering R1-R6 (code decay) and T1-T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario is a JSON object with input context and expected findings. To add a scenario, append to the `evals` array with the next sequential `id` and the relevant risk code.
 
 There is no automated runner — evals are validated manually by running the skill against the scenario's input and comparing output to `expected_output`. Each eval has `id`, `name`, `prompt`, `expected_output`, and `files` fields.
 
 ## Development Commands
 
 ```bash
+# Validate repo consistency (manifests, README, changelog, source inventory)
+node scripts/validate-repo.mjs
+
 # Test hooks locally
 bash hooks/session-start                        # local branch
 CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
