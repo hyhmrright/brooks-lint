@@ -6,7 +6,7 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
-## [0.8.2] - 2026-04-11
+## [0.8.3] - 2026-04-11
 
 ### Fixed
 
