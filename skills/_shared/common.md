@@ -45,7 +45,7 @@ Cannot be combined with a non-empty `disable` list.
 version: 1
 
 disable:
-  - T3   # no coverage metrics enforced on this project
+  - T5   # no coverage metrics enforced on this project
 
 severity:
   R1: suggestion   # high cognitive load is accepted in this domain

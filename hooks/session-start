@@ -10,7 +10,11 @@ set -euo pipefail
 # Versioned sentinel ensures files refresh on plugin upgrade.
 cmd_dir="$HOME/.claude/commands"
 plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
-version="0.8.1"
+version="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' "$plugin_dir/package.json" | head -n 1)"
+if [ -z "$version" ]; then
+    echo "Failed to read version from package.json" >&2
+    exit 1
+fi
 sentinel="$cmd_dir/.brooks-lint-v${version}"
 
 if [ ! -f "$sentinel" ]; then

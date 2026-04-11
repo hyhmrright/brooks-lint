@@ -6,6 +6,33 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [0.8.2] - 2026-04-11
+
+### Fixed
+
+- **Version drift removed** — `README.md`, `CHANGELOG.md`, and `hooks/session-start` now align
+  with package version `0.8.2`. The session-start hook no longer hardcodes a version string;
+  it reads from `package.json` before computing the wrapper sentinel path.
+- **Config examples corrected** — all coverage-related examples now point to `T5` (Coverage
+  Illusion) instead of `T3`, which is reserved for Test Duplication.
+- **Security policy refreshed** — SECURITY.md now describes the repository as a multi-platform
+  plugin/skill package and includes a concrete vulnerability reporting email.
+
+### Added
+
+- **Repository validation script** — `scripts/validate-repo.mjs` checks manifest/doc version
+  sync, validates hook JSON output, verifies the latest changelog version, and catches
+  risk-code example drift in config documentation.
+- **CI consistency gate** — GitHub Actions now runs the repository validation script before the
+  Codex plugin scanner.
+
+### Changed
+
+- **Release process documentation** — CLAUDE.md and CONTRIBUTING.md now document
+  `package.json` as the canonical version source and point contributors to the validation script.
+
+---
+
 ## [0.8.1] - 2026-04-09
 
 ### Fixed

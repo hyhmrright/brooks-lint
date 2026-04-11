@@ -5,7 +5,7 @@
 <h1 align="center">brooks-lint</h1>
 
 <p align="center">
-  <strong>AI code reviews grounded in six classic engineering books.<br>
+  <strong>AI code reviews grounded in ten classic engineering books.<br>
   Consistent. Traceable. Actionable.</strong>
 </p>
 
@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.8.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.8.2-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -310,7 +310,7 @@ Place a `.brooks-lint.yaml` in your project root to customize review behavior:
 version: 1
 
 disable:
-  - T3   # skip coverage metrics check — we don't enforce coverage
+  - T5   # skip coverage metrics check — we don't enforce coverage
 
 severity:
   R1: suggestion   # downgrade Cognitive Overload findings for this domain
@@ -339,7 +339,7 @@ In the age of AI-assisted coding, we're writing more code faster than ever. But 
 > *"The complexity of software is an essential property, not an accidental one."*
 > — Frederick Brooks
 
-AI can help you write code faster, but it can't tell you whether you're building a cathedral or a tar pit. **brooks-lint bridges that gap** — it brings the hard-won wisdom of six classic engineering books into your modern development workflow.
+AI can help you write code faster, but it can't tell you whether you're building a cathedral or a tar pit. **brooks-lint bridges that gap** — it brings the hard-won wisdom of ten classic engineering books into your modern development workflow.
 
 The decay risks these authors identified are more relevant than ever:
 - **Adding AI assistants** doesn't fix cognitive overload or domain model distortion

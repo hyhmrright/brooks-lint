@@ -58,6 +58,14 @@ and what it produces after. Even a screenshot or paste of the output is enough.
 
 ## Local Testing
 
+Run the repository consistency checks first:
+
+```bash
+node scripts/validate-repo.mjs
+```
+
+This verifies version sync across manifests/docs, hook JSON output, and risk-code consistency in config examples.
+
 Verify the session-start hook produces valid JSON:
 
 ```bash

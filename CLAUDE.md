@@ -75,7 +75,7 @@ Copy `.brooks-lint.example.yaml` from this repo as a starting template.
 
 ## Multi-Platform Support
 
-brooks-lint runs on three AI coding platforms: Claude Code, Codex CLI, and Gemini CLI. Each has its own plugin manifest and project instructions file (see Structure above). When updating metadata (version, description), sync across all three.
+brooks-lint runs on three AI coding platforms: Claude Code, Codex CLI, and Gemini CLI. Each has its own plugin manifest and project instructions file (see Structure above). `package.json` is the canonical version source; manifests and docs must stay in sync with it.
 
 ## Eval Suite
 
@@ -103,10 +103,4 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 - **package.json:** `"type": "module"` is a placeholder for the v0.3 JS/TS phase; no JS code currently exists, does not affect runtime.
 - **Slash commands:** Plugin skills register as namespaced commands (`/brooks-lint:brooks-review`). Short-form commands (`/brooks-review`) are auto-installed to `~/.claude/commands/` by the session-start hook. These are thin wrappers that delegate to the plugin skills.
 - **`_shared/` convention:** `skills/_shared/` holds common framework files (Iron Law, Report Template, decay risk definitions). It is NOT a skill directory — Claude Code ignores directories without `SKILL.md` when registering commands.
-- **Version sync:** Update version in all five files when bumping:
-  1. `package.json`
-  2. `.claude-plugin/plugin.json`
-  3. `.claude-plugin/marketplace.json`
-  4. `.codex-plugin/plugin.json`
-  5. `gemini-extension.json`
-
+- **Version sync:** `package.json` is the single source of truth. `hooks/session-start` reads its version dynamically, and `node scripts/validate-repo.mjs` checks the manifests, README badge, and changelog for drift.
