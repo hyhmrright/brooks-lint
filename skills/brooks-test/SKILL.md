@@ -16,8 +16,9 @@ description: >
 ## Setup
 
 1. Read `../_shared/common.md` for the Iron Law, Project Config, Report Template, and Health Score rules
-2. Read `../_shared/test-decay-risks.md` for test-space symptom definitions and source attributions
-3. Read `test-guide.md` in this directory for the test quality review framework
+2. Read `../_shared/source-coverage.md` for book-level coverage, exceptions, and tradeoffs
+3. Read `../_shared/test-decay-risks.md` for test-space symptom definitions and source attributions
+4. Read `test-guide.md` in this directory for the test quality review framework
 
 ## Process
 

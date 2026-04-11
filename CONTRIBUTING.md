@@ -8,8 +8,8 @@ zero code.
 
 ### 1. Add a finding to an existing decay risk (easiest)
 
-Edit `skills/_shared/decay-risks.md`. Each of the six decay risks has a
-`Symptoms` list and a `Sources` table. You can:
+Edit `skills/_shared/decay-risks.md` or `skills/_shared/test-decay-risks.md`.
+Each risk has a `Symptoms` list and a `Sources` table. You can:
 
 - Add a new symptom pattern you've seen in real codebases
 - Add a book citation for an existing symptom
@@ -32,7 +32,8 @@ The guide files define how Claude analyzes each scenario:
 
 Better heuristics here mean better reviews for every user. If you find the skill
 misses something important or produces a finding that's consistently wrong, the
-fix is almost always in one of these files.
+fix is almost always in one of these files or in `skills/_shared/source-coverage.md`,
+which captures book-level scope, exceptions, and tradeoffs.
 
 ### 3. Add an eval test case (most impactful)
 
@@ -44,7 +45,7 @@ current skill misses is the highest-value contribution.
 
 ```json
 {
-  "id": 38,
+  "id": 44,
   "name": "your-scenario-name",
   "prompt": "The user prompt that triggers the review",
   "expected_output": "Description of what a good review should contain",
@@ -52,7 +53,7 @@ current skill misses is the highest-value contribution.
 }
 ```
 
-Use the next sequential `id` after the last entry in the array (currently 37).
+Use the next sequential `id` after the last entry in the array (currently 43).
 In your PR, show the before/after: what the skill produced before your change
 and what it produces after. Even a screenshot or paste of the output is enough.
 

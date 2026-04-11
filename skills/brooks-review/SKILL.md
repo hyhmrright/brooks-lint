@@ -1,10 +1,11 @@
 ---
 name: brooks-review
 description: >
-  PR code review drawing on ten classic engineering books: The Mythical Man-Month,
+  PR code review drawing on eight production-code classics: The Mythical Man-Month,
   Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer,
   Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
-  Working Effectively with Legacy Code, and xUnit Test Patterns.
+  plus a lightweight test sanity check informed by xUnit Test Patterns,
+  The Art of Unit Testing, and Working Effectively with Legacy Code.
   Triggers when: user asks to review code, check a PR, review a pull request,
   or shares a diff for feedback.
   Also triggers when user mentions: Brooks's Law / Mythical Man-Month / conceptual integrity /
@@ -18,8 +19,9 @@ description: >
 ## Setup
 
 1. Read `../_shared/common.md` for the Iron Law, Project Config, Report Template, and Health Score rules
-2. Read `../_shared/decay-risks.md` for symptom definitions and source attributions
-3. Read `pr-review-guide.md` in this directory for the analysis process
+2. Read `../_shared/source-coverage.md` for book-level coverage, exceptions, and tradeoffs
+3. Read `../_shared/decay-risks.md` for symptom definitions and source attributions
+4. Read `pr-review-guide.md` in this directory for the analysis process
 
 ## Process
 

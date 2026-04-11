@@ -48,6 +48,12 @@ that would make it easier to understand.
 - 🟡 Warning: function 20–50 lines, nesting 4–5, some unclear names
 - 🟢 Suggestion: minor naming issues, 1–2 magic numbers, isolated train-wreck chains
 
+### What Not to Flag
+
+- Linear code with clear names and guard clauses is not automatically high cognitive load
+- Internal implementation detail hidden behind a deep, simple module boundary is not a shallow-module problem
+- Domain-specific terminology should not be flagged if it matches how experts actually speak
+
 ---
 
 ## Risk 2: Change Propagation
@@ -88,6 +94,12 @@ and multiplies regression risk on every change.
 - 🟡 Warning: one change touches 3–5 files, mild coupling between modules
 - 🟢 Suggestion: minor coupling, easily isolatable
 
+### What Not to Flag
+
+- A composition root wiring concrete dependencies is not a DIP violation by itself
+- A stable public API with intentionally supported behavior is not automatically Hyrum's Law debt
+- Similar edits inside one bounded context may be normal coordinated change, not shotgun surgery
+
 ---
 
 ## Risk 3: Knowledge Duplication
@@ -123,6 +135,12 @@ in edge cases. DRY is not about code lines — it is about decisions.
 - 🔴 Critical: core business logic duplicated across modules, or same domain concept named 3+ different ways
 - 🟡 Warning: utility code duplicated, naming inconsistent within a subsystem
 - 🟢 Suggestion: minor literal duplication, single naming inconsistency
+
+### What Not to Flag
+
+- Repetition across separate bounded contexts is not automatically duplicate knowledge
+- Temporary duplication during an active extraction or migration is not necessarily debt
+- Shared protocol constants repeated at explicit boundaries may be acceptable when local ownership is clearer
 
 ---
 
@@ -168,6 +186,12 @@ burden grows until developers spend more time maintaining the scaffolding than s
 - 🟡 Warning: several unnecessary abstractions or wrapper classes, unused configuration systems
 - 🟢 Suggestion: one or two lazy classes or middle-man patterns in non-critical paths
 
+### What Not to Flag
+
+- A switch over an external protocol, wire format, or closed enum is not automatically missing polymorphism
+- Thin wrappers that absorb vendor churn or hide instability may be justified
+- A larger second version is not second-system effect unless the added generality exceeds present needs
+
 ---
 
 ## Risk 5: Dependency Disorder
@@ -212,6 +236,12 @@ dependencies make it impossible to understand or test any component in isolation
 - 🟡 Warning: several SDP or DIP violations but no cycles; conceptual inconsistency across modules
 - 🟢 Suggestion: minor Demeter violations, slightly elevated fan-out in isolated modules
 
+### What Not to Flag
+
+- High fan-out in an orchestration layer or composition root is not automatically disorder
+- Adapter modules may depend on both domain and infrastructure when they explicitly translate across the boundary
+- A stable facade over many leaf dependencies can be healthy if dependency policy is clear
+
 ---
 
 ## Risk 6: Domain Model Distortion
@@ -251,3 +281,9 @@ and the domain objects become empty data containers.
 - 🔴 Critical: domain logic entirely in service layer, domain objects are pure data bags with no behavior
 - 🟡 Warning: partial anemia, some naming inconsistency between code and domain language
 - 🟢 Suggestion: minor naming drift in non-core areas, isolated cases of Feature Envy
+
+### What Not to Flag
+
+- CRUD-heavy workflows may legitimately use transaction scripts instead of rich domain objects
+- DTOs, persistence records, and API payload models are allowed to be data-only
+- Shared infrastructure language should not be mistaken for domain drift if the business model itself is simple

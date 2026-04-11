@@ -1,6 +1,7 @@
 # Brooks-Lint — Shared Framework
 
-Code quality diagnosis using principles from ten classic software engineering books.
+Code and test quality diagnosis using principles from twelve classic software engineering books.
+Use `source-coverage.md` to keep those sources grounded in real evidence, exceptions, and tradeoffs.
 
 ## The Iron Law
 
@@ -76,8 +77,9 @@ Include N and M even if zero. Omit this line if no config file was found.
 
 ## The Six Decay Risks
 
-(Full definitions, symptoms, sources, and severity guides are in `decay-risks.md` in this
-directory — read it after loading this file.)
+(Book-level coverage, exceptions, and tradeoff guidance are in `source-coverage.md` in this
+directory. Full production-code and test-suite definitions, symptoms, sources, and severity
+guides are in `decay-risks.md` and `test-decay-risks.md`.)
 
 | Risk | Diagnostic Question |
 |------|---------------------|
@@ -166,3 +168,13 @@ Deductions:
 - Each 🟡 Warning finding: −5
 - Each 🟢 Suggestion finding: −1
 Floor: 0 (score cannot go below 0)
+
+## Reference Files
+
+Read on demand:
+
+| File | When to Read |
+|------|-------------|
+| `source-coverage.md` | At the start of every review, before writing findings |
+| `decay-risks.md` | Before any production-code review or architecture/debt assessment |
+| `test-decay-risks.md` | Before any test review and before PR Review Step 7 |

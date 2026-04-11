@@ -1,10 +1,10 @@
 ---
 name: brooks-audit
 description: >
-  Architecture audit drawing on ten classic engineering books: The Mythical Man-Month,
+  Architecture audit drawing on eight production-code classics: The Mythical Man-Month,
   Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer,
   Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
-  Working Effectively with Legacy Code, and xUnit Test Patterns.
+  and related architectural principles encoded in Brooks-Lint.
   Triggers when: user asks to audit architecture, review module structure,
   check system design, or assess project organization.
   Also triggers when user mentions: clean architecture / dependency inversion /
@@ -17,8 +17,9 @@ description: >
 ## Setup
 
 1. Read `../_shared/common.md` for the Iron Law, Project Config, Report Template, and Health Score rules
-2. Read `../_shared/decay-risks.md` for symptom definitions and source attributions
-3. Read `architecture-guide.md` in this directory for the audit framework
+2. Read `../_shared/source-coverage.md` for book-level coverage, exceptions, and tradeoffs
+3. Read `../_shared/decay-risks.md` for symptom definitions and source attributions
+4. Read `architecture-guide.md` in this directory for the audit framework
 
 ## Process
 
