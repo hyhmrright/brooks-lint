@@ -17,8 +17,9 @@ description: >
 ## Setup
 
 1. Read `../_shared/common.md` for the Iron Law, Project Config, Report Template, and Health Score rules
-2. Read `../_shared/decay-risks.md` for symptom definitions and source attributions
-3. Read `debt-guide.md` in this directory for the debt classification framework
+2. Read `../_shared/source-coverage.md` for book-level coverage, exceptions, and tradeoffs
+3. Read `../_shared/decay-risks.md` for symptom definitions and source attributions
+4. Read `debt-guide.md` in this directory for the debt classification framework
 
 ## Process
 

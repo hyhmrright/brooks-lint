@@ -259,6 +259,48 @@
       "prompt": "Review this test suite overview:\n\n```\ntests/\n├── e2e/                    # 12 tests, critical user journeys only\n│   ├── checkout.spec.ts\n│   └── auth.spec.ts\n├── integration/            # 45 tests, API contract + DB integration\n│   ├── user-api.test.ts\n│   ├── order-api.test.ts\n│   └── payment-api.test.ts\n└── unit/                   # 180 tests, domain logic + utilities\n    ├── order.test.ts\n    ├── user.test.ts\n    ├── payment.test.ts\n    ├── pricing.test.ts\n    ├── validators.test.ts\n    └── ... (8 more files)\n\nTotal: 237 tests, ~45s execution time\nUnit tests run on pre-commit. Full suite on CI.\n```",
       "expected_output": "Must NOT flag T6 Architecture Mismatch. Pyramid is healthy (180:45:12 ≈ 76:19:5, close to 70:20:10); suite runs in < 1 minute; unit tests gate commits. Health Score should be high (85+).",
       "files": []
+    },
+    {
+      "id": 38,
+      "name": "r1-deep-module-clean-go",
+      "prompt": "Review this code:\n\n```go\ntype ExchangeRateProvider interface {\n\tLatest(ctx context.Context, base string) (map[string]decimal.Decimal, error)\n}\n\ntype FXService struct {\n\tprovider ExchangeRateProvider\n}\n\nfunc (s *FXService) Quote(ctx context.Context, base, target string, amount decimal.Decimal) (decimal.Decimal, error) {\n\trates, err := s.provider.Latest(ctx, base)\n\tif err != nil {\n\t\treturn decimal.Zero, fmt.Errorf(\"fetch exchange rates: %w\", err)\n\t}\n\n\trate, ok := rates[target]\n\tif !ok {\n\t\treturn decimal.Zero, ErrUnsupportedCurrency\n\t}\n\n\treturn amount.Mul(rate), nil\n}\n```",
+      "expected_output": "Must NOT flag R1 Cognitive Overload. Interface is narrow, method is linear, names are descriptive, and hidden provider complexity should be treated as a deep module rather than a shallow one. Health Score should be high (85+).",
+      "files": []
+    },
+    {
+      "id": 39,
+      "name": "r2-hyrum-warning-typescript",
+      "prompt": "Review this code change:\n\n```typescript\n// Before: callers iterated whatever order the map happened to produce.\n// After: helper now sorts keys alphabetically before returning.\n\nexport function listEnabledFlags(flags: Record<string, boolean>): string[] {\n  return Object.entries(flags)\n    .filter(([, enabled]) => enabled)\n    .map(([name]) => name)\n    .sort();\n}\n\n// Used by:\n// - CLI formatter tests that snapshot the order exactly\n// - Admin dashboard chips rendered in returned order\n// - Metrics tag export that expects the first flag to be the primary feature\n```",
+      "expected_output": "Must identify R2 Change Propagation as Warning (🟡) or higher. The key issue is de facto API surface / observable behavior coupling: multiple callers depend on ordering that was not an explicit contract. Must cite Winters et al. — Software Engineering at Google (Hyrum's Law). Iron Law format required.",
+      "files": []
+    },
+    {
+      "id": 40,
+      "name": "r4-protocol-switch-clean-typescript",
+      "prompt": "Review this code:\n\n```typescript\ntype StripeWebhookEvent =\n  | { type: 'payment_intent.succeeded'; payload: PaymentIntent }\n  | { type: 'payment_intent.payment_failed'; payload: PaymentIntent }\n  | { type: 'charge.refunded'; payload: Charge };\n\nexport async function handleStripeWebhook(event: StripeWebhookEvent, service: BillingService) {\n  switch (event.type) {\n    case 'payment_intent.succeeded':\n      return service.recordSuccessfulPayment(event.payload);\n    case 'payment_intent.payment_failed':\n      return service.recordFailedPayment(event.payload);\n    case 'charge.refunded':\n      return service.recordRefund(event.payload);\n    default:\n      return assertNever(event);\n  }\n}\n```",
+      "expected_output": "Must NOT flag R4 Accidental Complexity just because a switch exists. This switch is an explicit boundary over a closed external protocol and may be the clearest design. If any concern is raised, it should not be Speculative Generality or missing polymorphism by default.",
+      "files": []
+    },
+    {
+      "id": 41,
+      "name": "r5-composition-root-clean-typescript",
+      "prompt": "Review this code:\n\n```typescript\nexport async function buildApp(): Promise<App> {\n  const db = new PostgresUserRepository(process.env.DATABASE_URL!);\n  const cache = new RedisCache(process.env.REDIS_URL!);\n  const mailer = new SesMailer(process.env.SES_REGION!);\n\n  const userService = new UserService(db, cache, mailer);\n  const orderService = new OrderService(db, cache);\n\n  return new App({ userService, orderService });\n}\n```",
+      "expected_output": "Must NOT flag R5 Dependency Disorder merely because concrete infrastructure is instantiated here. This is a composition root / assembly boundary, which is allowed to depend on details. Health Score should remain high unless another real issue is found.",
+      "files": []
+    },
+    {
+      "id": 42,
+      "name": "r6-transaction-script-clean-python",
+      "prompt": "Review this code:\n\n```python\ndef create_country_tax_rate(db, country_code: str, percentage: Decimal) -> dict:\n    if percentage < 0:\n        raise ValueError('percentage must be >= 0')\n    db.execute(\n        'INSERT INTO tax_rates(country_code, percentage) VALUES (?, ?)',\n        [country_code, percentage],\n    )\n    return {'country_code': country_code, 'percentage': str(percentage)}\n```",
+      "expected_output": "Must NOT flag R6 Domain Model Distortion simply because this is a data-oriented transaction script. This is acceptable CRUD-style behavior unless additional domain invariants or rich business rules are present. Health Score should be high (85+).",
+      "files": []
+    },
+    {
+      "id": 43,
+      "name": "t6-legacy-risk-balanced-clean-java",
+      "prompt": "Review this test suite overview:\n\n```\nlegacy-billing/\n├── characterization/       # 48 tests around invoice recalculation and tax edge cases\n├── integration/            # 62 tests around DB + queue + payment gateway adapters\n├── unit/                   # 34 tests for pricing rules, money math, and retry policies\n└── e2e/                    # 6 tests for payment success/failure and refund flows\n\nTotal runtime: ~4 minutes on CI\nNotes:\n- The team added characterization tests before touching legacy invoice logic.\n- Billing adapters are behind seams (FakeGateway, InMemoryOutbox) for most tests.\n- E2E is kept to customer-critical paths only.\n```",
+      "expected_output": "Must NOT flag T6 Architecture Mismatch as Critical solely because the ratio is not close to 70:20:10. The suite is risk-shaped, uses characterization tests and seams for legacy code, and keeps runtime reasonable. If any finding exists, it should acknowledge the deliberate tradeoff rather than treating the ratio alone as a smell.",
+      "files": []
     }
   ]
 }

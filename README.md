@@ -33,6 +33,9 @@
 
 Most code quality tools count lines and cyclomatic complexity. **brooks-lint** goes deeper — it diagnoses your code against six decay risk dimensions synthesized from twelve classic engineering books, producing structured findings with book citations, severity labels, and concrete remedies every time.
 
+For the full source-to-skill mapping, including exceptions and false-positive guards, see
+[`skills/_shared/source-coverage.md`](skills/_shared/source-coverage.md).
+
 ## The Twelve Books
 
 | Book | Author | Contributes to |
@@ -357,6 +360,7 @@ brooks-lint/
 ├── skills/
 │   ├── _shared/                 # Shared framework files
 │   │   ├── common.md            # Iron Law, Project Config, Report Template, Health Score
+│   │   ├── source-coverage.md   # 12-book coverage matrix, tradeoffs, false-positive guards
 │   │   ├── decay-risks.md       # Six decay risks with symptoms and book citations
 │   │   └── test-decay-risks.md  # Six test-space decay risks with book citations
 │   ├── brooks-review/           # Mode 1: PR Review

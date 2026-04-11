@@ -43,6 +43,12 @@ is one step from an abandoned one.
 - 🟡 Warning: multiple Mystery Guests; several ambiguous test names
 - 🟢 Suggestion: minor naming issues; isolated General Fixture
 
+### What Not to Flag
+
+- Multiple assertions are acceptable when they describe one coherent behavior and fail with a clear story
+- Shared setup is fine when every initialized value is relevant to nearly every test
+- Concise test names are acceptable if scenario and expected outcome are still obvious
+
 ---
 
 ## Risk T2: Test Brittleness
@@ -77,6 +83,12 @@ which is the exact opposite of what tests are for.
 - 🟡 Warning: Eager Tests common across the suite; moderate implementation-detail assertions
 - 🟢 Suggestion: isolated over-specification in non-critical tests
 
+### What Not to Flag
+
+- Verifying an externally observable event or emitted command is not implementation coupling
+- One test with several assertions is acceptable when all assertions support one behavior claim
+- A fake or in-memory adapter is not brittleness if the test still asserts behavior, not wiring
+
 ---
 
 ## Risk T3: Test Duplication
@@ -110,6 +122,12 @@ three places, but none of the three actually tests distinct behavior.
 - 🔴 Critical: core business scenario fully duplicated across all three test layers with no differentiation
 - 🟡 Warning: common scenario setup repeated in 5 or more tests without extraction
 - 🟢 Suggestion: minor helper duplication; isolated Lazy Tests
+
+### What Not to Flag
+
+- The same scenario may appear at unit and integration level when each layer verifies a distinct risk
+- Small local setup duplication can be clearer than an over-abstracted fixture maze
+- Similar assertions against different domain rules are not Lazy Tests if the business intent differs
 
 ---
 
@@ -148,6 +166,12 @@ the mocks are set up correctly — and they always are, because the developer wr
 - 🟡 Warning: mocks consistently > 3 per test; primary assertions are mock call verifications
 - 🟢 Suggestion: isolated Incomplete Mocks; minor Hard-Coded Test Data
 
+### What Not to Flag
+
+- A small number of mocks around nondeterministic dependencies is acceptable when assertions still verify behavior
+- Fakes and spies used to observe state transitions are not mock abuse by default
+- One interaction assertion may be appropriate when the interaction itself is the behavior under test
+
 ---
 
 ## Risk T5: Coverage Illusion
@@ -183,6 +207,12 @@ because the number says they are covered.
 - 🔴 Critical: legacy code area actively being modified with no tests; error-handling paths entirely absent
 - 🟡 Warning: coverage > 80% but edge and exception paths are systematically absent
 - 🟢 Suggestion: a few non-critical paths missing sad-path tests
+
+### What Not to Flag
+
+- High line coverage is useful when paired with branch, boundary, and change-path coverage
+- A new module may have limited coverage early if it is still private and low-risk
+- Side-effect assertions may live in integration tests rather than unit tests without implying a gap
 
 ---
 
@@ -222,3 +252,9 @@ level that is slowest, most environment-dependent, and hardest to debug.
 - 🔴 Critical: legacy code being modified has no seams and no characterization tests; pyramid fully inverted
 - 🟡 Warning: suite execution > 10 minutes; integration/E2E count exceeds unit tests
 - 🟢 Suggestion: localized pyramid ratio deviation; a few legacy areas missing characterization tests
+
+### What Not to Flag
+
+- Deviating from 70:20:10 can be justified by platform constraints or product risk
+- A suite heavy on integration tests can still be healthy if feedback is fast and purposefully layered
+- A small number of critical-path E2E tests is desirable, not a smell
