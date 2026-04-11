@@ -46,6 +46,22 @@ check(
   readme.includes(`version-${version}-blue.svg`),
   `README.md badge does not reference version ${version}`,
 );
+check(
+  readme.includes("grounded in twelve classic engineering books"),
+  "README.md should describe Brooks-Lint as grounded in twelve classic engineering books",
+);
+check(
+  readme.includes("## The Twelve Books"),
+  "README.md should expose a unified The Twelve Books section",
+);
+check(
+  readme.includes("*The Art of Unit Testing*"),
+  "README.md should list The Art of Unit Testing in the source inventory",
+);
+check(
+  readme.includes("*How Google Tests Software*"),
+  "README.md should list How Google Tests Software in the source inventory",
+);
 
 const changelog = readText("CHANGELOG.md");
 const latestChangelogVersion = changelog.match(/^## \[(.+?)\] - /m)?.[1];

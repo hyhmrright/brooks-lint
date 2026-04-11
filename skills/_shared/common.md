@@ -1,6 +1,6 @@
 # Brooks-Lint — Shared Framework
 
-Code quality diagnosis using principles from ten classic software engineering books.
+Code and test quality diagnosis using principles from twelve classic software engineering books.
 
 ## The Iron Law
 

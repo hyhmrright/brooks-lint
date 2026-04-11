@@ -5,7 +5,7 @@
 <h1 align="center">brooks-lint</h1>
 
 <p align="center">
-  <strong>AI code reviews grounded in ten classic engineering books.<br>
+  <strong>AI code reviews grounded in twelve classic engineering books.<br>
   Consistent. Traceable. Actionable.</strong>
 </p>
 
@@ -31,9 +31,9 @@
 
 **50 years later, Brooks was still right — and so were McConnell, Fowler, Martin, Hunt & Thomas, Evans, Ousterhout, Winters, Meszaros, Osherove, Feathers, and the Google Testing team.**
 
-Most code quality tools count lines and cyclomatic complexity. **brooks-lint** goes deeper — it diagnoses your code against six decay risk dimensions synthesized from ten classic engineering books, producing structured findings with book citations, severity labels, and concrete remedies every time.
+Most code quality tools count lines and cyclomatic complexity. **brooks-lint** goes deeper — it diagnoses your code against six decay risk dimensions synthesized from twelve classic engineering books, producing structured findings with book citations, severity labels, and concrete remedies every time.
 
-## The Ten Books
+## The Twelve Books
 
 | Book | Author | Contributes to |
 |------|--------|----------------|
@@ -45,12 +45,14 @@ Most code quality tools count lines and cyclomatic complexity. **brooks-lint** g
 | *Domain-Driven Design* | Eric Evans | R1, R3, R6 |
 | *A Philosophy of Software Design* | John Ousterhout | R1, R4 |
 | *Software Engineering at Google* | Winters, Manshreck & Wright | R2, R5 |
+| *The Art of Unit Testing* | Roy Osherove | T1, T2, T4, T5 |
+| *How Google Tests Software* | James A. Whittaker, Jason Arbon & Jeff Carollo | T5, T6 |
 | *Working Effectively with Legacy Code* | Michael Feathers | T4, T5, T6 |
 | *xUnit Test Patterns* | Gerard Meszaros | T1, T2, T3, T4 |
 
 ## The Six Decay Risks
 
-brooks-lint evaluates your code across **six decay risk dimensions** synthesized from ten classic engineering books:
+brooks-lint evaluates your code across **six production-code decay risks** and **six test-suite decay risks** synthesized from twelve classic engineering books:
 
 | Decay Risk | Diagnostic Question | Sources |
 |------------|---------------------|---------|
@@ -339,7 +341,7 @@ In the age of AI-assisted coding, we're writing more code faster than ever. But 
 > *"The complexity of software is an essential property, not an accidental one."*
 > — Frederick Brooks
 
-AI can help you write code faster, but it can't tell you whether you're building a cathedral or a tar pit. **brooks-lint bridges that gap** — it brings the hard-won wisdom of ten classic engineering books into your modern development workflow.
+AI can help you write code faster, but it can't tell you whether you're building a cathedral or a tar pit. **brooks-lint bridges that gap** — it brings the hard-won wisdom of twelve classic engineering books into your modern development workflow.
 
 The decay risks these authors identified are more relevant than ever:
 - **Adding AI assistants** doesn't fix cognitive overload or domain model distortion
@@ -403,17 +405,19 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-This project stands on the shoulders of ten giants:
+This project stands on the shoulders of twelve giants:
 
-**Code Quality Framework (v0.4)**
+**Production Code Framework**
 - Frederick P. Brooks Jr. — *The Mythical Man-Month* (1975, Anniversary Edition 1995)
 - Steve McConnell — *Code Complete* (1993, 2nd ed. 2004)
 - Martin Fowler — *Refactoring* (1999, 2nd ed. 2018)
 - Robert C. Martin — *Clean Architecture* (2017)
 - Andrew Hunt & David Thomas — *The Pragmatic Programmer* (1999, 20th Anniversary Ed. 2019)
 - Eric Evans — *Domain-Driven Design* (2003)
+- John Ousterhout — *A Philosophy of Software Design* (2018)
+- Titus Winters, Tom Manshreck, and Hyrum Wright — *Software Engineering at Google* (2020)
 
-**Test Quality Framework (v0.5)**
+**Test Quality Framework**
 - Gerard Meszaros — *xUnit Test Patterns* (2007)
 - Roy Osherove — *The Art of Unit Testing* (2009, 3rd ed. 2023)
 - Google Engineering — *How Google Tests Software* (2012)
