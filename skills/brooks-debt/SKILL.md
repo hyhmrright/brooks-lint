@@ -1,10 +1,11 @@
 ---
 name: brooks-debt
 description: >
-  Tech debt assessment drawing on eight production-code classics: The Mythical Man-Month,
+  Tech debt assessment drawing on twelve classic engineering books: The Mythical Man-Month,
   Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer,
   Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
-  and related maintainability principles encoded in Brooks-Lint.
+  xUnit Test Patterns, The Art of Unit Testing, Working Effectively with Legacy Code,
+  and How Google Tests Software.
   Triggers when: user asks about tech debt, where to refactor, health check,
   or systemic maintainability questions.
   Also triggers when user asks why the codebase is hard to maintain,

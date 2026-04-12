@@ -159,10 +159,33 @@ function checkSharedFramework() {
 function checkSkillsContent() {
   const modes = ["brooks-review", "brooks-audit", "brooks-debt", "brooks-test"];
 
+  // Guard: _shared/ must never contain a SKILL.md — it is a shared library directory,
+  // not a skill. If one is added accidentally, Claude Code would register it as a broken skill.
+  let sharedHasSkillMd = false;
+  try {
+    readText("skills/_shared/SKILL.md");
+    sharedHasSkillMd = true;
+  } catch (_) { /* expected — file should not exist */ }
+  check(!sharedHasSkillMd, "skills/_shared/SKILL.md must not exist — _shared/ is a library, not a skill");
+
   for (const mode of modes) {
     const skillMd = readText(`skills/${mode}/SKILL.md`);
     check(skillMd.includes("## Setup"), `skills/${mode}/SKILL.md should have a ## Setup section`);
     check(skillMd.includes("## Process"), `skills/${mode}/SKILL.md should have a ## Process section`);
+
+    // Guard: SKILL.md frontmatter description must reference the current book count.
+    // Extract only the frontmatter block (between the two --- delimiters) to avoid
+    // false positives from body text like "scan for all six decay risks".
+    const frontmatterMatch = skillMd.match(/^---\n([\s\S]*?)\n---/);
+    const frontmatter = frontmatterMatch ? frontmatterMatch[1] : "";
+    const staleBookPhrases = ["six classic", "seven classic", "eight classic", "nine classic",
+      "ten classic", "eleven classic", "six production", "eight production", "ten production"];
+    for (const stale of staleBookPhrases) {
+      check(
+        !frontmatter.includes(stale),
+        `skills/${mode}/SKILL.md frontmatter description references "${stale}" books — update to "${sourceWord} classic"`,
+      );
+    }
   }
 
   const guides = [

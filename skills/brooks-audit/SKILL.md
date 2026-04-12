@@ -1,10 +1,11 @@
 ---
 name: brooks-audit
 description: >
-  Architecture audit drawing on eight production-code classics: The Mythical Man-Month,
+  Architecture audit drawing on twelve classic engineering books: The Mythical Man-Month,
   Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer,
   Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
-  and related architectural principles encoded in Brooks-Lint.
+  xUnit Test Patterns, The Art of Unit Testing, Working Effectively with Legacy Code,
+  and How Google Tests Software.
   Triggers when: user asks to audit architecture, review module structure,
   check system design, or assess project organization.
   Also triggers when user mentions: clean architecture / dependency inversion /

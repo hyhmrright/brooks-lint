@@ -1,11 +1,11 @@
 ---
 name: brooks-review
 description: >
-  PR code review drawing on eight production-code classics: The Mythical Man-Month,
+  PR code review drawing on twelve classic engineering books: The Mythical Man-Month,
   Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer,
   Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
-  plus a lightweight test sanity check informed by xUnit Test Patterns,
-  The Art of Unit Testing, and Working Effectively with Legacy Code.
+  xUnit Test Patterns, The Art of Unit Testing, Working Effectively with Legacy Code,
+  and How Google Tests Software.
   Triggers when: user asks to review code, check a PR, review a pull request,
   or shares a diff for feedback.
   Also triggers when user mentions: Brooks's Law / Mythical Man-Month / conceptual integrity /
