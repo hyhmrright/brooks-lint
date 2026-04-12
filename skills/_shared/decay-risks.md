@@ -12,9 +12,8 @@ Symptom → Source → Consequence → Remedy
 
 **Diagnostic question:** How much mental effort does a human need to understand this?
 
-When cognitive load exceeds working memory capacity, developers make mistakes, avoid touching
-the code, and slow down. This risk compounds: hard-to-understand code resists the refactoring
-that would make it easier to understand.
+When cognitive load exceeds working memory, developers make mistakes, avoid the code, and slow
+down. Hard-to-understand code resists the refactoring that would fix it — a compounding cycle.
 
 ### Symptoms
 
@@ -26,6 +25,11 @@ that would make it easier to understand.
 - Boolean expressions with 3 or more conditions combined
 - Train-wreck chains: `a.getB().getC().doD()`
 - Code names that do not match what the business calls the same concept
+- Flag Arguments: a boolean parameter that makes the function do two fundamentally different
+  things depending on its value — a sign the function has two responsibilities
+- Primitive Obsession: domain concepts represented as primitive types (`String email`,
+  `int orderId`, `double money`) rather than purpose-built value types — forces callers to know
+  which string is an email and which is a name
 - Shallow module: the interface or documentation of a component is more complex relative to
   the functionality it provides
 
@@ -36,6 +40,8 @@ that would make it easier to understand.
 | Long Method | Fowler — Refactoring | Long Method |
 | Long Parameter List | Fowler — Refactoring | Long Parameter List |
 | Message Chains | Fowler — Refactoring | Message Chains |
+| Flag Arguments | Fowler — Refactoring | Flag Arguments |
+| Primitive Obsession | Fowler — Refactoring | Primitive Obsession |
 | Function length and nesting | McConnell — Code Complete | Ch. 7: High-Quality Routines |
 | Variable naming | McConnell — Code Complete | Ch. 11: The Power of Variable Names |
 | Magic numbers | McConnell — Code Complete | Ch. 12: Fundamental Data Types |
@@ -74,6 +80,9 @@ and multiplies regression risk on every change.
 - Changing one module requires recompiling or retesting many unrelated modules
 - Any observable behavior (including internal implementation details) is depended upon
   by callers, creating a de facto interface beyond the declared API
+- Information Leakage: a design decision (e.g., a file format, protocol detail, or data
+  shape) is encoded in more than one module, so changing it requires coordinated edits
+  in multiple places even though only one module "owns" the concept
 
 ### Sources
 
@@ -87,6 +96,7 @@ and multiplies regression risk on every change.
 | DIP violation | Martin — Clean Architecture | Dependency Inversion Principle |
 | High change propagation radius | Brooks — The Mythical Man-Month | Ch. 2: Brooks's Law (communication overhead) |
 | Hyrum's Law | Winters et al. — Software Engineering at Google | Ch. 1: Hyrum's Law |
+| Information Leakage | Ousterhout — A Philosophy of Software Design | Ch. 5: Information Hiding and Leakage |
 
 ### Severity Guide
 
@@ -106,9 +116,8 @@ and multiplies regression risk on every change.
 
 **Diagnostic question:** Is the same decision expressed in more than one place?
 
-When the same piece of knowledge lives in multiple places, those copies will inevitably drift
-apart. This creates silent inconsistencies: both copies pass their tests but disagree on behavior
-in edge cases. DRY is not about code lines — it is about decisions.
+When the same decision lives in multiple places, those copies drift apart — both pass their tests
+but disagree in edge cases. DRY is about decisions, not code lines.
 
 ### Symptoms
 
@@ -149,9 +158,9 @@ in edge cases. DRY is not about code lines — it is about decisions.
 **Diagnostic question:** Is the code more complex than the problem it solves?
 
 Every system has essential complexity (inherent to the problem) and accidental complexity
-(introduced by implementation choices). Accidental complexity is the only kind that can be
-eliminated. It accumulates silently: each addition seems justified in isolation, but the total
-burden grows until developers spend more time maintaining the scaffolding than solving the problem.
+(introduced by implementation choices). Only accidental complexity can be eliminated. Each
+addition seems justified in isolation, but the total accumulates until developers spend more time
+fighting scaffolding than solving the problem.
 
 ### Symptoms
 
@@ -198,10 +207,9 @@ burden grows until developers spend more time maintaining the scaffolding than s
 
 **Diagnostic question:** Do dependencies flow in a consistent, predictable direction?
 
-Dependency direction is the skeleton of a software system. When high-level business logic
-depends on low-level infrastructure details, or when components depend on things less stable
-than themselves, every infrastructure change becomes a business logic change. Circular
-dependencies make it impossible to understand or test any component in isolation.
+Dependency direction is the skeleton of a system. When business logic depends on infrastructure,
+every infrastructure change becomes a business logic change. Circular dependencies make it
+impossible to understand or test any component in isolation.
 
 ### Symptoms
 
@@ -212,6 +220,9 @@ dependencies make it impossible to understand or test any component in isolation
 - Abstract components depending on concrete implementations
 - Law of Demeter violations: `order.getCustomer().getAddress().getCity()`
 - Module fan-out greater than 5 (imports from more than 5 other modules)
+- A module implements an interface but only uses a subset of its methods, or must
+  provide stub implementations for methods it does not need (ISP violation: fat interface
+  forces unwanted dependencies on callers)
 - The system feels like "one mind did not design this" — different modules use
   incompatible architectural patterns with no clear rule for which to use where
 - Direct version-pinned dependencies on transitive packages (diamond dependency risk);
@@ -225,6 +236,7 @@ dependencies make it impossible to understand or test any component in isolation
 | DIP violation | Martin — Clean Architecture | Dependency Inversion Principle (DIP) |
 | Instability direction | Martin — Clean Architecture | Stable Dependencies Principle (SDP) |
 | Abstraction mismatch | Martin — Clean Architecture | Stable Abstractions Principle (SAP) |
+| ISP violation | Martin — Clean Architecture | Interface Segregation Principle (ISP) |
 | Conceptual integrity | Brooks — The Mythical Man-Month | Ch. 4: Conceptual Integrity |
 | Law of Demeter | Hunt & Thomas — The Pragmatic Programmer | Ch. 5: Decoupling and the Law of Demeter |
 | SOLID violations | Martin — Clean Architecture | Single Responsibility, Open/Closed Principles |
@@ -248,11 +260,10 @@ dependencies make it impossible to understand or test any component in isolation
 
 **Diagnostic question:** Does the code faithfully represent the problem it is solving?
 
-Code that does not speak the language of the problem domain forces every developer to maintain
-a mental translation layer between "what the business calls it" and "what the code calls it."
-Over time, this translation layer diverges, and the code begins to model the database schema
-or the API contract rather than the business concept. Domain logic bleeds into service layers
-and the domain objects become empty data containers.
+Code that does not speak the business language forces every developer to maintain a mental
+translation layer. Over time it diverges: the code models the database schema or API contract
+rather than the domain. Domain logic bleeds into service layers; domain objects become empty
+data bags.
 
 ### Symptoms
 
@@ -264,6 +275,10 @@ and the domain objects become empty data containers.
 - Bounded context boundaries crossed without any translation or anti-corruption layer
 - Methods that are more interested in the data of another class than their own
   (domain logic in the wrong place)
+- A subclass overrides most parent methods with incompatible behavior or throws exceptions
+  where the parent contract guarantees success (LSP violation: substitution breaks callers)
+- Value Objects treated as Entities: a concept defined entirely by its attributes (e.g., Money,
+  Email, Address) is given a mutable ID and lifecycle instead of being replaced when changed
 
 ### Sources
 
@@ -275,6 +290,7 @@ and the domain objects become empty data containers.
 | Data Class | Fowler — Refactoring | Data Class |
 | Refused Bequest | Fowler — Refactoring | Refused Bequest |
 | Feature Envy | Fowler — Refactoring | Feature Envy |
+| LSP violation | Martin — Clean Architecture | Liskov Substitution Principle (LSP) |
 
 ### Severity Guide
 

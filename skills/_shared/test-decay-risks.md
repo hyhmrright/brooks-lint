@@ -13,8 +13,7 @@ Symptom → Source → Consequence → Remedy
 **Diagnostic question:** How much effort does it take to understand what this test verifies?
 
 When test intent is unclear, developers distrust the suite, skip reading failures carefully,
-and add new tests that duplicate existing ones without knowing it. An obscure test suite
-is one step from an abandoned one.
+and add duplicates without knowing it. An obscure test suite is one step from an abandoned one.
 
 ### Symptoms
 
@@ -55,9 +54,8 @@ is one step from an abandoned one.
 
 **Diagnostic question:** Do tests break when you refactor without changing behavior?
 
-Brittle tests punish the act of improving code. When tests fail on every refactor,
-developers stop refactoring. The codebase stagnates to protect the test suite —
-which is the exact opposite of what tests are for.
+Brittle tests punish refactoring. When tests fail on every refactor, developers stop refactoring.
+The codebase stagnates to protect the test suite — the opposite of what tests are for.
 
 ### Symptoms
 
@@ -68,12 +66,16 @@ which is the exact opposite of what tests are for.
 - Over-specified: assertions enforce mock call order or exact parameter values that are
   irrelevant to the behavior being tested
 - Renaming or extracting a method causes 5 or more tests to fail even though no behavior changed
+- Erratic Test: a test produces different results across runs without any change to
+  production code — caused by race conditions, time-dependent logic, random data, or
+  shared mutable state between tests
 
 ### Sources
 
 | Symptom | Book | Principle / Smell |
 |---------|------|-------------------|
 | Eager Test | Meszaros — xUnit Test Patterns | Eager Test (p.228) |
+| Erratic Test | Meszaros — xUnit Test Patterns | Erratic Test |
 | Implementation coupling | Osherove — The Art of Unit Testing | Test isolation principle |
 | Orthogonality violation | Hunt & Thomas — The Pragmatic Programmer | Ch.2: Orthogonality |
 
@@ -95,9 +97,8 @@ which is the exact opposite of what tests are for.
 
 **Diagnostic question:** Is the same test scenario expressed in more than one place?
 
-Test duplication means that when behavior changes, tests must be updated in multiple
-places. Worse, the duplicated tests create false confidence — the scenario passes in
-three places, but none of the three actually tests distinct behavior.
+When behavior changes, duplicated tests must be updated in multiple places. Worse, they create
+false confidence — the scenario passes in three places, but none tests distinct behavior.
 
 ### Symptoms
 
@@ -135,9 +136,9 @@ three places, but none of the three actually tests distinct behavior.
 
 **Diagnostic question:** Is the test more complex than the behavior it tests?
 
-Mock abuse produces tests that pass confidently while verifying nothing real. They create
-the illusion of a test suite. The production code can be completely broken as long as
-the mocks are set up correctly — and they always are, because the developer wrote both.
+Mock abuse produces tests that pass confidently while verifying nothing real. Production code can
+be completely broken as long as the mocks are set up correctly — and they always are, because
+the developer wrote both.
 
 ### Symptoms
 
@@ -178,10 +179,9 @@ the mocks are set up correctly — and they always are, because the developer wr
 
 **Diagnostic question:** Does the test suite actually protect against the failures that matter?
 
-Coverage percentage is a measure of what was executed during tests, not what was verified.
-A test suite can achieve 90% line coverage and still allow every critical failure mode through.
-The illusion is more dangerous than acknowledged ignorance — teams stop looking for gaps
-because the number says they are covered.
+Coverage percentage measures what was executed, not what was verified. A suite can achieve 90%
+line coverage while allowing every critical failure mode through. The illusion is more dangerous
+than acknowledged ignorance — teams stop looking for gaps because the number says "covered."
 
 ### Symptoms
 
@@ -220,10 +220,9 @@ because the number says they are covered.
 
 **Diagnostic question:** Does the test suite structure reflect the system's actual risk profile?
 
-A test suite with the wrong shape is slow, unreliable, and expensive to maintain —
-not because the tests are badly written, but because the wrong test type is being used
-for the wrong purpose. An inverted pyramid executes the maximum number of tests at the
-level that is slowest, most environment-dependent, and hardest to debug.
+A suite with the wrong shape is slow, unreliable, and expensive to maintain — not because tests
+are badly written, but because the wrong type is used for the wrong purpose. An inverted pyramid
+runs the most tests at the slowest, most environment-dependent, hardest-to-debug level.
 
 ### Symptoms
 

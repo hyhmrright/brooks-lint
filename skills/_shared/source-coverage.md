@@ -55,10 +55,12 @@ It exists to prevent shallow "book-name citation" reviews.
 **Encoded today**
 - Routine length, nesting, naming, and magic numbers
 - Construction-phase YAGNI checks
+- Defensive programming and error-handling discipline (guard clauses, input validation,
+  explicit error paths, assertions for invariants)
 
 **Do not ignore**
-- Error-handling discipline, defensive programming, and clarity of local control flow
 - Whether low-level readability choices compound into operational risk
+- Whether missing error handling makes failure modes invisible to maintainers
 
 **Do not over-flag**
 - Small, explicit guard clauses are not cognitive overload
@@ -76,6 +78,8 @@ It exists to prevent shallow "book-name citation" reviews.
 - Long Method, Long Parameter List, Message Chains
 - Shotgun Surgery, Divergent Change, Feature Envy, Inappropriate Intimacy
 - Duplicate Code, Speculative Generality, Lazy Class, Middle Man, Data Class
+- Flag Arguments: boolean parameters that split a function into two behaviors
+- Primitive Obsession: domain concepts expressed as raw primitive types instead of value types
 
 **Do not ignore**
 - Whether the code smell is local or systemic
@@ -95,6 +99,10 @@ It exists to prevent shallow "book-name citation" reviews.
 
 **Encoded today**
 - DIP, ADP, SDP, SAP, and layering direction
+- ISP: fat interfaces that force callers to depend on methods they do not use
+- LSP: subclasses that break the behavioral contract of their parent type
+- SRP and OCP: classes with multiple reasons to change; modules closed to modification
+  but open to extension via abstraction
 
 **Do not ignore**
 - Policy vs detail boundaries
@@ -137,6 +145,9 @@ It exists to prevent shallow "book-name citation" reviews.
 - Ubiquitous Language
 - Bounded Context
 - Anemic Domain Model
+- Entity vs Value Object: objects with identity and lifecycle vs. objects defined solely by
+  their attributes (Money, Email, Address should be immutable value types, not mutable entities)
+- Aggregate Roots: who owns the invariant boundary; cross-aggregate access only through the root
 
 **Do not ignore**
 - Aggregate boundaries, invariant ownership, and anti-corruption layers
@@ -157,10 +168,13 @@ It exists to prevent shallow "book-name citation" reviews.
 **Encoded today**
 - Deep vs shallow modules
 - Strategic vs tactical programming
+- Information Leakage: a design decision encoded in more than one module, creating
+  change coupling even when no explicit import exists between the modules
 
 **Do not ignore**
 - Interface complexity relative to hidden complexity
 - Whether repeated tactical patches are raising long-term cognitive load
+- Whether a "helper" exposes internal design decisions that callers should not know
 
 **Do not over-flag**
 - Internal implementation complexity is fine when the interface stays simple
@@ -177,10 +191,15 @@ It exists to prevent shallow "book-name citation" reviews.
 **Encoded today**
 - Hyrum's Law
 - Dependency management and upgrade blockage
+- Code sustainability: whether code as written can be maintained, migrated, and upgraded
+  over a multi-year horizon without heroic effort
+- Backward compatibility: whether API changes preserve existing callers or force
+  coordinated upgrades across the organization
 
 **Do not ignore**
 - De facto APIs created by observable behavior
 - The maintenance cost of exposing too much surface area
+- Whether the dependency graph will allow independent upgrades over time
 
 **Do not over-flag**
 - A stable public API is not a liability if it is intentionally supported
@@ -197,6 +216,8 @@ It exists to prevent shallow "book-name citation" reviews.
 **Encoded today**
 - Assertion Roulette, Mystery Guest, General Fixture
 - Eager Test, Lazy Test, Test Code Duplication, Behavior Verification
+- Erratic Test: tests that produce non-deterministic results due to shared state,
+  time dependence, or ordering assumptions between tests
 
 **Do not ignore**
 - Whether test failures are diagnosable
@@ -222,11 +243,11 @@ It exists to prevent shallow "book-name citation" reviews.
 
 **Do not ignore**
 - Whether tests verify behavior rather than wiring
-- Whether dependency seams are being used to simplify tests instead of contorting production code
+- Whether seams are used to simplify tests, or production code is being contorted for testability
 
 **Do not over-flag**
-- A mock is acceptable when the dependency is expensive or nondeterministic and the assertion still checks behavior
-- Strict naming conventions are guidance, not the goal; clarity is the goal
+- A mock is acceptable when the dependency is nondeterministic and the assertion still verifies behavior
+- Naming conventions are guidance; clarity is the goal
 
 **Questions to ask**
 - Does this test fail only when behavior breaks?
