@@ -3,7 +3,13 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
-import { parseFrontmatterBooks } from "./frontmatter.mjs";
+import {
+  parseFrontmatterBooks,
+  countBookSections,
+  countProductionRisks,
+  countTestRisks,
+  extractChangelogVersion,
+} from "./frontmatter.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -81,7 +87,7 @@ function checkDescriptionConsistency() {
 
 function checkChangelog() {
   const changelog = readText("CHANGELOG.md");
-  const latestVersion = changelog.match(/^## \[(.+?)\] - /m)?.[1];
+  const latestVersion = extractChangelogVersion(changelog);
   check(
     latestVersion === version,
     `CHANGELOG.md latest version ${latestVersion ?? "<missing>"} does not match package.json version ${version}`,
@@ -133,7 +139,7 @@ function checkSourceInventory() {
 
   // Verify frontmatter book count matches actual book sections in the document.
   // Book sections use the pattern: ## Author Name — *Book Title*
-  const bookSections = (sourceCoverage.match(/^## .+ — \*/gm) ?? []).length;
+  const bookSections = countBookSections(sourceCoverage);
   check(
     bookSections === books.length,
     `skills/_shared/source-coverage.md frontmatter lists ${books.length} books but has ${bookSections} book sections (## Author — *Title*)`,
@@ -153,10 +159,10 @@ function checkSharedFramework() {
   check(decayRisks.includes("### What Not to Flag"), "skills/_shared/decay-risks.md should include false-positive guidance");
 
   // Verify risk section counts are stable
-  const productionRisks = (decayRisks.match(/^## Risk \d+:/gm) ?? []).length;
+  const productionRisks = countProductionRisks(decayRisks);
   check(productionRisks === PRODUCTION_RISK_COUNT, `skills/_shared/decay-risks.md should define exactly ${PRODUCTION_RISK_COUNT} risks (found ${productionRisks})`);
 
-  const testRisks = (testDecayRisks.match(/^## Risk T\d+:/gm) ?? []).length;
+  const testRisks = countTestRisks(testDecayRisks);
   check(testRisks === TEST_RISK_COUNT, `skills/_shared/test-decay-risks.md should define exactly ${TEST_RISK_COUNT} test risks (found ${testRisks})`);
 }
 

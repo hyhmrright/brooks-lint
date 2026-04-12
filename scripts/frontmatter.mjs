@@ -32,3 +32,35 @@ export function parseFrontmatterBooks(text) {
     .filter((line) => /^\s+-/.test(line))
     .map((line) => line.replace(/^\s+-\s*/, "").trim());
 }
+
+/**
+ * Count book sections in source-coverage.md.
+ * Each book section uses the pattern: ## Author Name — *Book Title*
+ */
+export function countBookSections(text) {
+  return (text.match(/^## .+ — \*/gm) ?? []).length;
+}
+
+/**
+ * Count production decay risk sections in decay-risks.md.
+ * Each risk section uses the pattern: ## Risk N: Title
+ */
+export function countProductionRisks(text) {
+  return (text.match(/^## Risk \d+:/gm) ?? []).length;
+}
+
+/**
+ * Count test decay risk sections in test-decay-risks.md.
+ * Each risk section uses the pattern: ## Risk TN: Title
+ */
+export function countTestRisks(text) {
+  return (text.match(/^## Risk T\d+:/gm) ?? []).length;
+}
+
+/**
+ * Extract the latest version string from CHANGELOG.md.
+ * Returns null if no version header is found.
+ */
+export function extractChangelogVersion(text) {
+  return text.match(/^## \[(.+?)\] - /m)?.[1] ?? null;
+}
