@@ -6,6 +6,25 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [0.8.5] - 2026-04-12
+
+### Changed
+
+- **Single source of truth for book inventory** — `skills/_shared/source-coverage.md` now carries a YAML frontmatter `books:` list; `validate-repo.mjs` derives the count dynamically, eliminating Shotgun Surgery when adding new books.
+- **Validation refactored into named check functions** — `scripts/validate-repo.mjs` reorganized from a flat script into 12 named category functions (`checkVersionConsistency`, `checkSkillsContent`, `checkEvalSuite`, etc.) for clarity and maintainability.
+- **Named constants for risk counts** — `PRODUCTION_RISK_COUNT` and `TEST_RISK_COUNT` replace magic numbers in both `validate-repo.mjs` and `run-evals.mjs`; adding a new risk category requires updating one constant in each script.
+- **Skills content CI** — validator now asserts every SKILL.md has `## Setup` and `## Process` sections, and every mode guide references the Iron Law.
+- **Manifest description consistency** — validator checks all four plugin manifests have identical descriptions; fixed `gemini-extension.json` to match canonical.
+
+### Added
+
+- **`scripts/frontmatter.mjs`** — shared `parseFrontmatterBooks()` utility, importable without validator side effects.
+- **`scripts/run-evals.mjs`** — structural validator for `evals/evals.json`: checks sequential IDs, required fields, and risk code presence in `expected_output`.
+- **`scripts/validate-repo.test.mjs`** — 10 unit tests for `parseFrontmatterBooks` using Node.js built-in `assert`; runnable via `npm test`.
+- **`npm run evals`** and **`npm test`** scripts in `package.json`.
+
+---
+
 ## [0.8.4] - 2026-04-11
 
 ### Added
