@@ -1,3 +1,19 @@
+---
+books:
+  - The Mythical Man-Month
+  - Code Complete
+  - Refactoring
+  - Clean Architecture
+  - The Pragmatic Programmer
+  - Domain-Driven Design
+  - A Philosophy of Software Design
+  - Software Engineering at Google
+  - xUnit Test Patterns
+  - The Art of Unit Testing
+  - Working Effectively with Legacy Code
+  - How Google Tests Software
+---
+
 # Source Coverage Matrix
 
 Use this file after selecting a mode and before writing findings.

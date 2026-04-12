@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
+import { parseFrontmatterBooks } from "./frontmatter.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -18,178 +19,245 @@ function readJson(relPath) {
 const errors = [];
 
 function check(condition, message) {
-  if (!condition) {
-    errors.push(message);
-  }
+  if (!condition) errors.push(message);
 }
+
+// ── Canonical data ─────────────────────────────────────────────────────────
+// source-coverage.md frontmatter is the single source of truth for the book
+// list and count. Adding a new book only requires updating that frontmatter
+// (plus the narrative sections that describe it) — the validator auto-adapts.
 
 const packageJson = readJson("package.json");
 const version = packageJson.version;
 
-const manifestVersions = [
-  ["package.json", version],
-  [".claude-plugin/plugin.json", readJson(".claude-plugin/plugin.json").version],
-  [
-    ".claude-plugin/marketplace.json",
-    readJson(".claude-plugin/marketplace.json").plugins[0]?.version,
-  ],
-  [".codex-plugin/plugin.json", readJson(".codex-plugin/plugin.json").version],
-  ["gemini-extension.json", readJson("gemini-extension.json").version],
-];
+const sourceCoverage = readText("skills/_shared/source-coverage.md");
+const books = parseFrontmatterBooks(sourceCoverage);
+const sourceCount = books?.length ?? 12;
 
-for (const [file, foundVersion] of manifestVersions) {
-  check(foundVersion === version, `${file} version ${foundVersion} does not match package.json version ${version}`);
+const _countWords = [
+  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
+  "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+];
+const sourceWord = _countWords[sourceCount] ?? String(sourceCount);
+const sourceWordCap = sourceWord.charAt(0).toUpperCase() + sourceWord.slice(1);
+
+const evals = readJson("evals/evals.json");
+const evalCount = evals.evals.length;
+
+// Risk category counts — mirror the section counts in decay-risks.md (R1–RN)
+// and test-decay-risks.md (T1–TN). Update both constants when adding a new risk category.
+const PRODUCTION_RISK_COUNT = 6;
+const TEST_RISK_COUNT = 6;
+
+// ── Validation sections ────────────────────────────────────────────────────
+
+function checkVersionConsistency() {
+  const manifestVersions = [
+    ["package.json", version],
+    [".claude-plugin/plugin.json", readJson(".claude-plugin/plugin.json").version],
+    [".claude-plugin/marketplace.json", readJson(".claude-plugin/marketplace.json").plugins[0]?.version],
+    [".codex-plugin/plugin.json", readJson(".codex-plugin/plugin.json").version],
+    ["gemini-extension.json", readJson("gemini-extension.json").version],
+  ];
+  for (const [file, foundVersion] of manifestVersions) {
+    check(
+      foundVersion === version,
+      `${file} version ${foundVersion} does not match package.json version ${version}`,
+    );
+  }
 }
 
-const readme = readText("README.md");
-check(
-  readme.includes(`version-${version}-blue.svg`),
-  `README.md badge does not reference version ${version}`,
-);
-check(
-  readme.includes("grounded in twelve classic engineering books"),
-  "README.md should describe Brooks-Lint as grounded in twelve classic engineering books",
-);
-check(
-  readme.includes("## The Twelve Books"),
-  "README.md should expose a unified The Twelve Books section",
-);
-check(
-  readme.includes("*The Art of Unit Testing*"),
-  "README.md should list The Art of Unit Testing in the source inventory",
-);
-check(
-  readme.includes("*How Google Tests Software*"),
-  "README.md should list How Google Tests Software in the source inventory",
-);
+function checkDescriptionConsistency() {
+  const canonicalDesc = readJson(".claude-plugin/plugin.json").description;
+  const manifestDescs = [
+    [".claude-plugin/marketplace.json", readJson(".claude-plugin/marketplace.json").plugins[0]?.description],
+    [".codex-plugin/plugin.json", readJson(".codex-plugin/plugin.json").description],
+    ["gemini-extension.json", readJson("gemini-extension.json").description],
+  ];
+  for (const [file, desc] of manifestDescs) {
+    check(desc === canonicalDesc, `${file} description does not match .claude-plugin/plugin.json`);
+  }
+}
 
-const changelog = readText("CHANGELOG.md");
-const latestChangelogVersion = changelog.match(/^## \[(.+?)\] - /m)?.[1];
-check(
-  latestChangelogVersion === version,
-  `CHANGELOG.md latest version ${latestChangelogVersion ?? "<missing>"} does not match package.json version ${version}`,
-);
-
-const commonMd = readText("skills/_shared/common.md");
-const sourceCoverage = readText("skills/_shared/source-coverage.md");
-const exampleYaml = readText(".brooks-lint.example.yaml");
-
-check(
-  commonMd.includes("T5   # no coverage metrics enforced on this project"),
-  "skills/_shared/common.md should use T5 for coverage-related config examples",
-);
-check(
-  exampleYaml.includes("T5   # Coverage Illusion — we don't enforce coverage metrics"),
-  ".brooks-lint.example.yaml should use T5 for coverage-related config examples",
-);
-check(
-  readme.includes("T5   # skip coverage metrics check — we don't enforce coverage"),
-  "README.md configuration example should use T5 for coverage-related config examples",
-);
-check(
-  readme.includes("source-coverage.md"),
-  "README.md should link to the source coverage matrix",
-);
-
-for (const title of [
-  "*The Mythical Man-Month*",
-  "*Code Complete*",
-  "*Refactoring*",
-  "*Clean Architecture*",
-  "*The Pragmatic Programmer*",
-  "*Domain-Driven Design*",
-  "*A Philosophy of Software Design*",
-  "*Software Engineering at Google*",
-  "*xUnit Test Patterns*",
-  "*The Art of Unit Testing*",
-  "*Working Effectively with Legacy Code*",
-  "*How Google Tests Software*",
-]) {
+function checkChangelog() {
+  const changelog = readText("CHANGELOG.md");
+  const latestVersion = changelog.match(/^## \[(.+?)\] - /m)?.[1];
   check(
-    sourceCoverage.includes(title),
-    `skills/_shared/source-coverage.md should include ${title}`,
+    latestVersion === version,
+    `CHANGELOG.md latest version ${latestVersion ?? "<missing>"} does not match package.json version ${version}`,
   );
 }
 
-check(
-  commonMd.includes("source-coverage.md"),
-  "skills/_shared/common.md should reference source-coverage.md",
-);
-
-const testDecayRisks = readText("skills/_shared/test-decay-risks.md");
-check(testDecayRisks.includes("## Risk T3: Test Duplication"), "T3 definition missing from test-decay-risks.md");
-check(testDecayRisks.includes("## Risk T5: Coverage Illusion"), "T5 definition missing from test-decay-risks.md");
-check(
-  testDecayRisks.includes("### What Not to Flag"),
-  "skills/_shared/test-decay-risks.md should include false-positive guidance",
-);
-
-const decayRisks = readText("skills/_shared/decay-risks.md");
-check(
-  decayRisks.includes("### What Not to Flag"),
-  "skills/_shared/decay-risks.md should include false-positive guidance",
-);
-
-const evals = readJson("evals/evals.json");
-check(
-  evals.evals.length >= 43,
-  `evals/evals.json should include at least 43 benchmark scenarios (found ${evals.evals.length})`,
-);
-
-const contributing = readText("CONTRIBUTING.md");
-check(
-  contributing.includes("currently 43"),
-  "CONTRIBUTING.md should mention the current eval count",
-);
-
-const agents = readText("AGENTS.md");
-check(
-  agents.includes("twelve classic engineering books"),
-  "AGENTS.md should describe the repository as grounded in twelve classic engineering books",
-);
-check(
-  agents.includes("43 scenarios"),
-  "AGENTS.md should mention the expanded eval suite",
-);
-
-const security = readText("SECURITY.md");
-check(!security.includes("<!--"), "SECURITY.md still contains placeholder content");
-check(
-  security.includes("Claude Code, Codex CLI, and Gemini CLI"),
-  "SECURITY.md should describe the repository as multi-platform",
-);
-
-function runHook(env = {}) {
-  const tempHome = mkdtempSync(path.join(os.tmpdir(), "brooks-lint-hook-home-"));
-  const stdout = execFileSync("bash", ["hooks/session-start"], {
-    cwd: root,
-    env: { ...process.env, HOME: tempHome, ...env },
-    encoding: "utf8",
-  });
-
-  return JSON.parse(stdout);
+function checkReadmeIntegrity() {
+  const readme = readText("README.md");
+  check(readme.includes(`version-${version}-blue.svg`), `README.md badge does not reference version ${version}`);
+  check(
+    readme.includes(`grounded in ${sourceWord} classic engineering books`),
+    `README.md should describe Brooks-Lint as grounded in ${sourceWord} classic engineering books`,
+  );
+  check(
+    readme.includes(`## The ${sourceWordCap} Books`),
+    `README.md should expose a unified The ${sourceWordCap} Books section`,
+  );
+  check(readme.includes("*The Art of Unit Testing*"), "README.md should list The Art of Unit Testing in the source inventory");
+  check(readme.includes("*How Google Tests Software*"), "README.md should list How Google Tests Software in the source inventory");
+  check(readme.includes("source-coverage.md"), "README.md should link to the source coverage matrix");
 }
 
-const defaultHookOutput = runHook();
-check(
-  typeof defaultHookOutput.additional_context === "string",
-  "hooks/session-start default output must include additional_context",
-);
+function checkConfigExamples() {
+  const commonMd = readText("skills/_shared/common.md");
+  const exampleYaml = readText(".brooks-lint.example.yaml");
+  const readme = readText("README.md");
+  check(commonMd.includes("- T5"), "skills/_shared/common.md should use T5 in the disable section of config examples");
+  check(exampleYaml.includes("- T5"), ".brooks-lint.example.yaml should use T5 in the disable section");
+  check(readme.includes("- T5"), "README.md configuration example should include T5 in the disable section");
+}
 
-const claudeHookOutput = runHook({ CLAUDE_PLUGIN_ROOT: "1" });
-check(
-  claudeHookOutput.hookSpecificOutput?.hookEventName === "SessionStart",
-  "hooks/session-start Claude output must include hookSpecificOutput.hookEventName",
-);
-check(
-  typeof claudeHookOutput.hookSpecificOutput?.additionalContext === "string",
-  "hooks/session-start Claude output must include hookSpecificOutput.additionalContext",
-);
+function checkSourceInventory() {
+  check(
+    books !== null && books.length > 0,
+    "skills/_shared/source-coverage.md must have a books: frontmatter list",
+  );
+  if (!books) return;
+
+  for (const title of books) {
+    check(
+      sourceCoverage.includes(`*${title}*`),
+      `skills/_shared/source-coverage.md should include a section for ${title}`,
+    );
+  }
+
+  // Verify frontmatter book count matches actual book sections in the document.
+  // Book sections use the pattern: ## Author Name — *Book Title*
+  const bookSections = (sourceCoverage.match(/^## .+ — \*/gm) ?? []).length;
+  check(
+    bookSections === books.length,
+    `skills/_shared/source-coverage.md frontmatter lists ${books.length} books but has ${bookSections} book sections (## Author — *Title*)`,
+  );
+}
+
+function checkSharedFramework() {
+  const commonMd = readText("skills/_shared/common.md");
+  check(commonMd.includes("source-coverage.md"), "skills/_shared/common.md should reference source-coverage.md");
+
+  const testDecayRisks = readText("skills/_shared/test-decay-risks.md");
+  check(testDecayRisks.includes("## Risk T3: Test Duplication"), "T3 definition missing from test-decay-risks.md");
+  check(testDecayRisks.includes("## Risk T5: Coverage Illusion"), "T5 definition missing from test-decay-risks.md");
+  check(testDecayRisks.includes("### What Not to Flag"), "skills/_shared/test-decay-risks.md should include false-positive guidance");
+
+  const decayRisks = readText("skills/_shared/decay-risks.md");
+  check(decayRisks.includes("### What Not to Flag"), "skills/_shared/decay-risks.md should include false-positive guidance");
+
+  // Verify risk section counts are stable
+  const productionRisks = (decayRisks.match(/^## Risk \d+:/gm) ?? []).length;
+  check(productionRisks === PRODUCTION_RISK_COUNT, `skills/_shared/decay-risks.md should define exactly ${PRODUCTION_RISK_COUNT} risks (found ${productionRisks})`);
+
+  const testRisks = (testDecayRisks.match(/^## Risk T\d+:/gm) ?? []).length;
+  check(testRisks === TEST_RISK_COUNT, `skills/_shared/test-decay-risks.md should define exactly ${TEST_RISK_COUNT} test risks (found ${testRisks})`);
+}
+
+function checkSkillsContent() {
+  const modes = ["brooks-review", "brooks-audit", "brooks-debt", "brooks-test"];
+
+  for (const mode of modes) {
+    const skillMd = readText(`skills/${mode}/SKILL.md`);
+    check(skillMd.includes("## Setup"), `skills/${mode}/SKILL.md should have a ## Setup section`);
+    check(skillMd.includes("## Process"), `skills/${mode}/SKILL.md should have a ## Process section`);
+  }
+
+  const guides = [
+    ["brooks-review", "pr-review-guide.md"],
+    ["brooks-audit", "architecture-guide.md"],
+    ["brooks-debt", "debt-guide.md"],
+    ["brooks-test", "test-guide.md"],
+  ];
+
+  for (const [mode, guide] of guides) {
+    const content = readText(`skills/${mode}/${guide}`);
+    check(
+      content.includes("Iron Law"),
+      `skills/${mode}/${guide} should reference the Iron Law`,
+    );
+  }
+}
+
+function checkEvalSuite() {
+  check(
+    evalCount >= 43,
+    `evals/evals.json should include at least 43 benchmark scenarios (found ${evalCount})`,
+  );
+}
+
+function checkContributing() {
+  const contributing = readText("CONTRIBUTING.md");
+  check(
+    contributing.includes(`currently ${evalCount}`),
+    `CONTRIBUTING.md should mention the current eval count (${evalCount})`,
+  );
+}
+
+function checkAgentsDocs() {
+  const agents = readText("AGENTS.md");
+  check(
+    agents.includes(`${sourceWord} classic engineering books`),
+    `AGENTS.md should describe the repository as grounded in ${sourceWord} classic engineering books`,
+  );
+  check(
+    agents.includes(`${evalCount} scenarios`),
+    `AGENTS.md should mention the expanded eval suite (${evalCount} scenarios)`,
+  );
+}
+
+function checkSecurity() {
+  const security = readText("SECURITY.md");
+  check(!security.includes("<!--"), "SECURITY.md still contains placeholder content");
+  check(
+    security.includes("Claude Code, Codex CLI, and Gemini CLI"),
+    "SECURITY.md should describe the repository as multi-platform",
+  );
+}
+
+function checkHookOutput() {
+  function runHook(env = {}) {
+    const tempHome = mkdtempSync(path.join(os.tmpdir(), "brooks-lint-hook-home-"));
+    const stdout = execFileSync("bash", ["hooks/session-start"], {
+      cwd: root,
+      env: { ...process.env, HOME: tempHome, ...env },
+      encoding: "utf8",
+    });
+    return JSON.parse(stdout);
+  }
+
+  const defaultOut = runHook();
+  check(typeof defaultOut.additional_context === "string", "hooks/session-start default output must include additional_context");
+
+  const claudeOut = runHook({ CLAUDE_PLUGIN_ROOT: "1" });
+  check(claudeOut.hookSpecificOutput?.hookEventName === "SessionStart", "hooks/session-start Claude output must include hookSpecificOutput.hookEventName");
+  check(typeof claudeOut.hookSpecificOutput?.additionalContext === "string", "hooks/session-start Claude output must include hookSpecificOutput.additionalContext");
+}
+
+// ── Run all checks ─────────────────────────────────────────────────────────
+
+checkVersionConsistency();
+checkDescriptionConsistency();
+checkChangelog();
+checkReadmeIntegrity();
+checkConfigExamples();
+checkSourceInventory();
+checkSharedFramework();
+checkSkillsContent();
+checkEvalSuite();
+checkContributing();
+checkAgentsDocs();
+checkSecurity();
+checkHookOutput();
+
+// ── Report ─────────────────────────────────────────────────────────────────
 
 if (errors.length > 0) {
   console.error("Repository validation failed:");
   for (const error of errors) {
-    console.error(`- ${error}`);
+    console.error(`  - ${error}`);
   }
   process.exit(1);
 }

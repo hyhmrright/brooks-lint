@@ -77,9 +77,10 @@ Include N and M even if zero. Omit this line if no config file was found.
 
 ## The Six Decay Risks
 
-(Book-level coverage, exceptions, and tradeoff guidance are in `source-coverage.md` in this
-directory. Full production-code and test-suite definitions, symptoms, sources, and severity
-guides are in `decay-risks.md` and `test-decay-risks.md`.)
+Navigation index only — canonical definitions (symptoms, severity guides, sources, "What Not
+to Flag" guards) live in `decay-risks.md`. Do not duplicate or edit diagnostic questions here;
+update `decay-risks.md` directly. Book-level coverage, exceptions, and tradeoffs are in
+`source-coverage.md`.
 
 | Risk | Diagnostic Question |
 |------|---------------------|
