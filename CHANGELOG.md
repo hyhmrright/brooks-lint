@@ -6,6 +6,39 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [0.9.0] - 2026-04-12
+
+### Added
+
+- **Flag Arguments and Primitive Obsession** — two high-frequency Fowler smells now encoded
+  in R1 (Cognitive Overload) with symptoms and source entries in the decay risk reference.
+- **Information Leakage** (Ousterhout) — added as an R2 (Change Propagation) symptom:
+  design decisions encoded in multiple modules create coupling even without explicit imports.
+- **ISP violation** (Martin) — Interface Segregation Principle added as an R5 (Dependency
+  Disorder) symptom: fat interfaces force callers to depend on methods they do not use.
+- **LSP violation** (Martin) — Liskov Substitution Principle added as an R6 (Domain Model
+  Distortion) symptom: subclasses that break their parent's behavioral contract.
+- **Value Object vs Entity confusion** (Evans) — added to R6: value concepts given mutable
+  identity instead of being treated as immutable, replaceable types.
+- **Erratic Test / flaky test** (Meszaros) — added to T2 (Test Brittleness): tests producing
+  non-deterministic results due to shared state, time dependence, or ordering assumptions.
+
+### Changed
+
+- **`source-coverage.md` "Encoded today" sections deepened** for all 12 books:
+  - McConnell: defensive programming and error-handling discipline
+  - Martin: ISP, LSP, SRP/OCP (previously only DIP/ADP/SDP/SAP)
+  - Ousterhout: Information Leakage
+  - Winters et al.: code sustainability and backward compatibility
+  - Meszaros: Erratic Test
+  - Fowler: Flag Arguments, Primitive Obsession
+  - Evans: Entity vs Value Object, Aggregate Root
+- **Risk description prose tightened** across all six production and six test decay risks
+  (~15% token reduction with no loss of diagnostic content).
+- **`CLAUDE.md`**: added Release Process section documenting the 4-step version bump workflow.
+
+---
+
 ## [0.8.5] - 2026-04-12
 
 ### Changed
