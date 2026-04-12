@@ -35,6 +35,17 @@ misses something important or produces a finding that's consistently wrong, the
 fix is almost always in one of these files or in `skills/_shared/source-coverage.md`,
 which captures book-level scope, exceptions, and tradeoffs.
 
+### Adding a new decay risk (advanced)
+
+Adding an entirely new risk category (e.g., R7 or T7) requires touching five places.
+Run `npm run validate` after each step to confirm no drift:
+
+1. **`skills/_shared/decay-risks.md`** or **`test-decay-risks.md`** — add the full risk definition (Diagnostic Question, Symptoms, Sources table, Severity Guide, What Not to Flag)
+2. **`skills/_shared/source-coverage.md`** — add the new risk to the relevant book sections under "Encoded today"
+3. **`validate-repo.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
+4. **Mode guide(s)** (`pr-review-guide.md`, `architecture-guide.md`, `debt-guide.md`, `test-guide.md`) — add diagnostic questions for the new risk where relevant
+5. **`evals/evals.json`** — add at least one benchmark scenario for the new risk, using the next sequential `id`
+
 ### 3. Add an eval test case (most impactful)
 
 The benchmark (94% pass rate) was produced by running the skill against test cases

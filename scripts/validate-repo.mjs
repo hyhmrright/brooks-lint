@@ -88,9 +88,13 @@ function checkChangelog() {
   );
 }
 
+// Canonical Claude Code install command — must stay consistent across README and CLAUDE.md.
+const CANONICAL_INSTALL_CMD = "/plugin marketplace add hyhmrright/brooks-lint";
+
 function checkReadmeIntegrity() {
   const readme = readText("README.md");
   check(readme.includes(`version-${version}-blue.svg`), `README.md badge does not reference version ${version}`);
+  check(readme.includes(CANONICAL_INSTALL_CMD), `README.md should contain canonical install command`);
   check(
     readme.includes(`grounded in ${sourceWord} classic engineering books`),
     `README.md should describe Brooks-Lint as grounded in ${sourceWord} classic engineering books`,
@@ -174,18 +178,14 @@ function checkSkillsContent() {
     check(skillMd.includes("## Process"), `skills/${mode}/SKILL.md should have a ## Process section`);
 
     // Guard: SKILL.md frontmatter description must reference the current book count.
-    // Extract only the frontmatter block (between the two --- delimiters) to avoid
-    // false positives from body text like "scan for all six decay risks".
+    // Positive assertion — self-updates when sourceWord changes with the book inventory.
+    // Extract frontmatter only to avoid false positives from body text ("all six decay risks").
     const frontmatterMatch = skillMd.match(/^---\n([\s\S]*?)\n---/);
     const frontmatter = frontmatterMatch ? frontmatterMatch[1] : "";
-    const staleBookPhrases = ["six classic", "seven classic", "eight classic", "nine classic",
-      "ten classic", "eleven classic", "six production", "eight production", "ten production"];
-    for (const stale of staleBookPhrases) {
-      check(
-        !frontmatter.includes(stale),
-        `skills/${mode}/SKILL.md frontmatter description references "${stale}" books — update to "${sourceWord} classic"`,
-      );
-    }
+    check(
+      frontmatter.includes(`${sourceWord} classic`),
+      `skills/${mode}/SKILL.md frontmatter description should reference "${sourceWord} classic engineering books" — update stale book count`,
+    );
   }
 
   const guides = [
@@ -231,6 +231,11 @@ function checkAgentsDocs() {
   );
 }
 
+function checkClaudeMd() {
+  const claudeMd = readText("CLAUDE.md");
+  check(claudeMd.includes(CANONICAL_INSTALL_CMD), `CLAUDE.md should contain canonical install command`);
+}
+
 function checkSecurity() {
   const security = readText("SECURITY.md");
   check(!security.includes("<!--"), "SECURITY.md still contains placeholder content");
@@ -272,6 +277,7 @@ checkSkillsContent();
 checkEvalSuite();
 checkContributing();
 checkAgentsDocs();
+checkClaudeMd();
 checkSecurity();
 checkHookOutput();
 

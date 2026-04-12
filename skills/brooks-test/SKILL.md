@@ -1,9 +1,9 @@
 ---
 name: brooks-test
 description: >
-  Test quality review drawing on xUnit Test Patterns, The Art of Unit Testing,
-  How Google Tests Software, Working Effectively with Legacy Code, and other
-  classic engineering books.
+  Test quality review drawing on twelve classic engineering books, with primary focus
+  on xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software,
+  and Working Effectively with Legacy Code.
   Triggers when: user asks about test quality, flaky tests, mock abuse,
   test debt, legacy code testability, or shares test files for review.
   Also triggers when user mentions: test smells / characterization tests /
