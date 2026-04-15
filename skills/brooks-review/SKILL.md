@@ -7,11 +7,15 @@ description: >
   xUnit Test Patterns, The Art of Unit Testing, Working Effectively with Legacy Code,
   and How Google Tests Software.
   Triggers when: user asks to review code, check a PR, review a pull request,
-  or shares a diff for feedback.
-  Also triggers when user mentions: Brooks's Law / Mythical Man-Month / conceptual integrity /
-  second system effect / code smells / refactoring / clean architecture / DDD /
-  domain-driven design / SOLID principles / Hyrum's Law / deep modules / tactical programming.
-  Use this skill proactively whenever code, a diff, or a PR is shared for review.
+  shares a diff or pastes code inline asking "does this look right?" or "is this okay?",
+  or asks for feedback on a specific function, class, or file.
+  Also triggers when user mentions: code smells / refactoring / clean architecture /
+  DDD / domain-driven design / SOLID principles / Hyrum's Law / deep modules /
+  tactical programming / conceptual integrity / Brooks's Law / Mythical Man-Month /
+  second system effect.
+  Do NOT trigger for: questions about how to write code from scratch, language syntax
+  questions, or questions about tools and frameworks where no existing code is being reviewed.
+  Use this skill proactively whenever existing code, a diff, or a PR is shared for review.
 ---
 
 # Brooks-Lint — PR Review

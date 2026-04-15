@@ -87,11 +87,11 @@ graph TD
   class Database,MessageQueue,AuthService,WebApp,MobileApp clean
 ````
 
-**Phase A (during Step 1):** Generate the graph structure only — nodes, subgraphs, and edges.
-Do NOT add `classDef` or `class` lines yet. You need findings from Steps 2-4 before coloring.
+Draw the graph structure first — nodes, subgraphs, and edges — without any `classDef` or
+`class` lines. You cannot assign colors until you have completed the risk scan in Steps 2–4.
 
-**Phase B (after Step 4):** Add `classDef` definitions and `class` assignments based on findings.
-The example above shows the final output after both phases.
+**After completing Step 4**, return to this graph and add the `classDef` and `class` lines
+based on findings. The example above shows the final colored output.
 
 Rules:
 1. **Nodes** — Use top-level directories or services as nodes, not individual files
@@ -142,7 +142,30 @@ Check each in turn:
 - Can the module responsibility of each module be stated in one sentence from its name alone?
 - Would a new developer know which module to add a new feature to?
 
-### Step 5: Conway's Law Check
+### Step 5: Testability Seam Assessment
+
+A *seam* is a place in the architecture where behavior can be altered without editing source
+code — typically an interface, a configuration point, or a dependency injection boundary.
+Seam density is a proxy for testability and evolvability.
+
+Scan for:
+- **No seam at the infrastructure boundary**: can you replace a real database, file system,
+  or HTTP client with a test double without editing the module under test? If not, the
+  architecture forces integration tests where unit tests would suffice.
+- **Seam collapse**: a module that was once testable in isolation has had its seams removed
+  (e.g., direct constructor instantiation replaced a dependency injection point, or a global
+  singleton replaced an injected collaborator).
+- **Missing seam in legacy areas**: modules without an obvious injection point or interface
+  boundary — any change requires touching the entire call stack to substitute behavior.
+
+If all modules have clear seams at their infrastructure boundaries → no finding.
+
+If seams are absent or collapsed: flag as 🟡 Warning with a Remedy pointing to the specific
+module and the injection point that needs to be restored or introduced.
+
+Source: Feathers — Working Effectively with Legacy Code, Ch. 4: The Seam Model
+
+### Step 6: Conway's Law Check
 
 After the six-risk scan, assess the relationship between architecture and team structure:
 
@@ -152,6 +175,14 @@ After the six-risk scan, assess the relationship between architecture and team s
 - A mismatch that causes cross-team coordination overhead for every feature is 🔴 Critical.
 - A mismatch that is theoretical but not yet causing pain is 🟡 Warning.
 - If team structure is unknown, note this as context missing and skip the check.
+
+**Calibration examples:**
+- 🔴 Critical: the Payments module is owned by Team A but contains auth logic owned by Team B —
+  every Payments change requires a sync meeting with Team B
+- 🟡 Warning: two separate teams own the `utils/` and `helpers/` directories which do the same
+  things — theoretically painful but not yet causing release coordination issues
+- Not a finding: a single team owns a monorepo with multiple logical modules — Conway's Law
+  misalignment requires *separate teams* to be meaningful
 
 ---
 

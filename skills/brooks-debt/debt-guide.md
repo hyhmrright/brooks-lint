@@ -56,13 +56,19 @@ After listing all findings, score each one:
 
 **Pain score (1–3):** How much does this slow down development today?
 - 3: Developers actively avoid touching this area; it causes bugs on most changes
+  *(e.g., "nobody wants to touch the billing module because it always breaks something")*
 - 2: This area is noticeably slower to work in than the rest of the codebase
+  *(e.g., "adding a field takes 2–3x longer here than elsewhere")*
 - 1: This is a quality issue but not currently causing active pain
+  *(e.g., "inconsistent naming, but we always know what we mean")*
 
 **Spread score (1–3):** How many files, modules, or developers does this affect?
 - 3: Affects 5+ modules or all developers on the team
+  *(e.g., "every new feature touches the God class in core/")*
 - 2: Affects 2–4 modules or a subset of the team
+  *(e.g., "the auth and notification modules are tightly coupled")*
 - 1: Isolated to one module or one developer's area
+  *(e.g., "legacy parser that only one person maintains")*
 
 **Priority = Pain × Spread** (max 9)
 
@@ -71,6 +77,23 @@ After listing all findings, score each one:
 | 7–9 | Critical debt | Address in next sprint |
 | 4–6 | Scheduled debt | Plan within quarter |
 | 1–3 | Monitored debt | Log and watch |
+
+### Step 2b: Classify Debt Intent
+
+After scoring, classify each finding as intentional or accidental:
+
+**Intentional debt** — a conscious shortcut taken to meet a deadline, with the expectation
+of paying it back. The team knows about it. It may be legitimate (a strategic prototype,
+a known temporary workaround during a migration).
+
+**Accidental debt** — degradation that accumulated without a deliberate decision: the team
+did not choose it and may not even know it exists. This is the kind Ward Cunningham's
+original definition warned against — not a tactical trade-off, but structural erosion.
+
+Mark each finding with `[intentional]` or `[accidental]` in the Debt Summary Table.
+Intentional debt with no visible payback plan — no linked ticket, no code comment, no
+documented decision — should be treated as accidental for prioritization purposes.
+Focus remediation energy on accidental debt first; intentional debt at least has an owner.
 
 ### Step 3: Group by Decay Risk
 
@@ -91,14 +114,14 @@ After the Findings section, append a Debt Summary Table:
 ```
 ## Debt Summary
 
-| Risk | Findings | Avg Priority | Dominant Classification |
-|------|----------|-------------|------------------------|
-| Cognitive Overload | N | X.X | Monitored / Scheduled / Critical |
-| Change Propagation | N | X.X | ... |
-| Knowledge Duplication | N | X.X | ... |
-| Accidental Complexity | N | X.X | ... |
-| Dependency Disorder | N | X.X | ... |
-| Domain Model Distortion | N | X.X | ... |
+| Risk | Findings | Avg Priority | Dominant Classification | Intent |
+|------|----------|-------------|------------------------|--------|
+| Cognitive Overload | N | X.X | Monitored / Scheduled / Critical | intentional / accidental |
+| Change Propagation | N | X.X | ... | ... |
+| Knowledge Duplication | N | X.X | ... | ... |
+| Accidental Complexity | N | X.X | ... | ... |
+| Dependency Disorder | N | X.X | ... | ... |
+| Domain Model Distortion | N | X.X | ... | ... |
 
 **Recommended focus:** [The one or two risks with the highest average priority — these are
 where investment will have the most impact.]

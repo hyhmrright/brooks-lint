@@ -6,10 +6,15 @@ description: >
   Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
   xUnit Test Patterns, The Art of Unit Testing, Working Effectively with Legacy Code,
   and How Google Tests Software.
-  Triggers when: user asks about tech debt, where to refactor, health check,
+  Triggers when: user asks about tech debt, where to refactor, what to clean up first,
+  codebase health (in the software quality sense — not server/HTTP health endpoints),
   or systemic maintainability questions.
-  Also triggers when user asks why the codebase is hard to maintain,
-  why adding developers isn't helping, or why complexity keeps growing.
+  Also triggers when user asks: why the codebase is hard to maintain, why it's a mess,
+  why adding developers isn't helping, why complexity keeps growing, what the worst part
+  of the codebase is, or where to start paying back debt.
+  Do NOT trigger for: server health checks, HTTP /health endpoints, infrastructure monitoring,
+  or questions about application uptime — "health check" in those contexts means something
+  different and this skill is not relevant.
   Use this skill proactively when maintainability or refactoring priorities are discussed.
 ---
 

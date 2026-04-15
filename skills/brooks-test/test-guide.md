@@ -48,25 +48,44 @@ Look for:
 
 If all test names are clear and setups are minimal → no finding.
 
-### Step 2: Scan for Test Brittleness and Mock Abuse
+### Step 2a: Scan for Test Brittleness
 
-*These two risks co-occur: over-mocking produces tests that are both fragile and vacuous.
-Scan them together.*
+*Brittle tests break on refactors that do not change observable behavior — they test
+implementation, not contracts.*
 
-Look for Test Brittleness:
+Look for:
 - Ask (or check git history): did any recent refactor cause test failures with no
   behavior change?
 - Are there test methods where the name contains "and" or that assert on 3 or more
   unrelated behaviors (Eager Test)?
 - Do assertions specify mock call order or exact parameter values that are irrelevant
   to the observable behavior?
+- Are tests coupled to private methods or internal state directly?
 
-Look for Mock Abuse:
-- Sample 3–5 tests: is mock setup longer than the test logic?
+If brittleness is systemic (most tests in the file break on a rename) → 🔴 Critical.
+If isolated (1–2 brittle tests) → 🟢 Suggestion.
+
+### Step 2b: Scan for Mock Abuse
+
+*Mock Abuse produces tests that pass regardless of whether the real behavior is correct.
+Scan this separately from brittleness — over-mocking is often the cause of brittleness,
+but it is a distinct problem worth its own finding.*
+
+**Sample 3–5 tests once for both steps 2a and 2b together** — read each test body and
+check brittleness signals and mock-setup ratio in the same pass, then write separate
+findings if both problems are present.
+
+Look for:
+- Is mock setup code longer than the assertion logic in the sampled tests?
 - Are the primary assertions `expect(mock).toHaveBeenCalledWith(...)` rather than
-  assertions on outputs, state, or events?
-- Are there methods in production classes that are only called from test files?
+  assertions on outputs, state, or observable events?
+- Are there methods in production classes that are only called from test files
+  (test-induced design damage)?
 - Does any single test create more than 3 mock objects?
+
+If mock setup-to-assertion ratio exceeds 3:1 → 🟡 Warning.
+If production methods exist only for test access → 🔴 Critical (architecture is being
+distorted by the test suite).
 
 ### Step 3: Scan for Test Duplication
 
@@ -91,12 +110,34 @@ Look for Coverage Illusion:
 - Do the tests assert on side effects (DB writes, events emitted, state transitions)
   or only on return values?
 
+**Characterization Test check:** If legacy code is being modified without existing tests,
+the team needs Characterization Tests before making the change — not after. Look for
+this pattern and flag it when absent.
+
+A Characterization Test locks in current behavior (right or wrong) so future changes
+do not silently regress it. Template:
+```
+test("characterize: [module].[method] given [input], returns [current output]") {
+  // Call the code under test with realistic inputs
+  // Assert on whatever it currently returns — even if you suspect the output is wrong
+  // Add a comment: "This captures current behavior, not necessarily correct behavior"
+}
+```
+Source: Feathers — Working Effectively with Legacy Code, Ch. 8
+
 Look for Architecture Mismatch:
 - Compare the suite map from the start: is the ratio close to 70% unit / 20% integration / 10% E2E?
-- If legacy code is being modified, are there Characterization Tests that captured
-  behavior before the change?
-- Is the full suite execution time known? If > 10 minutes, note as 🟡 Warning.
 - Are high-risk modules tested at higher density than trivial utilities?
+
+**Test suite performance:** A slow test suite is a first-class maintainability risk — it
+breaks the fast-feedback loop and causes developers to skip running tests locally.
+- If the full suite runtime is known and > 10 minutes → 🟡 Warning
+- If the full suite runtime is > 30 minutes or unknown → 🔴 Critical (unknown suite time
+  means nobody is running it regularly)
+- If tests that could be unit tests are integration tests, that is a Performance Mismatch:
+  each misclassified test adds seconds of avoidable wait time
+
+Source: Winters et al. — Software Engineering at Google, Ch. 11: Testing Overview
 
 ### Step 5: Apply Iron Law, Output Report
 

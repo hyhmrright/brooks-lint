@@ -6,10 +6,15 @@ description: >
   Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
   xUnit Test Patterns, The Art of Unit Testing, Working Effectively with Legacy Code,
   and How Google Tests Software.
-  Triggers when: user asks to audit architecture, review module structure,
-  check system design, or assess project organization.
+  Triggers when: user asks to audit architecture, review module or folder structure,
+  check system design, understand how the codebase is organized, assess project layout,
+  or asks "is this a good design?", "where should I put X?", or "why does everything
+  depend on everything?".
   Also triggers when user mentions: clean architecture / dependency inversion /
-  hexagonal architecture / bounded contexts / module coupling / package structure.
+  hexagonal architecture / bounded contexts / module coupling / package structure /
+  tangled dependencies / circular imports / spaghetti code / directory layout.
+  Do NOT trigger for: PR-level code review (use brooks-review) or line-level refactoring
+  questions — this skill analyzes structural/module-level concerns, not individual functions.
   Use this skill proactively when project structure or module dependencies are discussed.
 ---
 
@@ -25,9 +30,10 @@ description: >
 ## Process
 
 1. Draw the module dependency graph as a Mermaid diagram (Step 1 of the guide)
-2. Scan for each decay risk in the order specified in the guide
-3. Assign node colors in the Mermaid diagram based on findings (red/yellow/green)
-4. Run the Conway's Law check
-5. Output using the Report Template from common.md — Mermaid graph FIRST, then Findings
+2. Scan for each decay risk in the order specified in the guide (Steps 2–4)
+3. Assign node colors in the Mermaid diagram based on findings (red/yellow/green) — do this after Step 4
+4. Run the Testability Seam Assessment (Step 5)
+5. Run the Conway's Law check (Step 6)
+6. Output using the Report Template from common.md — Mermaid graph FIRST, then Findings
 
 **Mode line in report:** `Architecture Audit`

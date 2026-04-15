@@ -78,8 +78,13 @@ and multiplies regression risk on every change.
 - A method uses more data from another class than from its own class
 - Two classes know each other's internal state directly
 - Changing one module requires recompiling or retesting many unrelated modules
-- Any observable behavior (including internal implementation details) is depended upon
-  by callers, creating a de facto interface beyond the declared API
+- **Hyrum's Law**: with sufficient callers, every observable behavior — including
+  implementation details, error message text, coincidental call ordering, and undocumented
+  side effects — becomes an implicit contract that callers depend on, even though it was
+  never guaranteed by the declared API
+- **Orthogonality violation**: changing one dimension of a feature forces edits in
+  unrelated dimensions — adding a new payment type should not require touching logging,
+  caching, or notification code, but in a non-orthogonal design it does
 - Information Leakage: a design decision (e.g., a file format, protocol detail, or data
   shape) is encoded in more than one module, so changing it requires coordinated edits
   in multiple places even though only one module "owns" the concept

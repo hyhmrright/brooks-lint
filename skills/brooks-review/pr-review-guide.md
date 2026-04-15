@@ -11,6 +11,16 @@ in the changed code. Every finding must follow the Iron Law: Symptom → Source 
 ORM migrations, lock files, minified bundles), skip those files entirely. Generated code reflects
 tool choices, not developer decisions. Note in the report which files were skipped and why.
 
+**Scope calibration:** Adjust analysis depth based on PR size before starting.
+
+| PR Size | Approach |
+|---------|----------|
+| < 50 lines | Focus on Steps 1–3 only; run Step 6a only if imports changed; run Step 6b if any class, method, or variable was renamed or introduced |
+| 50–300 lines | Full process, all steps |
+| > 300 lines | Full process; note in the Scope line that review is sampled — cover the highest-risk areas rather than every file |
+
+For PRs > 500 lines: flag in the Summary that a PR this size is itself a Change Propagation signal. A change that cannot be reviewed in one pass suggests tangled responsibilities.
+
 ---
 
 ## Analysis Process
@@ -61,15 +71,20 @@ Look for:
 - Does this change add a class that only wraps another class or delegates everything?
 - Does this change add configuration options or extension points that serve no current requirement?
 
-### Step 6: Scan for Dependency Disorder and Domain Model Distortion
+### Step 6a: Scan for Dependency Disorder
 
-Look for Dependency Disorder:
 - Do any new imports create a dependency from a high-level module to a low-level one?
-- Do any new imports introduce a cycle?
+  (e.g., domain service now imports a database driver or HTTP client)
+- Do any new imports introduce a cycle between modules?
+- Does any new interface force callers to depend on methods they do not use?
 
-Look for Domain Model Distortion:
-- Do new class or variable names match the language the business uses?
-- Does any new class hold only data with no behavior, where behavior was expected?
+If no new imports and no structural changes → skip, no finding.
+
+### Step 6b: Scan for Domain Model Distortion
+
+- Do new class or variable names match the language the business uses for the same concept?
+- Does any new class hold only data with no behavior (pure data bag), where behavior was expected?
+- Does any new method put logic that belongs to the domain in a service or utility layer?
 
 ---
 
@@ -88,6 +103,16 @@ Remedy: [concrete action, specific to this code]
 Do not write a finding that you cannot complete fully. If you can identify a symptom but
 cannot state a consequence, you have not understood the risk well enough — re-read
 `../_shared/decay-risks.md` for that risk before writing the finding.
+
+**Severity calibration:** Each risk in `../_shared/decay-risks.md` has its own Severity
+Guide with numeric thresholds — use those as the primary reference. When a finding sits
+on the boundary between two tiers, use this as a tiebreaker:
+- 🔴 Critical — actively breaking velocity or creating production risk *today*
+- 🟡 Warning — will if left unaddressed through the next few features
+- 🟢 Suggestion — worth fixing when nearby, not urgent
+
+When multiple findings exist, list Critical items first. If there are more than 5 findings,
+add a one-line "Recommended fix order" at the end of the Findings section.
 
 ---
 
