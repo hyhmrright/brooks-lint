@@ -6,6 +6,44 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [0.9.1] - 2026-04-15
+
+### Changed
+
+- **Hyrum's Law and Orthogonality promoted to named symptoms** in R2 (Change Propagation):
+  both are now explicit named bullet points in `decay-risks.md` instead of being buried
+  in generic descriptions, making them easier to cite in findings.
+- **PR Review guide deepened** (`pr-review-guide.md`):
+  - Scope calibration table added: analysis depth now adapts to PR size (<50 / 50–300 / >300 lines)
+  - Step 6 split into 6a (Dependency Disorder) and 6b (Domain Model Distortion) for independent scanning
+  - Severity calibration reframed as a tiebreaker referencing per-risk guides in `decay-risks.md`
+- **Architecture Audit guide deepened** (`architecture-guide.md`):
+  - New Step 5: Testability Seam Assessment — scans for missing or collapsed seam boundaries
+    using Feathers's Seam Model (Working Effectively with Legacy Code, Ch. 4)
+  - Mermaid Phase A/B simplified to a linear instruction with an explicit post-Step-4 reminder
+  - Conway's Law check (now Step 6) includes concrete calibration examples for all three severity tiers
+- **Tech Debt Assessment guide deepened** (`debt-guide.md`):
+  - Pain and Spread scores each have concrete calibration examples
+  - New Step 2b: classify each finding as intentional vs accidental debt (Cunningham's original
+    definition); Debt Summary Table gains an Intent column
+- **Test Quality Review guide deepened** (`test-guide.md`):
+  - Step 2 split into 2a (Test Brittleness) and 2b (Mock Abuse) with per-step severity thresholds;
+    sampling instruction merged to a single pass to avoid reading test files twice
+  - Characterization Test template added (Feathers, Ch. 8) with inline usage guidance
+  - Test suite performance structured into three tiers: >10 min (Warning), >30 min or unknown (Critical)
+- **Trigger descriptions improved** across all four `SKILL.md` files:
+  - Natural-language triggers added (e.g., "tests keep breaking" instead of "over-mocking")
+  - "Do NOT trigger for:" clauses added to every skill, fixing false triggering on HTTP health
+    checks (`brooks-debt`), from-scratch code writing (`brooks-test`), and similar boundary cases
+- **GEMINI.md corrected**: book count fixed from ten to twelve; eval count updated from 37 to 43;
+  `source-coverage.md` added to Project Structure listing
+- **AGENTS.md updated**: step numbering alignment and trigger description conventions documented
+- **CLAUDE.md updated**: step numbering and trigger description conventions added to Gotchas;
+  `simplify` skill name corrected (was `code-simplifier:code-simplifier`); pre-commit workflow
+  revised — `code-review:code-review` now runs post-PR-creation only, `simplify` handles pre-commit
+
+---
+
 ## [0.9.0] - 2026-04-12
 
 ### Added

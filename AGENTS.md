@@ -14,6 +14,8 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - **The Iron Law:** NEVER suggest fixes before completing risk diagnosis. Every finding MUST follow: **Symptom → Source → Consequence → Remedy**.
 - **Scoring System:** Base score 100. Deductions: 🔴 Critical (−15), 🟡 Warning (−5), 🟢 Suggestion (−1). Floor is 0.
 - **Project Config:** If a `.brooks-lint.yaml` exists in the project root, read and apply it before running any review mode.
+- **Step numbering alignment:** Each skill's `SKILL.md` Process section must list steps matching the guide's step count and numbering. No automated check — verify manually when editing guides.
+- **Trigger descriptions:** Every `SKILL.md` `description:` field must include a "Do NOT trigger for:" clause defining the negative boundary to prevent false triggering.
 
 ## Project Structure
 - `skills/brooks-review/`: PR Review skill and guide.
