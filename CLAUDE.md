@@ -112,6 +112,8 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 /brooks-test      # Short form (or /brooks-lint:brooks-test)
 ```
 
+After editing skills, reinstall to sync the marketplace copy (see Install section above).
+
 ## Release Process
 
 1. Bump version in `package.json`
@@ -130,3 +132,5 @@ and the changelog before you push.
 - **`_shared/` convention:** `skills/_shared/` holds common framework files (Iron Law, Report Template, decay risk definitions). It is NOT a skill directory — Claude Code ignores directories without `SKILL.md` when registering commands.
 - **Version sync:** `package.json` is the canonical version source. `hooks/session-start` reads it dynamically; `validate-repo.mjs` checks all manifests, the README badge, and the changelog for drift.
 - **Book count source of truth:** `skills/_shared/source-coverage.md` frontmatter (`books:` list) is the canonical book inventory. `validate-repo.mjs` derives `sourceCount` and all word-based checks from it — do NOT hardcode the count elsewhere. To add a book: update the frontmatter list and add the corresponding section; the validator auto-adapts.
+- **Step numbering alignment:** Each skill's `SKILL.md` Process section must list steps that match the guide's step count and numbering. No automated check exists — verify manually when editing guides. When adding a step to a guide, update the corresponding SKILL.md Process list too.
+- **SKILL.md trigger descriptions:** Every `description:` field must include a "Do NOT trigger for:" clause that defines the negative boundary. This prevents false triggering (e.g., `brooks-debt` firing on HTTP health-check questions).
