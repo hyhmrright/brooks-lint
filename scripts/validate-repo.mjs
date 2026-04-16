@@ -269,8 +269,8 @@ function checkSkillsContent() {
 
 function checkEvalSuite() {
   check(
-    evalCount >= 43,
-    `evals/evals.json should include at least 43 benchmark scenarios (found ${evalCount})`,
+    evalCount >= 45,
+    `evals/evals.json should include at least 45 benchmark scenarios (found ${evalCount})`,
   );
 }
 

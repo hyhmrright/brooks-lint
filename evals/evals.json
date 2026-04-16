@@ -301,6 +301,20 @@
       "prompt": "Review this test suite overview:\n\n```\nlegacy-billing/\n├── characterization/       # 48 tests around invoice recalculation and tax edge cases\n├── integration/            # 62 tests around DB + queue + payment gateway adapters\n├── unit/                   # 34 tests for pricing rules, money math, and retry policies\n└── e2e/                    # 6 tests for payment success/failure and refund flows\n\nTotal runtime: ~4 minutes on CI\nNotes:\n- The team added characterization tests before touching legacy invoice logic.\n- Billing adapters are behind seams (FakeGateway, InMemoryOutbox) for most tests.\n- E2E is kept to customer-critical paths only.\n```",
       "expected_output": "Must NOT flag T6 Architecture Mismatch as Critical solely because the ratio is not close to 70:20:10. The suite is risk-shaped, uses characterization tests and seams for legacy code, and keeps runtime reasonable. If any finding exists, it should acknowledge the deliberate tradeoff rather than treating the ratio alone as a smell.",
       "files": []
+    },
+    {
+      "id": 44,
+      "name": "brooks-health-clean-codebase",
+      "prompt": "Run a full health check on this project:\n\n```\nsrc/\n├── index.ts          # entry point, imports from services/ only\n├── services/\n│   ├── UserService.ts  # imports from models/ and lib/db.ts\n│   └── OrderService.ts # imports from models/ and lib/db.ts\n├── models/\n│   ├── User.ts         # pure domain model, no imports\n│   └── Order.ts        # pure domain model, no imports\n└── lib/\n    └── db.ts           # database client, no domain imports\n\nTest suite: 45 unit tests, 12 integration tests, 3 E2E tests\nCI: all green, 90% coverage on services/\nNo recent changes in git diff\n```",
+      "expected_output": "Health Dashboard report with Composite Score >= 80/100, a Mermaid dependency graph showing clean layered architecture, all four dimension scores, and a Recommendation section. PR dimension should be skipped (no diff) with weights redistributed. Must NOT flag false positives on clean code.",
+      "files": []
+    },
+    {
+      "id": 45,
+      "name": "brooks-health-multi-problem-codebase",
+      "prompt": "Run a full health check on this project:\n\n```\nsrc/\n├── GodService.ts     # 2400 lines, imports from everywhere including models/ and lib/ and controllers/\n├── controllers/\n│   └── Api.ts        # imports from GodService AND models/ AND lib/db.ts AND lib/email.ts\n├── models/\n│   └── User.ts       # imports from GodService (circular)\n└── lib/\n    ├── db.ts\n    └── email.ts\n\nTest suite: 8 tests total (all in one file test_everything.py), each test has 12+ mocks\nLast 10 commits: 8 touched GodService.ts\nRecent git diff: +500 lines to GodService.ts\n```",
+      "expected_output": "Health Dashboard report with Composite Score <= 55/100. Must flag: Architecture dimension — R5 Dependency Disorder (circular dependency User→GodService, DIP violations). Debt dimension — R1 Cognitive Overload (GodService 2400 lines), R2 Change Propagation (every feature touches GodService). Test dimension — T4 Mock Abuse (12+ mocks per test). Recommendation must suggest running /brooks-audit for the worst dimension. Each finding must follow Iron Law format.",
+      "files": []
     }
   ]
 }

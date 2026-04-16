@@ -64,7 +64,7 @@ current skill misses is the highest-value contribution.
 }
 ```
 
-Use the next sequential `id` after the last entry in the array (currently 43).
+Use the next sequential `id` after the last entry in the array (currently 45).
 In your PR, show the before/after: what the skill produced before your change
 and what it produces after. Even a screenshot or paste of the output is enough.
 
