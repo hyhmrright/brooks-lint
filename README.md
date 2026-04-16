@@ -243,6 +243,7 @@ cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 | `/brooks-lint:brooks-audit` | `/brooks-audit` | Full architecture audit |
 | `/brooks-lint:brooks-debt` | `/brooks-debt` | Tech debt assessment |
 | `/brooks-lint:brooks-test` | `/brooks-test` | Test suite health review |
+| `/brooks-lint:brooks-health` | `/brooks-health` | Health dashboard — all four dimensions |
 
 > Short-form commands are auto-installed on first session start by the session-start hook.
 
@@ -253,6 +254,7 @@ cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 | `/brooks-audit` | Full architecture audit |
 | `/brooks-debt` | Tech debt assessment |
 | `/brooks-test` | Test suite health review |
+| `/brooks-health` | Health dashboard — all four dimensions |
 
 ### Codex CLI
 
@@ -262,6 +264,7 @@ cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 | `$brooks-audit` | Full architecture audit |
 | `$brooks-debt` | Tech debt assessment |
 | `$brooks-test` | Test suite health review |
+| `$brooks-health` | Health dashboard — all four dimensions |
 
 The skills also trigger automatically when you discuss code quality, architecture, maintainability, or test health.
 
@@ -306,6 +309,16 @@ $brooks-test                        # Codex CLI
 ```
 
 Audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically.
+
+### Health Dashboard
+
+```
+/brooks-health                      # Claude Code (short form) / Gemini CLI
+/brooks-lint:brooks-health          # Claude Code (full form)
+$brooks-health                      # Codex CLI
+```
+
+Runs abbreviated scans across all four quality dimensions and produces a weighted composite Health Score (0–100). Use it before a release, when onboarding a new team, or whenever you want a big-picture "how are we doing?" report. For deeper diagnosis on any dimension, use the focused skill instead.
 
 ## Configuration
 
