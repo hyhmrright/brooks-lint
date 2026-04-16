@@ -33,7 +33,15 @@ runs:
       with:
         node-version: 20
 
+    - name: Cache SDK
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.action_path }}/node_modules
+        key: brooks-lint-sdk-${{ runner.os }}-${{ hashFiles(format('{0}/package.json', github.action_path)) }}
+
     - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: npm install --prefix "$GITHUB_ACTION_PATH" @anthropic-ai/sdk
 

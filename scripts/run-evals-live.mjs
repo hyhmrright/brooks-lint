@@ -67,8 +67,7 @@ function extractRiskCodes(text) {
 // ── Result classification ─────────────────────────────────────────────────────
 
 function classify(scenario, aiText) {
-  const isClean = scenario.name.includes("-clean-") ||
-                  scenario.name.includes("no-health-score-boundary");
+  const isClean = scenario.name.includes("-clean-");
   const expectedCodes = extractRiskCodes(scenario.expected_output);
   const foundCodes    = extractRiskCodes(aiText);
 
@@ -80,10 +79,11 @@ function classify(scenario, aiText) {
 
   const hasHealthScore = /Health\s+Score[:\s]+\d+/i.test(aiText);
 
+  if (scenario.no_health_score) {
+    return hasHealthScore ? "fail" : "false-positive-pass";
+  }
+
   if (isClean) {
-    if (scenario.mode === "audit" && scenario.name.includes("onboarding")) {
-      return hasHealthScore ? "fail" : "false-positive-pass";
-    }
     const unexpectedCodes = [...foundCodes].filter((c) => expectedCodes.has(c));
     return unexpectedCodes.length === 0 ? "false-positive-pass" : "fail";
   }

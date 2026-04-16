@@ -13,6 +13,11 @@ EVERY finding must follow: Symptom → Source → Consequence → Remedy.
 Violating this law produces reviews that list rule violations without explaining why they
 matter. A finding without a consequence and a remedy is not a finding — it is noise.
 
+> **On-demand sections (skip unless the condition applies):**
+> - "Remedy Mode" — only when user passes `--fix` or asks to fix findings
+> - "Post-Report Triage" — only in interactive sessions after the report is output
+> - "History Tracking" — only after the Health Score is computed
+
 ## Project Config
 
 Before executing the review, attempt to read `.brooks-lint.yaml` from the project root.
