@@ -122,6 +122,7 @@ function checkConfigExamples() {
   check(commonMd.includes("- T5"), "skills/_shared/common.md should use T5 in the disable section of config examples");
   check(exampleYaml.includes("- T5"), ".brooks-lint.example.yaml should use T5 in the disable section");
   check(readme.includes("- T5"), "README.md configuration example should include T5 in the disable section");
+  check(exampleYaml.includes("# suppress:"), ".brooks-lint.example.yaml should include a commented suppress example");
 }
 
 function checkSourceInventory() {
