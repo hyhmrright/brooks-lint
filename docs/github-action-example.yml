@@ -1,0 +1,23 @@
+name: Brooks-Lint PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  brooks-lint:
+    name: Code Quality Review
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write  # required to post PR comments
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for git diff main...HEAD
+
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@main
+        with:
+          mode: review
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          fail-below: 70  # fail the check if Health Score drops below 70

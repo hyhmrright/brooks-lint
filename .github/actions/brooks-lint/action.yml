@@ -1,0 +1,85 @@
+name: "Brooks-Lint Review"
+description: "Run brooks-lint on PR changes and post results as a PR comment"
+author: "hyhmrright"
+
+inputs:
+  mode:
+    description: "Review mode: review, audit, debt, test, health"
+    default: "review"
+  anthropic-api-key:
+    description: "Anthropic API key"
+    required: true
+  fail-below:
+    description: "Fail the check if Health Score is below this threshold (0 = never fail)"
+    default: "0"
+  model:
+    description: "Claude model to use"
+    default: "claude-sonnet-4-6"
+
+outputs:
+  score:
+    description: "Health Score from the review (0-100)"
+    value: ${{ steps.score.outputs.score }}
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      shell: bash
+      run: npm install --prefix "$GITHUB_ACTION_PATH" @anthropic-ai/sdk
+
+    - name: Run Brooks-Lint
+      shell: bash
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+      run: |
+        node "$GITHUB_ACTION_PATH/scripts/ci-review.mjs" \
+          --mode "${{ inputs.mode }}" \
+          --model "${{ inputs.model }}" \
+          --skills-dir "$GITHUB_ACTION_PATH/skills" \
+          --project-dir "$GITHUB_WORKSPACE" \
+          > brooks-lint-report.json
+
+    - name: Parse Health Score
+      shell: bash
+      id: score
+      run: |
+        score=$(node --input-type=module -e "
+          import { readFileSync } from 'fs';
+          const r = JSON.parse(readFileSync('brooks-lint-report.json', 'utf8'));
+          console.log(r.score ?? 0);
+        ")
+        echo "score=$score" >> "$GITHUB_OUTPUT"
+
+    - name: Post PR Comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('brooks-lint-report.json', 'utf8'));
+          const trend = r.trend ? `\n\n**Trend:** ${r.trend}` : '';
+          const body = `## Brooks-Lint Review\n\n${r.report}${trend}\n\n---\n_Automated by [brooks-lint](https://github.com/hyhmrright/brooks-lint)_`;
+          await github.rest.issues.createComment({
+            ...context.repo,
+            issue_number: context.issue.number,
+            body
+          });
+
+    - name: Check Threshold
+      if: inputs.fail-below != '0'
+      shell: bash
+      run: |
+        if [ "${{ steps.score.outputs.score }}" -lt "${{ inputs.fail-below }}" ]; then
+          echo "Health Score ${{ steps.score.outputs.score }} is below threshold ${{ inputs.fail-below }}"
+          exit 1
+        fi

@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.9.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.9.5-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -383,6 +383,39 @@ brooks-lint/
     └── logo.svg
 ```
 
+## CI/CD Integration
+
+Automate brooks-lint on every PR using the GitHub Action:
+
+```yaml
+# .github/workflows/brooks-lint.yml
+name: Brooks-Lint PR Review
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  brooks-lint:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@main
+        with:
+          mode: review
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          fail-below: 70
+```
+
+See [`docs/github-action-example.yml`](docs/github-action-example.yml) for the full template.
+
+The action posts the review as a PR comment and optionally fails the check if the Health Score drops below a threshold. If `.brooks-lint-history.json` is committed to your repo, the comment also includes a trend delta (e.g., "85 → 82 (−3) over last 3 runs").
+
+**Cost:** ~$0.05–0.15 per PR run depending on diff size and model. Recommend running on `pull_request` events only.
+
 ## Roadmap
 
 - [x] **v0.2**: Plugin infrastructure (`.claude-plugin/`, hooks, slash commands)
@@ -392,8 +425,8 @@ brooks-lint/
 - [x] **v0.6**: Mermaid dependency graph in Architecture Audit
 - [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion
 - [x] **v0.8**: Independent skill architecture with namespaced commands
-- [ ] **v0.9**: GitHub Action for CI/CD integration
-- [ ] **v1.0**: VS Code extension
+- [x] **v0.9**: Step validation, auto-diff scope, `/brooks-health` dashboard, trend tracking, triage mode, `--fix` remedies, onboarding report, GitHub Action
+- [ ] **v1.0**: Eval automation, custom risk extension, VS Code extension
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
 

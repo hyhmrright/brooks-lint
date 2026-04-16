@@ -6,6 +6,107 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [0.9.5] - 2026-04-16
+
+### Added
+
+- **F7: Team Onboarding Report** — `brooks-audit` now supports `--onboarding` mode:
+  - New file `skills/brooks-audit/onboarding-guide.md` with a 6-step orientation process
+    (territory map, reading-order dependency graph, conventions, danger zones, domain
+    glossary, suggested first tasks)
+  - Mermaid graph colored by reading order (blue = start, purple = next, gray = last)
+    using a DISTINCT palette from the severity palette to avoid confusion
+  - No Health Score or Iron Law format — this mode explains, not diagnoses
+  - `brooks-audit/SKILL.md` updated: description includes onboarding triggers; Process
+    section routes `--onboarding` requests to `onboarding-guide.md`
+  - 2 new benchmark evals (IDs 48–49): one normal onboarding request, one boundary check
+    verifying the absence of Health Score and Iron Law findings
+- **F8: GitHub Action** — automated PR review via Anthropic SDK:
+  - New `.github/actions/brooks-lint/action.yml`: composite action with `mode`,
+    `anthropic-api-key`, `fail-below`, and `model` inputs; posts review as PR comment;
+    outputs `score` for downstream steps
+  - New `scripts/assemble-prompt.mjs`: shared utility that assembles the system prompt
+    for any mode by concatenating `common.md`, `source-coverage.md`, the correct
+    decay-risks files, and the mode-specific guide; shared with the future eval runner
+  - New `scripts/ci-review.mjs`: CLI entry point for CI — reads git diff, assembles
+    prompt, calls Claude API, outputs JSON `{ report, score, mode, scope, trend }`
+  - New `docs/github-action-example.yml`: ready-to-copy workflow template
+  - Trend integration: if `.brooks-lint-history.json` exists in the project root, the
+    PR comment includes a delta line (e.g., "85 → 82 (−3) over last 3 runs")
+  - `@anthropic-ai/sdk` added as devDependency; `evals:live` script placeholder added
+
+---
+
+## [0.9.4] - 2026-04-16
+
+### Added
+
+- **F6: `--fix` Remedy Mode (Phase 1)** — new `skills/_shared/remedy-guide.md`:
+  - Actionable remedies with Target (file path + function), Action (specific refactoring),
+    and Rationale fields
+  - Fixability tiers: `[quick-fix]` (single-file mechanical), `[guided]` (design choice
+    required), `[manual]` (cross-module, team discussion needed)
+  - Fix Summary table appended to report when `--fix` is active
+  - `common.md` updated with a one-line "## Remedy Mode" trigger
+- **F5: Interactive Triage Mode** — `common.md` updated with "## Post-Report Triage" section:
+  - Post-report workflow: accept / dismiss (suppress) / defer (suppress with expiry) / skip
+  - Suppress entries auto-appended to `.brooks-lint.yaml` with required `reason` field
+  - CI guard: triage is skipped in non-interactive/headless sessions
+- **Config schema: `suppress` field** — `.brooks-lint.example.yaml` updated with commented
+  suppress example including `risk`, `pattern`, `reason`, `date`, and `expires` fields
+- Validator: added check that `.brooks-lint.example.yaml` includes a commented suppress example
+- 2 new benchmark evals (IDs 46–47): `--fix` active (verify tier labels + Fix Summary) and
+  `--fix` not active (verify normal behavior)
+
+---
+
+## [0.9.3] - 2026-04-16
+
+### Added
+
+- **F3: `/brooks-health` skill** — combined health dashboard across all four dimensions:
+  - New `skills/brooks-health/` directory with `SKILL.md` and `health-guide.md`
+  - Three-step process: lightweight scan (PR/Architecture/Debt/Test), weighted composite
+    scoring (0.25/0.30/0.25/0.20 with dynamic redistribution when PR dimension skipped),
+    and dashboard report with Mermaid dependency graph
+  - `hooks/session-start` updated: "four" → "five independent skills"; `brooks-health`
+    line added
+  - New command wrapper `commands/brooks-health.md`
+  - Validator: `brooks-health` added to `modes` and `guides` arrays in `checkSkillsContent()`
+    and `checkStepAlignment()`
+  - 2 new benchmark evals (IDs 44–45): healthy codebase (high composite score) and
+    multi-problem codebase (multiple dimensions flagged)
+- **F4: Health Score Trend Tracking** — new `scripts/history.mjs`:
+  - `readHistory`, `appendHistory`, `getTrend` utility functions (exported; shared with CI)
+  - `common.md` updated with "## History Tracking" section (append record after each run;
+    display trend delta if prior runs exist for the same mode)
+  - `.brooks-lint.example.yaml` updated with `.brooks-lint-history.json` gitignore comment
+  - `package.json` scripts: added `"history"` entry
+  - 10 unit tests added to `validate-repo.test.mjs` covering all three utility functions
+
+---
+
+## [0.9.2] - 2026-04-16
+
+### Added
+
+- **F1: Step Numbering Auto-Validation** — `validate-repo.mjs`:
+  - `extractGuideStepLabels()` moved to `scripts/frontmatter.mjs` as a named export
+    (shared between validator and tests)
+  - `checkStepAlignment()` added: validates guide step sequences (no gaps, no duplicates,
+    sequential main step numbers) and verifies each `SKILL.md` has a `## Process` section
+    with at least one numbered item
+  - `CLAUDE.md` gotcha updated: step numbering alignment is now automated via `npm run validate`
+  - 7 unit tests added to `validate-repo.test.mjs` for `extractGuideStepLabels`
+- **F2: Auto-Diff / Incremental Mode** — `skills/_shared/common.md`:
+  - New "## Auto Scope Detection" section: git diff cascade (staged → unstaged →
+    branch vs main → ask), incremental audit via `--since=<ref>`, co-located test
+    file detection for test mode
+  - All five `SKILL.md` Process sections updated with conditional auto-scope block
+  - Scope line added to all report templates
+
+---
+
 ## [0.9.1] - 2026-04-15
 
 ### Changed
