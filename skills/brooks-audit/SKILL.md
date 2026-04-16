@@ -29,6 +29,9 @@ description: >
 
 ## Process
 
+**If the user has not specified files or a directory to audit:** apply Auto Scope
+Detection from `../_shared/common.md` to determine the audit scope before proceeding.
+
 1. Draw the module dependency graph as a Mermaid diagram (Step 1 of the guide)
 2. Scan for each decay risk in the order specified in the guide (Steps 2–4)
 3. Assign node colors in the Mermaid diagram based on findings (red/yellow/green) — do this after Step 4

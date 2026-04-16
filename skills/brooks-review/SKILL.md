@@ -29,6 +29,9 @@ description: >
 
 ## Process
 
+**If the user has not specified files or pasted code:** apply Auto Scope Detection
+from `../_shared/common.md` to determine the review scope before proceeding.
+
 1. Scan the diff or code for each decay risk in the order specified in the guide
 2. Apply the Iron Law to every finding
 3. Output using the Report Template from common.md

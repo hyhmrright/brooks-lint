@@ -27,6 +27,9 @@ description: >
 
 ## Process
 
+**If the user has not shared test files or pointed to a test directory:** apply Auto
+Scope Detection from `../_shared/common.md` to determine the review scope before proceeding.
+
 1. Build the test suite map (unit/integration/E2E counts and ratio)
 2. Scan for each test decay risk in the order specified in the guide
 3. Output using the Report Template from common.md
