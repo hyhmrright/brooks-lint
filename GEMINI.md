@@ -12,6 +12,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
   - `/brooks-audit`: Architecture Audit (loads `skills/brooks-audit/`)
   - `/brooks-debt`: Tech Debt Assessment (loads `skills/brooks-debt/`)
   - `/brooks-test`: Test Quality Review (loads `skills/brooks-test/`)
+  - `/brooks-health`: Health Dashboard (loads `skills/brooks-health/`)
 - **After activation (CRITICAL):** Once a skill is activated via slash command, you MUST immediately read the skill's `SKILL.md` and follow every step in its **Setup** and **Process** sections — do NOT wait for additional user input. Treat the slash command as the trigger to start the review right away.
 
 ## Engineering Standards
@@ -25,10 +26,11 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `skills/brooks-audit/`: Architecture Audit skill and guide.
 - `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
 - `skills/brooks-test/`: Test Quality Review skill and guide.
+- `skills/brooks-health/`: Health Dashboard skill and guide.
 - `skills/_shared/`: Shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md).
 - `commands/`: Short-form command wrappers (used by Claude Code, not Gemini CLI).
 - `hooks/`: SessionStart hook for Claude Code session-level awareness.
-- `evals/`: Performance benchmark test cases (43 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks). No automated runner — validate manually by running the skill against each scenario's input.
+- `evals/`: Performance benchmark test cases (49 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks). No automated runner — validate manually by running the skill against each scenario's input.
 
 ## Development & Debugging
 - **Skill Testing:** After modifying `skills/` locally, refresh using `gemini skills reload`.

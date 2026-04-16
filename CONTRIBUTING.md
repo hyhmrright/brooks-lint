@@ -28,6 +28,7 @@ The guide files define how Claude analyzes each scenario:
 | `skills/brooks-audit/architecture-guide.md` | How architecture audits run |
 | `skills/brooks-debt/debt-guide.md` | How tech debt is classified and scored |
 | `skills/brooks-test/test-guide.md` | How test quality reviews run |
+| `skills/brooks-health/health-guide.md` | How the health dashboard aggregates scores across all four dimensions |
 | `skills/_shared/test-decay-risks.md` | Six test-space decay risks with book citations |
 
 Better heuristics here mean better reviews for every user. If you find the skill
@@ -56,15 +57,21 @@ current skill misses is the highest-value contribution.
 
 ```json
 {
-  "id": 44,
+  "id": 50,
   "name": "your-scenario-name",
   "prompt": "The user prompt that triggers the review",
   "expected_output": "Description of what a good review should contain",
+  "mode": "review",
   "files": []
 }
 ```
 
-Use the next sequential `id` after the last entry in the array (currently 49).
+Use the next sequential `id` after the last entry in the array (currently 49). The `mode` field is required — use one of: `"review"`, `"audit"`, `"debt"`, `"test"`, `"health"`.
+
+Optional flags for special scenarios:
+- `"no_risk_codes": true` — for false-positive scenarios where no risk codes should appear in output
+- `"no_health_score": true` — for scenarios testing Health Score suppression (e.g. onboarding mode)
+- These two flags are mutually exclusive.
 In your PR, show the before/after: what the skill produced before your change
 and what it produces after. Even a screenshot or paste of the output is enough.
 
@@ -103,6 +110,7 @@ Then open Claude Code and run one of the slash commands:
 /brooks-audit                   # or /brooks-lint:brooks-audit
 /brooks-debt                    # or /brooks-lint:brooks-debt
 /brooks-test                    # or /brooks-lint:brooks-test
+/brooks-health                  # or /brooks-lint:brooks-health
 ```
 
 ## PR Conventions

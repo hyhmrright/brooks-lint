@@ -385,9 +385,12 @@ brooks-lint/
 │   ├── brooks-debt/             # Mode 3: Tech Debt Assessment
 │   │   ├── SKILL.md
 │   │   └── debt-guide.md
-│   └── brooks-test/             # Mode 4: Test Quality Review
+│   ├── brooks-test/             # Mode 4: Test Quality Review
+│   │   ├── SKILL.md
+│   │   └── test-guide.md
+│   └── brooks-health/           # Mode 5: Health Dashboard
 │       ├── SKILL.md
-│       └── test-guide.md
+│       └── health-guide.md
 ├── hooks/                       # SessionStart hook
 ├── commands/                    # Short-form command wrappers (auto-installed by hook)
 ├── evals/                       # Benchmark test cases
