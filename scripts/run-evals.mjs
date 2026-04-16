@@ -17,6 +17,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { VALID_MODES } from "./assemble-prompt.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -26,7 +27,7 @@ const evalsData = JSON.parse(
 );
 const evals = evalsData.evals;
 
-const REQUIRED_FIELDS = ["id", "name", "prompt", "expected_output"];
+const REQUIRED_FIELDS = ["id", "name", "prompt", "expected_output", "mode"];
 
 // Must match the risk categories defined in skills/_shared/decay-risks.md (production)
 // and skills/_shared/test-decay-risks.md (test). Update both constants when adding a new
@@ -68,6 +69,10 @@ for (const ev of evals) {
 
   if (typeof ev.expected_output === "string" && ev.expected_output.trim().length === 0) {
     errors.push(`${label}: 'expected_output' is empty`);
+  }
+
+  if (typeof ev.mode === "string" && !VALID_MODES.includes(ev.mode)) {
+    errors.push(`${label}: 'mode' must be one of ${VALID_MODES.join(", ")} (got '${ev.mode}')`);
   }
 
   // expected_output should reference at least one risk code so reviewers know

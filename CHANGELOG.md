@@ -6,6 +6,33 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [1.0.0] - 2026-04-16
+
+### Added
+
+- **F9: Eval Automation** — live eval runner via Anthropic SDK:
+  - New `scripts/run-evals-live.mjs`: executes all 49 benchmark scenarios against
+    Claude API; classifies results as pass / partial / fail / false-positive-pass / error;
+    reports per-risk accuracy (e.g., `R1: 6/7 (85%)`); shares `assembleSystemPrompt`
+    with `ci-review.mjs` for consistent prompt assembly
+  - Flags: `--id N`, `--risk R1`, `--mode review`, `--model claude-opus-4-6` for subset runs;
+    system prompts are cached per mode to avoid re-reading files for each scenario
+  - `evals/evals.json`: all 49 scenarios gain a `mode` field
+    (`"review"` | `"audit"` | `"debt"` | `"test"` | `"health"`)
+  - `scripts/run-evals.mjs`: `mode` added to `REQUIRED_FIELDS`; valid mode values enforced
+  - `package.json`: `"evals:live"` script wired to `run-evals-live.mjs`
+- **F10: Custom Decay Risk Extension** — `Cx` codes for project-specific risks:
+  - New `skills/_shared/custom-risks-guide.md`: loading validation, scanning instructions,
+    Iron Law integration (`Source: "[Project-defined risk] — <name>"`), and Health Score
+    inclusion rules; custom findings appear under **### Project-Specific Risks**
+  - `skills/_shared/common.md` Config section: one-line trigger to load
+    `custom-risks-guide.md` when `custom_risks` map is present; Config Validation
+    updated to accept `Cx` codes in `disable`, `focus`, and `severity`
+  - `.brooks-lint.example.yaml`: commented `custom_risks` example with `C1` (Security
+    Debt) and `C2` (Accessibility Debt) entries showing all required fields
+
+---
+
 ## [0.9.5] - 2026-04-16
 
 ### Added

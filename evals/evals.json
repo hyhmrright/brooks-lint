@@ -6,343 +6,392 @@
       "name": "pr-review",
       "prompt": "帮我看一下这段代码有什么问题：\n\n```python\nclass UserService:\n    def update_profile(self, user_id, name, email, avatar_url):\n        user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n        user['name'] = name\n        user['email'] = email\n        user['avatar_url'] = avatar_url\n        self.db.execute(f\"UPDATE users SET name='{name}', email='{email}', avatar_url='{avatar_url}' WHERE id={user_id}\")\n        \n        # send notification\n        if user['email'] != email:\n            self.smtp.send(email, \"Email changed\", f\"Hi {name}, your email was updated.\")\n        \n        # update loyalty points\n        points = user['login_count'] * 10 + 500\n        self.db.execute(f\"UPDATE loyalty SET points={points} WHERE user_id={user_id}\")\n        \n        # invalidate cache\n        self.redis.delete(f\"user:{user_id}\")\n        self.redis.delete(f\"user:email:{user['email']}\")\n        self.redis.delete(f\"loyalty:{user_id}\")\n        \n        return {\"status\": \"ok\"}\n```",
       "expected_output": "PR Review report with Health Score, findings including Change Propagation (Divergent Change), Cognitive Overload. Each finding must have Symptom/Source/Consequence/Remedy format. Must reference specific book titles.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 2,
       "name": "architecture-audit",
       "prompt": "请审计一下我们项目的架构，目录结构如下：\n\n```\nsrc/\n├── controllers/\n│   ├── UserController.ts      # imports from services/ AND from models/ AND from lib/postgres.ts\n│   └── OrderController.ts     # imports from services/ AND directly from lib/stripe.ts\n├── services/\n│   ├── UserService.ts         # imports from models/ AND from lib/redis.ts\n│   ├── OrderService.ts        # imports from models/ AND from services/UserService.ts AND from lib/postgres.ts\n│   └── NotificationService.ts # imports from services/UserService.ts AND from services/OrderService.ts\n├── models/\n│   ├── User.ts                # imports from services/NotificationService.ts  (to send welcome email on create)\n│   └── Order.ts               # imports from models/User.ts\n└── lib/\n    ├── postgres.ts\n    ├── redis.ts\n    └── stripe.ts\n```",
       "expected_output": "Architecture Audit report with module dependency map, findings including Dependency Disorder (circular dependency: models→services→models, DIP violations). Each finding must have Symptom/Source/Consequence/Remedy format.",
-      "files": []
+      "files": [],
+      "mode": "audit"
     },
     {
       "id": 3,
       "name": "tech-debt",
       "prompt": "我们的订单系统越来越难维护，每次加新功能都得改 OrderService，不管是加支付方式、还是改通知逻辑、还是调库存计算，全在那一个文件里。而且这个文件只有我一个人敢改，新来的工程师都说看不懂。帮我评估一下有哪些技术债务。",
       "expected_output": "Tech Debt Assessment with Pain×Spread scoring, findings including Change Propagation and Domain Model Distortion. Should include Debt Summary Table. Each finding must have Symptom/Source/Consequence/Remedy format.",
-      "files": []
+      "files": [],
+      "mode": "debt"
     },
     {
       "id": 4,
       "name": "test-quality-review",
       "prompt": "帮我看一下这些测试有什么问题：\n\n```python\n# test_order_service.py\n\nclass TestOrderService:\n    def setup_method(self):\n        self.mock_db = Mock()\n        self.mock_payment = Mock()\n        self.mock_inventory = Mock()\n        self.mock_notification = Mock()\n        self.mock_logger = Mock()\n        self.mock_cache = Mock()\n        self.service = OrderService(\n            self.mock_db, self.mock_payment,\n            self.mock_inventory, self.mock_notification,\n            self.mock_logger, self.mock_cache\n        )\n\n    def test_order(self):\n        self.mock_db.get_user.return_value = {'id': 1, 'name': 'Alice'}\n        self.mock_inventory.check.return_value = True\n        self.mock_payment.charge.return_value = {'status': 'ok', 'tx_id': 'abc'}\n        result = self.service.create_order(1, 'item_99', 2)\n        assert result['status'] == 'created'\n        assert self.mock_payment.charge.called\n        assert self.mock_notification.send.called\n        assert self.mock_db.save_order.called\n        assert self.mock_cache.invalidate.called\n\n    def test_order2(self):\n        self.mock_db.get_user.return_value = {'id': 1, 'name': 'Alice'}\n        self.mock_inventory.check.return_value = True\n        self.mock_payment.charge.return_value = {'status': 'ok', 'tx_id': 'xyz'}\n        result = self.service.create_order(1, 'item_99', 2)\n        assert result['status'] == 'created'\n        assert self.mock_payment.charge.called\n        assert self.mock_notification.send.called\n\n    def test_payment_failure(self):\n        self.mock_db.get_user.return_value = {'id': 1, 'name': 'Alice'}\n        self.mock_inventory.check.return_value = True\n        self.mock_payment.charge.side_effect = Exception('card declined')\n        result = self.service.create_order(1, 'item_99', 2)\n        assert result is None\n```",
       "expected_output": "Test Quality Review (Mode 4) report with Test Suite Map, Health Score, and findings using Iron Law format. Must identify: T4 Mock Abuse (6 mocks in setup, mock call assertions as primary verification), T3 Test Duplication (test_order and test_order2 verify identical behavior with no differentiation), T1 Test Obscurity (test_order/test_order2 names don't express scenario+expected outcome), T2 Test Brittleness (Eager Test — test_order verifies 4 unrelated behaviors in a single test). Each finding must cite a specific book and principle/smell name.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 5,
       "name": "r1-critical-python",
       "prompt": "Review this code:\n\n```python\ndef process_order(db, cache, mailer, logger, config, metrics, order_id, user_id, promo_code, shipping_method, gift_wrap, rush_delivery):\n    order = db.query(f\"SELECT * FROM orders WHERE id = {order_id}\")\n    if order:\n        user = db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n        if user:\n            if user['status'] == 'active':\n                items = db.query(f\"SELECT * FROM order_items WHERE order_id = {order_id}\")\n                total = 0\n                for item in items:\n                    price = item['price']\n                    qty = item['quantity']\n                    if item['category'] == 'electronics':\n                        if item['weight'] > 10:\n                            if shipping_method == 'express':\n                                price = price * 1.15 * 1.25 * 1.1\n                            else:\n                                price = price * 1.15 * 1.1\n                        else:\n                            price = price * 1.15\n                    elif item['category'] == 'food':\n                        if item['perishable']:\n                            if rush_delivery:\n                                price = price * 1.05 * 1.3\n                            else:\n                                price = price * 1.05\n                    total += price * qty\n                if promo_code:\n                    p = db.query(f\"SELECT * FROM promos WHERE code = '{promo_code}'\")\n                    if p and p['active'] and p['min_order'] <= total:\n                        if p['type'] == 'percent':\n                            total = total * (1 - p['value'] / 100)\n                        elif p['type'] == 'fixed':\n                            total = total - p['value']\n                if gift_wrap:\n                    total += 5.99\n                if rush_delivery:\n                    total += 15.00\n                db.execute(f\"UPDATE orders SET total={total}, status='confirmed' WHERE id={order_id}\")\n                cache.delete(f\"order:{order_id}\")\n                cache.delete(f\"user_orders:{user_id}\")\n                mailer.send(user['email'], 'Order Confirmed', f'Total: ${total}')\n                logger.info(f\"Order {order_id} confirmed for {total}\")\n                metrics.increment('orders.confirmed')\n                return {'status': 'confirmed', 'total': total}\n            else:\n                logger.warn(f\"Inactive user {user_id}\")\n                return None\n        else:\n            logger.error(f\"User {user_id} not found\")\n            return None\n    else:\n        logger.error(f\"Order {order_id} not found\")\n        return None\n```",
       "expected_output": "Must identify R1 Cognitive Overload as Critical (🔴). Symptoms: 12 parameters, nesting depth 6+, function > 50 lines, multiple magic numbers (1.15, 1.25, 5.99, 15.00, 100). Must cite McConnell — Code Complete Ch.7 (High-Quality Routines) and Fowler — Refactoring (Long Method, Long Parameter List). Iron Law format: Symptom/Source/Consequence/Remedy all present.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 6,
       "name": "r1-warning-typescript",
       "prompt": "Review this code:\n\n```typescript\nfunction calculateShipping(order: Order, user: User, config: ShippingConfig, promoCode?: string): number {\n  let cost = 0;\n  for (const item of order.items) {\n    const weight = item.weight * item.quantity;\n    if (weight > 50) {\n      cost += weight * config.heavyRate;\n      if (item.fragile) {\n        cost += weight * 0.3;\n      }\n    } else if (weight > 20) {\n      cost += weight * config.mediumRate;\n    } else {\n      cost += weight * config.lightRate;\n    }\n  }\n  if (user.tier === 'gold') {\n    cost *= 0.8;\n  } else if (user.tier === 'silver') {\n    cost *= 0.9;\n  }\n  if (promoCode === 'FREESHIP') {\n    cost = 0;\n  }\n  return Math.max(cost, 0);\n}\n```",
       "expected_output": "Must identify R1 Cognitive Overload as Warning (🟡). Symptoms: function 25+ lines, nesting depth 3-4, magic numbers (50, 20, 0.3, 0.8, 0.9). Should cite McConnell — Code Complete Ch.12 (magic numbers) and Fowler — Refactoring (Long Method). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 7,
       "name": "r1-clean-go",
       "prompt": "Review this code:\n\n```go\nconst (\n\tMaxLoginAttempts = 5\n\tLockoutDuration  = 30 * time.Minute\n)\n\nfunc (s *AuthService) Authenticate(ctx context.Context, email, password string) (*Session, error) {\n\tuser, err := s.users.FindByEmail(ctx, email)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"find user: %w\", err)\n\t}\n\n\tif user.IsLockedOut(time.Now(), LockoutDuration) {\n\t\treturn nil, ErrAccountLocked\n\t}\n\n\tif !user.VerifyPassword(password) {\n\t\tuser.RecordFailedAttempt(time.Now())\n\t\tif err := s.users.Save(ctx, user); err != nil {\n\t\t\treturn nil, fmt.Errorf(\"save user: %w\", err)\n\t\t}\n\t\treturn nil, ErrInvalidCredentials\n\t}\n\n\tuser.ResetFailedAttempts()\n\tsession := NewSession(user.ID)\n\n\tif err := s.sessions.Create(ctx, session); err != nil {\n\t\treturn nil, fmt.Errorf(\"create session: %w\", err)\n\t}\n\n\treturn session, nil\n}\n```",
       "expected_output": "Must NOT flag R1 Cognitive Overload. Code has named constants, clear function name, single level of nesting, < 20 lines of logic, descriptive error wrapping. If any findings, they should be unrelated to cognitive overload. Health Score should be high (80+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 8,
       "name": "r1-extra-nested-java",
       "prompt": "Review this code:\n\n```java\npublic ResponseEntity<?> handleRequest(HttpServletRequest request) {\n    String token = request.getHeader(\"Authorization\");\n    if (token != null) {\n        if (token.startsWith(\"Bearer \")) {\n            String jwt = token.substring(7);\n            try {\n                Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(jwt).getBody();\n                if (claims.getExpiration().after(new Date())) {\n                    String role = claims.get(\"role\", String.class);\n                    if (role != null) {\n                        if (role.equals(\"admin\") || role.equals(\"superadmin\")) {\n                            String action = request.getParameter(\"action\");\n                            if (action != null) {\n                                if (action.equals(\"delete\")) {\n                                    String targetId = request.getParameter(\"id\");\n                                    if (targetId != null) {\n                                        try {\n                                            Long id = Long.parseLong(targetId);\n                                            Optional<User> user = userRepo.findById(id);\n                                            if (user.isPresent()) {\n                                                userRepo.delete(user.get());\n                                                auditLog.log(claims.getSubject(), \"DELETE_USER\", id);\n                                                return ResponseEntity.ok(Map.of(\"deleted\", id));\n                                            } else {\n                                                return ResponseEntity.status(404).body(\"User not found\");\n                                            }\n                                        } catch (NumberFormatException e) {\n                                            return ResponseEntity.badRequest().body(\"Invalid ID\");\n                                        }\n                                    } else {\n                                        return ResponseEntity.badRequest().body(\"Missing id\");\n                                    }\n                                } else {\n                                    return ResponseEntity.badRequest().body(\"Unknown action\");\n                                }\n                            } else {\n                                return ResponseEntity.badRequest().body(\"Missing action\");\n                            }\n                        } else {\n                            return ResponseEntity.status(403).body(\"Forbidden\");\n                        }\n                    } else {\n                        return ResponseEntity.status(403).body(\"No role\");\n                    }\n                } else {\n                    return ResponseEntity.status(401).body(\"Token expired\");\n                }\n            } catch (JwtException e) {\n                return ResponseEntity.status(401).body(\"Invalid token\");\n            }\n        } else {\n            return ResponseEntity.status(401).body(\"Bad auth format\");\n        }\n    } else {\n        return ResponseEntity.status(401).body(\"No auth header\");\n    }\n}\n```",
       "expected_output": "Must identify R1 Cognitive Overload as Critical (🔴). Symptoms: nesting depth 10+, function > 50 lines, arrow anti-pattern (deeply nested if-else). Must cite McConnell — Code Complete Ch.7 and Ch.17 (Unusual Control Structures). Remedy should suggest guard clauses / early returns. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 9,
       "name": "r2-critical-typescript",
       "prompt": "Review this code:\n\n```typescript\nclass PaymentProcessor {\n  constructor(\n    private db: Database,\n    private stripe: StripeClient,\n    private mailer: MailService,\n    private inventory: InventoryService,\n    private analytics: AnalyticsService,\n    private taxCalc: TaxCalculator,\n    private fraudDetection: FraudService\n  ) {}\n\n  async processPayment(orderId: string, cardToken: string): Promise<PaymentResult> {\n    const order = await this.db.orders.findById(orderId);\n\n    // Tax calculation\n    const tax = this.taxCalc.calculate(order.items, order.shippingAddress.state);\n    order.tax = tax;\n\n    // Fraud check\n    const fraudScore = await this.fraudDetection.evaluate({\n      amount: order.total + tax,\n      card: cardToken,\n      email: order.customerEmail,\n      ip: order.metadata.clientIp\n    });\n    if (fraudScore > 0.8) {\n      await this.mailer.send(order.customerEmail, 'Order Held', 'Your order is under review.');\n      await this.analytics.track('fraud_hold', { orderId, score: fraudScore });\n      return { status: 'held', reason: 'fraud_review' };\n    }\n\n    // Payment\n    const charge = await this.stripe.charges.create({\n      amount: Math.round((order.total + tax) * 100),\n      currency: 'usd',\n      source: cardToken\n    });\n\n    // Inventory\n    for (const item of order.items) {\n      await this.inventory.decrement(item.sku, item.quantity);\n      if (await this.inventory.getStock(item.sku) < 10) {\n        await this.mailer.send('warehouse@company.com', 'Low Stock', `SKU ${item.sku} below threshold`);\n      }\n    }\n\n    // Update order\n    order.status = 'paid';\n    order.chargeId = charge.id;\n    await this.db.orders.save(order);\n\n    // Notifications\n    await this.mailer.send(order.customerEmail, 'Payment Received', `Charge: $${order.total + tax}`);\n    await this.analytics.track('payment_success', { orderId, amount: order.total + tax });\n\n    return { status: 'paid', chargeId: charge.id };\n  }\n}\n```",
       "expected_output": "Must identify R2 Change Propagation as Critical (🔴). Symptoms: single class handles 6 unrelated concerns (tax, fraud, payment, inventory, notifications, analytics), Divergent Change. Must cite Fowler — Refactoring (Divergent Change) and Hunt & Thomas — Pragmatic Programmer (Orthogonality). Remedy should suggest extracting each concern into its own service. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 10,
       "name": "r2-warning-go",
       "prompt": "Review this code:\n\n```go\nfunc (s *UserService) UpdateEmail(ctx context.Context, userID int64, newEmail string) error {\n\tuser, err := s.repo.FindByID(ctx, userID)\n\tif err != nil {\n\t\treturn fmt.Errorf(\"find user: %w\", err)\n\t}\n\n\toldEmail := user.Email\n\tuser.Email = newEmail\n\n\tif err := s.repo.Save(ctx, user); err != nil {\n\t\treturn fmt.Errorf(\"save user: %w\", err)\n\t}\n\n\t// Also update the user's email in the billing system\n\tif err := s.billingClient.UpdateCustomerEmail(ctx, user.BillingID, newEmail); err != nil {\n\t\ts.logger.Error(\"failed to sync billing email\", \"err\", err)\n\t}\n\n\t// Also update the user's email in the support ticket system\n\tif err := s.supportClient.UpdateContactEmail(ctx, user.SupportID, newEmail); err != nil {\n\t\ts.logger.Error(\"failed to sync support email\", \"err\", err)\n\t}\n\n\ts.events.Publish(ctx, EmailChangedEvent{UserID: userID, Old: oldEmail, New: newEmail})\n\n\treturn nil\n}\n```",
       "expected_output": "Must identify R2 Change Propagation as Warning (🟡). Symptoms: UserService directly calls billing and support systems (Shotgun Surgery pattern — email change must touch 3 systems). Should cite Fowler — Refactoring (Shotgun Surgery). Remedy should suggest event-driven approach where billing/support subscribe to EmailChangedEvent. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 11,
       "name": "r2-clean-python",
       "prompt": "Review this code:\n\n```python\nclass OrderService:\n    def __init__(self, repo: OrderRepository, events: EventBus):\n        self._repo = repo\n        self._events = events\n\n    def cancel_order(self, order_id: str) -> None:\n        order = self._repo.find_by_id(order_id)\n        order.cancel()\n        self._repo.save(order)\n        self._events.publish(OrderCancelled(order_id=order_id, reason=order.cancel_reason))\n```",
       "expected_output": "Must NOT flag R2 Change Propagation. Service has single responsibility, uses event bus for side effects (no direct coupling to downstream systems). If any findings, they should be unrelated to change propagation. Health Score should be high (80+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 12,
       "name": "r2-extra-shotgun-java",
       "prompt": "Our team needs to add a new currency (EUR) to the system. Currently we only support USD. Here are the files we'd need to change:\n\n```java\n// PriceFormatter.java\npublic String format(double amount) {\n    return String.format(\"$%.2f\", amount);\n}\n\n// InvoiceGenerator.java\npublic String generateLine(Item item) {\n    return item.getName() + \" - $\" + String.format(\"%.2f\", item.getPrice());\n}\n\n// ReportExporter.java\npublic void exportRow(CsvWriter writer, Transaction tx) {\n    writer.write(tx.getId(), \"$\" + tx.getAmount(), tx.getDate());\n}\n\n// EmailTemplateRenderer.java\npublic String renderTotal(Order order) {\n    return \"<strong>Total: $\" + order.getTotal() + \"</strong>\";\n}\n\n// TaxCalculator.java\npublic double calculate(double amount, String state) {\n    // US-only tax rates\n    double rate = US_TAX_RATES.getOrDefault(state, 0.0);\n    return amount * rate;\n}\n\n// RefundService.java\npublic String processRefund(Payment payment) {\n    return \"Refunded $\" + payment.getAmount() + \" to card ending \" + payment.getLast4();\n}\n```",
       "expected_output": "Must identify R2 Change Propagation as Critical (🔴). Symptoms: Shotgun Surgery — adding EUR requires touching 6+ files; currency format hardcoded as '$' in every file; tax logic assumes US-only. Must cite Fowler — Refactoring (Shotgun Surgery) and Hunt & Thomas — Pragmatic Programmer (DRY/Orthogonality). Remedy: extract Money value object with currency-aware formatting, centralize tax strategy. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 13,
       "name": "r3-critical-go",
       "prompt": "Review this code:\n\n```go\n// handlers/user.go\nfunc (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {\n\tvar req CreateUserRequest\n\tjson.NewDecoder(r.Body).Decode(&req)\n\n\tif len(req.Email) == 0 || !strings.Contains(req.Email, \"@\") || len(req.Email) > 254 {\n\t\thttp.Error(w, \"invalid email\", 400)\n\t\treturn\n\t}\n\tif len(req.Password) < 8 || len(req.Password) > 72 {\n\t\thttp.Error(w, \"password must be 8-72 chars\", 400)\n\t\treturn\n\t}\n\t// ... create user\n}\n\n// handlers/admin.go\nfunc (h *AdminHandler) InviteUser(w http.ResponseWriter, r *http.Request) {\n\tvar req InviteRequest\n\tjson.NewDecoder(r.Body).Decode(&req)\n\n\tif req.Email == \"\" || !strings.Contains(req.Email, \"@\") || len(req.Email) > 254 {\n\t\thttp.Error(w, \"bad email\", 400)\n\t\treturn\n\t}\n\t// ... invite user\n}\n\n// services/auth.go\nfunc (s *AuthService) ResetPassword(ctx context.Context, email string, newPassword string) error {\n\tif email == \"\" || !strings.Contains(email, \"@\") || len(email) > 254 {\n\t\treturn errors.New(\"invalid email\")\n\t}\n\tif len(newPassword) < 8 || len(newPassword) > 72 {\n\t\treturn errors.New(\"password must be 8-72 characters\")\n\t}\n\t// ... reset password\n}\n```",
       "expected_output": "Must identify R3 Knowledge Duplication as Critical (🔴). Symptoms: email validation logic duplicated in 3 places (user.go, admin.go, auth.go) with slightly different error messages; password validation duplicated in 2 places. Must cite Hunt & Thomas — Pragmatic Programmer (DRY) and Fowler — Refactoring (Duplicate Code). Remedy: extract shared validators (ValidateEmail, ValidatePassword). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 14,
       "name": "r3-warning-java",
       "prompt": "Review this code:\n\n```java\n// OrderService.java\npublic Order createOrder(CreateOrderRequest req) {\n    double discount = 0;\n    if (req.getItems().size() >= 10) discount = 0.1;\n    if (req.getItems().size() >= 25) discount = 0.15;\n    if (req.getItems().size() >= 50) discount = 0.2;\n    double total = req.getSubtotal() * (1 - discount);\n    // ...\n}\n\n// QuoteService.java\npublic Quote generateQuote(QuoteRequest req) {\n    double discount = 0.0;\n    if (req.getLineItems().size() >= 10) discount = 0.10;\n    if (req.getLineItems().size() >= 25) discount = 0.15;\n    if (req.getLineItems().size() >= 50) discount = 0.20;\n    double quotedPrice = req.getBasePrice() * (1 - discount);\n    // ...\n}\n```",
       "expected_output": "Must identify R3 Knowledge Duplication as Warning (🟡). Symptoms: volume discount tiers (10/25/50 → 10%/15%/20%) duplicated across OrderService and QuoteService with different field names but identical business logic. Must cite Hunt & Thomas — Pragmatic Programmer (DRY). Remedy: extract VolumeDiscountPolicy. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 15,
       "name": "r3-clean-typescript",
       "prompt": "Review this code:\n\n```typescript\n// validation.ts\nexport const EmailSchema = z.string().email().max(254);\nexport const PasswordSchema = z.string().min(8).max(72);\n\n// handlers/user.ts\nimport { EmailSchema, PasswordSchema } from '../validation';\n\nexport async function createUser(req: Request) {\n  const { email, password } = z.object({\n    email: EmailSchema,\n    password: PasswordSchema,\n  }).parse(req.body);\n  // ... create user\n}\n\n// handlers/admin.ts\nimport { EmailSchema } from '../validation';\n\nexport async function inviteUser(req: Request) {\n  const { email } = z.object({ email: EmailSchema }).parse(req.body);\n  // ... invite user\n}\n```",
       "expected_output": "Must NOT flag R3 Knowledge Duplication. Validation schemas are defined once (validation.ts) and imported by consumers. This is DRY done correctly. Health Score should be high (80+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 16,
       "name": "r4-critical-java",
       "prompt": "Review this code:\n\n```java\n// A system that sends welcome emails to new users.\n// The team built a \"flexible\" pipeline for future extensibility.\n\npublic interface MessageStrategy {\n    String format(User user);\n}\n\npublic interface DeliveryChannel {\n    void deliver(String to, String content);\n}\n\npublic interface MessageFilter {\n    boolean shouldSend(User user);\n}\n\npublic abstract class AbstractMessagePipeline<T extends MessageStrategy> {\n    protected final List<MessageFilter> filters;\n    protected final T strategy;\n    protected final DeliveryChannel channel;\n\n    protected AbstractMessagePipeline(List<MessageFilter> filters, T strategy, DeliveryChannel channel) {\n        this.filters = filters;\n        this.strategy = strategy;\n        this.channel = channel;\n    }\n\n    public final void execute(User user) {\n        for (MessageFilter f : filters) {\n            if (!f.shouldSend(user)) return;\n        }\n        String content = strategy.format(user);\n        channel.deliver(user.getEmail(), content);\n    }\n}\n\npublic class WelcomeEmailStrategy implements MessageStrategy {\n    @Override\n    public String format(User user) {\n        return \"Welcome, \" + user.getName() + \"!\";\n    }\n}\n\npublic class ActiveUserFilter implements MessageFilter {\n    @Override\n    public boolean shouldSend(User user) {\n        return user.isActive();\n    }\n}\n\npublic class SmtpChannel implements DeliveryChannel {\n    private final SmtpClient smtp;\n    public SmtpChannel(SmtpClient smtp) { this.smtp = smtp; }\n    @Override\n    public void deliver(String to, String content) {\n        smtp.send(to, \"Welcome\", content);\n    }\n}\n\npublic class WelcomeEmailPipeline extends AbstractMessagePipeline<WelcomeEmailStrategy> {\n    public WelcomeEmailPipeline(SmtpClient smtp) {\n        super(\n            List.of(new ActiveUserFilter()),\n            new WelcomeEmailStrategy(),\n            new SmtpChannel(smtp)\n        );\n    }\n}\n\n// Usage:\n// new WelcomeEmailPipeline(smtp).execute(user);\n```",
       "expected_output": "Must identify R4 Accidental Complexity as Critical (🔴). Symptoms: 7 classes/interfaces to send a single welcome email; Speculative Generality (pipeline, strategy, filter, channel abstractions for one use case); framework overhead dominates domain logic. Must cite Brooks — Mythical Man-Month (Second-System Effect), Fowler — Refactoring (Speculative Generality, Lazy Class, Middle Man). Remedy: collapse to a single function. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 17,
       "name": "r4-warning-python",
       "prompt": "Review this code:\n\n```python\nclass ConfigManager:\n    _instance = None\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n            cls._instance._config = {}\n            cls._instance._observers = []\n        return cls._instance\n\n    def register_observer(self, callback):\n        self._observers.append(callback)\n\n    def set(self, key, value):\n        self._config[key] = value\n        for obs in self._observers:\n            obs(key, value)\n\n    def get(self, key, default=None):\n        return self._config.get(key, default)\n\n# Usage throughout the codebase:\n# ConfigManager().get('db_host', 'localhost')\n# ConfigManager().get('db_port', 5432)\n# No observers are ever registered.\n```",
       "expected_output": "Must identify R4 Accidental Complexity as Warning (🟡). Symptoms: Singleton pattern + Observer pattern for what could be a plain dict or env vars; observer system has zero consumers (Speculative Generality). Must cite Fowler — Refactoring (Speculative Generality) and McConnell — Code Complete Ch.5. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 18,
       "name": "r4-clean-go",
       "prompt": "Review this code:\n\n```go\nfunc SendWelcomeEmail(smtp *SmtpClient, user User) error {\n\tif !user.IsActive() {\n\t\treturn nil\n\t}\n\tbody := fmt.Sprintf(\"Welcome, %s!\", user.Name)\n\treturn smtp.Send(user.Email, \"Welcome\", body)\n}\n```",
       "expected_output": "Must NOT flag R4 Accidental Complexity. This is the simplest possible implementation — no unnecessary abstractions, no speculative generality. Health Score should be high (90+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 19,
       "name": "r5-critical-typescript",
       "prompt": "Audit this project architecture:\n\n```\nsrc/\n├── domain/\n│   ├── Order.ts           # imports from ../infra/PostgresClient\n│   ├── User.ts            # imports from ../infra/RedisCache\n│   └── Product.ts         # imports from ../services/PricingService\n├── services/\n│   ├── OrderService.ts    # imports from ../domain/Order, ../infra/PostgresClient\n│   ├── PricingService.ts  # imports from ../domain/Product, ../infra/StripeClient\n│   └── UserService.ts     # imports from ../domain/User, ../services/OrderService\n├── infra/\n│   ├── PostgresClient.ts\n│   ├── RedisCache.ts\n│   └── StripeClient.ts\n└── api/\n    ├── OrderController.ts # imports from ../services/OrderService\n    └── UserController.ts  # imports from ../services/UserService, ../domain/User\n```",
       "expected_output": "Must identify R5 Dependency Disorder as Critical (🔴). Architecture Audit (Mode 2) with Mermaid dependency graph. Symptoms: domain layer imports from infra (Order→PostgresClient, User→RedisCache) = DIP violation; Product→PricingService = upward dependency from domain to service layer. Must cite Martin — Clean Architecture (DIP, ADP) and Brooks — Mythical Man-Month (Conceptual Integrity). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 20,
       "name": "r5-warning-python",
       "prompt": "Review this code:\n\n```python\n# services/notification_service.py\nfrom services.user_service import UserService\nfrom services.order_service import OrderService\nfrom services.billing_service import BillingService\nfrom services.analytics_service import AnalyticsService\nfrom services.inventory_service import InventoryService\nfrom services.shipping_service import ShippingService\n\nclass NotificationService:\n    def __init__(self):\n        self.user_svc = UserService()\n        self.order_svc = OrderService()\n        self.billing_svc = BillingService()\n        self.analytics_svc = AnalyticsService()\n        self.inventory_svc = InventoryService()\n        self.shipping_svc = ShippingService()\n\n    def send_order_confirmation(self, order_id: str):\n        order = self.order_svc.get(order_id)\n        user = self.user_svc.get(order.user_id)\n        billing = self.billing_svc.get_invoice(order_id)\n        shipping = self.shipping_svc.get_tracking(order_id)\n        self.analytics_svc.track('email_sent', {'order_id': order_id})\n        # ... compose and send email\n```",
       "expected_output": "Must identify R5 Dependency Disorder as Warning (🟡). Symptoms: fan-out of 6 (imports 6 other services); NotificationService is a God Object that knows about every other service. Should cite Martin — Clean Architecture (SRP), Hunt & Thomas — Pragmatic Programmer (Decoupling/Law of Demeter). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 21,
       "name": "r5-clean-java",
       "prompt": "Audit this project architecture:\n\n```\nsrc/main/java/com/example/\n├── domain/\n│   ├── model/\n│   │   ├── Order.java          # no external imports\n│   │   └── User.java           # no external imports\n│   └── port/\n│       ├── OrderRepository.java   # interface, no imports\n│       └── UserRepository.java    # interface, no imports\n├── application/\n│   ├── OrderService.java       # imports from domain/model, domain/port\n│   └── UserService.java        # imports from domain/model, domain/port\n├── infra/\n│   ├── JpaOrderRepository.java # imports from domain/port/OrderRepository, domain/model/Order\n│   └── JpaUserRepository.java  # imports from domain/port/UserRepository, domain/model/User\n└── api/\n    ├── OrderController.java    # imports from application/OrderService\n    └── UserController.java     # imports from application/UserService\n```",
       "expected_output": "Must NOT flag R5 Dependency Disorder. Dependencies flow inward: api→application→domain; infra implements domain ports (DIP). No cycles. This is textbook Clean Architecture. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 22,
       "name": "r5-extra-circular-go",
       "prompt": "Audit this Go project architecture:\n\n```\npkg/\n├── auth/\n│   └── auth.go        # imports pkg/user (to look up user by ID)\n├── user/\n│   └── user.go        # imports pkg/notification (to send welcome email)\n├── notification/\n│   └── notification.go # imports pkg/auth (to check if user has notification permissions)\n└── billing/\n    └── billing.go     # imports pkg/user (to get billing info)\n```\n\nauth → user → notification → auth forms a cycle.",
       "expected_output": "Must identify R5 Dependency Disorder as Critical (🔴). Architecture Audit (Mode 2) with Mermaid dependency graph showing the cycle. Symptoms: circular dependency auth→user→notification→auth. Must cite Martin — Clean Architecture (Acyclic Dependencies Principle). Mermaid graph must use dotted edge for the circular dependency. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 23,
       "name": "r6-critical-python",
       "prompt": "Review this code:\n\n```python\n# models.py\nclass Order:\n    def __init__(self):\n        self.id = None\n        self.user_id = None\n        self.items = []\n        self.status = None\n        self.total = None\n        self.shipping_address = None\n        self.created_at = None\n\n# services.py\nclass OrderService:\n    def cancel_order(self, order: Order) -> None:\n        if order.status == 'pending':\n            order.status = 'cancelled'\n            self.db.save(order)\n        elif order.status == 'shipped':\n            order.status = 'return_requested'\n            refund = order.total * 0.9  # 10% restocking fee\n            self.payment.refund(order.id, refund)\n            self.db.save(order)\n        elif order.status == 'delivered':\n            days_since = (datetime.now() - order.created_at).days\n            if days_since <= 30:\n                order.status = 'return_requested'\n                self.db.save(order)\n            else:\n                raise ValueError('Return window expired')\n\n    def calculate_total(self, order: Order) -> float:\n        subtotal = sum(item['price'] * item['quantity'] for item in order.items)\n        if len(order.items) >= 5:\n            subtotal *= 0.95  # 5% bulk discount\n        tax = subtotal * 0.08\n        return subtotal + tax\n\n    def can_expedite(self, order: Order) -> bool:\n        return order.status == 'pending' and all(\n            item['category'] != 'oversized' for item in order.items\n        )\n```",
       "expected_output": "Must identify R6 Domain Model Distortion as Critical (🔴). Symptoms: Order is a pure data bag (anemic domain model) — all business logic (cancel rules, total calculation, expedite check) lives in OrderService. Must cite Evans — DDD (Domain Model pattern, Ubiquitous Language) and Fowler — Refactoring (Data Class, Feature Envy). Remedy: move cancel/calculate_total/can_expedite into Order. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 24,
       "name": "r6-warning-typescript",
       "prompt": "Review this code:\n\n```typescript\n// controller.ts\nasync function createSubscription(req: Request, res: Response) {\n  const { planId, userId } = req.body;\n  const user = await db.users.findById(userId);\n  const plan = await db.plans.findById(planId);\n\n  // Business rule: trial users can only subscribe to basic plans\n  if (user.accountType === 'trial' && plan.tier !== 'basic') {\n    return res.status(400).json({ error: 'Trial users can only use basic plans' });\n  }\n\n  // Business rule: calculate prorated amount\n  const daysRemaining = getDaysUntilEndOfMonth();\n  const dailyRate = plan.monthlyPrice / 30;\n  const proratedAmount = dailyRate * daysRemaining;\n\n  const subscription = await db.subscriptions.create({\n    userId, planId, amount: proratedAmount, startDate: new Date()\n  });\n\n  return res.json(subscription);\n}\n```",
       "expected_output": "Must identify R6 Domain Model Distortion as Warning (🟡). Symptoms: domain logic (trial plan restriction, proration calculation) leaked into controller layer instead of domain objects. Should cite Evans — DDD (Ubiquitous Language, Domain Model) and Fowler — Refactoring (Feature Envy). Remedy: move trial restriction into User or Subscription domain object, extract proration into Plan. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 25,
       "name": "r6-clean-go",
       "prompt": "Review this code:\n\n```go\ntype Order struct {\n\tID        int64\n\tItems     []LineItem\n\tStatus    OrderStatus\n\tCreatedAt time.Time\n}\n\nfunc (o *Order) Cancel(now time.Time) error {\n\tswitch o.Status {\n\tcase StatusPending:\n\t\to.Status = StatusCancelled\n\t\treturn nil\n\tcase StatusShipped:\n\t\to.Status = StatusReturnRequested\n\t\treturn nil\n\tcase StatusDelivered:\n\t\tif now.Sub(o.CreatedAt) > 30*24*time.Hour {\n\t\t\treturn ErrReturnWindowExpired\n\t\t}\n\t\to.Status = StatusReturnRequested\n\t\treturn nil\n\tdefault:\n\t\treturn fmt.Errorf(\"cannot cancel order in status %s\", o.Status)\n\t}\n}\n\nfunc (o *Order) Total() Money {\n\tsubtotal := NewMoney(0)\n\tfor _, item := range o.Items {\n\t\tsubtotal = subtotal.Add(item.LineTotal())\n\t}\n\treturn subtotal.WithBulkDiscount(len(o.Items)).WithTax()\n}\n```",
       "expected_output": "Must NOT flag R6 Domain Model Distortion. Order owns its business logic (Cancel, Total), uses value objects (Money, OrderStatus), domain language is clear. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 26,
       "name": "t1-positive-python",
       "prompt": "Review these tests:\n\n```python\ndef test1(self):\n    svc = PaymentService(self.db, self.gateway)\n    result = svc.charge(self.user, 100)\n    assert result is not None\n    assert result['status'] in ('ok', 'pending')\n    assert result.get('id')\n    assert self.db.query('SELECT count(*) FROM payments')[0][0] == 1\n    assert result['amount'] == 100\n\ndef test2(self):\n    svc = PaymentService(self.db, self.gateway)\n    result = svc.charge(self.user, 0)\n    assert result is None\n\ndef test3(self):\n    svc = PaymentService(self.db, self.gateway)\n    self.gateway.fail_next = True\n    result = svc.charge(self.user, 50)\n    assert result['status'] == 'failed'\n```",
       "expected_output": "Must identify T1 Test Obscurity. Symptoms: test names (test1/test2/test3) reveal no scenario or expected behavior; test1 has Assertion Roulette (5 assertions, no messages); test depends on self.user and self.db state not visible in test body (Mystery Guest). Must cite Meszaros — xUnit Test Patterns (Assertion Roulette, Mystery Guest) and Osherove — Art of Unit Testing (naming convention). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 27,
       "name": "t1-clean-typescript",
       "prompt": "Review these tests:\n\n```typescript\ndescribe('PaymentService.charge', () => {\n  it('should return success with transaction ID when charging valid amount', async () => {\n    const gateway = new FakePaymentGateway({ alwaysSucceed: true });\n    const service = new PaymentService(gateway);\n\n    const result = await service.charge(testUser(), 100_00);\n\n    expect(result.status).toBe('success');\n    expect(result.transactionId).toBeDefined();\n  });\n\n  it('should reject zero amount with InvalidAmountError', async () => {\n    const gateway = new FakePaymentGateway();\n    const service = new PaymentService(gateway);\n\n    await expect(service.charge(testUser(), 0))\n      .rejects.toThrow(InvalidAmountError);\n  });\n\n  it('should return failed status when gateway declines the card', async () => {\n    const gateway = new FakePaymentGateway({ alwaysDecline: true });\n    const service = new PaymentService(gateway);\n\n    const result = await service.charge(testUser(), 50_00);\n\n    expect(result.status).toBe('declined');\n  });\n});\n```",
       "expected_output": "Must NOT flag T1 Test Obscurity. Test names describe scenario + expected outcome; each test has clear Arrange-Act-Assert; no Mystery Guest (all setup is inline); assertions are focused. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 28,
       "name": "t2-positive-java",
       "prompt": "Review these tests:\n\n```java\n@Test\nvoid testOrderProcessing() {\n    // This test verifies the entire order lifecycle\n    Order order = new Order(\"user-1\", List.of(new Item(\"SKU-1\", 2)));\n\n    // Verify creation\n    assertEquals(\"pending\", order.getStatus());\n    assertEquals(1, order.getItems().size());\n    assertEquals(2, order.getItems().get(0).getQuantity());\n\n    // Verify confirmation\n    order.confirm();\n    assertEquals(\"confirmed\", order.getStatus());\n    assertNotNull(order.getConfirmedAt());\n\n    // Verify shipping\n    order.ship(\"TRACK-123\");\n    assertEquals(\"shipped\", order.getStatus());\n    assertEquals(\"TRACK-123\", order.getTrackingNumber());\n\n    // Verify delivery\n    order.deliver();\n    assertEquals(\"delivered\", order.getStatus());\n    assertNotNull(order.getDeliveredAt());\n\n    // Verify that delivered orders cannot be cancelled\n    assertThrows(IllegalStateException.class, () -> order.cancel());\n}\n```",
       "expected_output": "Must identify T2 Test Brittleness. Symptoms: Eager Test — single test verifies 5 unrelated behaviors (creation, confirmation, shipping, delivery, cancel restriction); any refactor to one lifecycle step breaks the entire test. Must cite Meszaros — xUnit Test Patterns (Eager Test) and Osherove — Art of Unit Testing (test isolation). Remedy: split into 5 focused tests. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 29,
       "name": "t2-clean-go",
       "prompt": "Review these tests:\n\n```go\nfunc TestOrder_Cancel_PendingOrder_SetsCancelled(t *testing.T) {\n\torder := NewOrder(\"user-1\", []LineItem{{SKU: \"A\", Qty: 1}})\n\n\terr := order.Cancel(time.Now())\n\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusCancelled, order.Status)\n}\n\nfunc TestOrder_Cancel_DeliveredWithinWindow_SetsReturnRequested(t *testing.T) {\n\torder := deliveredOrder(t, 7) // delivered 7 days ago\n\n\terr := order.Cancel(time.Now())\n\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusReturnRequested, order.Status)\n}\n\nfunc TestOrder_Cancel_DeliveredPastWindow_ReturnsError(t *testing.T) {\n\torder := deliveredOrder(t, 45) // delivered 45 days ago\n\n\terr := order.Cancel(time.Now())\n\n\tassert.ErrorIs(t, err, ErrReturnWindowExpired)\n\tassert.Equal(t, StatusDelivered, order.Status) // status unchanged\n}\n```",
       "expected_output": "Must NOT flag T2 Test Brittleness. Each test verifies one specific behavior, names describe scenario + expected outcome, helper (deliveredOrder) hides irrelevant setup. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 30,
       "name": "t3-positive-typescript",
       "prompt": "Review these tests:\n\n```typescript\ndescribe('UserService', () => {\n  it('should create user with valid email', async () => {\n    const db = new TestDatabase();\n    await db.seed({ users: [] });\n    const mailer = new FakeMailer();\n    const logger = new FakeLogger();\n    const service = new UserService(db, mailer, logger);\n\n    const user = await service.create({ email: 'alice@example.com', name: 'Alice' });\n\n    expect(user.email).toBe('alice@example.com');\n    expect(user.name).toBe('Alice');\n  });\n\n  it('should send welcome email after creation', async () => {\n    const db = new TestDatabase();\n    await db.seed({ users: [] });\n    const mailer = new FakeMailer();\n    const logger = new FakeLogger();\n    const service = new UserService(db, mailer, logger);\n\n    await service.create({ email: 'bob@example.com', name: 'Bob' });\n\n    expect(mailer.sentTo).toContain('bob@example.com');\n  });\n\n  it('should reject duplicate email', async () => {\n    const db = new TestDatabase();\n    await db.seed({ users: [{ email: 'alice@example.com', name: 'Alice' }] });\n    const mailer = new FakeMailer();\n    const logger = new FakeLogger();\n    const service = new UserService(db, mailer, logger);\n\n    await expect(service.create({ email: 'alice@example.com', name: 'Alice2' }))\n      .rejects.toThrow('duplicate email');\n  });\n\n  it('should log user creation', async () => {\n    const db = new TestDatabase();\n    await db.seed({ users: [] });\n    const mailer = new FakeMailer();\n    const logger = new FakeLogger();\n    const service = new UserService(db, mailer, logger);\n\n    await service.create({ email: 'carol@example.com', name: 'Carol' });\n\n    expect(logger.messages).toContainEqual(expect.objectContaining({ level: 'info' }));\n  });\n});\n```",
       "expected_output": "Must identify T3 Test Duplication. Symptoms: Test Code Duplication — identical 4-line setup block (TestDatabase + seed + FakeMailer + FakeLogger + new UserService) copy-pasted in all 4 tests. Must cite Meszaros — xUnit Test Patterns (Test Code Duplication) and Hunt & Thomas — Pragmatic Programmer (DRY). Remedy: extract into beforeEach or helper factory. Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 31,
       "name": "t3-clean-go",
       "prompt": "Review these tests:\n\n```go\nfunc newTestUserService(t *testing.T) (*UserService, *FakeMailer) {\n\tt.Helper()\n\tdb := newTestDB(t)\n\tmailer := &FakeMailer{}\n\treturn NewUserService(db, mailer), mailer\n}\n\nfunc TestUserService_Create_ValidInput_ReturnsUser(t *testing.T) {\n\tsvc, _ := newTestUserService(t)\n\n\tuser, err := svc.Create(context.Background(), CreateUserInput{Email: \"a@b.com\", Name: \"A\"})\n\n\trequire.NoError(t, err)\n\tassert.Equal(t, \"a@b.com\", user.Email)\n}\n\nfunc TestUserService_Create_ValidInput_SendsWelcomeEmail(t *testing.T) {\n\tsvc, mailer := newTestUserService(t)\n\n\t_, err := svc.Create(context.Background(), CreateUserInput{Email: \"a@b.com\", Name: \"A\"})\n\n\trequire.NoError(t, err)\n\tassert.Contains(t, mailer.SentTo, \"a@b.com\")\n}\n```",
       "expected_output": "Must NOT flag T3 Test Duplication. Setup is extracted into newTestUserService helper, each test is focused on one behavior, no copy-paste. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 32,
       "name": "t4-positive-typescript",
       "prompt": "Review these tests:\n\n```typescript\ndescribe('OrderService.placeOrder', () => {\n  it('should place an order successfully', () => {\n    const mockDb = mock<Database>();\n    const mockPayment = mock<PaymentGateway>();\n    const mockInventory = mock<InventoryService>();\n    const mockMailer = mock<MailService>();\n    const mockAudit = mock<AuditLogger>();\n    const mockCache = mock<CacheService>();\n    const mockMetrics = mock<MetricsCollector>();\n\n    mockDb.findUser.mockResolvedValue({ id: '1', email: 'a@b.com' });\n    mockInventory.check.mockResolvedValue(true);\n    mockPayment.charge.mockResolvedValue({ id: 'ch_1', status: 'ok' });\n    mockMailer.send.mockResolvedValue(undefined);\n    mockAudit.log.mockResolvedValue(undefined);\n    mockCache.invalidate.mockResolvedValue(undefined);\n    mockMetrics.increment.mockReturnValue(undefined);\n\n    const service = new OrderService(\n      mockDb, mockPayment, mockInventory, mockMailer, mockAudit, mockCache, mockMetrics\n    );\n\n    const result = await service.placeOrder('1', 'item-1', 2);\n\n    expect(mockPayment.charge).toHaveBeenCalledWith('ch_1', 2000);\n    expect(mockInventory.check).toHaveBeenCalledWith('item-1', 2);\n    expect(mockMailer.send).toHaveBeenCalled();\n    expect(mockAudit.log).toHaveBeenCalledWith('ORDER_PLACED', expect.anything());\n    expect(mockCache.invalidate).toHaveBeenCalledWith('orders:1');\n    expect(mockMetrics.increment).toHaveBeenCalledWith('orders.placed');\n  });\n});\n```",
       "expected_output": "Must identify T4 Mock Abuse. Symptoms: 7 mocks (> 3 threshold); mock setup is longer than test logic; all assertions verify mock calls, not actual behavior (Behavior Verification). Must cite Osherove — Art of Unit Testing (mock count guideline) and Meszaros — xUnit Test Patterns (Behavior Verification). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 33,
       "name": "t4-clean-python",
       "prompt": "Review these tests:\n\n```python\ndef test_place_order_charges_correct_amount():\n    gateway = FakePaymentGateway()\n    inventory = FakeInventory(stock={'SKU-1': 10})\n    service = OrderService(gateway=gateway, inventory=inventory)\n\n    result = service.place_order(user_id='u1', sku='SKU-1', quantity=3)\n\n    assert result.status == 'placed'\n    assert result.charged_amount == 3 * 1000  # $10.00 per unit\n    assert gateway.charges[-1].amount == 3000\n\ndef test_place_order_decrements_inventory():\n    inventory = FakeInventory(stock={'SKU-1': 10})\n    service = OrderService(gateway=FakePaymentGateway(), inventory=inventory)\n\n    service.place_order(user_id='u1', sku='SKU-1', quantity=3)\n\n    assert inventory.stock['SKU-1'] == 7\n```",
       "expected_output": "Must NOT flag T4 Mock Abuse. Uses fakes (not mocks) with only 2 dependencies; assertions verify state/outcome, not mock calls. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 34,
       "name": "t5-positive-java",
       "prompt": "Review these tests:\n\n```java\n// PaymentService has methods: charge(), refund(), handleWebhook(), retryFailed()\n// Current test coverage: 87% line coverage\n\n@Test\nvoid charge_validCard_returnsSuccess() {\n    PaymentResult result = service.charge(validCard(), 1000);\n    assertEquals(\"success\", result.getStatus());\n}\n\n@Test\nvoid charge_expiredCard_returnsDeclined() {\n    PaymentResult result = service.charge(expiredCard(), 1000);\n    assertEquals(\"declined\", result.getStatus());\n}\n\n@Test\nvoid refund_existingCharge_returnsRefunded() {\n    service.charge(validCard(), 5000);\n    RefundResult result = service.refund(\"ch_1\", 5000);\n    assertEquals(\"refunded\", result.getStatus());\n}\n\n// No tests for:\n// - charge() with network timeout\n// - charge() with amount = 0 or negative\n// - refund() with amount > original charge\n// - refund() for already-refunded charge\n// - handleWebhook() — entire method untested\n// - retryFailed() — entire method untested\n```",
       "expected_output": "Must identify T5 Coverage Illusion. Symptoms: 87% line coverage but error-handling paths untested (network timeout, invalid amounts); two entire methods (handleWebhook, retryFailed) have no tests; happy-path only. Must cite Feathers — WELC (legacy code = no tests) and Google — How Google Tests Software (change coverage vs line coverage). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 35,
       "name": "t5-clean-go",
       "prompt": "Review these tests:\n\n```go\nfunc TestCharge_ValidCard_ReturnsSuccess(t *testing.T) {\n\tresult, err := svc.Charge(ctx, validCard(), 1000)\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusSuccess, result.Status)\n}\n\nfunc TestCharge_ExpiredCard_ReturnsDeclined(t *testing.T) {\n\tresult, err := svc.Charge(ctx, expiredCard(), 1000)\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusDeclined, result.Status)\n}\n\nfunc TestCharge_ZeroAmount_ReturnsError(t *testing.T) {\n\t_, err := svc.Charge(ctx, validCard(), 0)\n\tassert.ErrorIs(t, err, ErrInvalidAmount)\n}\n\nfunc TestCharge_NegativeAmount_ReturnsError(t *testing.T) {\n\t_, err := svc.Charge(ctx, validCard(), -500)\n\tassert.ErrorIs(t, err, ErrInvalidAmount)\n}\n\nfunc TestCharge_GatewayTimeout_ReturnsError(t *testing.T) {\n\tgateway.SetLatency(10 * time.Second)\n\t_, err := svc.Charge(ctx, validCard(), 1000)\n\tassert.ErrorIs(t, err, ErrGatewayTimeout)\n}\n\nfunc TestRefund_AmountExceedsCharge_ReturnsError(t *testing.T) {\n\tsvc.Charge(ctx, validCard(), 1000)\n\t_, err := svc.Refund(ctx, \"ch_1\", 2000)\n\tassert.ErrorIs(t, err, ErrRefundExceedsCharge)\n}\n\nfunc TestRefund_AlreadyRefunded_ReturnsError(t *testing.T) {\n\tsvc.Charge(ctx, validCard(), 1000)\n\tsvc.Refund(ctx, \"ch_1\", 1000)\n\t_, err := svc.Refund(ctx, \"ch_1\", 1000)\n\tassert.ErrorIs(t, err, ErrAlreadyRefunded)\n}\n```",
       "expected_output": "Must NOT flag T5 Coverage Illusion. Tests cover happy path, error paths (zero/negative amount), infrastructure failures (gateway timeout), and business rule violations (excess refund, double refund). Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 36,
       "name": "t6-positive-python",
       "prompt": "Review this test suite overview:\n\n```\ntests/\n├── e2e/                    # 47 tests, avg 8s each (~6 min total)\n│   ├── test_login_flow.py\n│   ├── test_checkout_flow.py\n│   ├── test_admin_dashboard.py\n│   ├── test_search.py\n│   └── ... (12 more files)\n├── integration/            # 83 tests, avg 2s each (~3 min total)\n│   ├── test_user_api.py\n│   ├── test_order_api.py\n│   ├── test_payment_api.py\n│   └── ... (8 more files)\n└── unit/                   # 24 tests, avg 10ms each (~0.2s total)\n    ├── test_validators.py\n    └── test_formatters.py\n\nTotal: 154 tests, ~9 min execution time\nCI runs full suite on every push.\n```",
       "expected_output": "Must identify T6 Architecture Mismatch. Symptoms: inverted test pyramid (47 E2E > 24 unit); 9-minute suite dominated by slow E2E tests; unit test coverage minimal (2 files for validators and formatters only). Must cite Google — How Google Tests Software (70:20:10 ratio) and Meszaros — xUnit Test Patterns (test suite design). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 37,
       "name": "t6-clean-typescript",
       "prompt": "Review this test suite overview:\n\n```\ntests/\n├── e2e/                    # 12 tests, critical user journeys only\n│   ├── checkout.spec.ts\n│   └── auth.spec.ts\n├── integration/            # 45 tests, API contract + DB integration\n│   ├── user-api.test.ts\n│   ├── order-api.test.ts\n│   └── payment-api.test.ts\n└── unit/                   # 180 tests, domain logic + utilities\n    ├── order.test.ts\n    ├── user.test.ts\n    ├── payment.test.ts\n    ├── pricing.test.ts\n    ├── validators.test.ts\n    └── ... (8 more files)\n\nTotal: 237 tests, ~45s execution time\nUnit tests run on pre-commit. Full suite on CI.\n```",
       "expected_output": "Must NOT flag T6 Architecture Mismatch. Pyramid is healthy (180:45:12 ≈ 76:19:5, close to 70:20:10); suite runs in < 1 minute; unit tests gate commits. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 38,
       "name": "r1-deep-module-clean-go",
       "prompt": "Review this code:\n\n```go\ntype ExchangeRateProvider interface {\n\tLatest(ctx context.Context, base string) (map[string]decimal.Decimal, error)\n}\n\ntype FXService struct {\n\tprovider ExchangeRateProvider\n}\n\nfunc (s *FXService) Quote(ctx context.Context, base, target string, amount decimal.Decimal) (decimal.Decimal, error) {\n\trates, err := s.provider.Latest(ctx, base)\n\tif err != nil {\n\t\treturn decimal.Zero, fmt.Errorf(\"fetch exchange rates: %w\", err)\n\t}\n\n\trate, ok := rates[target]\n\tif !ok {\n\t\treturn decimal.Zero, ErrUnsupportedCurrency\n\t}\n\n\treturn amount.Mul(rate), nil\n}\n```",
       "expected_output": "Must NOT flag R1 Cognitive Overload. Interface is narrow, method is linear, names are descriptive, and hidden provider complexity should be treated as a deep module rather than a shallow one. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 39,
       "name": "r2-hyrum-warning-typescript",
       "prompt": "Review this code change:\n\n```typescript\n// Before: callers iterated whatever order the map happened to produce.\n// After: helper now sorts keys alphabetically before returning.\n\nexport function listEnabledFlags(flags: Record<string, boolean>): string[] {\n  return Object.entries(flags)\n    .filter(([, enabled]) => enabled)\n    .map(([name]) => name)\n    .sort();\n}\n\n// Used by:\n// - CLI formatter tests that snapshot the order exactly\n// - Admin dashboard chips rendered in returned order\n// - Metrics tag export that expects the first flag to be the primary feature\n```",
       "expected_output": "Must identify R2 Change Propagation as Warning (🟡) or higher. The key issue is de facto API surface / observable behavior coupling: multiple callers depend on ordering that was not an explicit contract. Must cite Winters et al. — Software Engineering at Google (Hyrum's Law). Iron Law format required.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 40,
       "name": "r4-protocol-switch-clean-typescript",
       "prompt": "Review this code:\n\n```typescript\ntype StripeWebhookEvent =\n  | { type: 'payment_intent.succeeded'; payload: PaymentIntent }\n  | { type: 'payment_intent.payment_failed'; payload: PaymentIntent }\n  | { type: 'charge.refunded'; payload: Charge };\n\nexport async function handleStripeWebhook(event: StripeWebhookEvent, service: BillingService) {\n  switch (event.type) {\n    case 'payment_intent.succeeded':\n      return service.recordSuccessfulPayment(event.payload);\n    case 'payment_intent.payment_failed':\n      return service.recordFailedPayment(event.payload);\n    case 'charge.refunded':\n      return service.recordRefund(event.payload);\n    default:\n      return assertNever(event);\n  }\n}\n```",
       "expected_output": "Must NOT flag R4 Accidental Complexity just because a switch exists. This switch is an explicit boundary over a closed external protocol and may be the clearest design. If any concern is raised, it should not be Speculative Generality or missing polymorphism by default.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 41,
       "name": "r5-composition-root-clean-typescript",
       "prompt": "Review this code:\n\n```typescript\nexport async function buildApp(): Promise<App> {\n  const db = new PostgresUserRepository(process.env.DATABASE_URL!);\n  const cache = new RedisCache(process.env.REDIS_URL!);\n  const mailer = new SesMailer(process.env.SES_REGION!);\n\n  const userService = new UserService(db, cache, mailer);\n  const orderService = new OrderService(db, cache);\n\n  return new App({ userService, orderService });\n}\n```",
       "expected_output": "Must NOT flag R5 Dependency Disorder merely because concrete infrastructure is instantiated here. This is a composition root / assembly boundary, which is allowed to depend on details. Health Score should remain high unless another real issue is found.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 42,
       "name": "r6-transaction-script-clean-python",
       "prompt": "Review this code:\n\n```python\ndef create_country_tax_rate(db, country_code: str, percentage: Decimal) -> dict:\n    if percentage < 0:\n        raise ValueError('percentage must be >= 0')\n    db.execute(\n        'INSERT INTO tax_rates(country_code, percentage) VALUES (?, ?)',\n        [country_code, percentage],\n    )\n    return {'country_code': country_code, 'percentage': str(percentage)}\n```",
       "expected_output": "Must NOT flag R6 Domain Model Distortion simply because this is a data-oriented transaction script. This is acceptable CRUD-style behavior unless additional domain invariants or rich business rules are present. Health Score should be high (85+).",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 43,
       "name": "t6-legacy-risk-balanced-clean-java",
       "prompt": "Review this test suite overview:\n\n```\nlegacy-billing/\n├── characterization/       # 48 tests around invoice recalculation and tax edge cases\n├── integration/            # 62 tests around DB + queue + payment gateway adapters\n├── unit/                   # 34 tests for pricing rules, money math, and retry policies\n└── e2e/                    # 6 tests for payment success/failure and refund flows\n\nTotal runtime: ~4 minutes on CI\nNotes:\n- The team added characterization tests before touching legacy invoice logic.\n- Billing adapters are behind seams (FakeGateway, InMemoryOutbox) for most tests.\n- E2E is kept to customer-critical paths only.\n```",
       "expected_output": "Must NOT flag T6 Architecture Mismatch as Critical solely because the ratio is not close to 70:20:10. The suite is risk-shaped, uses characterization tests and seams for legacy code, and keeps runtime reasonable. If any finding exists, it should acknowledge the deliberate tradeoff rather than treating the ratio alone as a smell.",
-      "files": []
+      "files": [],
+      "mode": "test"
     },
     {
       "id": 44,
       "name": "brooks-health-clean-codebase",
       "prompt": "Run a full health check on this project:\n\n```\nsrc/\n├── index.ts          # entry point, imports from services/ only\n├── services/\n│   ├── UserService.ts  # imports from models/ and lib/db.ts\n│   └── OrderService.ts # imports from models/ and lib/db.ts\n├── models/\n│   ├── User.ts         # pure domain model, no imports\n│   └── Order.ts        # pure domain model, no imports\n└── lib/\n    └── db.ts           # database client, no domain imports\n\nTest suite: 45 unit tests, 12 integration tests, 3 E2E tests\nCI: all green, 90% coverage on services/\nNo recent changes in git diff\n```",
       "expected_output": "Health Dashboard report with Composite Score >= 80/100, a Mermaid dependency graph showing clean layered architecture, all four dimension scores, and a Recommendation section. PR dimension should be skipped (no diff) with weights redistributed. Must NOT flag false positives on clean code.",
-      "files": []
+      "files": [],
+      "mode": "health"
     },
     {
       "id": 45,
       "name": "brooks-health-multi-problem-codebase",
       "prompt": "Run a full health check on this project:\n\n```\nsrc/\n├── GodService.ts     # 2400 lines, imports from everywhere including models/ and lib/ and controllers/\n├── controllers/\n│   └── Api.ts        # imports from GodService AND models/ AND lib/db.ts AND lib/email.ts\n├── models/\n│   └── User.ts       # imports from GodService (circular)\n└── lib/\n    ├── db.ts\n    └── email.ts\n\nTest suite: 8 tests total (all in one file test_everything.py), each test has 12+ mocks\nLast 10 commits: 8 touched GodService.ts\nRecent git diff: +500 lines to GodService.ts\n```",
       "expected_output": "Health Dashboard report with Composite Score <= 55/100. Must flag: Architecture dimension — R5 Dependency Disorder (circular dependency User→GodService, DIP violations). Debt dimension — R1 Cognitive Overload (GodService 2400 lines), R2 Change Propagation (every feature touches GodService). Test dimension — T4 Mock Abuse (12+ mocks per test). Recommendation must suggest running /brooks-audit for the worst dimension. Each finding must follow Iron Law format.",
-      "files": []
+      "files": [],
+      "mode": "health"
     },
     {
       "id": 46,
       "name": "fix-mode-active",
       "prompt": "--fix\n\nReview this code:\n\n```python\nclass ReportGenerator:\n    def generate(self, data, template, output_format, locale, user_id, org_id, include_charts, chart_type, date_range, filter_criteria, sort_order, max_rows):\n        # 120 lines of mixed rendering, data fetching, and formatting logic\n        user = self.db.get_user(user_id)\n        org = self.db.get_org(org_id)\n        filtered = [r for r in data if self.matches_criteria(r, filter_criteria)]\n        sorted_data = sorted(filtered, key=lambda r: r[sort_order])\n        if include_charts:\n            chart = self.chart_renderer.render(sorted_data, chart_type)\n        # ... 90 more lines\n        return self.formatter.format(sorted_data, template, output_format, locale)\n```",
       "expected_output": "PR Review report in --fix mode. Must include: (1) Enhanced Remedy for R1 Cognitive Overload with Target (exact class/method), Action (specific extract operation with suggested function name), and Rationale. (2) Fixability tier label appended to finding title: [quick-fix], [guided], or [manual]. (3) Fix Summary table at end of report. Must NOT modify any files or generate code diffs.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 47,
       "name": "fix-mode-not-active",
       "prompt": "Review this code:\n\n```python\nclass ReportGenerator:\n    def generate(self, data, template, output_format, locale, user_id, org_id, include_charts, chart_type, date_range, filter_criteria, sort_order, max_rows):\n        # 120 lines of mixed rendering, data fetching, and formatting logic\n        user = self.db.get_user(user_id)\n        org = self.db.get_org(org_id)\n        filtered = [r for r in data if self.matches_criteria(r, filter_criteria)]\n        sorted_data = sorted(filtered, key=lambda r: r[sort_order])\n        if include_charts:\n            chart = self.chart_renderer.render(sorted_data, chart_type)\n        # ... 90 more lines\n        return self.formatter.format(sorted_data, template, output_format, locale)\n```",
       "expected_output": "Standard PR Review report without --fix mode. Remedy field should be descriptive but must NOT include tier labels ([quick-fix], [guided], [manual]) or a Fix Summary table. Health Score, Iron Law findings, and Summary section should follow the standard format.",
-      "files": []
+      "files": [],
+      "mode": "review"
     },
     {
       "id": 48,
       "name": "onboarding-report-medium-project",
       "prompt": "Give me an onboarding report for this codebase. I am a new developer joining the team.",
       "expected_output": "Should produce a Codebase Tour with Module Map (Mermaid with reading-order colors: blue start, purple next, gray last), Module Guide paragraphs, Conventions section, Danger Zones section, Domain Glossary table, and Suggested First Tasks. Must NOT include a Health Score or Iron Law findings (Symptom/Source/Consequence/Remedy format).",
-      "files": []
+      "files": [],
+      "mode": "audit"
     },
     {
       "id": 49,
       "name": "onboarding-no-health-score-boundary",
       "prompt": "Explain this codebase to someone new using --onboarding mode.",
       "expected_output": "Must NOT include Health Score (no numeric XX/100 score). Must NOT include Iron Law findings format (no Symptom:/Source:/Consequence:/Remedy: labels). Should include Module Map, Conventions, Danger Zones, Domain Glossary, and Suggested First Tasks sections.",
-      "files": []
+      "files": [],
+      "mode": "audit"
     }
   ]
 }

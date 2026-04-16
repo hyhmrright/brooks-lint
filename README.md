@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.9.5-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -426,7 +426,7 @@ The action posts the review as a PR comment and optionally fails the check if th
 - [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion
 - [x] **v0.8**: Independent skill architecture with namespaced commands
 - [x] **v0.9**: Step validation, auto-diff scope, `/brooks-health` dashboard, trend tracking, triage mode, `--fix` remedies, onboarding report, GitHub Action
-- [ ] **v1.0**: Eval automation, custom risk extension, VS Code extension
+- [x] **v1.0**: Eval automation (`run-evals-live.mjs`), custom risk extension (`Cx` codes)
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
 

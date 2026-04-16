@@ -1,11 +1,14 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+/** Canonical list of valid mode names — import from here to avoid drift. */
+export const VALID_MODES = ["review", "audit", "debt", "test", "health"];
+
 /**
  * Assemble the system prompt for a given brooks-lint mode.
  * Shared by: GitHub Action (ci-review.mjs) and Eval Runner (run-evals-live.mjs).
  *
- * @param {string} mode - "review" | "audit" | "debt" | "test" | "health"
+ * @param {string} mode - one of VALID_MODES
  * @param {string} skillsDir - absolute path to skills/ directory
  * @returns {string} concatenated system prompt with --- separators
  */

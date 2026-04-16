@@ -56,10 +56,13 @@ ignore:
   - "**/vendor/**"
 ```
 
+If `.brooks-lint.yaml` contains a `custom_risks` map, read `custom-risks-guide.md`
+from the `_shared/` directory for loading and scanning instructions.
+
 ### Config Validation
 
 Before applying, check for errors and mention each in the report:
-- Invalid risk code (not R1–R6 or T1–T6): skip it, note `"Config warning: X is not a valid risk code"`
+- Invalid risk code (not R1–R6, T1–T6, or a defined `Cx` code): skip it, note `"Config warning: X is not a valid risk code"`
 - Invalid severity value (not `critical`/`warning`/`suggestion`): skip it, note the error
 - Both `disable` and `focus` are non-empty: treat as a config error, ignore both, note it
 

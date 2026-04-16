@@ -20,24 +20,11 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
-import { assembleSystemPrompt } from "./assemble-prompt.mjs";
+import { assembleSystemPrompt, VALID_MODES } from "./assemble-prompt.mjs";
 import { readHistory, getTrend } from "./history.mjs";
+import { parseArgs } from "./cli-utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// ── Argument parsing ──────────────────────────────────────────────────────────
-
-function parseArgs(argv) {
-  const args = {};
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i].startsWith("--")) {
-      const key = argv[i].slice(2);
-      args[key] = argv[i + 1] ?? true;
-      i++;
-    }
-  }
-  return args;
-}
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -46,7 +33,6 @@ const model = args.model ?? "claude-sonnet-4-6";
 const skillsDir = path.resolve(args["skills-dir"] ?? path.join(__dirname, "..", "skills"));
 const projectDir = path.resolve(args["project-dir"] ?? process.cwd());
 
-const VALID_MODES = ["review", "audit", "debt", "test", "health"];
 if (!VALID_MODES.includes(mode)) {
   console.error(`Unknown mode: ${mode}. Valid modes: ${VALID_MODES.join(", ")}`);
   process.exit(1);
