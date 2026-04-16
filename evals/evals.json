@@ -315,6 +315,20 @@
       "prompt": "Run a full health check on this project:\n\n```\nsrc/\n├── GodService.ts     # 2400 lines, imports from everywhere including models/ and lib/ and controllers/\n├── controllers/\n│   └── Api.ts        # imports from GodService AND models/ AND lib/db.ts AND lib/email.ts\n├── models/\n│   └── User.ts       # imports from GodService (circular)\n└── lib/\n    ├── db.ts\n    └── email.ts\n\nTest suite: 8 tests total (all in one file test_everything.py), each test has 12+ mocks\nLast 10 commits: 8 touched GodService.ts\nRecent git diff: +500 lines to GodService.ts\n```",
       "expected_output": "Health Dashboard report with Composite Score <= 55/100. Must flag: Architecture dimension — R5 Dependency Disorder (circular dependency User→GodService, DIP violations). Debt dimension — R1 Cognitive Overload (GodService 2400 lines), R2 Change Propagation (every feature touches GodService). Test dimension — T4 Mock Abuse (12+ mocks per test). Recommendation must suggest running /brooks-audit for the worst dimension. Each finding must follow Iron Law format.",
       "files": []
+    },
+    {
+      "id": 46,
+      "name": "fix-mode-active",
+      "prompt": "--fix\n\nReview this code:\n\n```python\nclass ReportGenerator:\n    def generate(self, data, template, output_format, locale, user_id, org_id, include_charts, chart_type, date_range, filter_criteria, sort_order, max_rows):\n        # 120 lines of mixed rendering, data fetching, and formatting logic\n        user = self.db.get_user(user_id)\n        org = self.db.get_org(org_id)\n        filtered = [r for r in data if self.matches_criteria(r, filter_criteria)]\n        sorted_data = sorted(filtered, key=lambda r: r[sort_order])\n        if include_charts:\n            chart = self.chart_renderer.render(sorted_data, chart_type)\n        # ... 90 more lines\n        return self.formatter.format(sorted_data, template, output_format, locale)\n```",
+      "expected_output": "PR Review report in --fix mode. Must include: (1) Enhanced Remedy for R1 Cognitive Overload with Target (exact class/method), Action (specific extract operation with suggested function name), and Rationale. (2) Fixability tier label appended to finding title: [quick-fix], [guided], or [manual]. (3) Fix Summary table at end of report. Must NOT modify any files or generate code diffs.",
+      "files": []
+    },
+    {
+      "id": 47,
+      "name": "fix-mode-not-active",
+      "prompt": "Review this code:\n\n```python\nclass ReportGenerator:\n    def generate(self, data, template, output_format, locale, user_id, org_id, include_charts, chart_type, date_range, filter_criteria, sort_order, max_rows):\n        # 120 lines of mixed rendering, data fetching, and formatting logic\n        user = self.db.get_user(user_id)\n        org = self.db.get_org(org_id)\n        filtered = [r for r in data if self.matches_criteria(r, filter_criteria)]\n        sorted_data = sorted(filtered, key=lambda r: r[sort_order])\n        if include_charts:\n            chart = self.chart_renderer.render(sorted_data, chart_type)\n        # ... 90 more lines\n        return self.formatter.format(sorted_data, template, output_format, locale)\n```",
+      "expected_output": "Standard PR Review report without --fix mode. Remedy field should be descriptive but must NOT include tier labels ([quick-fix], [guided], [manual]) or a Fix Summary table. Health Score, Iron Law findings, and Summary section should follow the standard format.",
+      "files": []
     }
   ]
 }
