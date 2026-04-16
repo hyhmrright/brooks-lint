@@ -142,7 +142,7 @@ graph TD
     class UserService,UserController,Database clean
 ```
 
-The graph renders natively in GitHub, VS Code, and Notion — no extra tools needed.
+The graph renders natively in GitHub, Notion, and other Markdown environments — no extra tools needed.
 
 ## See More Examples
 

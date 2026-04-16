@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from twelve classic software engineering books. It surfaces decay risks across four review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review). Each mode is an independent skill under `skills/` — installed and used by Claude Code.
+**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from twelve classic software engineering books. It surfaces decay risks across five review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review, Health Dashboard). Each mode is an independent skill under `skills/` — installed and used by Claude Code.
 
 ## Install
 
@@ -43,16 +43,24 @@ brooks-lint/
 │   ├── brooks-debt/         # Mode 3: Tech Debt Assessment
 │   │   ├── SKILL.md
 │   │   └── debt-guide.md
-│   └── brooks-test/         # Mode 4: Test Quality Review
+│   ├── brooks-test/         # Mode 4: Test Quality Review
+│   │   ├── SKILL.md
+│   │   └── test-guide.md
+│   └── brooks-health/       # Mode 5: Health Dashboard
 │       ├── SKILL.md
-│       └── test-guide.md
+│       └── health-guide.md
 ├── hooks/                   # SessionStart hook for session-level awareness
 ├── commands/                # Short-form command wrappers (auto-installed by hook, or manual copy)
-├── evals/                   # Benchmark suite (43 scenarios across 4 modes)
+├── evals/                   # Benchmark suite (49 scenarios across 5 modes)
 ├── scripts/                 # Repo tooling
 │   ├── validate-repo.mjs    # Consistency CI gate (versions, descriptions, skills content)
 │   ├── frontmatter.mjs      # Shared parseFrontmatterBooks() utility
 │   ├── run-evals.mjs        # Eval structural validator (IDs, fields, risk code refs)
+│   ├── run-evals-live.mjs   # Live eval runner (calls AI, classifies pass/partial/fail)
+│   ├── assemble-prompt.mjs  # Builds full skill prompt from SKILL.md + shared files
+│   ├── ci-review.mjs        # CI integration for PR review workflow
+│   ├── cli-utils.mjs        # Shared CLI utilities (arg parsing, output formatting)
+│   ├── history.mjs          # Health Score trend tracking (.brooks-lint-history.json)
 │   └── validate-repo.test.mjs  # Unit tests for parseFrontmatterBooks
 ├── docs/gallery.md          # Visual output examples (used for README/promotion)
 ├── AGENTS.md                # Codex CLI project instructions
@@ -62,7 +70,7 @@ brooks-lint/
 
 ### How the skills work
 
-1. `hooks/session-start` injects a brief note into every session listing the four available skills
+1. `hooks/session-start` injects a brief note into every session listing the five available skills
 2. When triggered, Claude loads the appropriate skill's `SKILL.md` via the Skill tool
 3. Each SKILL.md instructs Claude to read `_shared/common.md` for the Iron Law, Config, and Report Template
 4. Claude reads the mode-specific guide and the relevant decay-risks file from `_shared/`
@@ -85,9 +93,9 @@ brooks-lint runs on three AI coding platforms: Claude Code, Codex CLI, and Gemin
 
 ## Eval Suite
 
-`evals/evals.json` contains 43 benchmark scenarios covering R1-R6 (code decay) and T1-T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario is a JSON object with input context and expected findings. To add a scenario, append to the `evals` array with the next sequential `id` and the relevant risk code. Each eval has `id`, `name`, `prompt`, `expected_output`, and `files` fields.
+`evals/evals.json` contains 49 benchmark scenarios covering R1-R6 (code decay) and T1-T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario is a JSON object with input context and expected findings. To add a scenario, append to the `evals` array with the next sequential `id` and the relevant risk code. Each eval has `id`, `name`, `prompt`, `expected_output`, `mode`, and `files` fields. Optional flags: `no_risk_codes: true` (false-positive scenarios where no risk codes should appear in output), `no_health_score: true` (scenarios testing Health Score suppression) — these two flags are mutually exclusive.
 
-`scripts/run-evals.mjs` validates the structural integrity of evals.json (sequential IDs, required fields, risk code references) — run it with `npm run evals`. Full skill-execution testing (verifying AI output matches `expected_output`) remains manual: run the skill against the scenario's prompt and compare output.
+`scripts/run-evals.mjs` validates the structural integrity of evals.json (sequential IDs, required fields, risk code references) — run it with `npm run evals`. `scripts/run-evals-live.mjs` runs the skill against each scenario and classifies output as pass/partial/fail — requires `ANTHROPIC_API_KEY`.
 
 ## Development Commands
 
@@ -110,6 +118,10 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 /brooks-audit     # Short form (or /brooks-lint:brooks-audit)
 /brooks-debt      # Short form (or /brooks-lint:brooks-debt)
 /brooks-test      # Short form (or /brooks-lint:brooks-test)
+/brooks-health    # Short form (or /brooks-lint:brooks-health)
+
+# Run live evals against the AI (requires ANTHROPIC_API_KEY)
+node scripts/run-evals-live.mjs
 ```
 
 After editing skills, reinstall to sync the marketplace copy (see Install section above).
@@ -127,10 +139,13 @@ and the changelog before you push.
 ## Development Gotchas
 
 - **Skill sync:** `skills/` and the marketplace install path (`~/.claude/plugins/...`) are two independent copies — reinstall manually after edits.
-- **package.json:** `"type": "module"` enables ESM for the scripts in `scripts/` (validate-repo.mjs, frontmatter.mjs, run-evals.mjs, validate-repo.test.mjs). Skills themselves are plain markdown — no bundling needed.
+- **package.json:** `"type": "module"` enables ESM for all scripts in `scripts/`. Skills themselves are plain markdown — no bundling needed.
 - **Slash commands:** Plugin skills register as namespaced commands (`/brooks-lint:brooks-review`). Short-form commands (`/brooks-review`) are auto-installed to `~/.claude/commands/` by the session-start hook. These are thin wrappers that delegate to the plugin skills.
 - **`_shared/` convention:** `skills/_shared/` holds common framework files (Iron Law, Report Template, decay risk definitions). It is NOT a skill directory — Claude Code ignores directories without `SKILL.md` when registering commands.
 - **Version sync:** `package.json` is the canonical version source. `hooks/session-start` reads it dynamically; `validate-repo.mjs` checks all manifests, the README badge, and the changelog for drift.
 - **Book count source of truth:** `skills/_shared/source-coverage.md` frontmatter (`books:` list) is the canonical book inventory. `validate-repo.mjs` derives `sourceCount` and all word-based checks from it — do NOT hardcode the count elsewhere. To add a book: update the frontmatter list and add the corresponding section; the validator auto-adapts.
 - **Step numbering alignment:** Each skill's `SKILL.md` Process section must list steps that match the guide's step count and numbering. Automated: `npm run validate` checks guide step continuity (no gaps, no duplicates, sequential main steps) and SKILL.md Process section presence. When adding a step to a guide, update the corresponding SKILL.md Process list too.
 - **SKILL.md trigger descriptions:** Every `description:` field must include a "Do NOT trigger for:" clause that defines the negative boundary. This prevents false triggering (e.g., `brooks-debt` firing on HTTP health-check questions).
+- **GitHub Action:** `.github/actions/brooks-lint/action.yml` provides a reusable action for CI workflows. Deps are cached via `actions/cache@v4` with cache-hit guard — do not add a manual directory check.
+- **Custom risks:** Teams can add project-specific risk codes by placing a `custom-risks-guide.md` in their project root. See `skills/_shared/custom-risks-guide.md` for the template.
+- **VS Code Extension:** out of scope — do not plan, reference, or propose VS Code extension features.

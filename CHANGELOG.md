@@ -31,6 +31,25 @@ All notable changes to brooks-lint are documented here.
   - `.brooks-lint.example.yaml`: commented `custom_risks` example with `C1` (Security
     Debt) and `C2` (Accessibility Debt) entries showing all required fields
 
+### Changed
+
+- **Skill descriptions** — all five `SKILL.md` descriptions now lead with purpose and
+  concrete user trigger phrases instead of the book list; each includes a strengthened
+  "Do NOT trigger for:" guardrail to prevent false activation
+- **Eval classification flags** — replaced fragile name-substring detection with explicit
+  boolean fields: `no_risk_codes: true` (18 false-positive scenarios) and
+  `no_health_score: true` (2 boundary scenarios); the two flags are mutually exclusive
+- **CLAUDE.md** — updated to reflect five skills (added `brooks-health`), corrected eval
+  count (43 → 49), completed `scripts/` listing, added `brooks-health` dev command,
+  documented GitHub Action, custom risks, and VS Code exclusion
+
+### Fixed
+
+- `gemini-extension.json` — added missing `brooks-health` skill and command entries;
+  all four manifests now list five analysis modes
+- Removed VS Code references from `README.md` (Mermaid render list);
+  VS Code Extension marked out of scope in roadmap spec and `CLAUDE.md`
+
 ---
 
 ## [0.9.5] - 2026-04-16
@@ -389,7 +408,7 @@ All notable changes to brooks-lint are documented here.
 
 - **Mermaid Dependency Graph in Architecture Audit (Mode 2)** — the plain-text ASCII
   dependency map is replaced with a Mermaid diagram that renders as a visual graph
-  in GitHub, VS Code, Notion, and other Markdown environments
+  in GitHub, Notion, and other Markdown environments
 - Node color coding by severity: red (Critical), yellow (Warning), green (clean)
 - Automatic grouping by project folder structure using Mermaid subgraphs
 - Circular dependencies visually marked with dotted labeled edges
