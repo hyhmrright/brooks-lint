@@ -191,6 +191,11 @@ Remedy: ...
 [2–3 sentences: what is the most important action, and what is the overall trend]
 ````
 
+## Remedy Mode
+
+When the user passes `--fix` or asks to "fix the findings", read
+`remedy-guide.md` from the `_shared/` directory before writing the report.
+
 ## Health Score Calculation
 
 Base score: 100
