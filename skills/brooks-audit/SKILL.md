@@ -1,23 +1,21 @@
 ---
 name: brooks-audit
 description: >
-  Architecture audit drawing on twelve classic engineering books: The Mythical Man-Month,
-  Code Complete, Refactoring, Clean Architecture, The Pragmatic Programmer,
-  Domain-Driven Design, A Philosophy of Software Design, Software Engineering at Google,
-  xUnit Test Patterns, The Art of Unit Testing, Working Effectively with Legacy Code,
-  and How Google Tests Software.
-  Triggers when: user asks to audit architecture, review module or folder structure,
-  check system design, understand how the codebase is organized, assess project layout,
-  or asks "is this a good design?", "where should I put X?", or "why does everything
-  depend on everything?".
-  Also triggers when user mentions: clean architecture / dependency inversion /
-  hexagonal architecture / bounded contexts / module coupling / package structure /
-  tangled dependencies / circular imports / spaghetti code / directory layout.
-  Also triggers when: user asks for a codebase tour, onboarding guide, or "explain this
-  project to someone new" — use onboarding mode (see Process section below).
+  Architecture audit that maps module dependencies, checks layering integrity, and
+  flags structural decay across a codebase, drawing on twelve classic engineering books.
+  Triggers when: user asks to audit architecture, review folder/module structure,
+  check for circular imports, understand how the codebase is organized, or asks
+  "does this follow clean architecture?", "why does everything depend on everything?",
+  "are our layers correct?", "where should this code live?".
+  Also triggers for onboarding requests: "explain this codebase to a new developer"
+  or "give me a codebase tour" (use onboarding mode).
+  Also triggers when user mentions: dependency inversion / hexagonal architecture /
+  bounded contexts / circular imports / tangled dependencies / module coupling /
+  package structure / spaghetti code / directory layout.
+  Use this skill proactively when project structure, module boundaries, or architectural
+  decisions are discussed — even without the word "audit".
   Do NOT trigger for: PR-level code review (use brooks-review) or line-level refactoring
   questions — this skill analyzes structural/module-level concerns, not individual functions.
-  Use this skill proactively when project structure or module dependencies are discussed.
 ---
 
 # Brooks-Lint — Architecture Audit

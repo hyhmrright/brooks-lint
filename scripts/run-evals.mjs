@@ -84,10 +84,10 @@ for (const ev of evals) {
     }
   }
 
-  // no_risk_codes and no_health_score are optional boolean flags used by the
-  // live runner to classify false-positive scenarios. They are mutually
-  // exclusive: a scenario cannot opt out of both risk-code and health-score
-  // checks at the same time.
+  // no_risk_codes and no_health_score are optional flags that put the live
+  // runner into a false-positive classification mode. They are mutually
+  // exclusive because allowing both would make the verdict indeterminate
+  // (the no_health_score branch exits before risk-code analysis runs).
   if ("no_risk_codes" in ev && ev.no_risk_codes !== true) {
     errors.push(`${label}: 'no_risk_codes' must be true when present (got ${JSON.stringify(ev.no_risk_codes)})`);
   }

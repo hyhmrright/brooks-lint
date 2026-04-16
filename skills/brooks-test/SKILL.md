@@ -1,19 +1,23 @@
 ---
 name: brooks-test
 description: >
-  Test quality review drawing on twelve classic engineering books, with primary focus
-  on xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software,
-  and Working Effectively with Legacy Code.
-  Triggers when: user asks about test quality, shares test files for review,
-  or complains that tests keep breaking for no reason, tests are slow, tests are hard
-  to understand, test setup is complicated, or they can't tell what a test is testing.
-  Also triggers when user mentions: test smells / characterization tests /
-  test pyramid / test doubles / over-mocking / brittle tests / flaky tests /
-  too many mocks / tests break on refactoring / slow test suite.
-  Do NOT trigger for: writing new tests from scratch (use the regular test-writing workflow)
-  or questions about testing frameworks and syntax — this skill reviews an existing test
-  suite for structural quality problems, not individual test authoring questions.
-  Use this skill proactively whenever test files are shared for review.
+  Test quality review drawing on twelve classic engineering books — with primary focus
+  on xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and
+  Working Effectively with Legacy Code — that diagnoses structural problems in an
+  existing test suite: brittleness, mock abuse, coverage illusions, slow execution,
+  poor readability.
+  Triggers when: user asks about test quality, shares test files for review, or
+  expresses frustration: "tests keep breaking whenever I change anything", "our tests
+  take forever", "I can't understand what this test is doing", "tests pass but bugs
+  still reach production", "we have too many mocks".
+  Also triggers when user mentions: test smells / characterization tests / test pyramid /
+  over-mocking / brittle tests / flaky tests / tests break on refactoring / slow test
+  suite / mystery guest / test duplication / tests don't catch bugs.
+  Use this skill proactively whenever test files are shared or the user complains about
+  their test suite — even without using technical terminology.
+  Do NOT trigger for: writing new tests from scratch (use the regular test-writing
+  workflow) or testing framework/syntax questions — this skill reviews an existing
+  suite for structural quality problems, not individual test authoring.
 ---
 
 # Brooks-Lint — Test Quality Review

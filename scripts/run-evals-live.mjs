@@ -69,6 +69,7 @@ function extractRiskCodes(text) {
 function classify(scenario, aiText) {
   const hasHealthScore = /Health\s+Score[:\s]+\d+/i.test(aiText);
 
+  // no_health_score exits before risk-code extraction (codes are not needed).
   if (scenario.no_health_score) {
     return hasHealthScore ? "fail" : "false-positive-pass";
   }
@@ -76,16 +77,17 @@ function classify(scenario, aiText) {
   const expectedCodes = extractRiskCodes(scenario.expected_output);
   const foundCodes    = extractRiskCodes(aiText);
 
+  // no_risk_codes exits after extraction (needs codes, not Iron Law / Health Score).
+  if (scenario.no_risk_codes) {
+    const unexpected = [...foundCodes].filter((c) => expectedCodes.has(c));
+    return unexpected.length === 0 ? "false-positive-pass" : "fail";
+  }
+
   const hasIronLaw =
     /\bSymptom\b/.test(aiText) &&
     /\bSource\b/.test(aiText) &&
     /\bConsequence\b/.test(aiText) &&
     /\bRemedy\b/.test(aiText);
-
-  if (scenario.no_risk_codes) {
-    const unexpectedCodes = [...foundCodes].filter((c) => expectedCodes.has(c));
-    return unexpectedCodes.length === 0 ? "false-positive-pass" : "fail";
-  }
 
   const truePositives  = [...expectedCodes].filter((c) => foundCodes.has(c));
   const falseNegatives = [...expectedCodes].filter((c) => !foundCodes.has(c));
