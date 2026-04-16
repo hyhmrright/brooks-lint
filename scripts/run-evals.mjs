@@ -83,6 +83,20 @@ for (const ev of evals) {
       warnings.push(`${label}: expected_output does not reference any risk code (${RISK_CODES.join(", ")})`);
     }
   }
+
+  // no_risk_codes and no_health_score are optional boolean flags used by the
+  // live runner to classify false-positive scenarios. They are mutually
+  // exclusive: a scenario cannot opt out of both risk-code and health-score
+  // checks at the same time.
+  if ("no_risk_codes" in ev && ev.no_risk_codes !== true) {
+    errors.push(`${label}: 'no_risk_codes' must be true when present (got ${JSON.stringify(ev.no_risk_codes)})`);
+  }
+  if ("no_health_score" in ev && ev.no_health_score !== true) {
+    errors.push(`${label}: 'no_health_score' must be true when present (got ${JSON.stringify(ev.no_health_score)})`);
+  }
+  if (ev.no_risk_codes && ev.no_health_score) {
+    errors.push(`${label}: 'no_risk_codes' and 'no_health_score' are mutually exclusive`);
+  }
 }
 
 // ── Report ─────────────────────────────────────────────────────────────────

@@ -55,7 +55,8 @@
       "prompt": "Review this code:\n\n```go\nconst (\n\tMaxLoginAttempts = 5\n\tLockoutDuration  = 30 * time.Minute\n)\n\nfunc (s *AuthService) Authenticate(ctx context.Context, email, password string) (*Session, error) {\n\tuser, err := s.users.FindByEmail(ctx, email)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"find user: %w\", err)\n\t}\n\n\tif user.IsLockedOut(time.Now(), LockoutDuration) {\n\t\treturn nil, ErrAccountLocked\n\t}\n\n\tif !user.VerifyPassword(password) {\n\t\tuser.RecordFailedAttempt(time.Now())\n\t\tif err := s.users.Save(ctx, user); err != nil {\n\t\t\treturn nil, fmt.Errorf(\"save user: %w\", err)\n\t\t}\n\t\treturn nil, ErrInvalidCredentials\n\t}\n\n\tuser.ResetFailedAttempts()\n\tsession := NewSession(user.ID)\n\n\tif err := s.sessions.Create(ctx, session); err != nil {\n\t\treturn nil, fmt.Errorf(\"create session: %w\", err)\n\t}\n\n\treturn session, nil\n}\n```",
       "expected_output": "Must NOT flag R1 Cognitive Overload. Code has named constants, clear function name, single level of nesting, < 20 lines of logic, descriptive error wrapping. If any findings, they should be unrelated to cognitive overload. Health Score should be high (80+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 8,
@@ -87,7 +88,8 @@
       "prompt": "Review this code:\n\n```python\nclass OrderService:\n    def __init__(self, repo: OrderRepository, events: EventBus):\n        self._repo = repo\n        self._events = events\n\n    def cancel_order(self, order_id: str) -> None:\n        order = self._repo.find_by_id(order_id)\n        order.cancel()\n        self._repo.save(order)\n        self._events.publish(OrderCancelled(order_id=order_id, reason=order.cancel_reason))\n```",
       "expected_output": "Must NOT flag R2 Change Propagation. Service has single responsibility, uses event bus for side effects (no direct coupling to downstream systems). If any findings, they should be unrelated to change propagation. Health Score should be high (80+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 12,
@@ -119,7 +121,8 @@
       "prompt": "Review this code:\n\n```typescript\n// validation.ts\nexport const EmailSchema = z.string().email().max(254);\nexport const PasswordSchema = z.string().min(8).max(72);\n\n// handlers/user.ts\nimport { EmailSchema, PasswordSchema } from '../validation';\n\nexport async function createUser(req: Request) {\n  const { email, password } = z.object({\n    email: EmailSchema,\n    password: PasswordSchema,\n  }).parse(req.body);\n  // ... create user\n}\n\n// handlers/admin.ts\nimport { EmailSchema } from '../validation';\n\nexport async function inviteUser(req: Request) {\n  const { email } = z.object({ email: EmailSchema }).parse(req.body);\n  // ... invite user\n}\n```",
       "expected_output": "Must NOT flag R3 Knowledge Duplication. Validation schemas are defined once (validation.ts) and imported by consumers. This is DRY done correctly. Health Score should be high (80+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 16,
@@ -143,7 +146,8 @@
       "prompt": "Review this code:\n\n```go\nfunc SendWelcomeEmail(smtp *SmtpClient, user User) error {\n\tif !user.IsActive() {\n\t\treturn nil\n\t}\n\tbody := fmt.Sprintf(\"Welcome, %s!\", user.Name)\n\treturn smtp.Send(user.Email, \"Welcome\", body)\n}\n```",
       "expected_output": "Must NOT flag R4 Accidental Complexity. This is the simplest possible implementation — no unnecessary abstractions, no speculative generality. Health Score should be high (90+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 19,
@@ -167,7 +171,8 @@
       "prompt": "Audit this project architecture:\n\n```\nsrc/main/java/com/example/\n├── domain/\n│   ├── model/\n│   │   ├── Order.java          # no external imports\n│   │   └── User.java           # no external imports\n│   └── port/\n│       ├── OrderRepository.java   # interface, no imports\n│       └── UserRepository.java    # interface, no imports\n├── application/\n│   ├── OrderService.java       # imports from domain/model, domain/port\n│   └── UserService.java        # imports from domain/model, domain/port\n├── infra/\n│   ├── JpaOrderRepository.java # imports from domain/port/OrderRepository, domain/model/Order\n│   └── JpaUserRepository.java  # imports from domain/port/UserRepository, domain/model/User\n└── api/\n    ├── OrderController.java    # imports from application/OrderService\n    └── UserController.java     # imports from application/UserService\n```",
       "expected_output": "Must NOT flag R5 Dependency Disorder. Dependencies flow inward: api→application→domain; infra implements domain ports (DIP). No cycles. This is textbook Clean Architecture. Health Score should be high (85+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 22,
@@ -199,7 +204,8 @@
       "prompt": "Review this code:\n\n```go\ntype Order struct {\n\tID        int64\n\tItems     []LineItem\n\tStatus    OrderStatus\n\tCreatedAt time.Time\n}\n\nfunc (o *Order) Cancel(now time.Time) error {\n\tswitch o.Status {\n\tcase StatusPending:\n\t\to.Status = StatusCancelled\n\t\treturn nil\n\tcase StatusShipped:\n\t\to.Status = StatusReturnRequested\n\t\treturn nil\n\tcase StatusDelivered:\n\t\tif now.Sub(o.CreatedAt) > 30*24*time.Hour {\n\t\t\treturn ErrReturnWindowExpired\n\t\t}\n\t\to.Status = StatusReturnRequested\n\t\treturn nil\n\tdefault:\n\t\treturn fmt.Errorf(\"cannot cancel order in status %s\", o.Status)\n\t}\n}\n\nfunc (o *Order) Total() Money {\n\tsubtotal := NewMoney(0)\n\tfor _, item := range o.Items {\n\t\tsubtotal = subtotal.Add(item.LineTotal())\n\t}\n\treturn subtotal.WithBulkDiscount(len(o.Items)).WithTax()\n}\n```",
       "expected_output": "Must NOT flag R6 Domain Model Distortion. Order owns its business logic (Cancel, Total), uses value objects (Money, OrderStatus), domain language is clear. Health Score should be high (85+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 26,
@@ -215,7 +221,8 @@
       "prompt": "Review these tests:\n\n```typescript\ndescribe('PaymentService.charge', () => {\n  it('should return success with transaction ID when charging valid amount', async () => {\n    const gateway = new FakePaymentGateway({ alwaysSucceed: true });\n    const service = new PaymentService(gateway);\n\n    const result = await service.charge(testUser(), 100_00);\n\n    expect(result.status).toBe('success');\n    expect(result.transactionId).toBeDefined();\n  });\n\n  it('should reject zero amount with InvalidAmountError', async () => {\n    const gateway = new FakePaymentGateway();\n    const service = new PaymentService(gateway);\n\n    await expect(service.charge(testUser(), 0))\n      .rejects.toThrow(InvalidAmountError);\n  });\n\n  it('should return failed status when gateway declines the card', async () => {\n    const gateway = new FakePaymentGateway({ alwaysDecline: true });\n    const service = new PaymentService(gateway);\n\n    const result = await service.charge(testUser(), 50_00);\n\n    expect(result.status).toBe('declined');\n  });\n});\n```",
       "expected_output": "Must NOT flag T1 Test Obscurity. Test names describe scenario + expected outcome; each test has clear Arrange-Act-Assert; no Mystery Guest (all setup is inline); assertions are focused. Health Score should be high (85+).",
       "files": [],
-      "mode": "test"
+      "mode": "test",
+      "no_risk_codes": true
     },
     {
       "id": 28,
@@ -231,7 +238,8 @@
       "prompt": "Review these tests:\n\n```go\nfunc TestOrder_Cancel_PendingOrder_SetsCancelled(t *testing.T) {\n\torder := NewOrder(\"user-1\", []LineItem{{SKU: \"A\", Qty: 1}})\n\n\terr := order.Cancel(time.Now())\n\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusCancelled, order.Status)\n}\n\nfunc TestOrder_Cancel_DeliveredWithinWindow_SetsReturnRequested(t *testing.T) {\n\torder := deliveredOrder(t, 7) // delivered 7 days ago\n\n\terr := order.Cancel(time.Now())\n\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusReturnRequested, order.Status)\n}\n\nfunc TestOrder_Cancel_DeliveredPastWindow_ReturnsError(t *testing.T) {\n\torder := deliveredOrder(t, 45) // delivered 45 days ago\n\n\terr := order.Cancel(time.Now())\n\n\tassert.ErrorIs(t, err, ErrReturnWindowExpired)\n\tassert.Equal(t, StatusDelivered, order.Status) // status unchanged\n}\n```",
       "expected_output": "Must NOT flag T2 Test Brittleness. Each test verifies one specific behavior, names describe scenario + expected outcome, helper (deliveredOrder) hides irrelevant setup. Health Score should be high (85+).",
       "files": [],
-      "mode": "test"
+      "mode": "test",
+      "no_risk_codes": true
     },
     {
       "id": 30,
@@ -247,7 +255,8 @@
       "prompt": "Review these tests:\n\n```go\nfunc newTestUserService(t *testing.T) (*UserService, *FakeMailer) {\n\tt.Helper()\n\tdb := newTestDB(t)\n\tmailer := &FakeMailer{}\n\treturn NewUserService(db, mailer), mailer\n}\n\nfunc TestUserService_Create_ValidInput_ReturnsUser(t *testing.T) {\n\tsvc, _ := newTestUserService(t)\n\n\tuser, err := svc.Create(context.Background(), CreateUserInput{Email: \"a@b.com\", Name: \"A\"})\n\n\trequire.NoError(t, err)\n\tassert.Equal(t, \"a@b.com\", user.Email)\n}\n\nfunc TestUserService_Create_ValidInput_SendsWelcomeEmail(t *testing.T) {\n\tsvc, mailer := newTestUserService(t)\n\n\t_, err := svc.Create(context.Background(), CreateUserInput{Email: \"a@b.com\", Name: \"A\"})\n\n\trequire.NoError(t, err)\n\tassert.Contains(t, mailer.SentTo, \"a@b.com\")\n}\n```",
       "expected_output": "Must NOT flag T3 Test Duplication. Setup is extracted into newTestUserService helper, each test is focused on one behavior, no copy-paste. Health Score should be high (85+).",
       "files": [],
-      "mode": "test"
+      "mode": "test",
+      "no_risk_codes": true
     },
     {
       "id": 32,
@@ -263,7 +272,8 @@
       "prompt": "Review these tests:\n\n```python\ndef test_place_order_charges_correct_amount():\n    gateway = FakePaymentGateway()\n    inventory = FakeInventory(stock={'SKU-1': 10})\n    service = OrderService(gateway=gateway, inventory=inventory)\n\n    result = service.place_order(user_id='u1', sku='SKU-1', quantity=3)\n\n    assert result.status == 'placed'\n    assert result.charged_amount == 3 * 1000  # $10.00 per unit\n    assert gateway.charges[-1].amount == 3000\n\ndef test_place_order_decrements_inventory():\n    inventory = FakeInventory(stock={'SKU-1': 10})\n    service = OrderService(gateway=FakePaymentGateway(), inventory=inventory)\n\n    service.place_order(user_id='u1', sku='SKU-1', quantity=3)\n\n    assert inventory.stock['SKU-1'] == 7\n```",
       "expected_output": "Must NOT flag T4 Mock Abuse. Uses fakes (not mocks) with only 2 dependencies; assertions verify state/outcome, not mock calls. Health Score should be high (85+).",
       "files": [],
-      "mode": "test"
+      "mode": "test",
+      "no_risk_codes": true
     },
     {
       "id": 34,
@@ -279,7 +289,8 @@
       "prompt": "Review these tests:\n\n```go\nfunc TestCharge_ValidCard_ReturnsSuccess(t *testing.T) {\n\tresult, err := svc.Charge(ctx, validCard(), 1000)\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusSuccess, result.Status)\n}\n\nfunc TestCharge_ExpiredCard_ReturnsDeclined(t *testing.T) {\n\tresult, err := svc.Charge(ctx, expiredCard(), 1000)\n\trequire.NoError(t, err)\n\tassert.Equal(t, StatusDeclined, result.Status)\n}\n\nfunc TestCharge_ZeroAmount_ReturnsError(t *testing.T) {\n\t_, err := svc.Charge(ctx, validCard(), 0)\n\tassert.ErrorIs(t, err, ErrInvalidAmount)\n}\n\nfunc TestCharge_NegativeAmount_ReturnsError(t *testing.T) {\n\t_, err := svc.Charge(ctx, validCard(), -500)\n\tassert.ErrorIs(t, err, ErrInvalidAmount)\n}\n\nfunc TestCharge_GatewayTimeout_ReturnsError(t *testing.T) {\n\tgateway.SetLatency(10 * time.Second)\n\t_, err := svc.Charge(ctx, validCard(), 1000)\n\tassert.ErrorIs(t, err, ErrGatewayTimeout)\n}\n\nfunc TestRefund_AmountExceedsCharge_ReturnsError(t *testing.T) {\n\tsvc.Charge(ctx, validCard(), 1000)\n\t_, err := svc.Refund(ctx, \"ch_1\", 2000)\n\tassert.ErrorIs(t, err, ErrRefundExceedsCharge)\n}\n\nfunc TestRefund_AlreadyRefunded_ReturnsError(t *testing.T) {\n\tsvc.Charge(ctx, validCard(), 1000)\n\tsvc.Refund(ctx, \"ch_1\", 1000)\n\t_, err := svc.Refund(ctx, \"ch_1\", 1000)\n\tassert.ErrorIs(t, err, ErrAlreadyRefunded)\n}\n```",
       "expected_output": "Must NOT flag T5 Coverage Illusion. Tests cover happy path, error paths (zero/negative amount), infrastructure failures (gateway timeout), and business rule violations (excess refund, double refund). Health Score should be high (85+).",
       "files": [],
-      "mode": "test"
+      "mode": "test",
+      "no_risk_codes": true
     },
     {
       "id": 36,
@@ -295,7 +306,8 @@
       "prompt": "Review this test suite overview:\n\n```\ntests/\n├── e2e/                    # 12 tests, critical user journeys only\n│   ├── checkout.spec.ts\n│   └── auth.spec.ts\n├── integration/            # 45 tests, API contract + DB integration\n│   ├── user-api.test.ts\n│   ├── order-api.test.ts\n│   └── payment-api.test.ts\n└── unit/                   # 180 tests, domain logic + utilities\n    ├── order.test.ts\n    ├── user.test.ts\n    ├── payment.test.ts\n    ├── pricing.test.ts\n    ├── validators.test.ts\n    └── ... (8 more files)\n\nTotal: 237 tests, ~45s execution time\nUnit tests run on pre-commit. Full suite on CI.\n```",
       "expected_output": "Must NOT flag T6 Architecture Mismatch. Pyramid is healthy (180:45:12 ≈ 76:19:5, close to 70:20:10); suite runs in < 1 minute; unit tests gate commits. Health Score should be high (85+).",
       "files": [],
-      "mode": "test"
+      "mode": "test",
+      "no_risk_codes": true
     },
     {
       "id": 38,
@@ -303,7 +315,8 @@
       "prompt": "Review this code:\n\n```go\ntype ExchangeRateProvider interface {\n\tLatest(ctx context.Context, base string) (map[string]decimal.Decimal, error)\n}\n\ntype FXService struct {\n\tprovider ExchangeRateProvider\n}\n\nfunc (s *FXService) Quote(ctx context.Context, base, target string, amount decimal.Decimal) (decimal.Decimal, error) {\n\trates, err := s.provider.Latest(ctx, base)\n\tif err != nil {\n\t\treturn decimal.Zero, fmt.Errorf(\"fetch exchange rates: %w\", err)\n\t}\n\n\trate, ok := rates[target]\n\tif !ok {\n\t\treturn decimal.Zero, ErrUnsupportedCurrency\n\t}\n\n\treturn amount.Mul(rate), nil\n}\n```",
       "expected_output": "Must NOT flag R1 Cognitive Overload. Interface is narrow, method is linear, names are descriptive, and hidden provider complexity should be treated as a deep module rather than a shallow one. Health Score should be high (85+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 39,
@@ -319,7 +332,8 @@
       "prompt": "Review this code:\n\n```typescript\ntype StripeWebhookEvent =\n  | { type: 'payment_intent.succeeded'; payload: PaymentIntent }\n  | { type: 'payment_intent.payment_failed'; payload: PaymentIntent }\n  | { type: 'charge.refunded'; payload: Charge };\n\nexport async function handleStripeWebhook(event: StripeWebhookEvent, service: BillingService) {\n  switch (event.type) {\n    case 'payment_intent.succeeded':\n      return service.recordSuccessfulPayment(event.payload);\n    case 'payment_intent.payment_failed':\n      return service.recordFailedPayment(event.payload);\n    case 'charge.refunded':\n      return service.recordRefund(event.payload);\n    default:\n      return assertNever(event);\n  }\n}\n```",
       "expected_output": "Must NOT flag R4 Accidental Complexity just because a switch exists. This switch is an explicit boundary over a closed external protocol and may be the clearest design. If any concern is raised, it should not be Speculative Generality or missing polymorphism by default.",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 41,
@@ -327,7 +341,8 @@
       "prompt": "Review this code:\n\n```typescript\nexport async function buildApp(): Promise<App> {\n  const db = new PostgresUserRepository(process.env.DATABASE_URL!);\n  const cache = new RedisCache(process.env.REDIS_URL!);\n  const mailer = new SesMailer(process.env.SES_REGION!);\n\n  const userService = new UserService(db, cache, mailer);\n  const orderService = new OrderService(db, cache);\n\n  return new App({ userService, orderService });\n}\n```",
       "expected_output": "Must NOT flag R5 Dependency Disorder merely because concrete infrastructure is instantiated here. This is a composition root / assembly boundary, which is allowed to depend on details. Health Score should remain high unless another real issue is found.",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 42,
@@ -335,7 +350,8 @@
       "prompt": "Review this code:\n\n```python\ndef create_country_tax_rate(db, country_code: str, percentage: Decimal) -> dict:\n    if percentage < 0:\n        raise ValueError('percentage must be >= 0')\n    db.execute(\n        'INSERT INTO tax_rates(country_code, percentage) VALUES (?, ?)',\n        [country_code, percentage],\n    )\n    return {'country_code': country_code, 'percentage': str(percentage)}\n```",
       "expected_output": "Must NOT flag R6 Domain Model Distortion simply because this is a data-oriented transaction script. This is acceptable CRUD-style behavior unless additional domain invariants or rich business rules are present. Health Score should be high (85+).",
       "files": [],
-      "mode": "review"
+      "mode": "review",
+      "no_risk_codes": true
     },
     {
       "id": 43,
@@ -343,7 +359,8 @@
       "prompt": "Review this test suite overview:\n\n```\nlegacy-billing/\n├── characterization/       # 48 tests around invoice recalculation and tax edge cases\n├── integration/            # 62 tests around DB + queue + payment gateway adapters\n├── unit/                   # 34 tests for pricing rules, money math, and retry policies\n└── e2e/                    # 6 tests for payment success/failure and refund flows\n\nTotal runtime: ~4 minutes on CI\nNotes:\n- The team added characterization tests before touching legacy invoice logic.\n- Billing adapters are behind seams (FakeGateway, InMemoryOutbox) for most tests.\n- E2E is kept to customer-critical paths only.\n```",
       "expected_output": "Must NOT flag T6 Architecture Mismatch as Critical solely because the ratio is not close to 70:20:10. The suite is risk-shaped, uses characterization tests and seams for legacy code, and keeps runtime reasonable. If any finding exists, it should acknowledge the deliberate tradeoff rather than treating the ratio alone as a smell.",
       "files": [],
-      "mode": "test"
+      "mode": "test",
+      "no_risk_codes": true
     },
     {
       "id": 44,
@@ -351,7 +368,8 @@
       "prompt": "Run a full health check on this project:\n\n```\nsrc/\n├── index.ts          # entry point, imports from services/ only\n├── services/\n│   ├── UserService.ts  # imports from models/ and lib/db.ts\n│   └── OrderService.ts # imports from models/ and lib/db.ts\n├── models/\n│   ├── User.ts         # pure domain model, no imports\n│   └── Order.ts        # pure domain model, no imports\n└── lib/\n    └── db.ts           # database client, no domain imports\n\nTest suite: 45 unit tests, 12 integration tests, 3 E2E tests\nCI: all green, 90% coverage on services/\nNo recent changes in git diff\n```",
       "expected_output": "Health Dashboard report with Composite Score >= 80/100, a Mermaid dependency graph showing clean layered architecture, all four dimension scores, and a Recommendation section. PR dimension should be skipped (no diff) with weights redistributed. Must NOT flag false positives on clean code.",
       "files": [],
-      "mode": "health"
+      "mode": "health",
+      "no_risk_codes": true
     },
     {
       "id": 45,
