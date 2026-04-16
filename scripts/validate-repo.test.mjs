@@ -8,8 +8,11 @@
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import os from "node:os";
+import { readHistory, appendHistory, getTrend } from "./history.mjs";
 import {
   parseFrontmatterBooks,
   countBookSections,
@@ -228,6 +231,122 @@ test("handles full pr-review-guide pattern", () => {
     extractGuideStepLabels(text),
     ["1", "2", "3", "4", "5", "6a", "6b", "7"],
   );
+});
+
+// ── readHistory ────────────────────────────────────────────────────────────
+
+console.log("\nreadHistory");
+
+function withTempDir(fn) {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "brooks-lint-test-"));
+  try { fn(dir); } finally { rmSync(dir, { recursive: true }); }
+}
+
+test("returns empty array when history file does not exist", () => {
+  withTempDir(dir => assert.deepEqual(readHistory(dir), []));
+});
+
+test("returns parsed array when history file exists", () => {
+  withTempDir(dir => {
+    const record = {
+      date: "2026-04-16T00:00:00Z",
+      mode: "PR Review",
+      score: 85,
+      findings: { critical: 0, warning: 1, suggestion: 2 },
+      scope: "staged changes",
+    };
+    writeFileSync(path.join(dir, ".brooks-lint-history.json"), JSON.stringify([record]));
+    assert.deepEqual(readHistory(dir), [record]);
+  });
+});
+
+test("returns empty array when history file contains invalid JSON", () => {
+  withTempDir(dir => {
+    writeFileSync(path.join(dir, ".brooks-lint-history.json"), "not valid json");
+    assert.deepEqual(readHistory(dir), []);
+  });
+});
+
+// ── appendHistory ─────────────────────────────────────────────────────────
+
+console.log("\nappendHistory");
+
+test("creates history file with first record", () => {
+  withTempDir(dir => {
+    const record = {
+      date: "2026-04-16T00:00:00Z",
+      mode: "PR Review",
+      score: 82,
+      findings: { critical: 1, warning: 2, suggestion: 3 },
+      scope: "staged changes (3 files)",
+    };
+    appendHistory(dir, record);
+    assert.deepEqual(readHistory(dir), [record]);
+  });
+});
+
+test("appends to existing history without overwriting", () => {
+  withTempDir(dir => {
+    const record1 = {
+      date: "2026-04-15T00:00:00Z",
+      mode: "PR Review",
+      score: 85,
+      findings: { critical: 0, warning: 1, suggestion: 2 },
+      scope: "staged changes",
+    };
+    const record2 = {
+      date: "2026-04-16T00:00:00Z",
+      mode: "PR Review",
+      score: 82,
+      findings: { critical: 1, warning: 2, suggestion: 3 },
+      scope: "staged changes (3 files)",
+    };
+    appendHistory(dir, record1);
+    appendHistory(dir, record2);
+    assert.deepEqual(readHistory(dir), [record1, record2]);
+  });
+});
+
+// ── getTrend ───────────────────────────────────────────────────────────────
+
+console.log("\ngetTrend");
+
+test("returns null when history is empty", () => {
+  assert.equal(getTrend([], "PR Review"), null);
+});
+
+test("returns null when no records for the requested mode", () => {
+  const history = [{ mode: "Architecture Audit", score: 90 }];
+  assert.equal(getTrend(history, "PR Review"), null);
+});
+
+test("returns lastScore and runCount for one prior record", () => {
+  const history = [{ mode: "PR Review", score: 85 }];
+  const trend = getTrend(history, "PR Review");
+  assert.equal(trend.lastScore, 85);
+  assert.equal(trend.runCount, 1);
+});
+
+test("returns most recent score when multiple records exist", () => {
+  const history = [
+    { mode: "PR Review", score: 90 },
+    { mode: "PR Review", score: 85 },
+    { mode: "PR Review", score: 82 },
+  ];
+  const trend = getTrend(history, "PR Review");
+  assert.equal(trend.lastScore, 82);
+  assert.equal(trend.runCount, 3);
+});
+
+test("ignores records for other modes", () => {
+  const history = [
+    { mode: "Architecture Audit", score: 90 },
+    { mode: "PR Review", score: 85 },
+    { mode: "PR Review", score: 82 },
+  ];
+  const trend = getTrend(history, "PR Review");
+  assert.equal(trend.lastScore, 82);
+  assert.equal(trend.runCount, 2);
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────
