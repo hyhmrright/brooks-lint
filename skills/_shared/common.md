@@ -200,6 +200,24 @@ Deductions:
 - Each 🟢 Suggestion finding: −1
 Floor: 0 (score cannot go below 0)
 
+## History Tracking
+
+After generating the Health Score, attempt to append a record to `.brooks-lint-history.json`
+in the project root.
+
+**Append logic:**
+1. Read the file (or start with empty array if it doesn't exist)
+2. Append: `{ date, mode, score, findings: { critical, warning, suggestion }, scope }`
+3. Write the file back
+
+**Trend display:** If the history file exists and contains at least one prior record for
+the same mode, add a Trend line after the Health Score in the report:
+
+  **Trend:** 85 → 82 (−3) over last 3 runs
+
+Show the most recent prior score and the delta. If delta is 0: "Stable at 82".
+If this is the first run for this mode: "First run — no trend data".
+
 ## Reference Files
 
 Read on demand:
