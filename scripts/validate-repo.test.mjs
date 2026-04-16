@@ -16,6 +16,7 @@ import {
   countProductionRisks,
   countTestRisks,
   extractChangelogVersion,
+  extractGuideStepLabels,
 } from "./frontmatter.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -172,6 +173,61 @@ test("returns the first (latest) version when multiple entries exist", () => {
 
 test("returns null when no version header found", () => {
   assert.equal(extractChangelogVersion("# Changelog\n\nNo versions yet."), null);
+});
+
+// ── extractGuideStepLabels ───────────────────────────────────────────────
+
+console.log("\nextractGuideStepLabels");
+
+test("extracts step labels from standard headings", () => {
+  const text = "### Step 1: Understand scope\n### Step 2: Scan\n### Step 3: Output\n";
+  assert.deepEqual(extractGuideStepLabels(text), ["1", "2", "3"]);
+});
+
+test("extracts sub-step labels (a/b suffixes)", () => {
+  const text = "### Step 2a: Scan for Brittleness\n### Step 2b: Scan for Mock Abuse\n";
+  assert.deepEqual(extractGuideStepLabels(text), ["2a", "2b"]);
+});
+
+test("handles 0-indexed steps", () => {
+  const text = "### Step 0: Gather Context\n### Step 1: Draw Graph\n### Step 2: Scan\n";
+  assert.deepEqual(extractGuideStepLabels(text), ["0", "1", "2"]);
+});
+
+test("returns empty array when no step headings exist", () => {
+  assert.deepEqual(extractGuideStepLabels("## Process\n\nSome text.\n"), []);
+});
+
+test("ignores non-step headings", () => {
+  const text = "### Before You Start\n### Step 1: Real Step\n### Output\n";
+  assert.deepEqual(extractGuideStepLabels(text), ["1"]);
+});
+
+test("handles mixed main and sub-steps", () => {
+  const text = [
+    "### Step 1: First",
+    "### Step 2: Second",
+    "### Step 2b: Sub of second",
+    "### Step 3: Third",
+  ].join("\n");
+  assert.deepEqual(extractGuideStepLabels(text), ["1", "2", "2b", "3"]);
+});
+
+test("handles full pr-review-guide pattern", () => {
+  const text = [
+    "### Step 1: Understand the scope",
+    "### Step 2: Scan for Change Propagation",
+    "### Step 3: Scan for Cognitive Overload",
+    "### Step 4: Scan for Knowledge Duplication",
+    "### Step 5: Scan for Accidental Complexity",
+    "### Step 6a: Scan for Dependency Disorder",
+    "### Step 6b: Scan for Domain Model Distortion",
+    "### Step 7: Quick Test Check",
+  ].join("\n");
+  assert.deepEqual(
+    extractGuideStepLabels(text),
+    ["1", "2", "3", "4", "5", "6a", "6b", "7"],
+  );
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────

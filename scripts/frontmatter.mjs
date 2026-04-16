@@ -64,3 +64,13 @@ export function countTestRisks(text) {
 export function extractChangelogVersion(text) {
   return text.match(/^## \[(.+?)\] - /m)?.[1] ?? null;
 }
+
+/**
+ * Extract step labels from a guide file.
+ * Matches: ### Step 1, ### Step 2a, ### Step 6b, ### Step 0, etc.
+ * Returns: ["1", "2a", "6b", ...] — the label portion only.
+ */
+export function extractGuideStepLabels(text) {
+  return (text.match(/^### Step (\d+[a-z]?)/gm) ?? [])
+    .map(m => m.replace(/^### Step /, ""));
+}

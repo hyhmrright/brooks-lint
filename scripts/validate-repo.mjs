@@ -9,6 +9,7 @@ import {
   countProductionRisks,
   countTestRisks,
   extractChangelogVersion,
+  extractGuideStepLabels,
 } from "./frontmatter.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -166,6 +167,60 @@ function checkSharedFramework() {
   check(testRisks === TEST_RISK_COUNT, `skills/_shared/test-decay-risks.md should define exactly ${TEST_RISK_COUNT} test risks (found ${testRisks})`);
 }
 
+// ── Step alignment ────────────────────────────────────────────────────────
+
+function checkStepAlignment() {
+  const modeGuides = [
+    ["brooks-review", "pr-review-guide.md"],
+    ["brooks-audit", "architecture-guide.md"],
+    ["brooks-debt", "debt-guide.md"],
+    ["brooks-test", "test-guide.md"],
+  ];
+
+  for (const [mode, guide] of modeGuides) {
+    const guideText = readText(`skills/${mode}/${guide}`);
+    const guideLabels = extractGuideStepLabels(guideText);
+
+    // Guard: guide must have at least 1 step
+    check(
+      guideLabels.length > 0,
+      `skills/${mode}/${guide} has no ### Step headings — expected at least one`,
+    );
+
+    // Check for duplicate step labels within the guide
+    const uniqueLabels = new Set(guideLabels);
+    check(
+      uniqueLabels.size === guideLabels.length,
+      `skills/${mode}/${guide} has duplicate step labels: ${guideLabels.filter((l, i) => guideLabels.indexOf(l) !== i).join(", ")}`,
+    );
+
+    // Verify main step numbers are sequential (ignoring sub-step suffixes).
+    // Extract the numeric base of each label: "6a" → 6, "2b" → 2, "0" → 0
+    const mainSteps = [...new Set(guideLabels.map(l => parseInt(l, 10)))].sort((a, b) => a - b);
+    const expectedStart = mainSteps[0]; // 0-indexed (architecture) or 1-indexed (others)
+    for (let i = 0; i < mainSteps.length; i++) {
+      check(
+        mainSteps[i] === expectedStart + i,
+        `skills/${mode}/${guide} main step sequence has a gap: expected ${expectedStart + i}, found ${mainSteps[i]}`,
+      );
+    }
+
+    // SKILL.md Process section must exist and have at least one numbered item
+    const skillText = readText(`skills/${mode}/SKILL.md`);
+    const processMatch = skillText.match(/## Process\n([\s\S]*?)(?=\n##|$)/);
+    check(
+      processMatch !== null,
+      `skills/${mode}/SKILL.md has no ## Process section`,
+    );
+    if (processMatch) {
+      check(
+        /^\d+\./m.test(processMatch[1]),
+        `skills/${mode}/SKILL.md Process section has no numbered items`,
+      );
+    }
+  }
+}
+
 function checkSkillsContent() {
   const modes = ["brooks-review", "brooks-audit", "brooks-debt", "brooks-test"];
 
@@ -280,6 +335,7 @@ checkConfigExamples();
 checkSourceInventory();
 checkSharedFramework();
 checkSkillsContent();
+checkStepAlignment();
 checkEvalSuite();
 checkContributing();
 checkAgentsDocs();
