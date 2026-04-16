@@ -223,6 +223,41 @@ the same mode, add a Trend line after the Health Score in the report:
 Show the most recent prior score and the delta. If delta is 0: "Stable at 82".
 If this is the first run for this mode: "First run — no trend data".
 
+## Post-Report Triage (Optional)
+
+**Guard:** Only offer triage in interactive sessions. If running in CI/headless mode
+(no user to respond), or if the user has not responded to the initial prompt within
+the same turn, skip triage entirely and proceed to output the report.
+
+After outputting the report, if there are Warning or Suggestion findings, offer:
+
+> Would you like to triage these findings? (accept / dismiss / defer / skip)
+
+If the user engages:
+
+For each finding (starting with lowest severity):
+1. Show the one-line finding title
+2. Ask: `[a]ccept (keep as-is) / [d]ismiss (suppress in future) / [f]defer (revisit later) / [s]kip triage`
+
+**On dismiss:**
+- Ask for a one-line reason
+- Append to `.brooks-lint.yaml` under `suppress:`
+- The finding remains in the current report but will be downgraded to info in future runs
+
+**On defer:**
+- Same as dismiss but add `expires: YYYY-MM-DD` (default: 90 days from now)
+- After expiry, the finding resurfaces at its original severity
+
+**Suppress matching at scan time:**
+When loading `.brooks-lint.yaml`, for each suppress entry:
+- Match `risk` against the finding's risk code
+- Match `pattern` against the file path(s) in the finding's Symptom
+- If both match: downgrade to info level (not counted in Health Score, shown in report
+  under a collapsed "Suppressed" section)
+- If `expires` is set and past: ignore the suppress entry (finding resurfaces at
+  its original severity). Add a note in the report Summary: "N suppressed findings
+  have expired and are now active again."
+
 ## Reference Files
 
 Read on demand:
