@@ -75,6 +75,36 @@ Include N and M even if zero. Omit this line if no config file was found.
 
 ---
 
+## Auto Scope Detection
+
+When the user invokes a skill without specifying files or pasting code, automatically
+detect the review scope:
+
+**PR Review mode:**
+1. Run `git diff --cached` — if non-empty, review staged changes
+2. Else run `git diff` — if non-empty, review unstaged changes
+3. Else run `git diff main...HEAD` (or the project's default branch) — review branch changes
+4. If all empty, ask the user what to review
+
+**Architecture Audit / Tech Debt Assessment mode:**
+- Default: scan entire project (current behavior)
+- If user says `--since=<ref>`: run `git diff <ref>...HEAD --name-only` to get changed
+  files, then only analyze modules containing those files. Note in scope line:
+  "Incremental audit — modules touched since <ref>"
+
+**Test Quality Review mode:**
+- Default: scan all test files (current behavior)
+- Auto-detect: if `git diff --cached` or `git diff` shows changes, prioritize test files
+  co-located with changed production files (e.g., `src/foo.ts` → check `src/foo.test.ts`
+  or `tests/foo.test.ts`)
+
+**Scope line in report:** Always state what was detected.
+- `Scope: staged changes (git diff --cached, 3 files)`
+- `Scope: branch changes vs main (git diff main...HEAD, 12 files)`
+- `Scope: incremental audit — modules touched since v0.9.0`
+
+---
+
 ## The Six Decay Risks
 
 Navigation index only — canonical definitions (symptoms, severity guides, sources, "What Not
