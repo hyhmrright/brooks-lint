@@ -23,7 +23,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
 - `skills/brooks-test/`: Test Quality Review skill and guide.
 - `skills/brooks-health/`: Health Dashboard skill and guide.
-- `skills/_shared/`: Shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md).
+- `skills/_shared/`: Shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `hooks/`: SessionStart hook for session-level awareness (not used by Codex CLI).
 - `commands/`: Short-form command wrappers for Claude Code (not used by Codex CLI).

@@ -375,7 +375,9 @@ brooks-lint/
 │   │   ├── common.md            # Iron Law, Project Config, Report Template, Health Score
 │   │   ├── source-coverage.md   # 12-book coverage matrix, tradeoffs, false-positive guards
 │   │   ├── decay-risks.md       # Six decay risks with symptoms and book citations
-│   │   └── test-decay-risks.md  # Six test-space decay risks with book citations
+│   │   ├── test-decay-risks.md  # Six test-space decay risks with book citations
+│   │   ├── remedy-guide.md      # --fix mode: actionable Remedy enhancement rules
+│   │   └── custom-risks-guide.md  # Template for project-specific risk codes
 │   ├── brooks-review/           # Mode 1: PR Review
 │   │   ├── SKILL.md
 │   │   └── pr-review-guide.md

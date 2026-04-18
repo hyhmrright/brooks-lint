@@ -33,7 +33,9 @@ brooks-lint/
 │   │   ├── common.md        # Iron Law, Project Config, Report Template, Health Score
 │   │   ├── source-coverage.md  # 12-book coverage matrix + false-positive guards
 │   │   ├── decay-risks.md   # Six decay risk definitions with symptoms + sources
-│   │   └── test-decay-risks.md  # Six test-space decay risks
+│   │   ├── test-decay-risks.md  # Six test-space decay risks
+│   │   ├── remedy-guide.md  # --fix mode: actionable Remedy enhancement rules
+│   │   └── custom-risks-guide.md  # Template for project-specific risk codes
 │   ├── brooks-review/       # Mode 1: PR Review
 │   │   ├── SKILL.md         # Skill entry point
 │   │   └── pr-review-guide.md
@@ -121,7 +123,10 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 /brooks-health    # Short form (or /brooks-lint:brooks-health)
 
 # Run live evals against the AI (requires ANTHROPIC_API_KEY)
-node scripts/run-evals-live.mjs
+npm run evals:live        # or: node scripts/run-evals-live.mjs
+
+# View Health Score trend history (.brooks-lint-history.json)
+npm run history           # or: node scripts/history.mjs
 ```
 
 After editing skills, reinstall to sync the marketplace copy (see Install section above).
