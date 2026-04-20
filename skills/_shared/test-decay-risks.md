@@ -77,7 +77,7 @@ The codebase stagnates to protect the test suite — the opposite of what tests 
 | Eager Test | Meszaros — xUnit Test Patterns | Eager Test (p.228) |
 | Erratic Test | Meszaros — xUnit Test Patterns | Erratic Test |
 | Implementation coupling | Osherove — The Art of Unit Testing | Test isolation principle |
-| Orthogonality violation | Hunt & Thomas — The Pragmatic Programmer | Ch.2: Orthogonality |
+| Orthogonality violation | Hunt & Thomas — The Pragmatic Programmer | Ch. 2: Orthogonality |
 
 ### Severity Guide
 
@@ -157,7 +157,7 @@ the developer wrote both.
 |---------|------|-------------------|
 | Mock count > 3 | Osherove — The Art of Unit Testing | Mock usage guidelines |
 | Testing mock behavior | Meszaros — xUnit Test Patterns | Behavior Verification (p.544) |
-| Test-only production methods | Feathers — Working Effectively with Legacy Code | Ch.3: Sensing and Separation |
+| Test-only production methods | Feathers — Working Effectively with Legacy Code | Ch. 3: Sensing and Separation |
 | Hard-Coded Test Data | Meszaros — xUnit Test Patterns | Hard-Coded Test Data (p.534) |
 | Incomplete Mock | Osherove — The Art of Unit Testing | Mock completeness requirement |
 
@@ -198,8 +198,8 @@ than acknowledged ignorance — teams stop looking for gaps because the number s
 
 | Symptom | Book | Principle / Smell |
 |---------|------|-------------------|
-| Legacy code = no tests | Feathers — Working Effectively with Legacy Code | Ch.1: "Legacy code is code without tests" |
-| Change coverage vs line coverage | Google — How Google Tests Software | Ch.11: Testing at Google Scale |
+| Legacy code = no tests | Feathers — Working Effectively with Legacy Code | Ch. 1: "Legacy code is code without tests" |
+| Change coverage vs line coverage | Google — How Google Tests Software | Ch. 11: Testing at Google Scale |
 | Happy-path only | Osherove — The Art of Unit Testing | Test completeness principle |
 
 ### Severity Guide
@@ -242,9 +242,9 @@ runs the most tests at the slowest, most environment-dependent, hardest-to-debug
 | Symptom | Book | Principle / Smell |
 |---------|------|-------------------|
 | Inverted pyramid | Google — How Google Tests Software | 70:20:10 unit:integration:E2E ratio |
-| No seam points | Feathers — Working Effectively with Legacy Code | Ch.4: Seam Model |
-| Missing Characterization Tests | Feathers — Working Effectively with Legacy Code | Ch.13: Characterization Tests |
-| Suite execution time | Meszaros — xUnit Test Patterns | Test suite design principles |
+| No seam points | Feathers — Working Effectively with Legacy Code | Ch. 4: Seam Model |
+| Missing Characterization Tests | Feathers — Working Effectively with Legacy Code | Ch. 13: Characterization Tests |
+| Suite execution time | Meszaros — xUnit Test Patterns | Slow Tests (p. 253) |
 
 ### Severity Guide
 

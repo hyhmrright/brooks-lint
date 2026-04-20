@@ -32,8 +32,9 @@ description: >
 **If the user has not described the codebase or pointed to specific areas:** apply Auto
 Scope Detection from `../_shared/common.md` to determine the assessment scope before proceeding.
 
-1. Scan for all six decay risks; list every finding before scoring any of them
-2. Apply the Pain x Spread priority formula
-3. Output using the Report Template from common.md, plus the Debt Summary Table
+1. Scan for all six decay risks (Step 1 of the guide); list every finding before scoring
+2. Apply the Pain × Spread priority formula and classify debt intent (Steps 2–3 of the guide)
+3. Group findings by decay risk (Step 4 of the guide)
+4. Output using the Report Template from common.md, plus the Debt Summary Table
 
 **Mode line in report:** `Tech Debt Assessment`

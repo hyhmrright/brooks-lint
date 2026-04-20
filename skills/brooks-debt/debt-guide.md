@@ -23,7 +23,7 @@ which areas could not be assessed.
 
 ## Analysis Process
 
-Work through these three steps in order.
+Work through these four steps in order.
 
 ### Step 1: Full Decay Risk Scan
 
@@ -78,7 +78,7 @@ After listing all findings, score each one:
 | 4–6 | Scheduled debt | Plan within quarter |
 | 1–3 | Monitored debt | Log and watch |
 
-### Step 2b: Classify Debt Intent
+### Step 3: Classify Debt Intent
 
 After scoring, classify each finding as intentional or accidental:
 
@@ -95,7 +95,7 @@ Intentional debt with no visible payback plan — no linked ticket, no code comm
 documented decision — should be treated as accidental for prioritization purposes.
 Focus remediation energy on accidental debt first; intentional debt at least has an owner.
 
-### Step 3: Group by Decay Risk
+### Step 4: Group by Decay Risk
 
 Report findings grouped by risk type, not by file or module.
 Grouping by risk reveals systemic patterns:

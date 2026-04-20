@@ -107,7 +107,7 @@ Rules:
 *The most architecturally consequential risk — scan this first.*
 
 Look for:
-- Circular dependencies (any ⚠️ in the map above)
+- Circular dependencies (any `-.->|circular|` edge in the map above)
 - Arrows flowing upward (high-level domain depending on low-level infrastructure)
 - Stable, widely-depended-on modules that import from frequently-changing modules
 - Modules with fan-out > 5

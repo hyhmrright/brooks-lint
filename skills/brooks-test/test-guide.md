@@ -123,7 +123,7 @@ test("characterize: [module].[method] given [input], returns [current output]") 
   // Add a comment: "This captures current behavior, not necessarily correct behavior"
 }
 ```
-Source: Feathers — Working Effectively with Legacy Code, Ch. 8
+Source: Feathers — Working Effectively with Legacy Code, Ch. 13: Characterization Tests
 
 Look for Architecture Mismatch:
 - Compare the suite map from the start: is the ratio close to 70% unit / 20% integration / 10% E2E?
@@ -137,7 +137,7 @@ breaks the fast-feedback loop and causes developers to skip running tests locall
 - If tests that could be unit tests are integration tests, that is a Performance Mismatch:
   each misclassified test adds seconds of avoidable wait time
 
-Source: Winters et al. — Software Engineering at Google, Ch. 11: Testing Overview
+Source: Meszaros — xUnit Test Patterns, Slow Tests (p. 253)
 
 ### Step 5: Apply Iron Law, Output Report
 

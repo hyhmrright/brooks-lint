@@ -191,7 +191,7 @@ fighting scaffolding than solving the problem.
 | Switch Statements | Fowler — Refactoring | Switch Statements |
 | Second System Effect | Brooks — The Mythical Man-Month | Ch. 5: The Second-System Effect |
 | YAGNI violations | McConnell — Code Complete | Ch. 5: Design in Construction |
-| Over-engineering | Hunt & Thomas — The Pragmatic Programmer | Ch. 2: The Evils of Duplication (YAGNI corollary) |
+| Over-engineering | Hunt & Thomas — The Pragmatic Programmer | Topic 4: Good-Enough Software |
 | Tactical programming debt | Ousterhout — A Philosophy of Software Design | Ch. 3: Strategic vs. Tactical Programming |
 
 ### Severity Guide

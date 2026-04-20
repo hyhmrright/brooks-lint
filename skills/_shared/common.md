@@ -106,6 +106,10 @@ detect the review scope:
   co-located with changed production files (e.g., `src/foo.ts` → check `src/foo.test.ts`
   or `tests/foo.test.ts`)
 
+**Health Dashboard mode:**
+- Default: scan the entire project (same scope as Architecture Audit) — runs abbreviated scans across all four dimensions
+- If the user passes a path or directory, scope every dimension's sub-scan to that path
+
 **Scope line in report:** Always state what was detected.
 - `Scope: staged changes (git diff --cached, 3 files)`
 - `Scope: branch changes vs main (git diff main...HEAD, 12 files)`
@@ -274,4 +278,4 @@ Read on demand:
 |------|-------------|
 | `source-coverage.md` | At the start of every review, before writing findings |
 | `decay-risks.md` | Before any production-code review or architecture/debt assessment |
-| `test-decay-risks.md` | Before any test review and before PR Review Step 7 |
+| `test-decay-risks.md` | Before any test review and before the PR Review "Quick Test Check" step |

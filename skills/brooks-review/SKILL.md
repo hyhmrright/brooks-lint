@@ -31,8 +31,9 @@ description: >
 **If the user has not specified files or pasted code:** apply Auto Scope Detection
 from `../_shared/common.md` to determine the review scope before proceeding.
 
-1. Scan the diff or code for each decay risk in the order specified in the guide
-2. Apply the Iron Law to every finding
-3. Output using the Report Template from common.md
+1. Understand the review scope, then scan for each decay risk in the order specified (Steps 1–6 of the guide)
+2. Run the Quick Test Check (Step 7 of the guide) — skip for docs-only or non-production changes
+3. Apply the Iron Law to every finding
+4. Output using the Report Template from common.md
 
 **Mode line in report:** `PR Review`

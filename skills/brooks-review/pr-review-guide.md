@@ -116,14 +116,6 @@ add a one-line "Recommended fix order" at the end of the Findings section.
 
 ---
 
-## Output
-
-Use the standard Report Template from `../_shared/common.md`.
-Mode: PR Review
-Scope: list the files reviewed (excluding skipped generated files).
-
----
-
 ### Step 7: Quick Test Check
 
 *Run this last. Three signals only — this is not a full Mode 4 review.*
@@ -137,7 +129,7 @@ production logic changes → skip Step 7 entirely.
 - Are corresponding test file changes included in the diff?
 - If new public behavior was added with no new tests:
   → 🟡 Warning: Coverage Illusion — new behavior is untested
-  → Source: Feathers — Working Effectively with Legacy Code, Ch.1
+  → Source: Feathers — Working Effectively with Legacy Code, Ch. 1
 - If the change is a pure refactor and existing tests cover the behavior → no finding.
 
 **Signal 2: Quick Mock Abuse sniff**
@@ -175,3 +167,11 @@ Label the risk as the test decay risk name (e.g., "Coverage Illusion", "Mock Abu
 > **Note:** Step 7 is a fast check, not a full test audit. When systemic test problems
 > are found, note in the Summary: "Consider running `/brooks-lint:brooks-test` for a
 > complete test quality diagnosis."
+
+---
+
+## Output
+
+Use the standard Report Template from `../_shared/common.md`.
+Mode: PR Review
+Scope: list the files reviewed (excluding skipped generated files).

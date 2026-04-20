@@ -3,6 +3,8 @@
 **Purpose:** Produce a cross-dimensional health dashboard for the codebase.
 Every finding must follow the Iron Law: Symptom → Source → Consequence → Remedy.
 
+---
+
 ## Analysis Process
 
 ### Step 1: Run Lightweight Scan Across Four Dimensions
@@ -26,7 +28,7 @@ checklists below instead.
 **Debt dimension:**
 - Scan for all six decay risks (R1-R6) across the codebase
 - Cap at 2 findings per risk, 3 findings total
-- Skip Pain x Spread scoring (use severity tier only)
+- Skip Pain × Spread scoring (use severity tier only)
 
 **Test dimension:**
 - Build the Test Suite Map (unit/integration/E2E counts)
@@ -61,11 +63,14 @@ across the remaining three dimensions by dividing each remaining weight by
 
 Use the dashboard report template below instead of the standard common.md template.
 
+---
+
 ## Dashboard Report Template
 
 ````markdown
 # Brooks-Lint Health Dashboard
 
+**Mode:** Health Dashboard
 **Scope:** [project name or directory]
 **Composite Score:** XX/100
 

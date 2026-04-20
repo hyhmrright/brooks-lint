@@ -349,19 +349,19 @@ public String processRefund(Payment p) { return "Refunded $" + p.getAmount() + "
 | Domain Model Distortion | 1 | 9.0 | Critical |
 | Cognitive Overload | 1 | 6.0 | Scheduled |
 
-#### 🔴 Change Propagation — Shotgun Surgery across six modules (Pain×Spread: 9)
+#### 🔴 Change Propagation — Shotgun Surgery across six modules (Pain × Spread: 9)
 
 **Symptom:** Adding EUR requires editing 6 files in 6 distinct layers that have no architectural relationship.
 **Source:** Fowler — *Refactoring* — Shotgun Surgery; Hunt & Thomas — *The Pragmatic Programmer* — Orthogonality
 **Remedy:** Introduce a `Money` value object (amount + Currency enum) and a `MoneyFormatter` service. All six classes receive `Money` and delegate rendering.
 
-#### 🔴 Knowledge Duplication — `$` duplicated as magic literal in five files (Pain×Spread: 9)
+#### 🔴 Knowledge Duplication — `$` duplicated as magic literal in five files (Pain × Spread: 9)
 
 **Symptom:** The string `"$"` appears in 5 independent locations with no shared constant.
 **Source:** Hunt & Thomas — *The Pragmatic Programmer* — DRY; McConnell — *Code Complete* — Ch. 12
 **Remedy:** Use `java.util.Currency.getSymbol(Locale)` in `MoneyFormatter`. Remove all `"$"` literals.
 
-#### 🔴 Domain Model Distortion — No `Money` type exists (Pain×Spread: 9)
+#### 🔴 Domain Model Distortion — No `Money` type exists (Pain × Spread: 9)
 
 **Symptom:** All price/amount fields are raw `double`. No `Money`, `MonetaryAmount`, or `Price` type anywhere.
 **Source:** Evans — *Domain-Driven Design* — Domain Model pattern; Fowler — *Refactoring* — Data Class

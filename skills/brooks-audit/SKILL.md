@@ -37,11 +37,11 @@ than diagnoses — no Health Score, no Iron Law findings.
 **If the user has not specified files or a directory to audit:** apply Auto Scope
 Detection from `../_shared/common.md` to determine the audit scope before proceeding.
 
-1. Draw the module dependency graph as a Mermaid diagram (Step 1 of the guide)
-2. Scan for each decay risk in the order specified in the guide (Steps 2–4)
-3. Assign node colors in the Mermaid diagram based on findings (red/yellow/green) — do this after Step 4
-4. Run the Testability Seam Assessment (Step 5)
-5. Run the Conway's Law check (Step 6)
+1. Gather codebase context and draw the module dependency graph as Mermaid (Steps 0–1 of the guide)
+2. Scan for each decay risk in the order specified (Steps 2–4 of the guide)
+3. Assign node colors in the Mermaid diagram based on findings (red/yellow/green) — after Step 4
+4. Run the Testability Seam Assessment (Step 5 of the guide)
+5. Run the Conway's Law check (Step 6 of the guide)
 6. Output using the Report Template from common.md — Mermaid graph FIRST, then Findings
 
 **Mode line in report:** `Architecture Audit`
