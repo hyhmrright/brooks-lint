@@ -16,10 +16,12 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - **After activation (CRITICAL):** Once a skill is activated via slash command, you MUST immediately read the skill's `SKILL.md` and follow every step in its **Setup** and **Process** sections — do NOT wait for additional user input. Treat the slash command as the trigger to start the review right away.
 
 ## Engineering Standards
-- **Comment Preference:** All internal documentation and configuration should remain in English for international consistency.
+- **Language:** Repo source and configuration stay in English for international consistency. Review output follows the user's language — see the "Language rule" in `skills/_shared/common.md` (Iron Law field labels, book titles, and smell names stay in English even when the prose is translated).
 - **The Iron Law:** NEVER suggest fixes before completing risk diagnosis. Every finding MUST follow: **Symptom → Source → Consequence → Remedy**.
 - **Scoring System:** Base score 100. Deductions: 🔴 Critical (−15), 🟡 Warning (−5), 🟢 Suggestion (−1). Floor is 0.
 - **Project Config:** If a `.brooks-lint.yaml` exists in the project root, read and apply it before running any review mode.
+- **SKILL.md Process vs guide steps:** `SKILL.md` Process is a high-level skeleton (3–6 items) that cites guide Step ranges inline (e.g. `Scan decay risks (Steps 1–7 of the guide)`); the guide owns the detailed numbered steps. Counts do NOT need to match 1:1. Automated: `npm run validate` checks guide step continuity (sub-steps like `2a`/`6b` allowed) and SKILL.md Process-section presence.
+- **Trigger descriptions:** Every `SKILL.md` `description:` field must include a "Do NOT trigger for:" clause defining the negative boundary to prevent false triggering.
 
 ## Project Structure
 - `skills/brooks-review/`: PR Review skill and guide.
@@ -30,10 +32,10 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `skills/_shared/`: Shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `commands/`: Short-form command wrappers (used by Claude Code, not Gemini CLI).
 - `hooks/`: SessionStart hook for Claude Code session-level awareness.
-- `evals/`: Performance benchmark test cases (49 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks). No automated runner — validate manually by running the skill against each scenario's input.
+- `evals/`: Performance benchmark test cases across R1–R6 and T1–T6, including false-positive and tradeoff checks. Structural validation: `npm run evals`. Live evals against the AI: `npm run evals:live` (requires `ANTHROPIC_API_KEY`).
 
 ## Development & Debugging
-- **Skill Testing:** After modifying `skills/` locally, refresh using `gemini skills reload`.
+- **Skill Testing:** After modifying `skills/` locally, exit the Gemini CLI (`/quit`) and relaunch to pick up the changes.
 - **Extension Installation:** Users can install the extension in the current workspace via `/extensions install .`.
 
 ---

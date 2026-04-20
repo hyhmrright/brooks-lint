@@ -4,7 +4,7 @@ Thanks for wanting to help. brooks-lint gets better with every new symptom patte
 book citation, and eval test case that gets added — and most contributions require
 zero code.
 
-## Three Ways to Contribute
+## Four Ways to Contribute
 
 ### 1. Add a finding to an existing decay risk (easiest)
 
@@ -36,17 +36,6 @@ misses something important or produces a finding that's consistently wrong, the
 fix is almost always in one of these files or in `skills/_shared/source-coverage.md`,
 which captures book-level scope, exceptions, and tradeoffs.
 
-### Adding a new decay risk (advanced)
-
-Adding an entirely new risk category (e.g., R7 or T7) requires touching five places.
-Run `npm run validate` after each step to confirm no drift:
-
-1. **`skills/_shared/decay-risks.md`** or **`test-decay-risks.md`** — add the full risk definition (Diagnostic Question, Symptoms, Sources table, Severity Guide, What Not to Flag)
-2. **`skills/_shared/source-coverage.md`** — add the new risk to the relevant book sections under "Encoded today"
-3. **`validate-repo.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
-4. **Mode guide(s)** (`pr-review-guide.md`, `architecture-guide.md`, `debt-guide.md`, `test-guide.md`) — add diagnostic questions for the new risk where relevant
-5. **`evals/evals.json`** — add at least one benchmark scenario for the new risk, using the next sequential `id`
-
 ### 3. Add an eval test case (most impactful)
 
 The benchmark (94% pass rate) was produced by running the skill against test cases
@@ -66,14 +55,26 @@ current skill misses is the highest-value contribution.
 }
 ```
 
-Use the next sequential `id` after the last entry in the array (currently 49). The `mode` field is required — use one of: `"review"`, `"audit"`, `"debt"`, `"test"`, `"health"`.
+Use the next sequential `id` after the last entry in `evals/evals.json` (currently 49 scenarios). The `mode` field is required — use one of: `"review"`, `"audit"`, `"debt"`, `"test"`, `"health"`.
 
 Optional flags for special scenarios:
 - `"no_risk_codes": true` — for false-positive scenarios where no risk codes should appear in output
 - `"no_health_score": true` — for scenarios testing Health Score suppression (e.g. onboarding mode)
 - These two flags are mutually exclusive.
+
 In your PR, show the before/after: what the skill produced before your change
 and what it produces after. Even a screenshot or paste of the output is enough.
+
+### 4. Adding a new decay risk (advanced)
+
+Adding an entirely new risk category (e.g., R7 or T7) requires touching five places.
+Run `npm run validate` after each step to confirm no drift:
+
+1. **`skills/_shared/decay-risks.md`** or **`test-decay-risks.md`** — add the full risk definition (Diagnostic Question, Symptoms, Sources table, Severity Guide, What Not to Flag)
+2. **`skills/_shared/source-coverage.md`** — add the new risk to the relevant book sections under "Encoded today"
+3. **`validate-repo.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
+4. **Mode guide(s)** (`pr-review-guide.md`, `architecture-guide.md`, `debt-guide.md`, `test-guide.md`) — add diagnostic questions for the new risk where relevant
+5. **`evals/evals.json`** — add a scenario (see §3 for format)
 
 ## Local Testing
 

@@ -7,7 +7,7 @@ assignees: ''
 
 ## Scenario
 
-**Review mode:** <!-- PR Review / Architecture Audit / Tech Debt / Test Quality -->
+**Review mode:** <!-- PR Review / Architecture Audit / Tech Debt / Test Quality — Health Dashboard aggregates the other four and has no dedicated eval scenarios -->
 
 **Decay risk targeted:** <!-- R1 Cognitive Overload / R2 Change Propagation / R3 Knowledge Duplication / R4 Accidental Complexity / R5 Dependency Disorder / R6 Domain Model Distortion / T1-T6 for test risks -->
 

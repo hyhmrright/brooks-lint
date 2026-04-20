@@ -11,7 +11,7 @@ assignees: ''
 
 ## How to reproduce
 
-**Review mode:** <!-- PR Review / Architecture Audit / Tech Debt / Test Quality -->
+**Review mode:** <!-- PR Review / Architecture Audit / Tech Debt / Test Quality / Health Dashboard -->
 
 **Input (code snippet or description):**
 ```
@@ -34,4 +34,4 @@ assignees: ''
 
 ## Version
 
-<!-- Run: cat ~/.claude/plugins/.../package.json | grep version -->
+<!-- Paste the brooks-lint version (shown in the README badge, or run `/plugin list` in Claude Code). -->
