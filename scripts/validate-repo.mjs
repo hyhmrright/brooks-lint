@@ -95,7 +95,7 @@ function checkChangelog() {
   );
 }
 
-// Canonical Claude Code install command — must stay consistent across README and CLAUDE.md.
+// Canonical Claude Code install command — must appear in README.md.
 const CANONICAL_INSTALL_CMD = "/plugin marketplace add hyhmrright/brooks-lint";
 
 function checkReadmeIntegrity() {
@@ -295,11 +295,6 @@ function checkAgentsDocs() {
   );
 }
 
-function checkClaudeMd() {
-  const claudeMd = readText("CLAUDE.md");
-  check(claudeMd.includes(CANONICAL_INSTALL_CMD), `CLAUDE.md should contain canonical install command`);
-}
-
 function checkSecurity() {
   const security = readText("SECURITY.md");
   check(!security.includes("<!--"), "SECURITY.md still contains placeholder content");
@@ -342,7 +337,6 @@ checkStepAlignment();
 checkEvalSuite();
 checkContributing();
 checkAgentsDocs();
-checkClaudeMd();
 checkSecurity();
 checkHookOutput();
 
