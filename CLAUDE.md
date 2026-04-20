@@ -1,156 +1,58 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when modifying this repository. For repo layout, install steps, and user-facing usage, see `README.md` — this file covers only what's needed to safely *change* the repo.
 
 ## What This Repo Is
 
-**brooks-lint** is a Claude Code Plugin for code quality diagnosis using principles from twelve classic software engineering books. It surfaces decay risks across five review modes (PR Review, Architecture Audit, Tech Debt Assessment, Test Quality Review, Health Dashboard). Each mode is an independent skill under `skills/` — installed and used by Claude Code.
+**brooks-lint** is a Claude Code Plugin for code-quality diagnosis grounded in twelve classic software engineering books. Five independent skills under `skills/` (PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard) each produce findings in the Iron Law form: **Symptom → Source → Consequence → Remedy**.
 
-## Install
+## Workflow Conventions
 
-```bash
-# Via plugin marketplace (recommended)
-/plugin marketplace add hyhmrright/brooks-lint
-/plugin install brooks-lint@brooks-lint-marketplace
+- **Direct-to-main workflow:** Pushes go to `main` without a PR. After Edit/Write, the global rule's `simplify` + `pr-review-toolkit:code-reviewer` reviews still run before commit; only the optional PR-only `code-review:code-review` step is skipped.
+- **Doc sources of truth:** `package.json` is canonical for version; book inventory is canonical in `skills/_shared/source-coverage.md` (see Gotchas for derivation). README.md, AGENTS.md, GEMINI.md, and CHANGELOG.md must stay in sync — `npm run validate` enforces this.
+- **VS Code extension is OUT OF SCOPE.** Do not plan, propose, or reference VS Code extension features.
 
-# Manual
-cp -r skills/ ~/.claude/skills/brooks-lint
+## Critical Gotchas
 
-# Short-form commands (/brooks-review) are auto-installed by the session-start hook.
-# To install manually: cp commands/*.md ~/.claude/commands/
-```
+- **Skill sync after edit:** `skills/` (this repo) and the installed copy (`~/.claude/plugins/cache/.../skills/` or `~/.claude/skills/brooks-lint/`) are independent. For local testing of unsubmitted edits: `cp -r skills/* ~/.claude/skills/brooks-lint/`. To refresh the marketplace install after pushing: `/plugin marketplace update` then `/plugin install brooks-lint@brooks-lint-marketplace`.
+- **`_shared/` is not a skill:** It holds shared framework files (Iron Law, Report Template, decay-risk definitions). Skills must explicitly read these via the Read tool — they are NOT auto-loaded. Claude Code ignores directories without `SKILL.md`.
+- **Step numbering alignment:** Convention — every `SKILL.md` Process section must mirror its guide's step count and numbering. `npm run validate` only enforces guide step continuity (no gaps, no duplicates, sequential main steps) and SKILL.md Process-section presence; count parity is on the author. When adding a step to a guide, manually update the SKILL.md Process list.
+- **SKILL.md trigger descriptions:** Every `description:` field MUST include a "Do NOT trigger for:" clause. Without it, false triggering occurs (e.g. `brooks-debt` firing on HTTP `/health` questions).
+- **Book count is derived, never hardcoded:** `validate-repo.mjs` reads `source-coverage.md` frontmatter and derives `sourceCount` from it. Adding a book = update the frontmatter list + add the corresponding section; the validator auto-adapts.
+- **`package.json` is ESM:** `"type": "module"` enables ESM for everything in `scripts/`. Skills are plain markdown — no bundling.
+- **Slash commands:** Plugin skills register as `/brooks-lint:brooks-review`. Short forms (`/brooks-review`) are auto-installed to `~/.claude/commands/` by the session-start hook — they are thin wrappers, not separate definitions.
+- **GitHub Action cache:** `.github/actions/brooks-lint/action.yml` uses `actions/cache@v4` with built-in cache-hit guard — do NOT add a manual directory check.
+- **Custom risks:** Teams add project-specific risk codes via `custom-risks-guide.md` in their project root. Template lives at `skills/_shared/custom-risks-guide.md`.
 
-## Architecture
+## How the Skills Work
 
-### Structure
-
-```
-brooks-lint/
-├── .claude-plugin/          # Claude Code plugin metadata
-├── .codex-plugin/           # Codex CLI plugin metadata
-├── skills/
-│   ├── _shared/             # Shared framework files
-│   │   ├── common.md        # Iron Law, Project Config, Report Template, Health Score
-│   │   ├── source-coverage.md  # 12-book coverage matrix + false-positive guards
-│   │   ├── decay-risks.md   # Six decay risk definitions with symptoms + sources
-│   │   ├── test-decay-risks.md  # Six test-space decay risks
-│   │   ├── remedy-guide.md  # --fix mode: actionable Remedy enhancement rules
-│   │   └── custom-risks-guide.md  # Template for project-specific risk codes
-│   ├── brooks-review/       # Mode 1: PR Review
-│   │   ├── SKILL.md         # Skill entry point
-│   │   └── pr-review-guide.md
-│   ├── brooks-audit/        # Mode 2: Architecture Audit
-│   │   ├── SKILL.md
-│   │   └── architecture-guide.md
-│   ├── brooks-debt/         # Mode 3: Tech Debt Assessment
-│   │   ├── SKILL.md
-│   │   └── debt-guide.md
-│   ├── brooks-test/         # Mode 4: Test Quality Review
-│   │   ├── SKILL.md
-│   │   └── test-guide.md
-│   └── brooks-health/       # Mode 5: Health Dashboard
-│       ├── SKILL.md
-│       └── health-guide.md
-├── hooks/                   # SessionStart hook for session-level awareness
-├── commands/                # Short-form command wrappers (auto-installed by hook, or manual copy)
-├── evals/                   # Benchmark suite (49 scenarios across 5 modes)
-├── scripts/                 # Repo tooling
-│   ├── validate-repo.mjs    # Consistency CI gate (versions, descriptions, skills content)
-│   ├── frontmatter.mjs      # Shared parseFrontmatterBooks() utility
-│   ├── run-evals.mjs        # Eval structural validator (IDs, fields, risk code refs)
-│   ├── run-evals-live.mjs   # Live eval runner (calls AI, classifies pass/partial/fail)
-│   ├── assemble-prompt.mjs  # Builds full skill prompt from SKILL.md + shared files
-│   ├── ci-review.mjs        # CI integration for PR review workflow
-│   ├── cli-utils.mjs        # Shared CLI utilities (arg parsing, output formatting)
-│   ├── history.mjs          # Health Score trend tracking (.brooks-lint-history.json)
-│   └── validate-repo.test.mjs  # Unit tests for parseFrontmatterBooks
-├── docs/gallery.md          # Visual output examples (used for README/promotion)
-├── AGENTS.md                # Codex CLI project instructions
-├── GEMINI.md                # Gemini CLI project instructions
-└── gemini-extension.json    # Gemini CLI extension manifest
-```
-
-### How the skills work
-
-1. `hooks/session-start` injects a brief note into every session listing the five available skills
-2. When triggered, Claude loads the appropriate skill's `SKILL.md` via the Skill tool
-3. Each SKILL.md instructs Claude to read `_shared/common.md` for the Iron Law, Config, and Report Template
-4. Claude reads the mode-specific guide and the relevant decay-risks file from `_shared/`
-5. Each finding follows the Iron Law: Symptom → Source → Consequence → Remedy
-6. Output follows the standard report template with Health Score (base 100, deductions per finding)
-
-### Project Config (`.brooks-lint.yaml`)
-
-Teams can place a `.brooks-lint.yaml` in their project root to customize review behavior:
-- `disable` — skip specific risk codes (e.g. `T3` for projects without coverage requirements)
-- `severity` — override severity tier for a risk (e.g. downgrade `R1` to `suggestion`)
-- `ignore` — glob patterns for files to exclude (e.g. `**/vendor/**`)
-- `focus` — evaluate only listed risks
-
-Copy `.brooks-lint.example.yaml` from this repo as a starting template.
-
-## Multi-Platform Support
-
-brooks-lint runs on three AI coding platforms: Claude Code, Codex CLI, and Gemini CLI. Each has its own plugin manifest and project instructions file (see Structure above). `package.json` is the canonical version source; manifests and docs must stay in sync with it.
+1. `hooks/session-start` injects a brief skill list into every session
+2. Triggered skill loads its `SKILL.md` via the Skill tool
+3. `SKILL.md` instructs Claude to read `_shared/common.md` (Iron Law, Config, Report Template)
+4. Claude reads the mode-specific guide + relevant decay-risks file
+5. Findings follow the Iron Law: **Symptom → Source → Consequence → Remedy**
+6. Output uses the standard report template with Health Score (base 100; deductions per finding, floor 0)
 
 ## Eval Suite
 
-`evals/evals.json` contains 49 benchmark scenarios covering R1-R6 (code decay) and T1-T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario is a JSON object with input context and expected findings. To add a scenario, append to the `evals` array with the next sequential `id` and the relevant risk code. Each eval has `id`, `name`, `prompt`, `expected_output`, `mode`, and `files` fields. Optional flags: `no_risk_codes: true` (false-positive scenarios where no risk codes should appear in output), `no_health_score: true` (scenarios testing Health Score suppression) — these two flags are mutually exclusive.
+`evals/evals.json` contains 49 benchmark scenarios covering R1–R6 (code decay) and T1–T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario has `id`, `name`, `prompt`, `expected_output`, `mode`, `files`. Optional flags (mutually exclusive): `no_risk_codes: true` (no risk codes expected in output) or `no_health_score: true` (Health Score suppression test).
 
-`scripts/run-evals.mjs` validates the structural integrity of evals.json (sequential IDs, required fields, risk code references) — run it with `npm run evals`. `scripts/run-evals-live.mjs` runs the skill against each scenario and classifies output as pass/partial/fail — requires `ANTHROPIC_API_KEY`.
+To add a scenario: append to the `evals` array with the next sequential `id` and the relevant risk code. Validate structure with `npm run evals`; live-test with `npm run evals:live` (requires `ANTHROPIC_API_KEY`).
 
 ## Development Commands
 
 ```bash
-# Validate repo consistency (manifests, README, changelog, source inventory, skills structure)
-npm run validate          # or: node scripts/validate-repo.mjs
-
-# Unit tests for validate-repo.mjs helper functions
-npm test                  # or: node scripts/validate-repo.test.mjs
-
-# Validate eval suite structural integrity (IDs, required fields, risk code refs)
-npm run evals             # or: node scripts/run-evals.mjs
+npm run validate          # Repo consistency: manifests, README badge, changelog, source inventory, skills structure
+npm test                  # Unit tests for validate-repo helpers
+npm run evals             # Eval structural validation (IDs, fields, risk-code refs)
+npm run evals:live        # Live evals against the AI (requires ANTHROPIC_API_KEY)
+npm run history           # View Health Score trend (.brooks-lint-history.json)
 
 # Test hooks locally
 bash hooks/session-start                        # local branch
 CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
-
-# Run the skills in Claude Code (short form auto-installed by session-start hook)
-/brooks-review    # Short form (or /brooks-lint:brooks-review)
-/brooks-audit     # Short form (or /brooks-lint:brooks-audit)
-/brooks-debt      # Short form (or /brooks-lint:brooks-debt)
-/brooks-test      # Short form (or /brooks-lint:brooks-test)
-/brooks-health    # Short form (or /brooks-lint:brooks-health)
-
-# Run live evals against the AI (requires ANTHROPIC_API_KEY)
-npm run evals:live        # or: node scripts/run-evals-live.mjs
-
-# View Health Score trend history (.brooks-lint-history.json)
-npm run history           # or: node scripts/history.mjs
 ```
-
-After editing skills, reinstall to sync the marketplace copy (see Install section above).
 
 ## Release Process
 
-1. Bump version in `package.json`
-2. Add `## [X.Y.Z] - YYYY-MM-DD` section to `CHANGELOG.md`
-3. `npm run validate` — confirms all manifests, README badge, and changelog are in sync
-4. Commit, push, create GitHub release tag
-
-`validate-repo.mjs` will catch any version drift between `package.json`, manifests,
-and the changelog before you push.
-
-## Development Gotchas
-
-- **Skill sync:** `skills/` and the marketplace install path (`~/.claude/plugins/...`) are two independent copies — reinstall manually after edits.
-- **package.json:** `"type": "module"` enables ESM for all scripts in `scripts/`. Skills themselves are plain markdown — no bundling needed.
-- **Slash commands:** Plugin skills register as namespaced commands (`/brooks-lint:brooks-review`). Short-form commands (`/brooks-review`) are auto-installed to `~/.claude/commands/` by the session-start hook. These are thin wrappers that delegate to the plugin skills.
-- **`_shared/` convention:** `skills/_shared/` holds common framework files (Iron Law, Report Template, decay risk definitions). It is NOT a skill directory — Claude Code ignores directories without `SKILL.md` when registering commands.
-- **Version sync:** `package.json` is the canonical version source. `hooks/session-start` reads it dynamically; `validate-repo.mjs` checks all manifests, the README badge, and the changelog for drift.
-- **Book count source of truth:** `skills/_shared/source-coverage.md` frontmatter (`books:` list) is the canonical book inventory. `validate-repo.mjs` derives `sourceCount` and all word-based checks from it — do NOT hardcode the count elsewhere. To add a book: update the frontmatter list and add the corresponding section; the validator auto-adapts.
-- **Step numbering alignment:** Each skill's `SKILL.md` Process section must list steps that match the guide's step count and numbering. Automated: `npm run validate` checks guide step continuity (no gaps, no duplicates, sequential main steps) and SKILL.md Process section presence. When adding a step to a guide, update the corresponding SKILL.md Process list too.
-- **SKILL.md trigger descriptions:** Every `description:` field must include a "Do NOT trigger for:" clause that defines the negative boundary. This prevents false triggering (e.g., `brooks-debt` firing on HTTP health-check questions).
-- **GitHub Action:** `.github/actions/brooks-lint/action.yml` provides a reusable action for CI workflows. Deps are cached via `actions/cache@v4` with cache-hit guard — do not add a manual directory check.
-- **Custom risks:** Teams can add project-specific risk codes by placing a `custom-risks-guide.md` in their project root. See `skills/_shared/custom-risks-guide.md` for the template.
-- **VS Code Extension:** out of scope — do not plan, reference, or propose VS Code extension features.
+Bump `package.json` version → add `## [X.Y.Z] - YYYY-MM-DD` to `CHANGELOG.md` → `npm run validate` (catches drift across manifests, README badge, changelog) → commit, push, tag GitHub release.
