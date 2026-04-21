@@ -10,6 +10,8 @@ import {
   countTestRisks,
   extractChangelogVersion,
   extractGuideStepLabels,
+  PRODUCTION_RISK_COUNT,
+  TEST_RISK_COUNT,
 } from "./frontmatter.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,10 +53,6 @@ const sourceWordCap = sourceWord.charAt(0).toUpperCase() + sourceWord.slice(1);
 const evals = readJson("evals/evals.json");
 const evalCount = evals.evals.length;
 
-// Risk category counts — mirror the section counts in decay-risks.md (R1–RN)
-// and test-decay-risks.md (T1–TN). Update both constants when adding a new risk category.
-const PRODUCTION_RISK_COUNT = 6;
-const TEST_RISK_COUNT = 6;
 
 // ── Validation sections ────────────────────────────────────────────────────
 

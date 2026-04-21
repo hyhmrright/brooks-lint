@@ -21,6 +21,7 @@ import {
   extractChangelogVersion,
   extractGuideStepLabels,
 } from "./frontmatter.mjs";
+import { extractRiskCodes, classify } from "./eval-utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -347,6 +348,76 @@ test("ignores records for other modes", () => {
   const trend = getTrend(history, "PR Review");
   assert.equal(trend.lastScore, 82);
   assert.equal(trend.runCount, 2);
+});
+
+// ── extractRiskCodes ───────────────────────────────────────────────────────
+
+console.log("\nextractRiskCodes");
+
+test("extracts R-codes from text", () => {
+  assert.deepEqual([...extractRiskCodes("R1 and R2 are present")], ["R1", "R2"]);
+});
+
+test("extracts T-codes from text", () => {
+  assert.deepEqual([...extractRiskCodes("T3 and T6 detected")], ["T3", "T6"]);
+});
+
+test("returns empty set when no risk codes present", () => {
+  assert.equal(extractRiskCodes("no codes here").size, 0);
+});
+
+// ── classify ───────────────────────────────────────────────────────────────
+
+console.log("\nclassify");
+
+test("returns 'pass' when all expected codes found with Iron Law and Health Score", () => {
+  const scenario = { expected_output: "R1" };
+  const aiText = "R1 Symptom: x Source: y Consequence: z Remedy: w Health Score: 85/100";
+  assert.equal(classify(scenario, aiText), "pass");
+});
+
+test("returns 'partial' when some codes found with Iron Law but Health Score absent", () => {
+  const scenario = { expected_output: "R1 R2" };
+  const aiText = "R1 Symptom: x Source: y Consequence: z Remedy: w";
+  assert.equal(classify(scenario, aiText), "partial");
+});
+
+test("returns 'fail' when no expected codes found in output", () => {
+  const scenario = { expected_output: "R1 R2" };
+  const aiText = "Symptom: x Source: y Consequence: z Remedy: w Health Score: 85/100";
+  assert.equal(classify(scenario, aiText), "fail");
+});
+
+test("returns 'false-positive-pass' for no_health_score when output has no score", () => {
+  const scenario = { expected_output: "", no_health_score: true };
+  assert.equal(classify(scenario, "output without a health score"), "false-positive-pass");
+});
+
+test("returns 'fail' for no_health_score when Health Score IS present in output", () => {
+  const scenario = { expected_output: "", no_health_score: true };
+  assert.equal(classify(scenario, "Health Score: 90/100"), "fail");
+});
+
+test("returns 'false-positive-pass' for no_risk_codes when expected code is absent", () => {
+  const scenario = { expected_output: "R1", no_risk_codes: true };
+  assert.equal(classify(scenario, "no risk codes here"), "false-positive-pass");
+});
+
+test("returns 'fail' for no_risk_codes when expected code IS present in output", () => {
+  const scenario = { expected_output: "R1", no_risk_codes: true };
+  assert.equal(classify(scenario, "output mentioning R1"), "fail");
+});
+
+test("returns 'false-positive-pass' for no_risk_codes when only an unrelated code appears", () => {
+  const scenario = { expected_output: "R1", no_risk_codes: true };
+  // AI may flag other risks; only the specific tested code failing is a false-positive
+  assert.equal(classify(scenario, "R2 mentioned here"), "false-positive-pass");
+});
+
+test("returns 'fail' when codes found but Iron Law terms absent", () => {
+  const scenario = { expected_output: "R1 R2" };
+  const aiText = "R1 R2 Health Score: 85/100";
+  assert.equal(classify(scenario, aiText), "fail");
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────

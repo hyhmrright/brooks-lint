@@ -18,6 +18,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { VALID_MODES } from "./assemble-prompt.mjs";
+import { PRODUCTION_RISK_COUNT, TEST_RISK_COUNT } from "./frontmatter.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -29,11 +30,6 @@ const evals = evalsData.evals;
 
 const REQUIRED_FIELDS = ["id", "name", "prompt", "expected_output", "mode"];
 
-// Must match the risk categories defined in skills/_shared/decay-risks.md (production)
-// and skills/_shared/test-decay-risks.md (test). Update both constants when adding a new
-// risk category so RISK_CODES stays in sync automatically.
-const PRODUCTION_RISK_COUNT = 6;
-const TEST_RISK_COUNT = 6;
 const RISK_CODES = [
   ...Array.from({ length: PRODUCTION_RISK_COUNT }, (_, i) => `R${i + 1}`),
   ...Array.from({ length: TEST_RISK_COUNT }, (_, i) => `T${i + 1}`),

@@ -74,3 +74,6 @@ export function extractGuideStepLabels(text) {
   return (text.match(/^### Step (\d+[a-z]?)/gm) ?? [])
     .map(m => m.replace(/^### Step /, ""));
 }
+
+export const PRODUCTION_RISK_COUNT = 6;
+export const TEST_RISK_COUNT = 6;
