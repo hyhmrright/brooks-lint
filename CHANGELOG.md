@@ -6,6 +6,82 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [1.0.1] - 2026-04-21
+
+Documentation and consistency patch. No behavior or API changes — all skill logic is
+unchanged. Existing users on v1.0.0 can upgrade at any time with no migration risk.
+
+### Fixed
+
+- **`README.md` Manual Install commands** — `cp -r skills/ ~/.claude/skills/brooks-lint`
+  silently created a `brooks-lint/skills/` nested directory; fixed to
+  `mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`.
+  Same fix applied to the Gemini CLI Manual Install block.
+- **`pr-review-guide.md` structural ordering** — the `## Output` section appeared
+  *before* Step 7, leaving the Analysis Process non-contiguous. Step 7 is now the last
+  analysis step and `## Output` follows.
+- **`test-guide.md` Characterization Tests citation** — `Ch. 8` corrected to
+  `Ch. 13: Characterization Tests` (matches `test-decay-risks.md:246` and Feathers'
+  *Working Effectively with Legacy Code*).
+- **`decay-risks.md` Risk 4 over-engineering source** — removed incorrect "Evils of
+  Duplication (YAGNI corollary)" reference (Evils of Duplication is DRY, not YAGNI);
+  replaced with `Topic 4: Good-Enough Software` from *The Pragmatic Programmer*.
+- **`architecture-guide.md` Step 2 pointer** — circular-dependency instruction now cites
+  the actual `-.->|circular|` Mermaid edge in the example, replacing the stale ⚠️ symbol
+  that never appeared in the map.
+- **`test-decay-risks.md` T6 source** — `Test suite design principles` (vague) tightened
+  to Meszaros' `Slow Tests (p. 253)`; `test-guide.md` slow-suite source aligned to the
+  same citation.
+- **`GEMINI.md` fictional command** — `gemini skills reload` removed; replaced with
+  `exit the Gemini CLI (/quit) and relaunch`. `GEMINI.md` and `AGENTS.md` both state
+  `npm run evals` / `npm run evals:live` as the eval runners (was "No automated runner").
+- **`common.md` Auto Scope Detection** — added the missing Health Dashboard branch;
+  replaced the hard-coded `"PR Review Step 7"` reference with the named
+  `"Quick Test Check"` step so step renumbering no longer rots the text.
+- **`debt-guide.md` step numbering** — promoted `Step 2b: Classify Debt Intent` to
+  `Step 3`, renumbered `Group by Decay Risk` to `Step 4`, and updated the
+  `"three steps" -> "four steps"` preamble.
+- **`CONTRIBUTING.md` structure** — `"Three Ways to Contribute"` -> `"Four Ways to
+  Contribute"`; `Adding a new decay risk` promoted to numbered §4 and moved after
+  §3 for logical difficulty progression (1→2→3→4); fixed broken list rendering
+  where `"In your PR..."` was missing a blank line and rendered as a list-item
+  continuation.
+- **`.github/ISSUE_TEMPLATE/bug_report.md`** — added Health Dashboard to the
+  `Review mode` options; replaced broken `cat ~/.claude/plugins/.../package.json`
+  placeholder with `/plugin list` guidance.
+- **`docs/gallery.md` self-contradictions** — `"Critical / Scheduled"` cell in the
+  Debt Summary Table (a single-cell two-way classification that didn't fit the
+  schema) now reads `"Mixed (1 Critical + 1 Scheduled)"`; `~9 minutes` / `~542 seconds`
+  time references harmonized; preamble changed from "no manual editing" to
+  "lightly abridged — some Consequence lines trimmed" for honesty.
+
+### Changed
+
+- **SKILL.md Process convention** — `SKILL.md` Process sections are now a high-level
+  skeleton (3–6 items) that cites guide `Step` ranges inline (e.g. `Scan decay risks
+  (Steps 1–7 of the guide)`) rather than mirroring the guide's full step list 1:1.
+  The guide owns the detailed numbered steps; the skeleton is for orientation.
+  Counts no longer need to match — `CLAUDE.md`, `AGENTS.md`, and `GEMINI.md` all
+  document the new rule. `npm run validate` still enforces guide step continuity
+  (sub-steps like `2a`/`6b` allowed) and SKILL.md Process-section presence.
+  All five `SKILL.md` Process sections updated to the new skeleton+citation format.
+- **`commands/*.md` frontmatter** — all five short-form command wrappers now declare
+  `allowed-tools: Skill`, so the command turn can only dispatch the skill (the skill
+  itself has full tool access once invoked).
+- **Typographic consistency** — unified `Pain × Spread` (Unicode × with spaces) across
+  `debt/SKILL.md`, `health-guide.md`, `evals.json`, and `docs/gallery.md`; unified
+  `Ch. X` chapter citations (with the ASCII space after the period) across
+  `test-decay-risks.md`, `test-guide.md`, `architecture-guide.md`, and
+  `pr-review-guide.md`.
+- **`README.md` Roadmap** — added a "Current state" callout above the version-by-
+  version history so early entries like "v0.3: Eight Brooks dimensions" and
+  "v0.4: Six-book framework" aren't misread as the current feature set.
+- **`health-guide.md` dashboard template** — added the `**Mode:** Health Dashboard`
+  field and standard `---` section dividers to align with the report templates used
+  by the other four skills.
+
+---
+
 ## [1.0.0] - 2026-04-16
 
 ### Added
