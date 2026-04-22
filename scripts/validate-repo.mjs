@@ -168,14 +168,17 @@ function checkSharedFramework() {
 
 // ── Step alignment ────────────────────────────────────────────────────────
 
+const SKILL_GUIDES = [
+  ["brooks-review", "pr-review-guide.md"],
+  ["brooks-audit", "architecture-guide.md"],
+  ["brooks-debt", "debt-guide.md"],
+  ["brooks-test", "test-guide.md"],
+  ["brooks-health", "health-guide.md"],
+  ["brooks-sweep", "sweep-guide.md"],
+];
+
 function checkStepAlignment() {
-  const modeGuides = [
-    ["brooks-review", "pr-review-guide.md"],
-    ["brooks-audit", "architecture-guide.md"],
-    ["brooks-debt", "debt-guide.md"],
-    ["brooks-test", "test-guide.md"],
-    ["brooks-health", "health-guide.md"],
-  ];
+  const modeGuides = SKILL_GUIDES;
 
   for (const [mode, guide] of modeGuides) {
     const guideText = readText(`skills/${mode}/${guide}`);
@@ -222,7 +225,7 @@ function checkStepAlignment() {
 }
 
 function checkSkillsContent() {
-  const modes = ["brooks-review", "brooks-audit", "brooks-debt", "brooks-test", "brooks-health"];
+  const modes = SKILL_GUIDES.map(([mode]) => mode);
 
   // Guard: _shared/ must never contain a SKILL.md — it is a shared library directory,
   // not a skill. If one is added accidentally, Claude Code would register it as a broken skill.
@@ -249,13 +252,7 @@ function checkSkillsContent() {
     );
   }
 
-  const guides = [
-    ["brooks-review", "pr-review-guide.md"],
-    ["brooks-audit", "architecture-guide.md"],
-    ["brooks-debt", "debt-guide.md"],
-    ["brooks-test", "test-guide.md"],
-    ["brooks-health", "health-guide.md"],
-  ];
+  const guides = SKILL_GUIDES;
 
   for (const [mode, guide] of guides) {
     const content = readText(`skills/${mode}/${guide}`);

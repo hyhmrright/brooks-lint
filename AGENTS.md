@@ -7,7 +7,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 
 ## Skill Integration
 - **Auto-trigger:** You **must** proactively use the appropriate skill whenever discussing code quality, PR reviews, architecture health, test quality, or technical debt.
-- **Skill invocation:** Activate the matching skill with `$brooks-review`, `$brooks-audit`, `$brooks-debt`, `$brooks-test`, or `$brooks-health`.
+- **Skill invocation:** Activate the matching skill with `$brooks-review`, `$brooks-audit`, `$brooks-debt`, `$brooks-test`, `$brooks-health`, or `$brooks-sweep`.
 
 ## Engineering Standards
 - **Comment Preference:** All internal documentation and configuration should remain in English for international consistency.
@@ -23,6 +23,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
 - `skills/brooks-test/`: Test Quality Review skill and guide.
 - `skills/brooks-health/`: Health Dashboard skill and guide.
+- `skills/brooks-sweep/`: Full Sweep & Auto-Fix skill and guide.
 - `skills/_shared/`: Shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `hooks/`: SessionStart hook for session-level awareness (not used by Codex CLI).

@@ -13,6 +13,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
   - `/brooks-debt`: Tech Debt Assessment (loads `skills/brooks-debt/`)
   - `/brooks-test`: Test Quality Review (loads `skills/brooks-test/`)
   - `/brooks-health`: Health Dashboard (loads `skills/brooks-health/`)
+  - `/brooks-sweep`: Full Sweep & Auto-Fix (loads `skills/brooks-sweep/`)
 - **After activation (CRITICAL):** Once a skill is activated via slash command, you MUST immediately read the skill's `SKILL.md` and follow every step in its **Setup** and **Process** sections — do NOT wait for additional user input. Treat the slash command as the trigger to start the review right away.
 
 ## Engineering Standards
@@ -29,6 +30,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
 - `skills/brooks-test/`: Test Quality Review skill and guide.
 - `skills/brooks-health/`: Health Dashboard skill and guide.
+- `skills/brooks-sweep/`: Full Sweep & Auto-Fix skill and guide.
 - `skills/_shared/`: Shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `commands/`: Short-form command wrappers (used by Claude Code, not Gemini CLI).
 - `hooks/`: SessionStart hook for Claude Code session-level awareness.

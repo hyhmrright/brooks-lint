@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.1.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -246,6 +246,7 @@ cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 | `/brooks-lint:brooks-debt` | `/brooks-debt` | Tech debt assessment |
 | `/brooks-lint:brooks-test` | `/brooks-test` | Test suite health review |
 | `/brooks-lint:brooks-health` | `/brooks-health` | Health dashboard — all four dimensions |
+| `/brooks-lint:brooks-sweep` | `/brooks-sweep` | Full sweep — analyse all dimensions and auto-fix findings |
 
 > Short-form commands are auto-installed on first session start by the session-start hook.
 
@@ -257,6 +258,7 @@ cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 | `/brooks-debt` | Tech debt assessment |
 | `/brooks-test` | Test suite health review |
 | `/brooks-health` | Health dashboard — all four dimensions |
+| `/brooks-sweep` | Full sweep — analyse all dimensions and auto-fix findings |
 
 ### Codex CLI
 
@@ -267,6 +269,7 @@ cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 | `$brooks-debt` | Tech debt assessment |
 | `$brooks-test` | Test suite health review |
 | `$brooks-health` | Health dashboard — all four dimensions |
+| `$brooks-sweep` | Full sweep — analyse all dimensions and auto-fix findings |
 
 The skills also trigger automatically when you discuss code quality, architecture, maintainability, or test health.
 
@@ -321,6 +324,16 @@ $brooks-health                      # Codex CLI
 ```
 
 Runs abbreviated scans across all four quality dimensions and produces a weighted composite Health Score (0–100). Use it before a release, when onboarding a new team, or whenever you want a big-picture "how are we doing?" report. For deeper diagnosis on any dimension, use the focused skill instead.
+
+### Full Sweep
+
+```
+/brooks-sweep                       # Claude Code (short form) / Gemini CLI
+/brooks-lint:brooks-sweep           # Claude Code (full form)
+$brooks-sweep                       # Codex CLI
+```
+
+Runs a unified scan across all production (R1–R6) and test (T1–T6) decay risks plus architecture in a single pass, then applies fixes: safe changes are auto-applied immediately, multi-file or interface-touching changes require confirmation, and complex architectural decisions are flagged as manual items. Outputs a Fix Log, Health Score delta, and a residual item list.
 
 ## Configuration
 
@@ -392,9 +405,12 @@ brooks-lint/
 │   ├── brooks-test/             # Mode 4: Test Quality Review
 │   │   ├── SKILL.md
 │   │   └── test-guide.md
-│   └── brooks-health/           # Mode 5: Health Dashboard
+│   ├── brooks-health/           # Mode 5: Health Dashboard
+│   │   ├── SKILL.md
+│   │   └── health-guide.md
+│   └── brooks-sweep/            # Mode 6: Full Sweep & Auto-Fix
 │       ├── SKILL.md
-│       └── health-guide.md
+│       └── sweep-guide.md
 ├── hooks/                       # SessionStart hook
 ├── commands/                    # Short-form command wrappers (auto-installed by hook)
 ├── evals/                       # Benchmark test cases

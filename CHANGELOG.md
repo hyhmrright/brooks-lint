@@ -6,6 +6,27 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [1.1.0] - 2026-04-22
+
+New skill: `brooks-sweep` — full-sweep auto-fix mode. Runs a unified analysis across all
+quality dimensions in a single pass, then applies fixes directly: safe changes are
+auto-applied, risky changes require confirmation, architectural decisions are flagged as
+manual. No changes to any existing skill logic.
+
+### Added
+
+- **`brooks-sweep` skill** (`skills/brooks-sweep/`) — orchestrates production decay scan
+  (R1–R6), test decay scan (T1–T6), and architecture analysis in one pass, then classifies
+  findings into Auto / Confirm / Manual fix classes and applies them.
+- **`commands/brooks-sweep.md`** — short-form `/brooks-sweep` command wrapper
+  (auto-installed by session-start hook).
+- **`SKILL_GUIDES` constant** in `validate-repo.mjs` — replaces three previously separate
+  mode arrays with a single source of truth; future skill additions require only one
+  array entry.
+- Session-start hook updated to advertise six skills (was five).
+
+---
+
 ## [1.0.1] - 2026-04-21
 
 Documentation and consistency patch. No behavior or API changes — all skill logic is
