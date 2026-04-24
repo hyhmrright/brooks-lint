@@ -6,6 +6,36 @@ All notable changes to brooks-lint are documented here.
 
 ---
 
+## [1.2.0] - 2026-04-24
+
+`brooks-sweep` pipeline rewritten from a single-pass unified scan into a sequential,
+fully autonomous audit-and-fix loop. Inputs and report format are unchanged; the
+methodology between consent and report is different. Existing `/brooks-sweep`
+invocations continue to work — users see more automation and a new iteration history
+in the report.
+
+### Changed
+
+- **`skills/brooks-sweep/sweep-guide.md`** rewritten as a 9-Phase pipeline (Step 0
+  consent → Step 1 scope + state → Steps 2–5 four-dimension sequence: review → test →
+  debt → audit → Step 6 iteration loop → Steps 7–8 residual + report). Each dimension
+  scans, classifies, applies Safe + Extended-Safe fixes, and verifies via the project
+  test command before the next dimension starts.
+- **`skills/brooks-sweep/SKILL.md`** Process skeleton aligned to the new Phase structure.
+- **Fix-Class taxonomy**: previous `Auto / Confirm / Manual` replaced by
+  `Safe / Extended-Safe / Residual`. Multi-file changes with test coverage and no public
+  API break now auto-apply (was: always required confirmation). After the Step 0 consent
+  gate there are no further user prompts during execution — risky findings are recorded
+  in the Residual report instead of waiting on a mid-pipeline confirmation.
+- **Iteration loop** re-scans modified files + same-module + static consumers and
+  converges on clean rounds. Findings that fail 3 fix attempts are retired to an
+  `unresolvable` set and never re-queued. Non-critical rounds cap at 3
+  (configurable via `sweep.max_iterations` in `.brooks-lint.yaml`).
+- **User interaction**: one consent gate at Step 0. After consent, the pipeline runs
+  hands-free until the final report.
+
+---
+
 ## [1.1.0] - 2026-04-22
 
 New skill: `brooks-sweep` — full-sweep auto-fix mode. Runs a unified analysis across all

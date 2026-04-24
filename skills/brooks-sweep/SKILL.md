@@ -29,10 +29,10 @@ description: >
 **If the user has not specified a project or directory:** apply Auto Scope Detection
 from `../_shared/common.md` to determine the review scope before proceeding.
 
-1. Run a unified scan across all production and test decay risks in one pass (Steps 1–3 of the guide)
-2. Aggregate, deduplicate, and classify findings by severity and fix-safety (Step 4 of the guide)
-3. Apply auto-fixes for safe, local, reversible findings (Steps 5–6 of the guide)
-4. Confirm with user before applying high-risk or multi-file changes (Step 7 of the guide)
-5. Output the Sweep Report with fix log, confirmed changes, and residual items (Step 8 of the guide)
+1. Show pre-flight consent notice and wait for the user's one-time approval (Step 0 of the guide)
+2. Enumerate scope and initialize the `unresolvable` / `non_critical_rounds` / `fix_log` state (Step 1 of the guide)
+3. Run the four dimensions in sequence — review, test, debt, audit — each scanning, classifying, applying Safe + Extended-Safe fixes, and verifying via the project test command (Steps 2–5 of the guide)
+4. Iterate: re-scan modified files + same-module + static consumers; converge on a clean round, retire 3-retry failures to the `unresolvable` set, cap non-critical rounds at 3 (Step 6 of the guide)
+5. Aggregate residual and unresolvable items and output the Full Sweep Report (Steps 7–8 of the guide)
 
 **Mode line in report:** `Full Sweep`
