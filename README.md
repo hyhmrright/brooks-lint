@@ -502,6 +502,12 @@ The decay risks encoded in this tool are our synthesis of their ideas, applied t
 
 ---
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=hyhmrright/brooks-lint&type=Date)](https://star-history.com/#hyhmrright/brooks-lint&Date)
+
+---
+
 <p align="center">
   <strong>⭐ If this tool helped you see your codebase differently, give it a star!</strong>
 </p>
