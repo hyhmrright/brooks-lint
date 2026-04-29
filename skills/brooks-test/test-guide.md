@@ -141,26 +141,7 @@ Source: Meszaros — xUnit Test Patterns, Slow Tests (p. 253)
 
 ### Step 5: Apply Iron Law, Output Report
 
-For every finding identified above, write it in this format:
+Apply the Iron Law format from `../_shared/common.md` to each finding.
 
-```
-**[Test Risk Name] — [Short title]**
-Symptom: [the exact thing observed in the test files — quote file names or patterns]
-Source: [Book title — Smell or Principle name]
-Consequence: [what happens to the test suite if this is not addressed]
-Remedy: [concrete, specific action]
-```
-
-Do not write a finding you cannot complete. If you can identify a symptom but cannot
-state a consequence, re-read `../_shared/test-decay-risks.md` for that risk before writing the finding.
-
----
-
-## Output
-
-Use the standard Report Template from `../_shared/common.md`.
-Mode: Test Quality Review
-Scope: the test files or directory reviewed.
-
-Include the Test Suite Map as a code block before the Findings section,
-labeled "Test Suite Map".
+Use the standard Report Template. Mode: Test Quality Review.
+Include the Test Suite Map as a code block immediately before the `## Findings` heading, labeled "Test Suite Map".

@@ -11,8 +11,6 @@ description: >
   DDD / domain-driven design / SOLID principles / Hyrum's Law / deep modules /
   tactical programming / conceptual integrity / Brooks's Law / Mythical Man-Month /
   second system effect.
-  Use this skill proactively whenever existing code, a diff, or a PR is present —
-  even if the user doesn't say "review" explicitly.
   Do NOT trigger for: questions about how to write code from scratch, language syntax
   questions, or framework/tool questions where no existing code is shared.
 ---

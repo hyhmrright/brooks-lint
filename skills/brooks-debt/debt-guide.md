@@ -106,23 +106,20 @@ Grouping by risk reveals systemic patterns:
 
 ## Output
 
-Use the standard Report Template from `../_shared/common.md`.
-Mode: Tech Debt Assessment
+Use the standard Report Template from `../_shared/common.md`. Mode: Tech Debt Assessment.
 
-After the Findings section, append a Debt Summary Table:
+After Findings, append a Debt Summary Table:
 
 ```
 ## Debt Summary
-
-| Risk | Findings | Avg Priority | Dominant Classification | Intent |
-|------|----------|-------------|------------------------|--------|
-| Cognitive Overload | N | X.X | Monitored / Scheduled / Critical | intentional / accidental |
-| Change Propagation | N | X.X | ... | ... |
-| Knowledge Duplication | N | X.X | ... | ... |
-| Accidental Complexity | N | X.X | ... | ... |
-| Dependency Disorder | N | X.X | ... | ... |
+| Risk | Findings | Avg Priority | Classification | Intent |
+|------|----------|-------------|----------------|--------|
+| Cognitive Overload      | N | X.X | Monitored/Scheduled/Critical | intentional/accidental |
+| Change Propagation      | N | X.X | ... | ... |
+| Knowledge Duplication   | N | X.X | ... | ... |
+| Accidental Complexity   | N | X.X | ... | ... |
+| Dependency Disorder     | N | X.X | ... | ... |
 | Domain Model Distortion | N | X.X | ... | ... |
 
-**Recommended focus:** [The one or two risks with the highest average priority — these are
-where investment will have the most impact.]
+**Recommended focus:** [risks with highest average priority]
 ```

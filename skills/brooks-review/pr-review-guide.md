@@ -88,23 +88,9 @@ If no new imports and no structural changes → skip, no finding.
 
 ---
 
-## Applying the Iron Law
+## Severity Calibration
 
-For every finding identified above, write it in this format:
-
-```
-**[Risk Name] — [Short title]**
-Symptom: [the exact thing you saw in the diff — quote line numbers if helpful]
-Source: [Book title — Principle or Smell name]
-Consequence: [what will happen if this is not addressed]
-Remedy: [concrete action, specific to this code]
-```
-
-Do not write a finding that you cannot complete fully. If you can identify a symptom but
-cannot state a consequence, you have not understood the risk well enough — re-read
-`../_shared/decay-risks.md` for that risk before writing the finding.
-
-**Severity calibration:** Each risk in `../_shared/decay-risks.md` has its own Severity
+Apply the Iron Law format from `../_shared/common.md`. Each risk in `../_shared/decay-risks.md` has its own Severity
 Guide with numeric thresholds — use those as the primary reference. When a finding sits
 on the boundary between two tiers, use this as a tiebreaker:
 - 🔴 Critical — actively breaking velocity or creating production risk *today*
@@ -116,7 +102,7 @@ add a one-line "Recommended fix order" at the end of the Findings section.
 
 ---
 
-### Step 7: Quick Test Check
+## Step 7: Quick Test Check
 
 *Run this last. Three signals only — this is not a full Mode 4 review.*
 

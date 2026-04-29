@@ -186,43 +186,10 @@ After the six-risk scan, assess the relationship between architecture and team s
 
 ---
 
-## Applying the Iron Law
-
-For every finding identified above, write it in this format:
-
-```
-**[Risk Name] — [Short title]**
-Symptom: [the exact structural evidence — reference module names from the dependency map]
-Source: [Book title — Principle or Smell name]
-Consequence: [what architectural consequence follows if this is not addressed]
-Remedy: [concrete architectural action]
-```
-
----
-
 ## Output
 
-Use the standard Report Template from `../_shared/common.md`.
-Mode: Architecture Audit
-Scope: the project or directory audited.
+Use the standard Report Template from `../_shared/common.md`. Mode: Architecture Audit.
 
-Place the Mermaid dependency graph FIRST in the report, before the Findings section,
-under the heading "Module Dependency Graph". In each finding, reference the relevant
-node by name (e.g., "See the red node `PaymentService` in the graph above") so the
-reader can cross-reference visually. The `classDef` color assignments must be added
-LAST, after all findings have been identified and severity levels determined.
-
----
-
-## Design Note: Analysis-Render Separation
-
-The dependency graph follows a two-step conceptual model:
-
-1. **Analysis** — Identify nodes (modules), edges (dependencies), groups (folders/layers),
-   and severity per node. This produces a logical dependency structure independent of
-   any diagram format.
-2. **Render** — Convert the logical structure to Mermaid syntax (graph TD, subgraph,
-   classDef, etc.).
-
-This separation means adding an alternative output format (D2, Graphviz, SVG) in the
-future only requires a new renderer — the analysis logic stays the same.
+Place the Mermaid dependency graph FIRST under "Module Dependency Graph". Reference
+relevant node names in findings. Add `classDef` color assignments LAST, after all
+findings are identified.

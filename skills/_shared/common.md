@@ -45,20 +45,15 @@ Common entries: `**/*.generated.*`, `**/vendor/**`, `**/migrations/**`
 Omit this key (or leave it empty) to evaluate all non-disabled risks.
 Cannot be combined with a non-empty `disable` list.
 
-### Example `.brooks-lint.yaml`
-
+**Minimal example:**
 ```yaml
 version: 1
-
 disable:
-  - T5   # no coverage metrics enforced on this project
-
+  - T5
 severity:
-  R1: suggestion   # high cognitive load is accepted in this domain
-
+  R1: suggestion
 ignore:
   - "**/*.generated.*"
-  - "**/vendor/**"
 ```
 
 If `.brooks-lint.yaml` contains a `custom_risks` map, read `custom-risks-guide.md`
@@ -85,35 +80,17 @@ Include N and M even if zero. Omit this line if no config file was found.
 
 ## Auto Scope Detection
 
-When the user invokes a skill without specifying files or pasting code, automatically
-detect the review scope:
+When no files or code are specified, detect scope automatically:
 
-**PR Review mode:**
-1. Run `git diff --cached` — if non-empty, review staged changes
-2. Else run `git diff` — if non-empty, review unstaged changes
-3. Else run `git diff main...HEAD` (or the project's default branch) — review branch changes
-4. If all empty, ask the user what to review
+**PR Review:** `git diff --cached` → `git diff` → `git diff main...HEAD` → ask user.
 
-**Architecture Audit / Tech Debt Assessment mode:**
-- Default: scan entire project (current behavior)
-- If user says `--since=<ref>`: run `git diff <ref>...HEAD --name-only` to get changed
-  files, then only analyze modules containing those files. Note in scope line:
-  "Incremental audit — modules touched since <ref>"
+**Architecture Audit / Tech Debt:** Entire project by default. `--since=<ref>`: run `git diff <ref>...HEAD --name-only`, analyze only modules containing changed files; note "Incremental audit — modules touched since <ref>".
 
-**Test Quality Review mode:**
-- Default: scan all test files (current behavior)
-- Auto-detect: if `git diff --cached` or `git diff` shows changes, prioritize test files
-  co-located with changed production files (e.g., `src/foo.ts` → check `src/foo.test.ts`
-  or `tests/foo.test.ts`)
+**Test Quality:** All test files by default. If a diff exists, prioritize test files co-located with changed production files (`src/foo.ts` → `src/foo.test.ts`).
 
-**Health Dashboard mode:**
-- Default: scan the entire project (same scope as Architecture Audit) — runs abbreviated scans across all four dimensions
-- If the user passes a path or directory, scope every dimension's sub-scan to that path
+**Health Dashboard:** Entire project by default. If user provides a path, scope all dimension sub-scans to that path.
 
-**Scope line in report:** Always state what was detected.
-- `Scope: staged changes (git diff --cached, 3 files)`
-- `Scope: branch changes vs main (git diff main...HEAD, 12 files)`
-- `Scope: incremental audit — modules touched since v0.9.0`
+**Scope line:** Always state what was detected — e.g., `Scope: staged changes (3 files)` or `Scope: branch changes vs main (12 files)`.
 
 ---
 
@@ -237,38 +214,20 @@ If this is the first run for this mode: "First run — no trend data".
 
 ## Post-Report Triage (Optional)
 
-**Guard:** Only offer triage in interactive sessions. If running in CI/headless mode
-(no user to respond), or if the user has not responded to the initial prompt within
-the same turn, skip triage entirely and proceed to output the report.
+**Guard:** Interactive sessions only — skip in CI/headless mode.
 
-After outputting the report, if there are Warning or Suggestion findings, offer:
-
+After reporting Warning or Suggestion findings, offer:
 > Would you like to triage these findings? (accept / dismiss / defer / skip)
 
-If the user engages:
+For each finding one at a time (lowest severity first): show title, ask `[a]ccept / [d]ismiss / [f]defer / [s]kip`; wait for reply before moving to the next.
 
-For each finding (starting with lowest severity):
-1. Show the one-line finding title
-2. Ask: `[a]ccept (keep as-is) / [d]ismiss (suppress in future) / [f]defer (revisit later) / [s]kip triage`
+**Dismiss:** ask one-line reason → append to `.brooks-lint.yaml` under `suppress:` → downgraded to info in future runs.
 
-**On dismiss:**
-- Ask for a one-line reason
-- Append to `.brooks-lint.yaml` under `suppress:`
-- The finding remains in the current report but will be downgraded to info in future runs
+**Defer:** same as dismiss, add `expires: YYYY-MM-DD` (default 90 days) → resurfaces at original severity after expiry.
 
-**On defer:**
-- Same as dismiss but add `expires: YYYY-MM-DD` (default: 90 days from now)
-- After expiry, the finding resurfaces at its original severity
-
-**Suppress matching at scan time:**
-When loading `.brooks-lint.yaml`, for each suppress entry:
-- Match `risk` against the finding's risk code
-- Match `pattern` against the file path(s) in the finding's Symptom
-- If both match: downgrade to info level (not counted in Health Score, shown in report
-  under a collapsed "Suppressed" section)
-- If `expires` is set and past: ignore the suppress entry (finding resurfaces at
-  its original severity). Add a note in the report Summary: "N suppressed findings
-  have expired and are now active again."
+**Suppress matching at scan time:** for each `suppress:` entry, match `risk` code and file `pattern` against findings.
+- Both match → downgrade to info (not counted in Health Score, shown under collapsed "Suppressed" section).
+- `expires` is past → ignore entry, finding resurfaces. Note in Summary: "N suppressed findings have expired and are now active again."
 
 ## Reference Files
 
