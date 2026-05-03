@@ -72,7 +72,7 @@ Run `npm run validate` after each step to confirm no drift:
 
 1. **`skills/_shared/decay-risks.md`** or **`test-decay-risks.md`** — add the full risk definition (Diagnostic Question, Symptoms, Sources table, Severity Guide, What Not to Flag)
 2. **`skills/_shared/source-coverage.md`** — add the new risk to the relevant book sections under "Encoded today"
-3. **`validate-repo.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
+3. **`skills/_shared/frontmatter.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
 4. **Mode guide(s)** (`pr-review-guide.md`, `architecture-guide.md`, `debt-guide.md`, `test-guide.md`) — add diagnostic questions for the new risk where relevant
 5. **`evals/evals.json`** — add a scenario (see §3 for format)
 
@@ -113,6 +113,17 @@ Then open Claude Code and run one of the slash commands:
 /brooks-test                    # or /brooks-lint:brooks-test
 /brooks-health                  # or /brooks-lint:brooks-health
 ```
+
+## Release Process (maintainers)
+
+Before cutting a release:
+
+1. Update `manifest-source.json` with the new version and (if needed) description
+2. Run `npm run sync-manifests` to propagate version/description to all plugin manifests
+3. Run `npm test && npm run validate && npm run evals` — all must pass
+4. Commit the synced manifests, tag the release, and publish to npm
+
+The `manifest-source.json` file is the single source of truth for plugin metadata; the sync script keeps `package.json`, `.claude-plugin/*`, `.codex-plugin/plugin.json`, and `gemini-extension.json` in sync.
 
 ## PR Conventions
 
