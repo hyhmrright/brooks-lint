@@ -4,11 +4,11 @@ Guidance for Claude Code when modifying this repository. For repo layout, instal
 
 ## What This Repo Is
 
-**brooks-lint** is a Claude Code Plugin for code-quality diagnosis grounded in twelve classic software engineering books. Five independent skills under `skills/` (PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard) each produce findings in the Iron Law form: **Symptom → Source → Consequence → Remedy**.
+**brooks-lint** is a Claude Code Plugin for code-quality diagnosis grounded in twelve classic software engineering books. Six independent skills under `skills/` (PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep) each produce findings in the Iron Law form: **Symptom → Source → Consequence → Remedy**.
 
 ## Workflow Conventions
 
-- **Direct-to-main workflow:** Pushes go to `main` without a PR. After Edit/Write, the global rule's `simplify` + `pr-review-toolkit:code-reviewer` reviews still run before commit; only the optional PR-only `code-review:code-review` step is skipped.
+- **Direct-to-main workflow:** Pushes go to `main` without a PR. After Edit/Write, the global rule's `agent-skills:code-simplify` + `agent-skills:review` steps still run before commit; only the optional PR-only `code-review:code-review` step is skipped.
 - **Doc sources of truth:** `package.json` is canonical for version; book inventory is canonical in `skills/_shared/source-coverage.md` (see Gotchas for derivation). README.md, AGENTS.md, GEMINI.md, and CHANGELOG.md must stay in sync — `npm run validate` enforces this.
 - **VS Code extension is OUT OF SCOPE.** Do not plan, propose, or reference VS Code extension features.
 
@@ -58,6 +58,7 @@ To add a scenario: append to the `evals` array with the next sequential `id` and
 ## Development Commands
 
 ```bash
+npm run bump <version>    # Propagate version across all manifests, README badge, and changelog
 npm run validate          # Repo consistency: manifests, README badge, changelog, source inventory, skills structure
 npm test                  # Unit tests for validate-repo helpers
 npm run evals             # Eval structural validation (IDs, fields, risk-code refs)
@@ -71,4 +72,4 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
 ## Release Process
 
-Bump `package.json` version → add `## [X.Y.Z] - YYYY-MM-DD` to `CHANGELOG.md` → `npm run validate` (catches drift across manifests, README badge, changelog) → commit, push, tag GitHub release.
+`npm run bump <version>` (propagates to all manifests, README badge, and changelog) → `npm run validate` → commit, push, tag GitHub release.
