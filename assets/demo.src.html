@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!-- Source for assets/demo.gif — each ?f=N renders one cumulative frame; capture f=0..N, assemble with ffmpeg. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root{
+    --paper:#f7f1e4; --card:#fffdf8; --ink:#2a2520; --ink-soft:#5c5347;
+    --rule:#e3d8c2; --rule-soft:#ece2cf; --blue:#2d4a7c; --green:#2b8a3e; --gold:#b07d2b; --red:#b23b3b;
+    --ink-dark:#211d18;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SF Mono","JetBrains Mono","Fira Code",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#cdbf9f;font-family:var(--sans);}
+  #card{width:1000px;height:660px;background:var(--paper);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+  #card::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(120,90,40,.05) 1px,transparent 1px);background-size:4px 4px;}
+  .bar{display:flex;align-items:center;gap:8px;padding:14px 18px;background:#efe6d2;border-bottom:1px solid var(--rule);z-index:1;}
+  .dot{width:13px;height:13px;border-radius:50%;}
+  .dot.r{background:#e07a6b;} .dot.y{background:#e6c34d;} .dot.g{background:#7bbf7b;}
+  .bar .ttl{margin-left:10px;font-family:var(--mono);font-size:13.5px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;}
+  .bar .ttl img{width:18px;height:18px;border-radius:4px;}
+  .console{flex:1;padding:24px 30px;z-index:1;font-family:var(--mono);font-size:16px;line-height:1.7;color:var(--ink);overflow:hidden;}
+  .cmd{font-size:18px;margin-bottom:6px;}
+  .cmd .pr{color:var(--gold);font-weight:700;margin-right:10px;}
+  .cmd .slash{color:var(--blue);font-weight:700;}
+  .cur{display:inline-block;width:10px;height:20px;background:var(--ink);vertical-align:-3px;margin-left:1px;}
+  .cur.off{display:none;}
+  .run{color:var(--ink-soft);font-size:15px;margin:10px 0 4px;}
+  .run .sp{color:var(--gold);}
+  .report{margin-top:14px;font-family:var(--sans);}
+  .score{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--red);display:flex;align-items:baseline;gap:10px;margin-bottom:4px;}
+  .score small{font-family:var(--serif);font-size:16px;color:var(--ink-soft);font-weight:400;}
+  .score .verdict{font-family:var(--sans);font-size:13px;font-style:italic;color:var(--ink-soft);font-weight:400;margin-left:6px;}
+  .f{border-left:3px solid var(--red);background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--red);
+    border-radius:8px;padding:10px 14px;margin-top:9px;}
+  .f h4{font-family:var(--serif);font-size:15.5px;color:var(--ink);margin-bottom:3px;}
+  .f .l{font-size:13px;line-height:1.5;color:var(--ink-soft);}
+  .f .l b{color:var(--ink);} .f .l.sr b{color:var(--blue);} .f .l.rx b{color:var(--green);}
+  .more{font-family:var(--mono);font-size:13px;color:var(--ink-soft);margin-top:10px;}
+  .foot{font-family:var(--serif);font-size:15px;color:var(--ink);margin-top:14px;}
+  .foot b{color:var(--gold);}
+  .hide{display:none !important;}
+</style>
+</head>
+<body>
+  <div id="card">
+    <div class="bar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="ttl"><img src="logo.svg" alt="">claude code — brooks-lint</span>
+    </div>
+    <div class="console">
+      <div class="cmd"><span class="pr">›</span><span id="cmdtext"></span><span id="cursor" class="cur"></span></div>
+      <div id="run" class="run hide"><span class="sp">⠋</span> Reviewing <code>UserService.update_profile</code> against R1–R6…</div>
+      <div id="report" class="report hide">
+        <div id="score" class="score hide">28 <small>/ 100 Health Score</small><span class="verdict">— 4 responsibilities, a silent bug, SQL injection</span></div>
+
+        <div id="f1" class="f hide">
+          <h4>🔴 R2 — Change Propagation</h4>
+          <div class="l"><b>Symptom:</b> one method does updates, email, loyalty &amp; cache.</div>
+          <div class="l rx"><b>Remedy:</b> extract Notification / Loyalty / CacheInvalidator.</div>
+        </div>
+        <div id="f2" class="f hide">
+          <h4>🔴 R6 — Domain Model Distortion</h4>
+          <div class="l"><b>Symptom:</b> email overwritten before the <code>!=</code> check — dead branch.</div>
+          <div class="l sr"><b>Source:</b> McConnell — Code Complete — Ch. 17.</div>
+        </div>
+        <div id="f3" class="f hide">
+          <h4>🔴 R5 — Dependency Disorder + SQL injection ×2</h4>
+          <div class="l rx"><b>Remedy:</b> parameterise queries; invert the db dependency.</div>
+        </div>
+        <div id="more" class="more hide">+ 5 more findings · every one cited to a book</div>
+        <div id="foot" class="foot hide">Symptom &rarr; Source &rarr; Consequence &rarr; Remedy · <b>grounded in 12 classic engineering books</b></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  var params = new URLSearchParams(location.search);
+  var f = parseInt(params.get('f') || '0', 10);
+  var FULL = '/brooks-review';
+  // frame plan
+  var typed = ['', '/br', '/brooks', '/brooks-rev', '/brooks-review', FULL, FULL, FULL, FULL, FULL, FULL, FULL, FULL, FULL];
+  var t = typed[Math.min(f, typed.length - 1)];
+  // render command text with slash colored
+  var el = document.getElementById('cmdtext');
+  el.innerHTML = t.replace(/^\//, '<span class="slash">/</span>');
+  // cursor: blink off on even submitted frames for life; show during typing
+  document.getElementById('cursor').classList.toggle('off', f >= 5 && (f % 2 === 1));
+  function show(id, on){ document.getElementById(id).classList.toggle('hide', !on); }
+  show('run',    f >= 5 && f <= 6);
+  show('report', f >= 6);
+  show('score',  f >= 6);
+  show('f1',     f >= 7);
+  show('f2',     f >= 8);
+  show('f3',     f >= 9);
+  show('more',   f >= 10);
+  show('foot',   f >= 11);
+  // when report visible, hide the run line at f>=7 (replaced by report)
+  if (f >= 7) show('run', false);
+</script>
+</body>
+</html>

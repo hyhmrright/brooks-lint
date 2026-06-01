@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="https://hyhmrright.github.io/brooks-lint/"><img src="assets/hero.png" alt="brooks-lint turns messy code into a cited Symptom → Source → Consequence → Remedy verdict" width="820"></a>
+  <a href="https://hyhmrright.github.io/brooks-lint/"><img src="assets/demo.gif" alt="brooks-lint reviewing code: a /brooks-review command produces a 28/100 health score and cited Symptom → Source → Consequence → Remedy findings" width="820"></a>
 </p>
 
 <p align="center">
