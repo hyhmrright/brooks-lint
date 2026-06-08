@@ -6,13 +6,26 @@ All notable changes to brooks-lint are documented here.
 
 ### Added
 
-- **Multi-platform install docs** — documented running brooks-lint on four more
-  Agent-Skills-compatible agents (OpenCode, Cursor, Antigravity, pi) in both the
-  English and Simplified Chinese READMEs, with per-platform skill paths, a
-  flat-layout warning (`_shared/` must sit beside the skill folders for the
-  `../_shared/` relative reads to resolve), a platform support-status table, and
-  a call for community end-to-end verification via issues. Resolves the OpenCode
-  compatibility request (#14).
+- **One-command multi-platform installer** — `scripts/install.sh <platform>`
+  copies the six skills + `_shared/` **flat** into the correct folder for
+  OpenCode, Cursor, Windsurf, Antigravity, pi, Kiro, GitHub Copilot, Claude, or
+  the vendor-neutral `~/.agents/skills`, so the `../_shared/` relative reads
+  always resolve (users can't get the layout wrong). Runs from a clone or via
+  `curl … | bash -s -- <platform>`; `--project` targets the current repo.
+- **Per-platform setup guides** — `docs/getting-started.md` plus
+  `docs/{opencode,cursor,windsurf,antigravity,pi,copilot,kiro}-setup.md`, with
+  install, invocation, gotchas, and source links for each. Modeled on the
+  `addyosmani/agent-skills` docs layout (compact README + detailed docs).
+- **Multi-platform support in both READMEs** — the EN and zh-CN READMEs now
+  expose seven additional Agent-Skills agents via collapsible per-platform
+  entries that link to the docs, plus a verification-status note inviting
+  community end-to-end reports. Resolves the OpenCode compatibility request (#14).
+
+### Changed
+
+- **`AGENTS.md`** now describes brooks-lint as a portable Agent-Skills tool
+  (runs on any `AGENTS.md`/`SKILL.md`-compatible agent) rather than a
+  Codex-CLI-specific plugin.
 
 ---
 

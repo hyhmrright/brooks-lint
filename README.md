@@ -250,83 +250,70 @@ mkdir -p ~/.codex/skills/brooks-lint
 cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/brooks-lint/
 ```
 
-### More platforms (OpenCode · Cursor · Antigravity · pi)
+### More platforms — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro
 
-brooks-lint ships as standard [Agent Skills](https://agentskills.io) (`SKILL.md` + Markdown
-guides). Any agent that natively loads Agent Skills can run all six modes with **no conversion** —
-just drop the `skills/` directory into the platform's skill folder. Findings auto-trigger from each
-skill's `description`; the repo's `AGENTS.md` carries the Iron Law and scoring rules.
-
-> **⚠️ Flat layout — do not nest.** Unlike the Claude Code / Gemini manual install (which nests
-> everything under a `brooks-lint/` folder), the platforms below discover skills with a **single-level**
-> glob (`skills/<name>/SKILL.md`). Copy `skills/*` so each `brooks-*` directory **and** `_shared/`
-> land **side by side** — the skills read shared files via the relative path `../_shared/`, which only
-> resolves when `_shared/` is a sibling of the skill folders.
+brooks-lint ships as standard [Agent Skills](https://agentskills.io). **Any agent that loads Agent
+Skills runs all six modes with no conversion** — one command installs them:
 
 ```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
+# pick your platform; --project installs into the current repo instead of your global config
+curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · agents
 ```
 
-#### OpenCode
-```bash
-mkdir -p ~/.config/opencode/skills
-cp -r /tmp/brooks-lint/skills/* ~/.config/opencode/skills/   # global
-# — or project-scoped —
-cp -r /tmp/brooks-lint/skills/* .opencode/skills/
-```
-OpenCode also discovers Claude-compatible `~/.claude/skills/*/SKILL.md` and reads `AGENTS.md`
-automatically. ([skills docs](https://opencode.ai/docs/skills/) · [rules docs](https://opencode.ai/docs/rules/))
+The installer copies the skills **flat** into the right folder for your platform, so the shared
+framework (`../_shared/`) always resolves — you can't get the layout wrong. Then just ask
+("review this PR", "audit the architecture") and the matching skill auto-triggers from its
+`description`. New to skills, or using another agent? See **[docs/getting-started.md](docs/getting-started.md)**.
 
-#### Cursor
-```bash
-mkdir -p ~/.cursor/skills
-cp -r /tmp/brooks-lint/skills/* ~/.cursor/skills/            # global
-# — or project-scoped —
-cp -r /tmp/brooks-lint/skills/* .cursor/skills/
-```
-Native `SKILL.md` support landed in Cursor 2.4; it also loads `.agents/skills/` and existing Claude/Codex
-skill folders, and reads `AGENTS.md`. ([skills docs](https://cursor.com/docs/skills))
+<details><summary><b>OpenCode</b></summary>
 
-#### Antigravity (Google)
-```bash
-# project-scoped (recommended — official convention)
-mkdir -p .agent/skills
-cp -r /tmp/brooks-lint/skills/* .agent/skills/
-# — or global —
-mkdir -p ~/.gemini/skills
-cp -r /tmp/brooks-lint/skills/* ~/.gemini/skills/
-```
-Antigravity uses Claude-compatible Agent Skills and reads `AGENTS.md` / `GEMINI.md`.
-([skills docs](https://antigravity.google/docs/skills) · [rules & workflows](https://antigravity.google/docs/rules-workflows))
+`./scripts/install.sh opencode` → `~/.config/opencode/skills` (also reads `~/.claude/skills` and
+`AGENTS.md`). Full guide: [docs/opencode-setup.md](docs/opencode-setup.md).
+</details>
 
-#### pi ([earendil-works/pi](https://github.com/earendil-works/pi))
-```bash
-mkdir -p ~/.pi/agent/skills
-cp -r /tmp/brooks-lint/skills/* ~/.pi/agent/skills/
-```
-Or point pi at the cloned repo without copying — add to `~/.pi/settings.json` (or project `.pi/settings.json`):
-```json
-{ "skills": ["/tmp/brooks-lint/skills"] }
-```
-pi loads `SKILL.md` skills and reads `AGENTS.md` / `CLAUDE.md`. ([skills docs](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md))
+<details><summary><b>Cursor</b> (2.4+)</summary>
 
-### Platform support status
+`./scripts/install.sh cursor` → `~/.cursor/skills` (also `.agents/skills`; reads `AGENTS.md`).
+Full guide: [docs/cursor-setup.md](docs/cursor-setup.md).
+</details>
 
-| Platform | Mechanism | Status |
-|----------|-----------|--------|
-| Claude Code | Plugin marketplace + Agent Skills | ✅ Verified |
-| Gemini CLI | Extension + Agent Skills | ✅ Verified |
-| Codex CLI | Skill installer + Agent Skills | ✅ Verified |
-| OpenCode | Native Agent Skills + `AGENTS.md` | 🧪 Documented per official spec — community verification welcome |
-| Cursor | Native Agent Skills (2.4+) + `AGENTS.md` | 🧪 Documented per official spec — community verification welcome |
-| Antigravity | Native Agent Skills + `AGENTS.md`/`GEMINI.md` | 🧪 Documented per official spec — community verification welcome |
-| pi | Native Agent Skills + `AGENTS.md` | 🧪 Documented per official spec — community verification welcome |
+<details><summary><b>Windsurf</b> (Cascade)</summary>
 
-> **🧪 Help us verify.** The four newer platforms are documented from each tool's official skill spec but
-> not yet end-to-end tested by the maintainer. If you run brooks-lint on one of them — working **or**
-> broken — please [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new) with the platform,
-> version, and what you saw. Other Agent-Skills-compatible agent? It almost certainly works the same way —
-> tell us and we'll add it.
+`./scripts/install.sh windsurf` → `~/.codeium/windsurf/skills` (reads `AGENTS.md`).
+Full guide: [docs/windsurf-setup.md](docs/windsurf-setup.md).
+</details>
+
+<details><summary><b>Antigravity</b> (Google)</summary>
+
+`./scripts/install.sh antigravity --project` → `.agent/skills` (reads `AGENTS.md` / `GEMINI.md`).
+Full guide: [docs/antigravity-setup.md](docs/antigravity-setup.md).
+</details>
+
+<details><summary><b>pi</b> (earendil-works)</summary>
+
+`./scripts/install.sh pi` → `~/.pi/agent/skills`, or point pi's `skills` setting at a clone.
+Full guide: [docs/pi-setup.md](docs/pi-setup.md).
+</details>
+
+<details><summary><b>GitHub Copilot</b></summary>
+
+`./scripts/install.sh copilot --project` → `.github/skills` (also auto-detects `.claude/skills`; reads
+`AGENTS.md`). Full guide: [docs/copilot-setup.md](docs/copilot-setup.md).
+</details>
+
+<details><summary><b>Kiro</b> (AWS)</summary>
+
+`./scripts/install.sh kiro` → `~/.kiro/skills` (auto-registers `/brooks-review`; reads `AGENTS.md`).
+Full guide: [docs/kiro-setup.md](docs/kiro-setup.md).
+</details>
+
+> **🧪 Verification status.** Claude Code, Gemini CLI, and Codex CLI are maintainer-verified. The seven
+> platforms above are documented from each tool's official skill spec and verified at the file-layout
+> level (the installer is tested), but not yet end-to-end run by the maintainer on every platform. Tried
+> one — working **or** broken? [Open an issue](https://github.com/hyhmrright/brooks-lint/issues/new) with
+> the platform, version, and what you saw. Another Agent-Skills agent? It almost certainly works the same
+> way — tell us and we'll add it.
 
 ## Slash Commands
 
