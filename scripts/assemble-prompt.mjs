@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 /** Canonical list of valid mode names — import from here to avoid drift. */
-export const VALID_MODES = ["review", "audit", "debt", "test", "health"];
+export const VALID_MODES = ["review", "audit", "debt", "test", "health", "sweep"];
 
 /**
  * Assemble the system prompt for a given brooks-lint mode.
@@ -25,7 +25,7 @@ export function assembleSystemPrompt(mode, skillsDir) {
   // Add risk definitions based on mode
   if (mode === "test") {
     sections.push(read(path.join(sharedDir, "test-decay-risks.md")));
-  } else if (mode === "health") {
+  } else if (mode === "health" || mode === "sweep") {
     sections.push(read(path.join(sharedDir, "decay-risks.md")));
     sections.push(read(path.join(sharedDir, "test-decay-risks.md")));
   } else {
@@ -39,6 +39,7 @@ export function assembleSystemPrompt(mode, skillsDir) {
     debt: ["brooks-debt", "debt-guide.md"],
     test: ["brooks-test", "test-guide.md"],
     health: ["brooks-health", "health-guide.md"],
+    sweep: ["brooks-sweep", "sweep-guide.md"],
   };
 
   const [modeDir, guideFile] = guideMap[mode] ?? (() => { throw new Error(`Unknown mode: ${mode}`); })();

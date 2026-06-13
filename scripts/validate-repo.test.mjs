@@ -12,6 +12,7 @@ import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
+import { assembleSystemPrompt, VALID_MODES } from "./assemble-prompt.mjs";
 import { readHistory, appendHistory, getTrend } from "./history.mjs";
 import {
   parseFrontmatterBooks,
@@ -74,6 +75,11 @@ test("returns null when books list is empty", () => {
 
 test("handles 4-space indentation", () => {
   const text = "---\nbooks:\n    - The Mythical Man-Month\n    - Code Complete\n---\n";
+  assert.deepEqual(parseFrontmatterBooks(text), ["The Mythical Man-Month", "Code Complete"]);
+});
+
+test("handles CRLF line endings", () => {
+  const text = "---\r\nbooks:\r\n  - The Mythical Man-Month\r\n  - Code Complete\r\n---\r\n";
   assert.deepEqual(parseFrontmatterBooks(text), ["The Mythical Man-Month", "Code Complete"]);
 });
 
@@ -232,6 +238,21 @@ test("handles full pr-review-guide pattern", () => {
     extractGuideStepLabels(text),
     ["1", "2", "3", "4", "5", "6a", "6b", "7"],
   );
+});
+
+// —— assembleSystemPrompt / VALID_MODES ————————————————————————————————
+
+console.log("\nassembleSystemPrompt");
+
+test("includes sweep in VALID_MODES", () => {
+  assert.ok(VALID_MODES.includes("sweep"));
+});
+
+test("assembles sweep prompt with both risk catalogs and sweep guide", () => {
+  const prompt = assembleSystemPrompt("sweep", path.join(__dirname, "..", "skills"));
+  assert.match(prompt, /## Risk 1: Cognitive Overload/);
+  assert.match(prompt, /## Risk T1: Test Obscurity/);
+  assert.match(prompt, /# Brooks-Lint .* Full Sweep Guide/);
 });
 
 // ── readHistory ────────────────────────────────────────────────────────────

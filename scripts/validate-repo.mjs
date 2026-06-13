@@ -18,7 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
 function readText(relPath) {
-  return readFileSync(path.join(root, relPath), "utf8");
+  return readFileSync(path.join(root, relPath), "utf8").replace(/\r\n/g, "\n");
 }
 
 function readJson(relPath) {
@@ -302,7 +302,7 @@ function checkSecurity() {
 function checkHookOutput() {
   function runHook(env = {}) {
     const tempHome = mkdtempSync(path.join(os.tmpdir(), "brooks-lint-hook-home-"));
-    const stdout = execFileSync("bash", ["hooks/session-start"], {
+    const stdout = execFileSync(process.execPath, [path.join(root, "hooks", "session-start.mjs")], {
       cwd: root,
       env: { ...process.env, HOME: tempHome, ...env },
       encoding: "utf8",
