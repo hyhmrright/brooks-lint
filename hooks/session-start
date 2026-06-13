@@ -1,62 +1,6 @@
-#!/usr/bin/env bash
-# SessionStart hook for brooks-lint plugin
-# Injects lightweight awareness of brooks-lint into every Claude session.
+#!/usr/bin/env sh
 
-set -euo pipefail
+set -eu
 
-# Auto-install short-form commands to ~/.claude/commands/
-# Plugin skills register as /brooks-lint:brooks-review etc.
-# These wrappers enable /brooks-review (no namespace prefix).
-# Versioned sentinel ensures files refresh on plugin upgrade.
-cmd_dir="$HOME/.claude/commands"
-plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
-version="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' "$plugin_dir/package.json" | head -n 1)"
-if [ -z "$version" ]; then
-    echo "Failed to read version from package.json" >&2
-    exit 1
-fi
-sentinel="$cmd_dir/.brooks-lint-v${version}"
-
-if [ ! -f "$sentinel" ]; then
-    mkdir -p "$cmd_dir"
-    cp "$plugin_dir"/commands/brooks-*.md "$cmd_dir/"
-    # Clean up old sentinel files and write current version
-    rm -f "$cmd_dir"/.brooks-lint-v* "$cmd_dir"/.brooks-lint-installed
-    touch "$sentinel"
-fi
-
-# The context injected must be SHORT (<150 words).
-# Do NOT inject the full SKILL.md — it loads on demand via the Skill tool.
-context="You have the brooks-lint plugin installed. It provides six independent skills — load the relevant one via the Skill tool:
-  brooks-lint:brooks-review  → PR code review
-  brooks-lint:brooks-audit   → Architecture audit
-  brooks-lint:brooks-debt    → Tech debt assessment
-  brooks-lint:brooks-test    → Test quality review
-  brooks-lint:brooks-health  → Codebase health dashboard
-  brooks-lint:brooks-sweep   → Full sweep: analyse all dimensions and auto-fix findings
-
-Triggers when the user asks to review code, discuss architecture, assess tech debt, or discuss test quality. Also triggers when the user mentions: Brooks's Law / Mythical Man-Month / conceptual integrity / second system effect / Hyrum's Law / deep modules / tactical programming / code smells / refactoring / clean architecture / DDD."
-
-# Escape for JSON embedding
-escape_for_json() {
-    local s="$1"
-    s="${s//\\/\\\\}"
-    s="${s//\"/\\\"}"
-    s="${s//$'\n'/\\n}"
-    s="${s//$'\r'/\\r}"
-    s="${s//$'\t'/\\t}"
-    printf '%s' "$s"
-}
-
-context_escaped=$(escape_for_json "$context")
-
-# Output format differs by platform
-if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
-    printf '{\n  "additional_context": "%s"\n}\n' "$context_escaped"
-elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
-    printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$context_escaped"
-else
-    printf '{\n  "additional_context": "%s"\n}\n' "$context_escaped"
-fi
-
-exit 0
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec node "$script_dir/session-start.mjs" "$@"

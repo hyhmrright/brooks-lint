@@ -6,6 +6,10 @@
  * validation run on import.
  */
 
+function normalizeNewlines(text) {
+  return text.replace(/\r\n/g, "\n");
+}
+
 /**
  * Parse the `books:` list from a YAML frontmatter block at the top of a
  * markdown file. Returns an array of book title strings, or null if the
@@ -23,7 +27,8 @@
  * other special characters — the only delimiter is the line break.
  */
 export function parseFrontmatterBooks(text) {
-  const match = text.match(/^---\n([\s\S]*?)\n---/);
+  const normalized = normalizeNewlines(text);
+  const match = normalized.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
   const booksSection = match[1].match(/^books:\n((?:[ \t]+-[^\n]+\n?)+)/m);
   if (!booksSection) return null;
@@ -38,7 +43,7 @@ export function parseFrontmatterBooks(text) {
  * Each book section uses the pattern: ## Author Name — *Book Title*
  */
 export function countBookSections(text) {
-  return (text.match(/^## .+ — \*/gm) ?? []).length;
+  return (normalizeNewlines(text).match(/^## .+ — \*/gm) ?? []).length;
 }
 
 /**
@@ -46,7 +51,7 @@ export function countBookSections(text) {
  * Each risk section uses the pattern: ## Risk N: Title
  */
 export function countProductionRisks(text) {
-  return (text.match(/^## Risk \d+:/gm) ?? []).length;
+  return (normalizeNewlines(text).match(/^## Risk \d+:/gm) ?? []).length;
 }
 
 /**
@@ -54,7 +59,7 @@ export function countProductionRisks(text) {
  * Each risk section uses the pattern: ## Risk TN: Title
  */
 export function countTestRisks(text) {
-  return (text.match(/^## Risk T\d+:/gm) ?? []).length;
+  return (normalizeNewlines(text).match(/^## Risk T\d+:/gm) ?? []).length;
 }
 
 /**
@@ -62,7 +67,7 @@ export function countTestRisks(text) {
  * Returns null if no version header is found.
  */
 export function extractChangelogVersion(text) {
-  return text.match(/^## \[(.+?)\] - /m)?.[1] ?? null;
+  return normalizeNewlines(text).match(/^## \[(.+?)\] - /m)?.[1] ?? null;
 }
 
 /**
@@ -71,7 +76,7 @@ export function extractChangelogVersion(text) {
  * Returns: ["1", "2a", "6b", ...] — the label portion only.
  */
 export function extractGuideStepLabels(text) {
-  return (text.match(/^### Step (\d+[a-z]?)/gm) ?? [])
+  return (normalizeNewlines(text).match(/^### Step (\d+[a-z]?)/gm) ?? [])
     .map(m => m.replace(/^### Step /, ""));
 }
 
