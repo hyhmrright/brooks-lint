@@ -179,6 +179,26 @@ Tested across 3 real-world scenarios (PR review, architecture audit, tech debt a
 
 The gap isn't what Claude *can* find — it's what it *consistently* finds, with traceable evidence and actionable remedies every time.
 
+### Reproducible benchmarks
+
+The table above is illustrative. These numbers are **deterministic and you can reproduce them locally**:
+
+**Parser fidelity** — SARIF export and the CI gates depend on parsing the model's Markdown report correctly. Against a **frozen corpus of 30 real, model-generated reports** spanning all six modes (`evals/benchmark-corpus.json`), each paired with an **independently graded** finding inventory (a separate model pass, spot-checked by hand), the shipped parser scores — run `npm run benchmark`:
+
+| Metric (n = 30, frozen corpus) | Result |
+|---|:---:|
+| Exact severity-count match (parser vs. graded truth) | 30 / 30 |
+| Risk-code precision / recall | 100% / 100% (56 finding-level codes, 0 FP / 0 FN) |
+| Valid SARIF 2.1.0 emitted | 30 / 30 |
+
+Because the parser is deterministic and the corpus is frozen, `npm run benchmark` gives everyone the same result, and `npm test` guards it as a regression. The corpus deliberately includes 9 false-positive / tradeoff reports (e.g. a ports-and-adapters design that *looks* like a dependency cycle) that must stay clean.
+
+**Scoring determinism** — for a fixed finding set (2 Critical / 3 Warning / 1 Suggestion), the strictness presets produce exactly the scores their `common.md` table predicts: strict **34**, balanced **54**, legacy-friendly **74** — and only `legacy-friendly` leads with the top-three fixes.
+
+**Model quality** — whether the model finds the *right* risks on real code is measured by the **57-scenario eval suite** (`evals/evals.json`): `npm run evals` (structural) and `npm run evals:live` (live, needs `ANTHROPIC_API_KEY`).
+
+> Scope & honesty: the parser numbers are deterministic and exactly reproducible. The strictness and eval-suite figures are single-run live measurements against the model and vary slightly run to run. The parser benchmark measures report-parsing fidelity (does the tooling read every finding the report states?), not whether a given finding is "correct." The severity-count match is the fully independent signal; risk-code agreement also reflects the shared canonical name→code legend.
+
 ## How It Compares
 
 | | brooks-lint | ESLint / Pylint | GitHub Copilot Review | Plain Claude |

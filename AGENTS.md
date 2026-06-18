@@ -28,7 +28,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `hooks/`: SessionStart hook for session-level awareness (not used by Codex CLI).
 - `commands/`: Short-form command wrappers for Claude Code (not used by Codex CLI).
-- `evals/`: Performance benchmark test cases (57 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks). Structural validation: `npm run evals`. Live evals against the AI: `npm run evals:live` (requires `ANTHROPIC_API_KEY`).
+- `evals/`: Performance benchmark test cases (57 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks). Structural validation: `npm run evals`. Live evals against the AI: `npm run evals:live` (requires `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
 
 ---
 **Note:** Codex CLI should prioritize instructions found in `AGENTS.md` when operating in this repository.

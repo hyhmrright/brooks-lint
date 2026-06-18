@@ -179,6 +179,26 @@ graph TD
 
 差距不在于 Claude *能不能*发现问题——而在于它能否*每一次都稳定地*发现，并附上可溯源的证据和可落地的对策。
 
+### 可复现基准
+
+上表是示意性的。下面这些数字**确定、可在本地复算**：
+
+**parser 保真度** —— SARIF 输出与 CI 闸门都依赖于正确解析模型的 Markdown 报告。在一个**冻结的 30 份真实模型报告语料**上（覆盖全部六种 mode，`evals/benchmark-corpus.json`），每份都配有**独立评分**的发现清单（由另一遍模型评分、并经人工抽查），实际发布的 parser 跑分如下——执行 `npm run benchmark`：
+
+| 指标（n = 30，冻结语料） | 结果 |
+|---|:---:|
+| 严重度计数精确吻合（parser vs 人工标注真值） | 30 / 30 |
+| 风险码 precision / recall | 100% / 100%（56 个 finding-level 码，0 假阳 / 0 假阴） |
+| 产出合法 SARIF 2.1.0 | 30 / 30 |
+
+由于 parser 是确定性的、语料是冻结的，`npm run benchmark` 对任何人都给出相同结果，`npm test` 也将其作为回归守卫。该语料**有意**包含 9 份假阳性 / tradeoff 报告（例如一个*看起来像*循环依赖、实则是端口与适配器的设计），它们必须保持干净。
+
+**打分确定性** —— 给定一组固定发现（2 Critical / 3 Warning / 1 Suggestion），三个 strictness 预设产出的分数与其 `common.md` 表的预测分毫不差：strict **34**、balanced **54**、legacy-friendly **74**——且只有 `legacy-friendly` 会优先列出前三高杠杆修复。
+
+**模型质量** —— 模型能否在真实代码上找到*正确的*风险，由 **57 场景 eval 套件**（`evals/evals.json`）衡量：`npm run evals`（结构校验）与 `npm run evals:live`（实测，需 `ANTHROPIC_API_KEY`）。
+
+> 范围与诚实说明：parser 数字是确定性的、可精确复算；strictness 与 eval 套件的数字是对模型的单次实测，会有轻微跑动差异。parser 基准衡量的是报告解析保真度（工具是否读出了报告里写的每条发现），而非某条发现"是否正确"。严重度计数吻合是完全独立的信号；风险码一致性还反映了 parser 与 grader 共用同一套权威 name→code 映射。
+
 ## 横向对比
 
 | | brooks-lint | ESLint / Pylint | GitHub Copilot Review | 原生 Claude |

@@ -66,6 +66,10 @@ To add a scenario: append to the `evals` array with the next sequential `id` and
 
 `expected_output` should describe the Iron Law finding (Symptom + risk code) and a Health Score range; it does NOT need to be verbatim — the evaluator matches semantics. For false-positive / tradeoff scenarios, set `no_risk_codes: true` and describe what must NOT appear in output.
 
+## Parser-Fidelity Benchmark
+
+`evals/benchmark-corpus.json` is a FROZEN corpus of 30 real, model-generated reports (one per curated sample, across all six modes) each paired with an independently-graded finding inventory. `scripts/benchmark.mjs` (`npm run benchmark`) runs the shipped parser (`report-parse.mjs` / `sarif.mjs`) against it and reports severity-count fidelity, risk-code precision/recall, and SARIF validity; `npm test` guards the same as a deterministic regression. This is distinct from the eval suite: it benchmarks the **parser/SARIF plumbing**, not model judgment. The corpus is a frozen artifact — regenerate it only by re-running the generation workflow and hand-checking the new ground truth; do NOT hand-edit `report` or `truth` to make a failing parser pass.
+
 ## Development Commands
 
 ```bash
@@ -74,6 +78,7 @@ npm run validate          # Repo consistency: manifests, README badge, changelog
 npm test                  # Unit tests for validate-repo helpers
 npm run evals             # Eval structural validation (IDs, fields, risk-code refs)
 npm run evals:live        # Live evals against the AI (requires ANTHROPIC_API_KEY)
+npm run benchmark         # Parser-fidelity benchmark on the frozen real-report corpus
 npm run history           # View Health Score trend (.brooks-lint-history.json)
 
 # Test hooks locally

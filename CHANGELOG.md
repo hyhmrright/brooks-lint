@@ -6,6 +6,12 @@ All notable changes to brooks-lint are documented here.
 
 ### Added
 
+- **Parser-fidelity benchmark** — `evals/benchmark-corpus.json` freezes 30 real,
+  model-generated reports (all six modes, incl. 9 false-positive/tradeoff cases),
+  each independently graded and hand-checked. `npm run benchmark` runs the shipped
+  parser against it (severity-count fidelity, risk-code precision/recall, SARIF
+  validity) and `npm test` guards it as a deterministic regression. Replaces the
+  synthetic-fixture-only coverage of the report parser with real model output.
 - **SARIF output for GitHub Code Scanning** — `ci-review.mjs` gains
   `--format sarif` / `--sarif-out`, and the GitHub Action a `sarif-file`
   input, so findings surface inline on the PR "Files changed" tab. New
