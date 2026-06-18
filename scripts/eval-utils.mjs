@@ -3,7 +3,9 @@
  * Used by run-evals-live.mjs (runtime) and validate-repo.test.mjs (tests).
  */
 
-const RISK_CODE_RE = /\b([RT]\d+)\b/g;
+// Only R1–R6 / T1–T6 are valid codes; \d+ would also match typos like R10 or
+// stray text like "R20", polluting true/false-positive classification.
+const RISK_CODE_RE = /\b([RT][1-6])\b/g;
 
 export function extractRiskCodes(text) {
   return new Set(text.match(RISK_CODE_RE) ?? []);

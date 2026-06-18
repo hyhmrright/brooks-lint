@@ -548,7 +548,7 @@ The action posts the review as a PR comment and optionally fails the check if th
 
 ## Roadmap
 
-> **Current state (v1.0):** 12-book foundation, 6 production decay risks (R1–R6) + 6 test decay risks (T1–T6), 5 skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard. Earlier entries below describe historical milestones, not the current feature set.
+> **Current state (v1.3):** 12-book foundation, 6 production decay risks (R1–R6) + 6 test decay risks (T1–T6), 6 skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep. Earlier entries below describe historical milestones, not the current feature set.
 
 - [x] **v0.2**: Plugin infrastructure (`.claude-plugin/`, hooks, slash commands)
 - [x] **v0.3**: Eight Brooks dimensions, documentation completeness scoring
@@ -559,6 +559,9 @@ The action posts the review as a PR comment and optionally fails the check if th
 - [x] **v0.8**: Independent skill architecture with namespaced commands
 - [x] **v0.9**: Step validation, auto-diff scope, `/brooks-health` dashboard, trend tracking, triage mode, `--fix` remedies, onboarding report, GitHub Action
 - [x] **v1.0**: Eval automation (`run-evals-live.mjs`), custom risk extension (`Cx` codes)
+- [x] **v1.1**: Full Sweep skill (`brooks-sweep`) — unified multi-dimension auto-fix
+- [x] **v1.2**: Autonomous sweep pipeline, `npm run bump` version propagation
+- [x] **v1.3**: Codex marketplace metadata, one-command installer for multiple agent platforms, bilingual README + landing site
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
