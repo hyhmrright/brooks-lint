@@ -12,6 +12,15 @@ inputs:
   fail-below:
     description: "Fail the check if Health Score is below this threshold (0 = never fail)"
     default: "0"
+  fail-on:
+    description: "Fail the check on findings at/above this severity: none, warning, or critical"
+    default: "none"
+  fail-on-regression:
+    description: "Fail the check if the Health Score dropped vs the last run (true/false)"
+    default: "false"
+  sarif-file:
+    description: "Path to write a SARIF report for GitHub Code Scanning (empty = skip SARIF)"
+    default: ""
   model:
     description: "Claude model to use"
     default: "claude-sonnet-4-6"
@@ -49,12 +58,20 @@ runs:
       shell: bash
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        SARIF_FILE: ${{ inputs.sarif-file }}
+        MODE: ${{ inputs.mode }}
+        MODEL: ${{ inputs.model }}
       run: |
+        sarif_arg=()
+        if [ -n "$SARIF_FILE" ]; then
+          sarif_arg=(--sarif-out "$SARIF_FILE")
+        fi
         node "$GITHUB_ACTION_PATH/scripts/ci-review.mjs" \
-          --mode "${{ inputs.mode }}" \
-          --model "${{ inputs.model }}" \
+          --mode "$MODE" \
+          --model "$MODEL" \
           --skills-dir "$GITHUB_ACTION_PATH/skills" \
           --project-dir "$GITHUB_WORKSPACE" \
+          "${sarif_arg[@]}" \
           > brooks-lint-report.json
 
     - name: Parse Health Score
@@ -83,6 +100,12 @@ runs:
             body
           });
 
+    - name: Upload SARIF
+      if: inputs.sarif-file != ''
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+
     - name: Check Threshold
       if: inputs.fail-below != '0'
       shell: bash
@@ -91,3 +114,12 @@ runs:
           echo "Health Score ${{ steps.score.outputs.score }} is below threshold ${{ inputs.fail-below }}"
           exit 1
         fi
+
+    - name: Quality Gates
+      if: inputs.fail-on != 'none' || inputs.fail-on-regression == 'true'
+      shell: bash
+      run: |
+        node "$GITHUB_ACTION_PATH/scripts/ci-gate.mjs" \
+          --report brooks-lint-report.json \
+          --fail-on "${{ inputs.fail-on }}" \
+          --fail-on-regression "${{ inputs.fail-on-regression }}"

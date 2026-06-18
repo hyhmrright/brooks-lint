@@ -23,6 +23,9 @@ import {
   extractGuideStepLabels,
 } from "./frontmatter.mjs";
 import { extractRiskCodes, classify } from "./eval-utils.mjs";
+import { parseFindings, countFindings, extractLocation } from "./report-parse.mjs";
+import { reportToSarif } from "./sarif.mjs";
+import { severityBreached, isRegression } from "./ci-gate.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -509,6 +512,252 @@ test("returns 'fail' when codes found but Iron Law terms absent", () => {
   const scenario = { expected_output: "R1 R2" };
   const aiText = "R1 R2 Health Score: 85/100";
   assert.equal(classify(scenario, aiText), "fail");
+});
+
+// ── report-parse: parseFindings / countFindings / extractLocation ──────────
+
+const SAMPLE_REPORT = [
+  "# Brooks-Lint Review",
+  "",
+  "**Health Score:** 62/100",
+  "",
+  "## Findings",
+  "",
+  "### 🔴 Critical",
+  "",
+  "**Change Propagation — Divergent change**",
+  "Symptom: src/services/UserService.ts:42 handles auth, email, and billing.",
+  "Source: Refactoring — Divergent Change",
+  "Consequence: Every feature touches the same class.",
+  "Remedy: Split into focused collaborators.",
+  "",
+  "### 🟡 Warning",
+  "",
+  "**Cognitive Overload (R1) — God method**",
+  "Symptom: generate() in report_gen.py takes nine positional parameters.",
+  "Source: A Philosophy of Software Design — shallow modules",
+  "Consequence: Callers must understand the whole signature.",
+  "Remedy: Introduce a ReportOptions object.",
+  "",
+  "### 🟢 Suggestion",
+  "",
+  "**Knowledge Duplication — Shipping rule copied**",
+  "Symptom: the free-shipping threshold appears in cart.js and checkout.js.",
+  "Source: The Pragmatic Programmer — DRY",
+  "Consequence: A policy change must be made in two places.",
+  "Remedy: Extract a single shippingPolicy module.",
+  "",
+  "## Summary",
+  "",
+  "**Bold prose, not a finding** — should be ignored.",
+].join("\n");
+
+console.log("\nparseFindings");
+
+test("parses one finding per severity group", () => {
+  assert.equal(parseFindings(SAMPLE_REPORT).length, 3);
+});
+
+test("maps risk name to code and keeps severity", () => {
+  const [crit, warn, sug] = parseFindings(SAMPLE_REPORT);
+  assert.deepEqual([crit.riskCode, crit.severity], ["R2", "critical"]);
+  assert.deepEqual([warn.riskCode, warn.severity], ["R1", "warning"]);
+  assert.deepEqual([sug.riskCode, sug.severity], ["R3", "suggestion"]);
+});
+
+test("resolves an explicit (R1) code in the title", () => {
+  const warn = parseFindings(SAMPLE_REPORT)[1];
+  assert.equal(warn.riskName, "Cognitive Overload");
+  assert.equal(warn.title, "God method");
+});
+
+test("extracts file and line from the Symptom", () => {
+  const crit = parseFindings(SAMPLE_REPORT)[0];
+  assert.equal(crit.file, "src/services/UserService.ts");
+  assert.equal(crit.line, 42);
+});
+
+test("ignores bold text outside any severity group", () => {
+  // The Summary's bold line must not be counted as a finding.
+  assert.ok(parseFindings(SAMPLE_REPORT).every((f) => f.title !== ""));
+  assert.equal(parseFindings(SAMPLE_REPORT).length, 3);
+});
+
+test("empty report yields no findings", () => {
+  assert.deepEqual(parseFindings(""), []);
+  assert.deepEqual(parseFindings(null), []);
+});
+
+const VARIANT_REPORT = [
+  "## Findings",
+  "",
+  "### 🔴 Critical Issues",
+  "",
+  "**Dependency Disorder: models import services**",
+  "Symptom: a cyclic import exists.",
+  "Source: Clean Architecture — the Dependency Rule",
+  "Consequence: the build in app/core/wiring.ts breaks.",
+  "Remedy: invert the dependency toward an interface.",
+  "",
+  "### 🟡 Warnings",
+  "",
+  "**Coverage Illusion — green but hollow**",
+  "Symptom: the suite asserts nothing meaningful.",
+  "Source: How Google Tests Software — coverage signal",
+  "Consequence: regressions slip through unnoticed.",
+  "Remedy: assert on observable outcomes.",
+].join("\n");
+
+test("tolerates plural / qualified severity headers", () => {
+  // `### 🔴 Critical Issues` and `### 🟡 Warnings` must still register as groups.
+  const f = parseFindings(VARIANT_REPORT);
+  assert.equal(f.length, 2);
+  assert.deepEqual([f[0].severity, f[1].severity], ["critical", "warning"]);
+});
+
+test("splits a colon-separated title and resolves its code", () => {
+  const first = parseFindings(VARIANT_REPORT)[0];
+  assert.equal(first.riskCode, "R5");
+  assert.equal(first.riskName, "Dependency Disorder");
+  assert.equal(first.title, "models import services");
+});
+
+test("falls back to Consequence for the location when Symptom has none", () => {
+  const first = parseFindings(VARIANT_REPORT)[0];
+  assert.equal(first.file, "app/core/wiring.ts");
+});
+
+console.log("\ncountFindings");
+
+test("counts findings by severity", () => {
+  assert.deepEqual(countFindings(SAMPLE_REPORT), { critical: 1, warning: 1, suggestion: 1 });
+});
+
+test("empty report counts all zero", () => {
+  assert.deepEqual(countFindings(""), { critical: 0, warning: 0, suggestion: 0 });
+});
+
+console.log("\nextractLocation");
+
+test("captures path with line number", () => {
+  assert.deepEqual(extractLocation("see app/models/order.rb:128 only"), {
+    file: "app/models/order.rb",
+    line: 128,
+  });
+});
+
+test("captures bare filename without a line", () => {
+  assert.deepEqual(extractLocation("generate() in report_gen.py"), {
+    file: "report_gen.py",
+    line: null,
+  });
+});
+
+test("does not mistake prose for a file reference", () => {
+  assert.deepEqual(extractLocation("nothing here, e.g. no path"), { file: null, line: null });
+  assert.deepEqual(extractLocation("see line 3 (i.e. nowhere)"), { file: null, line: null });
+});
+
+// ── sarif: reportToSarif ───────────────────────────────────────────────────
+
+console.log("\nreportToSarif");
+
+test("emits a SARIF 2.1.0 envelope", () => {
+  const log = reportToSarif(SAMPLE_REPORT, { mode: "review", toolVersion: "1.3.0" });
+  assert.equal(log.version, "2.1.0");
+  assert.ok(log.$schema.includes("sarif-2.1.0"));
+  assert.equal(log.runs[0].tool.driver.name, "brooks-lint");
+  assert.equal(log.runs[0].tool.driver.version, "1.3.0");
+});
+
+test("declares a deduped, PascalCased rule per risk code", () => {
+  const rules = reportToSarif(SAMPLE_REPORT).runs[0].tool.driver.rules;
+  assert.deepEqual(rules.map((r) => r.id), ["R2", "R1", "R3"]);
+  assert.equal(rules[0].name, "ChangePropagation");
+});
+
+test("maps severities to SARIF levels", () => {
+  const results = reportToSarif(SAMPLE_REPORT).runs[0].results;
+  assert.deepEqual(results.map((r) => r.level), ["error", "warning", "note"]);
+});
+
+test("attaches a physical location when a file is known", () => {
+  const first = reportToSarif(SAMPLE_REPORT).runs[0].results[0];
+  const loc = first.locations[0].physicalLocation;
+  assert.equal(loc.artifactLocation.uri, "src/services/UserService.ts");
+  assert.equal(loc.region.startLine, 42);
+  assert.ok(first.message.text.includes("Remedy:"));
+});
+
+test("fingerprints are stable across runs", () => {
+  const a = reportToSarif(SAMPLE_REPORT).runs[0].results[0].partialFingerprints.brooksLint;
+  const b = reportToSarif(SAMPLE_REPORT).runs[0].results[0].partialFingerprints.brooksLint;
+  assert.equal(a, b);
+});
+
+test("empty report yields no rules or results", () => {
+  const log = reportToSarif("");
+  assert.deepEqual(log.runs[0].tool.driver.rules, []);
+  assert.deepEqual(log.runs[0].results, []);
+});
+
+test("routes T-code helpUri off the guide (no #t anchor) and R-code onto it", () => {
+  const rules = reportToSarif(VARIANT_REPORT).runs[0].tool.driver.rules;
+  const r5 = rules.find((r) => r.id === "R5");
+  const t5 = rules.find((r) => r.id === "T5");
+  assert.ok(r5.helpUri.endsWith("guide.html#r5"));
+  assert.ok(t5.helpUri.includes("test-decay-risks.md"));
+  assert.ok(!t5.helpUri.includes("#t5"));
+});
+
+test("declares a BL000 rule when a finding is unmapped", () => {
+  const unmapped = [
+    "## Findings",
+    "",
+    "### 🔴 Critical",
+    "",
+    "**Some Unknown Smell — mystery**",
+    "Symptom: something odd in foo.ts.",
+    "Consequence: unclear impact.",
+    "Remedy: investigate.",
+  ].join("\n");
+  const run = reportToSarif(unmapped).runs[0];
+  assert.equal(run.results[0].ruleId, "BL000");
+  assert.ok(run.tool.driver.rules.some((r) => r.id === "BL000"));
+});
+
+// ── ci-gate: severityBreached / isRegression ───────────────────────────────
+
+console.log("\nseverityBreached");
+
+test("fail-on critical trips only on a critical finding", () => {
+  assert.equal(severityBreached({ critical: 1, warning: 0, suggestion: 0 }, "critical"), true);
+  assert.equal(severityBreached({ critical: 0, warning: 5, suggestion: 9 }, "critical"), false);
+});
+
+test("fail-on warning trips on critical or warning", () => {
+  assert.equal(severityBreached({ critical: 0, warning: 1, suggestion: 0 }, "warning"), true);
+  assert.equal(severityBreached({ critical: 2, warning: 0, suggestion: 0 }, "warning"), true);
+  assert.equal(severityBreached({ critical: 0, warning: 0, suggestion: 3 }, "warning"), false);
+});
+
+test("fail-on none never trips", () => {
+  assert.equal(severityBreached({ critical: 9, warning: 9, suggestion: 9 }, "none"), false);
+});
+
+test("missing or partial findings are treated as zero", () => {
+  assert.equal(severityBreached(undefined, "critical"), false);
+  assert.equal(severityBreached({}, "warning"), false);
+});
+
+console.log("\nisRegression");
+
+test("only a negative numeric delta is a regression", () => {
+  assert.equal(isRegression(-1), true);
+  assert.equal(isRegression(0), false);
+  assert.equal(isRegression(5), false);
+  assert.equal(isRegression(null), false);
+  assert.equal(isRegression(undefined), false);
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────
