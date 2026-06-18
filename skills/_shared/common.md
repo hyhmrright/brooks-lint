@@ -45,9 +45,20 @@ Common entries: `**/*.generated.*`, `**/vendor/**`, `**/migrations/**`
 Omit this key (or leave it empty) to evaluate all non-disabled risks.
 Cannot be combined with a non-empty `disable` list.
 
+**`strictness`** — tune how harshly findings are scored, for teams at different
+maturity stages. One of:
+- `strict` — heavier deductions; for teams holding a high bar.
+- `balanced` — the default, used when the key is absent.
+- `legacy-friendly` — lighter deductions, and the Summary leads with the three
+  highest-leverage fixes so a legacy codebase's first run is not a demoralizing
+  wall of Criticals. Every finding is still reported — only the score and framing soften.
+
+See **Health Score Calculation** below for the per-preset deduction weights.
+
 **Minimal example:**
 ```yaml
 version: 1
+strictness: legacy-friendly
 disable:
   - T5
 severity:
@@ -65,6 +76,7 @@ Before applying, check for errors and mention each in the report:
 - Invalid risk code (not R1–R6, T1–T6, or a defined `Cx` code): skip it, note `"Config warning: X is not a valid risk code"`
 - Invalid severity value (not `critical`/`warning`/`suggestion`): skip it, note the error
 - Both `disable` and `focus` are non-empty: treat as a config error, ignore both, note it
+- Invalid `strictness` value (not `strict`/`balanced`/`legacy-friendly`): fall back to `balanced`, note the error
 
 If the YAML fails to parse entirely, skip config loading and proceed with defaults.
 
@@ -72,9 +84,10 @@ If the YAML fails to parse entirely, skip config loading and proceed with defaul
 
 If a config file was found and applied, add this line immediately after the **Scope** line
 in the report:
-`Config: .brooks-lint.yaml applied (N risks disabled, M paths ignored)`
+`Config: .brooks-lint.yaml applied (strictness: <preset>, N risks disabled, M paths ignored)`
 
-Include N and M even if zero. Omit this line if no config file was found.
+Use `balanced` for `<preset>` when `strictness` is unset. Include N and M even if zero.
+Omit this line if no config file was found.
 
 ---
 
@@ -187,12 +200,18 @@ When the user passes `--fix` or asks to "fix the findings", read
 
 ## Health Score Calculation
 
-Base score: 100
-Deductions:
-- Each 🔴 Critical finding: −15
-- Each 🟡 Warning finding: −5
-- Each 🟢 Suggestion finding: −1
-Floor: 0 (score cannot go below 0)
+Base score: 100. Per-finding deductions depend on the `strictness` preset
+(`balanced` is used when no preset is set):
+
+| Preset | 🔴 Critical | 🟡 Warning | 🟢 Suggestion |
+|--------|------------|-----------|--------------|
+| `strict` | −20 | −8 | −2 |
+| `balanced` (default) | −15 | −5 | −1 |
+| `legacy-friendly` | −8 | −3 | −1 |
+
+Floor: 0 (score cannot go below 0). The preset changes only the score weighting and
+framing — every finding is still reported in full. Under `legacy-friendly`, lead the
+**Summary** with the three highest-leverage fixes so a first run is not a wall of Criticals.
 
 ## History Tracking
 
