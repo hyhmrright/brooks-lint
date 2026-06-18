@@ -60,7 +60,7 @@ Checklist:
 
 ## Eval Suite
 
-`evals/evals.json` contains 49 benchmark scenarios covering R1–R6 (code decay) and T1–T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario has `id`, `name`, `prompt`, `expected_output`, `mode`, `files`. Optional flags (mutually exclusive): `no_risk_codes: true` (no risk codes expected in output) or `no_health_score: true` (Health Score suppression test).
+`evals/evals.json` contains 57 benchmark scenarios covering R1–R6 (code decay) and T1–T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario has `id`, `name`, `prompt`, `expected_output`, `mode`, `files`. Optional flags (mutually exclusive): `no_risk_codes: true` (no risk codes expected in output) or `no_health_score: true` (Health Score suppression test).
 
 To add a scenario: append to the `evals` array with the next sequential `id` and the relevant risk code. Validate structure with `npm run evals`; live-test with `npm run evals:live` (requires `ANTHROPIC_API_KEY`).
 

@@ -5,7 +5,7 @@
       "id": 1,
       "name": "pr-review",
       "prompt": "帮我看一下这段代码有什么问题：\n\n```python\nclass UserService:\n    def update_profile(self, user_id, name, email, avatar_url):\n        user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n        user['name'] = name\n        user['email'] = email\n        user['avatar_url'] = avatar_url\n        self.db.execute(f\"UPDATE users SET name='{name}', email='{email}', avatar_url='{avatar_url}' WHERE id={user_id}\")\n        \n        # send notification\n        if user['email'] != email:\n            self.smtp.send(email, \"Email changed\", f\"Hi {name}, your email was updated.\")\n        \n        # update loyalty points\n        points = user['login_count'] * 10 + 500\n        self.db.execute(f\"UPDATE loyalty SET points={points} WHERE user_id={user_id}\")\n        \n        # invalidate cache\n        self.redis.delete(f\"user:{user_id}\")\n        self.redis.delete(f\"user:email:{user['email']}\")\n        self.redis.delete(f\"loyalty:{user_id}\")\n        \n        return {\"status\": \"ok\"}\n```",
-      "expected_output": "PR Review report with Health Score, findings including Change Propagation (Divergent Change), Cognitive Overload. Each finding must have Symptom/Source/Consequence/Remedy format. Must reference specific book titles.",
+      "expected_output": "PR Review report with Health Score (expect a deduction into roughly the 50-75/100 range), findings including R2 Change Propagation (Divergent Change — update_profile changes for profile, notification, loyalty, and cache reasons) and R1 Cognitive Overload (one method mixing SQL string interpolation, multiple responsibilities, and several cache keys). Each finding must have Symptom/Source/Consequence/Remedy format. Must reference specific book titles (e.g. Fowler — Refactoring, McConnell — Code Complete).",
       "files": [],
       "mode": "review"
     },
@@ -13,7 +13,7 @@
       "id": 2,
       "name": "architecture-audit",
       "prompt": "请审计一下我们项目的架构，目录结构如下：\n\n```\nsrc/\n├── controllers/\n│   ├── UserController.ts      # imports from services/ AND from models/ AND from lib/postgres.ts\n│   └── OrderController.ts     # imports from services/ AND directly from lib/stripe.ts\n├── services/\n│   ├── UserService.ts         # imports from models/ AND from lib/redis.ts\n│   ├── OrderService.ts        # imports from models/ AND from services/UserService.ts AND from lib/postgres.ts\n│   └── NotificationService.ts # imports from services/UserService.ts AND from services/OrderService.ts\n├── models/\n│   ├── User.ts                # imports from services/NotificationService.ts  (to send welcome email on create)\n│   └── Order.ts               # imports from models/User.ts\n└── lib/\n    ├── postgres.ts\n    ├── redis.ts\n    └── stripe.ts\n```",
-      "expected_output": "Architecture Audit report with module dependency map, findings including Dependency Disorder (circular dependency: models→services→models, DIP violations). Each finding must have Symptom/Source/Consequence/Remedy format.",
+      "expected_output": "Architecture Audit report with module dependency map and a Health Score reflecting structural problems (roughly 40-65/100). Must identify R5 Dependency Disorder: circular dependency (models→services→models, since models/User.ts imports services/NotificationService.ts which imports back into services that import models) plus DIP violations (domain models depending on services). Must cite Martin — Clean Architecture (Acyclic Dependencies Principle, Dependency Inversion Principle). Each finding must have Symptom/Source/Consequence/Remedy format.",
       "files": [],
       "mode": "audit"
     },
@@ -21,7 +21,7 @@
       "id": 3,
       "name": "tech-debt",
       "prompt": "我们的订单系统越来越难维护，每次加新功能都得改 OrderService，不管是加支付方式、还是改通知逻辑、还是调库存计算，全在那一个文件里。而且这个文件只有我一个人敢改，新来的工程师都说看不懂。帮我评估一下有哪些技术债务。",
-      "expected_output": "Tech Debt Assessment with Pain × Spread scoring, findings including Change Propagation and Domain Model Distortion. Should include Debt Summary Table. Each finding must have Symptom/Source/Consequence/Remedy format.",
+      "expected_output": "Tech Debt Assessment with Pain × Spread scoring and a Health Score reflecting accumulated debt (roughly 35-60/100). Must identify R2 Change Propagation (every change — payment, notification, inventory — lands in the single OrderService file, Divergent Change / Shotgun Surgery) and R6 Domain Model Distortion (OrderService is a god class absorbing all order behavior, distorting the domain model; bus-factor of one). Should include a Debt Summary Table. Must cite Fowler — Refactoring and Evans — Domain-Driven Design. Each finding must have Symptom/Source/Consequence/Remedy format.",
       "files": [],
       "mode": "debt"
     },
@@ -391,7 +391,7 @@
       "id": 47,
       "name": "fix-mode-not-active",
       "prompt": "Review this code:\n\n```python\nclass ReportGenerator:\n    def generate(self, data, template, output_format, locale, user_id, org_id, include_charts, chart_type, date_range, filter_criteria, sort_order, max_rows):\n        # 120 lines of mixed rendering, data fetching, and formatting logic\n        user = self.db.get_user(user_id)\n        org = self.db.get_org(org_id)\n        filtered = [r for r in data if self.matches_criteria(r, filter_criteria)]\n        sorted_data = sorted(filtered, key=lambda r: r[sort_order])\n        if include_charts:\n            chart = self.chart_renderer.render(sorted_data, chart_type)\n        # ... 90 more lines\n        return self.formatter.format(sorted_data, template, output_format, locale)\n```",
-      "expected_output": "Standard PR Review report without --fix mode. Remedy field should be descriptive but must NOT include tier labels ([quick-fix], [guided], [manual]) or a Fix Summary table. Health Score, Iron Law findings, and Summary section should follow the standard format.",
+      "expected_output": "Standard PR Review report without --fix mode. Must identify R1 Cognitive Overload (the generate method has 12 parameters and ~120 lines mixing rendering, data fetching, and formatting). The Remedy field should be descriptive but must NOT include fixability tier labels ([quick-fix], [guided], [manual]) and the report must NOT contain a Fix Summary table. Health Score, Iron Law findings, and Summary section should follow the standard format.",
       "files": [],
       "mode": "review"
     },
@@ -412,6 +412,73 @@
       "files": [],
       "mode": "audit",
       "no_health_score": true
+    },
+    {
+      "id": 50,
+      "name": "sweep-mixed-findings-autofix",
+      "prompt": "Sweep the whole project and fix everything you safely can:\n\n```python\n# pricing.py\nDEFAULT_TAX = 0.08\n\ndef price_with_tax(amount):\n    return amount * 1.08  # tax\n\ndef quote_with_tax(amount):\n    return amount * 1.08  # tax\n\n# orders.py\nclass Order:\n    def __init__(self):\n        self.id = None\n        self.items = []\n        self.total = None\n\n# order_service.py — all order behaviour lives here, Order is just a bag\nclass OrderService:\n    def total(self, order):\n        return sum(i['price'] * i['qty'] for i in order.items) * 1.08\n    def cancel(self, order):\n        order.status = 'cancelled'\n\n# test_orders.py\ndef test_it():\n    svc = OrderService()\n    o = Order(); o.items = [{'price': 10, 'qty': 1}]\n    assert svc.total(o) == 10.8\n    assert svc.total(o) is not None\n    assert o.items[0]['price'] == 10\n```",
+      "expected_output": "Full Sweep Report (Mode line: Full Sweep). Must run all dimensions and produce a Dimension Summary table, an Iteration History, a Fix Log table (showing applied / reverted / residual outcomes), and a Health Score Delta (before → after). Findings must include R3 Knowledge Duplication (the 1.08 tax literal and identical tax logic duplicated across price_with_tax/quote_with_tax/order_service) and at least one T-series finding such as T1 Test Obscurity (test_it name reveals nothing) or T5 Coverage Illusion (no sad-path / cancel coverage). Safe single-file fixes (e.g. extracting the 0.08 tax constant) should appear as 'applied' in the Fix Log; structural changes should be carried to Residual. Each finding follows Iron Law (Symptom/Source/Consequence/Remedy).",
+      "files": [],
+      "mode": "sweep"
+    },
+    {
+      "id": 51,
+      "name": "sweep-clean-no-fixes",
+      "prompt": "Run a full sweep and auto-fix on this small module — I think it's already in good shape:\n\n```go\n// money.go\ntype Money struct{ cents int64 }\n\nfunc NewMoney(cents int64) Money { return Money{cents: cents} }\nfunc (m Money) Add(o Money) Money  { return Money{cents: m.cents + o.cents} }\nfunc (m Money) String() string     { return fmt.Sprintf(\"%d.%02d\", m.cents/100, m.cents%100) }\n\n// money_test.go\nfunc TestMoney_Add_TwoAmounts_SumsCents(t *testing.T) {\n\tsum := NewMoney(150).Add(NewMoney(250))\n\trequire.Equal(t, NewMoney(400), sum)\n}\n\nfunc TestMoney_String_FormatsDollarsAndCents(t *testing.T) {\n\trequire.Equal(t, \"4.05\", NewMoney(405).String())\n}\n```",
+      "expected_output": "Full Sweep Report (Mode line: Full Sweep) that, after consent, scans all four dimensions and finds nothing to fix. The Fix Log should be empty (no applied or reverted rows) and the report should end with 'Sweep complete — codebase is clean.' Must NOT invent findings: the value object is cohesive, tests are well named and behavior-focused. No risk code (R1–R6 or T1–T6) should be flagged.",
+      "files": [],
+      "mode": "sweep",
+      "no_risk_codes": true
+    },
+    {
+      "id": 52,
+      "name": "audit-leaked-infra-god-module",
+      "prompt": "Audit our backend architecture:\n\n```\nsrc/\n├── domain/\n│   ├── Invoice.ts        # imports knex from '../db/connection' and runs SQL directly inside calculateTotal()\n│   └── Customer.ts       # imports the AWS SES client to send emails from within the domain object\n├── core.ts               # 1900-line module: HTTP routing, business rules, DB access, email, PDF rendering all in one file\n├── db/\n│   └── connection.ts\n└── api/\n    └── routes.ts         # imports core.ts\n```",
+      "expected_output": "Architecture Audit report with a module dependency map and a Health Score reflecting structural decay (roughly 35-60/100). Must identify R5 Dependency Disorder: domain objects (Invoice, Customer) import low-level infrastructure (knex DB connection, AWS SES client) — high-level policy depending on low-level detail, a DIP violation and leaked infrastructure inside the domain layer; plus a god module (core.ts mixes routing, business rules, DB, email, PDF) violating conceptual integrity. Must cite Martin — Clean Architecture (Dependency Inversion Principle) and Brooks — The Mythical Man-Month (Conceptual Integrity). Each finding follows Iron Law (Symptom/Source/Consequence/Remedy).",
+      "files": [],
+      "mode": "audit"
+    },
+    {
+      "id": 53,
+      "name": "audit-over-layered-speculative",
+      "prompt": "Audit the architecture of this internal CRUD admin tool. It only ever reads and writes a `settings` table for one team, but here is the layering:\n\n```\nsrc/\n├── domain/Setting.ts\n├── application/\n│   ├── SettingService.ts            # delegates straight to SettingRepository, adds nothing\n│   └── ports/SettingRepositoryPort.ts\n├── infra/\n│   ├── SettingRepositoryAdapter.ts  # the only implementation of the port, ever\n│   └── SettingRepositoryFactoryProvider.ts  # a factory that builds the single adapter\n├── plugins/                         # generic plugin loader; zero plugins exist\n│   └── PluginRegistry.ts\n└── api/SettingController.ts\n```",
+      "expected_output": "Architecture Audit report with a Health Score reflecting unjustified complexity (roughly 45-70/100). Must identify R4 Accidental Complexity: speculative generality and over-layering for a single-table CRUD tool — a port with exactly one adapter, a factory/provider wrapping that single adapter, a SettingService that only delegates (Middle Man), and a plugin system with zero plugins (Speculative Generality). Must cite Fowler — Refactoring (Speculative Generality, Middle Man, Lazy Class) and Brooks — The Mythical Man-Month (Second-System Effect). Remedy: collapse the layers to match the actual problem size. Each finding follows Iron Law (Symptom/Source/Consequence/Remedy).",
+      "files": [],
+      "mode": "audit"
+    },
+    {
+      "id": 54,
+      "name": "audit-interface-inversion-not-cycle",
+      "prompt": "Audit this architecture — at first glance payments and orders look like they depend on each other, can you confirm whether there's a circular dependency?\n\n```\nsrc/\n├── orders/\n│   ├── OrderService.ts          # imports payments/PaymentPort (an interface), calls pay()\n│   └── ports/RefundPort.ts      # interface that orders OWNS and exposes\n├── payments/\n│   ├── PaymentPort.ts           # interface that payments OWNS and exposes\n│   └── PaymentService.ts        # implements PaymentPort; on refund, calls orders/ports/RefundPort (interface)\n└── composition/\n    └── wiring.ts                # constructs both services and injects the implementations\n```\n\nOrderService depends on PaymentPort; PaymentService depends on RefundPort. The concrete classes never import each other — only interfaces, wired in composition/.",
+      "expected_output": "Architecture Audit report. Must NOT flag R5 Dependency Disorder for a circular dependency: the two modules depend only on interfaces (ports) each side owns, with concrete wiring isolated in a composition root — this is correct Dependency Inversion, not a cycle. There is no concrete import cycle between OrderService and PaymentService. Health Score should remain high (80+). If any concern is raised it must acknowledge this is a deliberate, sound inversion rather than a dependency cycle.",
+      "files": [],
+      "mode": "audit",
+      "no_risk_codes": true
+    },
+    {
+      "id": 55,
+      "name": "debt-duplicated-business-rule",
+      "prompt": "Help me assess the tech debt here. We keep getting bugs where our shipping-cost rules disagree between the website, the mobile API, and the nightly billing job — every time we change a tier we have to remember to update all three.\n\n```python\n# web/checkout.py\ndef shipping_cost(weight):\n    if weight < 1: return 5\n    if weight < 5: return 10\n    if weight < 20: return 25\n    return 50\n\n# mobile/api.py\ndef calc_shipping(w):\n    if w < 1: return 5\n    if w < 5: return 10\n    if w < 20: return 25\n    return 50\n\n# jobs/billing.py\ndef shipping_charge(kg):\n    if kg < 1: return 5\n    elif kg < 5: return 10\n    elif kg < 20: return 25\n    else: return 50\n```",
+      "expected_output": "Tech Debt Assessment with Pain × Spread scoring and a Health Score reflecting the duplication debt (roughly 40-65/100). Must identify R3 Knowledge Duplication: the shipping-cost tier table (1/5/20 kg → 5/10/25/50) is copy-pasted across three modules (web, mobile, billing) with divergent function names, so one decision lives in three places and drifts. Must cite Hunt & Thomas — The Pragmatic Programmer (DRY) and Fowler — Refactoring (Duplicate Code). Should include a Debt Summary Table. Remedy: extract a single ShippingPolicy / rate table. Each finding follows Iron Law (Symptom/Source/Consequence/Remedy).",
+      "files": [],
+      "mode": "debt"
+    },
+    {
+      "id": 56,
+      "name": "debt-tactical-workaround-accumulation",
+      "prompt": "Assess the tech debt in this module. It started simple but every deadline added 'just one more flag', and now nobody is sure which paths are live:\n\n```python\ndef export_report(data, legacy_mode=False, legacy_mode_v2=False, use_old_csv=False,\n                  hotfix_2021_skip_header=False, temp_disable_totals=False):\n    if legacy_mode or legacy_mode_v2:           # both default False everywhere in the codebase\n        rows = _old_export(data)\n    else:\n        rows = _new_export(data)\n    if use_old_csv:                              # no caller ever passes True\n        rows = _csv_v1(rows)\n    if not hotfix_2021_skip_header:              # the 2021 hotfix shipped 4 years ago\n        rows.insert(0, HEADER)\n    if temp_disable_totals:                      # 'temp' since 2022\n        return rows\n    return _append_totals(rows)\n# TODO(2021): remove legacy_mode once migration done\n# TODO(2022): delete temp_disable_totals\n# FIXME: use_old_csv path is probably dead\n```",
+      "expected_output": "Tech Debt Assessment with Pain × Spread scoring and a Health Score reflecting accumulated tactical debt (roughly 40-65/100). Must identify R4 Accidental Complexity: an accumulation of tactical workarounds — five flag arguments that are never enabled (dead config), stale TODO/FIXME clusters dating back years, and dead code paths (legacy_mode, use_old_csv) — making every change fight the scaffolding rather than solve the problem. Must cite Ousterhout — A Philosophy of Software Design (Strategic vs. Tactical Programming) and Fowler — Refactoring (Speculative Generality / Flag Arguments). Should include a Debt Summary Table. Remedy: delete dead flags and paths, resolve the stale TODOs. Each finding follows Iron Law (Symptom/Source/Consequence/Remedy).",
+      "files": [],
+      "mode": "debt"
+    },
+    {
+      "id": 57,
+      "name": "debt-legit-aggregate-root-not-god-class",
+      "prompt": "We have one big class, ShoppingCart, and a new hire flagged it as a 'god class' / too much tech debt. Can you confirm whether it's really a problem?\n\n```python\nclass ShoppingCart:\n    \"\"\"Aggregate root for the cart bounded context. All cart invariants live here.\"\"\"\n    def __init__(self):\n        self._lines: list[CartLine] = []\n\n    def add_item(self, sku, qty, unit_price):\n        if qty <= 0:\n            raise ValueError('qty must be positive')\n        existing = self._find(sku)\n        if existing:\n            existing.increase(qty)\n        else:\n            self._lines.append(CartLine(sku, qty, unit_price))\n\n    def remove_item(self, sku):\n        self._lines = [l for l in self._lines if l.sku != sku]\n\n    def apply_coupon(self, coupon):\n        if self.subtotal() < coupon.min_spend:\n            raise CouponNotApplicable(coupon.code)\n        self._coupon = coupon\n\n    def subtotal(self):\n        return sum(l.line_total() for l in self._lines)\n\n    def total(self):\n        return self._coupon.apply(self.subtotal()) if self._coupon else self.subtotal()\n```",
+      "expected_output": "Tech Debt Assessment that must NOT flag this as a god class / Change Propagation / Domain Model Distortion debt. ShoppingCart is a cohesive aggregate root: every method enforces an invariant of the same concept (cart contents and pricing), it delegates line-level math to CartLine, and it keeps business logic in the domain object rather than leaking it to services — this is good DDD, not debt. No R-series risk code should be flagged. Health Score should remain high (80+). If any concern is raised it must acknowledge the cohesion rather than treating size alone as a smell.",
+      "files": [],
+      "mode": "debt",
+      "no_risk_codes": true
     }
   ]
 }

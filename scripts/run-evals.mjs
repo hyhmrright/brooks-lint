@@ -84,10 +84,13 @@ for (const ev of evals) {
   }
 
   // expected_output should reference at least one risk code so reviewers know
-  // which risk the scenario is testing
+  // which risk the scenario is testing. False-positive (no_risk_codes) and
+  // health-score-suppression (no_health_score) scenarios are code-free by
+  // design — warning on them is noise, so the check skips boundary scenarios.
   if (typeof ev.expected_output === "string") {
     const referencedCodes = RISK_CODES.filter((code) => ev.expected_output.includes(code));
-    if (referencedCodes.length === 0) {
+    const isBoundaryScenario = ev.no_risk_codes || ev.no_health_score;
+    if (referencedCodes.length === 0 && !isBoundaryScenario) {
       warnings.push(`${label}: expected_output does not reference any risk code (${RISK_CODES.join(", ")})`);
     }
 
