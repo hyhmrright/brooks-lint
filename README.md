@@ -445,6 +445,9 @@ severity:
 ignore:
   - "**/*.generated.*"
   - "**/vendor/**"
+
+# custom_risks:   # define project-specific Cx codes — see skills/_shared/custom-risks-guide.md
+# suppress:       # downgrade specific findings by risk + path (e.g. accepted legacy debt)
 ```
 
 Copy [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) as a starting point.
@@ -456,6 +459,8 @@ All settings are optional — omit the file entirely for default behavior.
 | `severity` | Override severity tier (`critical` / `warning` / `suggestion`) |
 | `ignore` | Glob patterns for files to exclude |
 | `focus` | Evaluate only these risk codes (cannot combine with `disable`) |
+| `custom_risks` | Define project-specific risk codes (`C1`, `C2`, …) — see [`custom-risks-guide.md`](skills/_shared/custom-risks-guide.md) |
+| `suppress` | Downgrade specific findings by risk + path (optional `expires:` date) |
 
 ---
 

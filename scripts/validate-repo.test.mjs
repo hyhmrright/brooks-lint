@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
 import { assembleSystemPrompt, VALID_MODES } from "./assemble-prompt.mjs";
-import { readHistory, appendHistory, getTrend } from "./history.mjs";
+import { readHistory, appendHistory, getTrend, normalizeMode, sparkline, renderHistory } from "./history.mjs";
 import {
   parseFrontmatterBooks,
   countBookSections,
@@ -369,6 +369,76 @@ test("ignores records for other modes", () => {
   const trend = getTrend(history, "PR Review");
   assert.equal(trend.lastScore, 82);
   assert.equal(trend.runCount, 2);
+});
+
+test("matches a canonical query against display-name records", () => {
+  // Regression: ci-review.mjs queries with the canonical mode ("review") while
+  // records written by the model are stored as display names ("PR Review").
+  const history = [{ mode: "PR Review", score: 88 }];
+  const trend = getTrend(history, "review");
+  assert.equal(trend.lastScore, 88);
+  assert.equal(trend.runCount, 1);
+});
+
+// ── normalizeMode ────────────────────────────────────────────────────────────
+
+console.log("\nnormalizeMode");
+
+test("maps display names to canonical modes", () => {
+  assert.equal(normalizeMode("PR Review"), "review");
+  assert.equal(normalizeMode("Architecture Audit"), "audit");
+  assert.equal(normalizeMode("Tech Debt Assessment"), "debt");
+  assert.equal(normalizeMode("Full Sweep"), "sweep");
+});
+
+test("passes canonical names through unchanged", () => {
+  assert.equal(normalizeMode("review"), "review");
+  assert.equal(normalizeMode("health"), "health");
+});
+
+test("is case- and whitespace-insensitive", () => {
+  assert.equal(normalizeMode("  pr review  "), "review");
+});
+
+test("passes non-string input through unchanged", () => {
+  assert.equal(normalizeMode(undefined), undefined);
+});
+
+// ── sparkline ────────────────────────────────────────────────────────────────
+
+console.log("\nsparkline");
+
+test("maps score extremes to the lowest and highest bars", () => {
+  assert.equal(sparkline([0]), "▁");
+  assert.equal(sparkline([100]), "█");
+});
+
+test("renders one bar per score and clamps out-of-range values", () => {
+  assert.equal(sparkline([0, 50, 100]).length, 3);
+  assert.equal(sparkline([150]), "█");
+  assert.equal(sparkline([-10]), "▁");
+});
+
+// ── renderHistory ────────────────────────────────────────────────────────────
+
+console.log("\nrenderHistory");
+
+test("reports no history for an empty array", () => {
+  assert.equal(renderHistory([]), "No history found.");
+});
+
+test("summarizes a single record as one run", () => {
+  const out = renderHistory([{ mode: "PR Review", score: 88 }]);
+  assert.match(out, /review/);
+  assert.match(out, /1 run/);
+});
+
+test("collapses display-name and canonical records into one mode line", () => {
+  const out = renderHistory([
+    { mode: "PR Review", score: 70 },
+    { mode: "review", score: 90 },
+  ]);
+  assert.match(out, /\+20 over 2 runs/);
 });
 
 // ── extractRiskCodes ───────────────────────────────────────────────────────

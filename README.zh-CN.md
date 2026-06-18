@@ -441,6 +441,9 @@ severity:
 ignore:
   - "**/*.generated.*"
   - "**/vendor/**"
+
+# custom_risks:   # 定义项目专属 Cx 风险码——见 skills/_shared/custom-risks-guide.md
+# suppress:       # 按风险码 + 路径下调特定诊断（如已接受的遗留债务）
 ```
 
 可复制 [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) 作为起点。
@@ -452,6 +455,8 @@ ignore:
 | `severity` | 覆盖严重度等级（`critical` / `warning` / `suggestion`） |
 | `ignore` | 要排除的文件 glob 模式 |
 | `focus` | 只评估这些风险码（不能与 `disable` 同时使用） |
+| `custom_risks` | 定义项目专属风险码（`C1`、`C2`……）——见 [`custom-risks-guide.md`](skills/_shared/custom-risks-guide.md) |
+| `suppress` | 按风险码 + 路径下调特定诊断的严重度（可带 `expires:` 过期日期） |
 
 ---
 
