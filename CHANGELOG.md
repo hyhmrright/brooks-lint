@@ -6,6 +6,22 @@ All notable changes to brooks-lint are documented here.
 
 ### Added
 
+- **SARIF output for GitHub Code Scanning** — `ci-review.mjs` gains
+  `--format sarif` / `--sarif-out`, and the GitHub Action a `sarif-file`
+  input, so findings surface inline on the PR "Files changed" tab. New
+  `report-parse.mjs` (Markdown report → structured findings) and `sarif.mjs`
+  (SARIF 2.1.0 serializer).
+- **CI quality gates** — the Action adds `fail-on` (`critical` / `warning`)
+  and `fail-on-regression` inputs on top of `fail-below`, backed by a
+  unit-tested `ci-gate.mjs`. The JSON report now carries per-severity finding
+  counts plus the score delta vs the last run.
+- **Strictness presets** — a `strictness` config key (`strict` / `balanced`
+  (default) / `legacy-friendly`) tunes Health-Score deduction weights;
+  `legacy-friendly` softens scoring and leads with the top fixes so a legacy
+  codebase's first run isn't a wall of Criticals.
+- **Eval coverage backfill** — benchmark suite 49 → 57 scenarios: Full Sweep
+  gains its first cases, Architecture Audit and Tech Debt are deepened, and
+  every new mode group includes a false-positive/tradeoff check.
 - **One-command multi-platform installer** — `scripts/install.sh <platform>`
   copies the six skills + `_shared/` **flat** into the correct folder for
   OpenCode, Cursor, Windsurf, Antigravity, pi, Kiro, GitHub Copilot, Claude, or
