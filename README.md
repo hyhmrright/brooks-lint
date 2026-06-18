@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.4.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -589,7 +589,7 @@ The action posts the review as a PR comment and optionally fails the check if th
 
 ## Roadmap
 
-> **Current state (v1.3):** 12-book foundation, 6 production decay risks (R1–R6) + 6 test decay risks (T1–T6), 6 skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep. Earlier entries below describe historical milestones, not the current feature set.
+> **Current state (v1.4):** 12-book foundation, 6 production decay risks (R1–R6) + 6 test decay risks (T1–T6), 6 skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — plus CI quality gates, SARIF output for GitHub Code Scanning, strictness presets, and a reproducible parser-fidelity benchmark. Earlier entries below describe historical milestones, not the current feature set.
 
 - [x] **v0.2**: Plugin infrastructure (`.claude-plugin/`, hooks, slash commands)
 - [x] **v0.3**: Eight Brooks dimensions, documentation completeness scoring
@@ -603,6 +603,7 @@ The action posts the review as a PR comment and optionally fails the check if th
 - [x] **v1.1**: Full Sweep skill (`brooks-sweep`) — unified multi-dimension auto-fix
 - [x] **v1.2**: Autonomous sweep pipeline, `npm run bump` version propagation
 - [x] **v1.3**: Codex marketplace metadata, one-command installer for multiple agent platforms, bilingual README + landing site
+- [x] **v1.4**: SARIF output for GitHub Code Scanning, CI severity + regression gates, strictness presets (strict/balanced/legacy-friendly), 57-scenario eval suite, reproducible parser-fidelity benchmark (`npm run benchmark`)
 
 Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
 

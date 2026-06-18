@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.4.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -585,7 +585,7 @@ jobs:
 
 ## 路线图
 
-> **当前状态（v1.3）：** 12 本书地基，6 类生产衰退风险（R1–R6）+ 6 类测试衰退风险（T1–T6），6 个技能——PR 审查、架构审查、技术债、测试质量、健康仪表盘、全量扫描。下方较早的条目记录的是历史里程碑，而非当前功能集。
+> **当前状态（v1.4）：** 12 本书地基，6 类生产衰退风险（R1–R6）+ 6 类测试衰退风险（T1–T6），6 个技能——PR 审查、架构审查、技术债、测试质量、健康仪表盘、全量扫描——外加 CI 质量闸门、面向 GitHub Code Scanning 的 SARIF 输出、严格度预设，以及一个可复现的 parser 保真度基准。下方较早的条目记录的是历史里程碑，而非当前功能集。
 
 - [x] **v0.2**：插件基础设施（`.claude-plugin/`、钩子、斜杠命令）
 - [x] **v0.3**：八个 Brooks 维度、文档完整度评分
@@ -599,6 +599,7 @@ jobs:
 - [x] **v1.1**：全量扫描技能（`brooks-sweep`）——跨维度统一分析 + 自动修复
 - [x] **v1.2**：自主化 sweep 管线、`npm run bump` 版本传播
 - [x] **v1.3**：Codex 市场元数据、多平台一键安装脚本、双语 README + 落地页
+- [x] **v1.4**：SARIF 输出（GitHub Code Scanning）、CI severity + 回归闸门、严格度预设（strict/balanced/legacy-friendly）、57 场景 eval 套件、可复现的 parser 保真度基准（`npm run benchmark`）
 
 想出一份力？现在最有价值的贡献是新的评测用例和更好的衰退风险症状模式。见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 

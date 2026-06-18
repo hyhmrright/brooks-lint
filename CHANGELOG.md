@@ -4,6 +4,8 @@ All notable changes to brooks-lint are documented here.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-19
+
 ### Added
 
 - **Parser-fidelity benchmark** — `evals/benchmark-corpus.json` freezes 30 real,
