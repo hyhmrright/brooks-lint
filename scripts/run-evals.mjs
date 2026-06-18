@@ -48,6 +48,14 @@ for (let i = 0; i < evals.length; i++) {
   }
 }
 
+// Explicit duplicate-id guard (the sequential check only catches dups that also
+// break the running count; a deliberate re-use of the same id would not).
+const idCounts = new Map();
+for (const ev of evals) idCounts.set(ev.id, (idCounts.get(ev.id) ?? 0) + 1);
+for (const [id, count] of idCounts) {
+  if (count > 1) errors.push(`Duplicate eval id ${JSON.stringify(id)} appears ${count} times`);
+}
+
 // ── Per-eval field and content checks ─────────────────────────────────────
 
 for (const ev of evals) {
@@ -71,12 +79,30 @@ for (const ev of evals) {
     errors.push(`${label}: 'mode' must be one of ${VALID_MODES.join(", ")} (got '${ev.mode}')`);
   }
 
+  if ("files" in ev && !Array.isArray(ev.files)) {
+    errors.push(`${label}: 'files' must be an array when present (got ${typeof ev.files})`);
+  }
+
   // expected_output should reference at least one risk code so reviewers know
   // which risk the scenario is testing
   if (typeof ev.expected_output === "string") {
     const referencedCodes = RISK_CODES.filter((code) => ev.expected_output.includes(code));
     if (referencedCodes.length === 0) {
       warnings.push(`${label}: expected_output does not reference any risk code (${RISK_CODES.join(", ")})`);
+    }
+
+    // mode ↔ risk-code compatibility: assemble-prompt.mjs only loads the risk
+    // definitions for that mode (test→T-codes, review/audit/debt→R-codes,
+    // health/sweep→both). A code outside the loaded set is a dead reference —
+    // the model is never given its definition, so the scenario cannot pass live.
+    // RISK_CODES is R/T-prefixed by construction, so c[0] fully partitions it.
+    const refsR = referencedCodes.filter((c) => c[0] === "R");
+    const refsT = referencedCodes.filter((c) => c[0] === "T");
+    if (ev.mode === "test" && refsR.length > 0) {
+      errors.push(`${label}: mode 'test' loads only T-codes but expected_output references ${refsR.join(", ")}`);
+    }
+    if (["review", "audit", "debt"].includes(ev.mode) && refsT.length > 0) {
+      errors.push(`${label}: mode '${ev.mode}' loads only R-codes but expected_output references ${refsT.join(", ")}`);
     }
   }
 
@@ -95,18 +121,40 @@ for (const ev of evals) {
   }
 }
 
+// ── Reverse coverage ───────────────────────────────────────────────────────
+// Every risk code must have at least one positive happy-path scenario. Skip the
+// false-positive (no_risk_codes) and health-score-suppression (no_health_score)
+// boundary scenarios — neither is a clean positive demonstration of a code.
+// CLAUDE.md requires "every new risk code gets paired coverage"; this enforces it
+// so a new code can never ship without a happy-path eval.
+
+const coveredCodes = new Set();
+for (const ev of evals) {
+  if (ev.no_risk_codes || ev.no_health_score) continue;
+  if (typeof ev.expected_output !== "string") continue;
+  for (const code of RISK_CODES) {
+    if (ev.expected_output.includes(code)) coveredCodes.add(code);
+  }
+}
+const uncoveredCodes = RISK_CODES.filter((code) => !coveredCodes.has(code));
+if (uncoveredCodes.length > 0) {
+  errors.push(`Risk codes with no positive eval scenario: ${uncoveredCodes.join(", ")}`);
+}
+
 // ── Report ─────────────────────────────────────────────────────────────────
 
-const idCheckPass = !errors.some((e) => e.includes("expected id"));
-const fieldCheckPass = !errors.some((e) => e.includes("missing required field") || e.includes("is empty"));
+const idCheckPass = !errors.some((e) => e.includes("expected id") || e.includes("Duplicate eval id"));
+const fieldCheckPass = !errors.some((e) => e.includes("missing required field") || e.includes("is empty") || e.includes("'files' must"));
+const coherencePass = !errors.some((e) => e.includes("loads only") || e.includes("no positive eval scenario"));
 const riskCodePass = warnings.length === 0;
 
 console.log("\nEval Suite Structural Validation");
 console.log("=================================");
-console.log(`Total scenarios : ${evals.length}`);
-console.log(`Sequential IDs  : ${idCheckPass ? "PASS" : "FAIL"}`);
-console.log(`Required fields : ${fieldCheckPass ? "PASS" : "FAIL"}`);
-console.log(`Risk code refs  : ${riskCodePass ? "PASS" : `${warnings.length} warning(s)`}`);
+console.log(`Total scenarios   : ${evals.length}`);
+console.log(`Sequential IDs    : ${idCheckPass ? "PASS" : "FAIL"}`);
+console.log(`Required fields   : ${fieldCheckPass ? "PASS" : "FAIL"}`);
+console.log(`Mode/risk & cover : ${coherencePass ? "PASS" : "FAIL"}`);
+console.log(`Risk code refs    : ${riskCodePass ? "PASS" : `${warnings.length} warning(s)`}`);
 
 if (errors.length > 0) {
   console.error("\nErrors:");

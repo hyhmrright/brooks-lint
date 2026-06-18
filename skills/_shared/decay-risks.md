@@ -4,7 +4,7 @@ Six patterns that cause software to degrade. Apply the Iron Law to each finding.
 
 ---
 
-## Risk 1: Cognitive Overload
+## Risk 1: Cognitive Overload (R1)
 
 **Diagnostic question:** How much mental effort does a human need to understand this?
 
@@ -57,7 +57,7 @@ Cognitive load beyond working memory causes mistakes, avoidance, and blocks the 
 
 ---
 
-## Risk 2: Change Propagation
+## Risk 2: Change Propagation (R2)
 
 **Diagnostic question:** How many unrelated things break when you change one thing?
 
@@ -110,7 +110,7 @@ Each change ripples to unrelated modules, slowing velocity and multiplying regre
 
 ---
 
-## Risk 3: Knowledge Duplication
+## Risk 3: Knowledge Duplication (R3)
 
 **Diagnostic question:** Is the same decision expressed in more than one place?
 
@@ -150,7 +150,7 @@ Multiple copies drift apart silently. DRY is about decisions, not code lines.
 
 ---
 
-## Risk 4: Accidental Complexity
+## Risk 4: Accidental Complexity (R4)
 
 **Diagnostic question:** Is the code more complex than the problem it solves?
 
@@ -197,7 +197,7 @@ Accidental complexity accumulates addition by addition until developers fight sc
 
 ---
 
-## Risk 5: Dependency Disorder
+## Risk 5: Dependency Disorder (R5)
 
 **Diagnostic question:** Do dependencies flow in a consistent, predictable direction?
 
@@ -248,7 +248,7 @@ When business logic depends on infrastructure, infrastructure changes cascade in
 
 ---
 
-## Risk 6: Domain Model Distortion
+## Risk 6: Domain Model Distortion (R6)
 
 **Diagnostic question:** Does the code faithfully represent the problem it is solving?
 

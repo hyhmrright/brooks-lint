@@ -28,9 +28,11 @@ for (const { rel, update } of manifests) {
   console.log(`  ✓ ${rel}`);
 }
 
-let readme = readFileSync(path.join(root, "README.md"), "utf8");
-readme = readme.replace(/version-[\d.]+?-blue\.svg/g, `version-${version}-blue.svg`);
-writeFileSync(path.join(root, "README.md"), readme, "utf8");
-console.log("  ✓ README.md badge");
+for (const readmeRel of ["README.md", "README.zh-CN.md"]) {
+  let readme = readFileSync(path.join(root, readmeRel), "utf8");
+  readme = readme.replace(/version-[\d.]+?-blue\.svg/g, `version-${version}-blue.svg`);
+  writeFileSync(path.join(root, readmeRel), readme, "utf8");
+  console.log(`  ✓ ${readmeRel} badge`);
+}
 
 console.log(`\nAll manifests updated to ${version}. Run npm run validate to confirm.`);

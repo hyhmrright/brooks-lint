@@ -101,14 +101,14 @@ to Flag" guards) live in `decay-risks.md`. Do not duplicate or edit diagnostic q
 update `decay-risks.md` directly. Book-level coverage, exceptions, and tradeoffs are in
 `source-coverage.md`.
 
-| Risk | Diagnostic Question |
-|------|---------------------|
-| Cognitive Overload | How much mental effort to understand this? |
-| Change Propagation | How many unrelated things break on one change? |
-| Knowledge Duplication | Is the same decision expressed in multiple places? |
-| Accidental Complexity | Is the code more complex than the problem? |
-| Dependency Disorder | Do dependencies flow in a consistent direction? |
-| Domain Model Distortion | Does the code faithfully represent the domain? |
+| Code | Risk | Diagnostic Question |
+|------|------|---------------------|
+| R1 | Cognitive Overload | How much mental effort to understand this? |
+| R2 | Change Propagation | How many unrelated things break on one change? |
+| R3 | Knowledge Duplication | Is the same decision expressed in multiple places? |
+| R4 | Accidental Complexity | Is the code more complex than the problem? |
+| R5 | Dependency Disorder | Do dependencies flow in a consistent direction? |
+| R6 | Domain Model Distortion | Does the code faithfully represent the domain? |
 
 ---
 

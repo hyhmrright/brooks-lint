@@ -55,6 +55,16 @@ across the remaining three dimensions by dividing each remaining weight by
 | Debt | 0.25 | 0.25 / 0.75 = 0.33 |
 | Test | 0.20 | 0.20 / 0.75 = 0.27 |
 
+**Score rules (must be deterministic — two runs on the same codebase must agree):**
+
+- Each dimension's score is computed from the **capped** finding set shown in the dashboard
+  (the cap at Step 1 bounds both what is displayed and what is deducted — do not deduct for
+  findings beyond the cap).
+- Floor each dimension score at 0 **before** weighting.
+- A dimension with no findings scores **100** — it is never skipped. The **only** dimension
+  ever omitted is PR, and only when no diff exists (its weight is then redistributed above).
+- Round the weighted composite to the nearest integer (half-up).
+
 ### Step 3: Output Dashboard
 
 Use the dashboard report template below instead of the standard common.md template.

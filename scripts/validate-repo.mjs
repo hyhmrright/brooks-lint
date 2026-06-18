@@ -99,6 +99,8 @@ const CANONICAL_INSTALL_CMD = "/plugin marketplace add hyhmrright/brooks-lint";
 function checkReadmeIntegrity() {
   const readme = readText("README.md");
   check(readme.includes(`version-${version}-blue.svg`), `README.md badge does not reference version ${version}`);
+  const readmeZh = readText("README.zh-CN.md");
+  check(readmeZh.includes(`version-${version}-blue.svg`), `README.zh-CN.md badge does not reference version ${version} (run npm run bump)`);
   check(readme.includes(CANONICAL_INSTALL_CMD), `README.md should contain canonical install command`);
   check(
     readme.includes(`grounded in ${sourceWord} classic engineering books`),
