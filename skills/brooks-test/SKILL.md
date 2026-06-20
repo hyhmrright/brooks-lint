@@ -8,8 +8,7 @@ description: >
   poor readability.
   Triggers when: user asks about test quality, shares test files for review, or
   expresses frustration: "tests keep breaking whenever I change anything", "our tests
-  take forever", "I can't understand what this test is doing", "tests pass but bugs
-  still reach production", "we have too many mocks".
+  take forever", "tests pass but bugs still reach production", or "we have too many mocks".
   Do NOT trigger for: writing new tests from scratch (use the regular test-writing
   workflow) or testing framework/syntax questions — this skill reviews an existing
   suite for structural quality problems, not individual test authoring.

@@ -5,9 +5,8 @@ description: >
   dimensions — PR quality, architecture, tech debt, and test quality — in a single
   pass, drawing on twelve classic engineering books.
   Triggers when: user wants an overall quality assessment, asks "how healthy is this
-  codebase?", "run all the checks", "give me a big-picture quality report", "I need a
-  health score before the release", "what's the overall state of our code?", or wants
-  to onboard a new team with a quality overview.
+  codebase?", "run all the checks", "I need a health score before the release", or
+  wants to onboard a new team with a quality overview.
   Do NOT trigger for: server health checks, HTTP health endpoints, Kubernetes
   liveness/readiness probes, database health, or application uptime. Also do not
   trigger when the user specifically requests only one dimension — use the

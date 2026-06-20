@@ -65,7 +65,7 @@ function buildContext() {
     "  brooks-lint:brooks-health  -> Codebase health dashboard",
     "  brooks-lint:brooks-sweep   -> Full sweep: analyse all dimensions and auto-fix findings",
     "",
-    "Triggers when the user asks to review code, discuss architecture, assess tech debt, or discuss test quality. Also triggers when the user mentions: Brooks's Law / Mythical Man-Month / conceptual integrity / second system effect / Hyrum's Law / deep modules / tactical programming / code smells / refactoring / clean architecture / DDD.",
+    "Triggers when the user asks to review code, discuss architecture, assess tech debt, or discuss test quality. Each skill's own description carries its full trigger phrases and exclusions.",
   ].join("\n");
 }
 

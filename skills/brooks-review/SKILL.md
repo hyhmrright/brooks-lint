@@ -8,9 +8,8 @@ description: >
   code asking "does this look right?" / "any issues here?" / "ready to merge?",
   or asks for feedback on a function, class, or file.
   Also triggers when user mentions: code smells / refactoring / clean architecture /
-  DDD / domain-driven design / SOLID principles / Hyrum's Law / deep modules /
-  tactical programming / conceptual integrity / Brooks's Law / Mythical Man-Month /
-  second system effect.
+  DDD / SOLID principles / Hyrum's Law / deep modules / tactical programming /
+  conceptual integrity / Brooks's Law / Mythical Man-Month / second system effect.
   Do NOT trigger for: questions about how to write code from scratch, language syntax
   questions, or framework/tool questions where no existing code is shared.
 ---
