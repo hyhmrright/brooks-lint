@@ -14,6 +14,7 @@
 </p>
 
 <p align="center">
+  <a href="#quick-start">Quick Start</a> •
   <a href="#the-six-decay-risks">The Six Decay Risks</a> •
   <a href="#what-it-looks-like">What It Looks Like</a> •
   <a href="#benchmark">Benchmark</a> •
@@ -55,6 +56,30 @@ Most code quality tools count lines and cyclomatic complexity. **brooks-lint** g
 
 For the full source-to-skill mapping, including exceptions and false-positive guards, see
 [`skills/_shared/source-coverage.md`](skills/_shared/source-coverage.md).
+
+## Quick Start
+
+```bash
+# Claude Code
+/plugin marketplace add hyhmrright/brooks-lint
+/plugin install brooks-lint@brooks-lint-marketplace
+
+# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · …
+curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
+```
+
+Then just ask ("review this PR", "audit the architecture") — or run a command:
+
+| Command | What it does |
+|---------|--------------|
+| `/brooks-review` | Review a PR or diff |
+| `/brooks-audit` | Audit architecture (+ Mermaid dependency graph) |
+| `/brooks-debt` | Prioritized tech-debt roadmap |
+| `/brooks-test` | Test-suite quality review |
+| `/brooks-health` | Health dashboard across all dimensions |
+| `/brooks-sweep` | Sweep every dimension and auto-fix findings |
+
+Every finding comes back as **Symptom → Source → Consequence → Remedy** with a book citation and a 0–100 Health Score. Full install options (8 more platforms), per-command usage, and CI/CD setup are [below](#installation).
 
 ## The Twelve Books
 

@@ -14,6 +14,7 @@
 </p>
 
 <p align="center">
+  <a href="#快速上手">快速上手</a> •
   <a href="#六类衰退风险">六类衰退风险</a> •
   <a href="#实际效果">实际效果</a> •
   <a href="#基准测试">基准测试</a> •
@@ -55,6 +56,30 @@
 
 完整的"书目—技能"映射（含例外与误报防护），见
 [`skills/_shared/source-coverage.md`](skills/_shared/source-coverage.md)。
+
+## 快速上手
+
+```bash
+# Claude Code
+/plugin marketplace add hyhmrright/brooks-lint
+/plugin install brooks-lint@brooks-lint-marketplace
+
+# 其他任意 Agent Skills 平台 —— Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · …
+curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <平台>
+```
+
+装好后直接开口（"审查这个 PR""审计架构"）——或运行命令：
+
+| 命令 | 作用 |
+|------|------|
+| `/brooks-review` | 审查一个 PR 或 diff |
+| `/brooks-audit` | 架构审计（含 Mermaid 依赖图） |
+| `/brooks-debt` | 排好优先级的技术债路线图 |
+| `/brooks-test` | 测试套件质量审查 |
+| `/brooks-health` | 跨所有维度的健康看板 |
+| `/brooks-sweep` | 全维度扫描并自动修复 |
+
+每条诊断都以 **症状 → 根源 → 后果 → 对策** 返回，附书目出处和 0–100 健康分。完整安装方式（另外 8 个平台）、逐命令用法、CI/CD 配置见[下文](#安装)。
 
 ## 十二本书
 
