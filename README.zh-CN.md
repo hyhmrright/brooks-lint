@@ -29,7 +29,7 @@
 </p>
 
 <p align="center">
-  <a href="https://trendshift.io/repositories/47738" target="_blank"><img src="https://trendshift.io/api/badge/repositories/47738" alt="hyhmrright%2Fbrooks-lint | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+  <a href="https://trendshift.io/repositories/47738" target="_blank"><img src="https://trendshift.io/api/badge/trendshift/repositories/47738/daily?language=JavaScript" alt="Trendshift 当日 JavaScript 仓库榜第 2 名" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </p>
 
 <p align="center">
