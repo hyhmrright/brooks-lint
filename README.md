@@ -33,6 +33,10 @@
 </p>
 
 <p align="center">
+  <img src="assets/banner-en.svg" alt="Your code → 12 classics → 12 decay risks → cited findings" width="900">
+</p>
+
+<p align="center">
   <a href="https://hyhmrright.github.io/brooks-lint/"><img src="assets/demo.gif" alt="brooks-lint reviewing code: a /brooks-review command produces a 28/100 health score and cited Symptom → Source → Consequence → Remedy findings" width="820"></a>
 </p>
 

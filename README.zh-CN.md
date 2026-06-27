@@ -33,6 +33,10 @@
 </p>
 
 <p align="center">
+  <img src="assets/banner-zh-CN.svg" alt="你的代码 → 十二本经典 → 十二类衰退风险 → 带出处的结论" width="900">
+</p>
+
+<p align="center">
   <a href="https://hyhmrright.github.io/brooks-lint/"><img src="assets/demo.gif" alt="brooks-lint 审查代码：一条 /brooks-review 命令产出 28/100 健康分以及引用书目的 症状 → 根源 → 后果 → 对策 诊断" width="820"></a>
 </p>
 
