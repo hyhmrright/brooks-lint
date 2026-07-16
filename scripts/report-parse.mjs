@@ -44,8 +44,12 @@ const EMOJI_SEVERITY = { "🔴": "critical", "🟡": "warning", "🟢": "suggest
 // A path with a directory separator, or a bare filename with a known source
 // extension — optionally followed by `:line`. The extension allowlist keeps
 // prose like "e.g." or "i.e." from being mistaken for a file reference.
+// Within a shared prefix the longer extension must come first (`exs` before
+// `ex`, `cljs` before `clj`) so JS alternation doesn't stop at the short one;
+// the newer extensions lead the list so a bare `c`/`h`/`m` can't shadow `cr`/
+// `hs`/`ml`.
 const LOCATION_RE =
-  /([\w.-]*\/[\w./-]*\.\w+|[\w.-]+\.(?:ts|tsx|js|jsx|mjs|cjs|py|java|go|rb|rs|cc|cpp|cxx|c|h|hpp|cs|php|kt|kts|swift|scala|vue|sql|rsx|m|mm))(?::(\d+))?/;
+  /([\w.-]*\/[\w./-]*\.\w+|[\w.-]+\.(?:astro|cljc|cljs|clj|cr|dart|elm|erl|exs|ex|fsx|fs|gradle|groovy|hs|jl|lua|mli|ml|nim|pl|pm|proto|sol|svelte|tf|zig|ts|tsx|js|jsx|mjs|cjs|py|java|go|rb|rs|cc|cpp|cxx|c|h|hpp|cs|php|kt|kts|swift|scala|vue|sql|rsx|m|mm))(?::(\d+))?/;
 
 function splitTitle(bold) {
   // Dash is the template separator; a colon is a common LLM variant. `.match`
