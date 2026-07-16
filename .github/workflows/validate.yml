@@ -16,11 +16,21 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - name: Set up Node.js
+      - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
       - name: Validate repository consistency
         run: node scripts/validate-repo.mjs
+      - name: Unit tests
+        run: npm test
+      - name: Parser benchmark (frozen corpus)
+        run: npm run benchmark
+      - name: Structural eval suite
+        run: npm run evals
