@@ -1,6 +1,5 @@
 ---
 description: Run a Brooks-Lint test quality review
-allowed-tools: Skill
 ---
 
-Use the Skill tool to invoke the `brooks-lint:brooks-test` skill, then follow its instructions exactly.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/brooks-test/SKILL.md` and follow its instructions exactly. If that file cannot be found, locate the `brooks-test` skill's `SKILL.md` in this plugin and follow it.

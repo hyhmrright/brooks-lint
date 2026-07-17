@@ -266,7 +266,7 @@ Como el parser es determinista y el corpus está congelado, `npm run benchmark` 
 
 Los comandos en forma corta (`/brooks-review`) se instalan automáticamente al iniciar la primera sesión. Para instalarlos manualmente:
 ```bash
-cp commands/*.md ~/.claude/commands/
+bash hooks/session-start
 ```
 
 #### Instalación manual

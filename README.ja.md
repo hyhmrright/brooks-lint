@@ -266,7 +266,7 @@ graph TD
 
 短縮形コマンド（`/brooks-review`）は、最初のセッション開始時に自動インストールされます。手動でインストールするには：
 ```bash
-cp commands/*.md ~/.claude/commands/
+bash hooks/session-start
 ```
 
 #### 手動インストール

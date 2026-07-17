@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import {
-  copyFileSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -42,7 +41,14 @@ function installCommands(version) {
   const commandsDir = path.join(pluginDir, "commands");
   for (const entry of readdirSync(commandsDir)) {
     if (/^brooks-.*\.md$/.test(entry)) {
-      copyFileSync(path.join(commandsDir, entry), path.join(commandDir, entry));
+      // Short forms live in ~/.claude/commands/ (user commands), where
+      // ${CLAUDE_PLUGIN_ROOT} does not expand — bake in the absolute path so
+      // the wrapper can still locate its SKILL.md.
+      const body = readFileSync(path.join(commandsDir, entry), "utf8").replaceAll(
+        "${CLAUDE_PLUGIN_ROOT}",
+        pluginDir,
+      );
+      writeFileSync(path.join(commandDir, entry), body);
     }
   }
 

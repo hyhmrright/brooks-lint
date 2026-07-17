@@ -4,6 +4,27 @@ All notable changes to brooks-lint are documented here.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-07-18
+
+### Fixed
+
+- **Infinite Skill-invocation loop on model-invoked commands** ([#21]) — the
+  `commands/brooks-*.md` wrappers were purely self-referential ("Use the Skill
+  tool to invoke `brooks-lint:brooks-review`"). Combined with an upstream Claude
+  Code bug ([anthropics/claude-code#54535], closed NOT_PLANNED) that re-injects a
+  command body without its `<command-name>` tag after a model-invoked Skill call,
+  the model could loop: call Skill → body re-injected → call Skill again, never
+  running the skill. Each wrapper now **reads its skill's `SKILL.md` directly**
+  instead of calling the Skill tool, so the re-injection path is never triggered
+  and the skill runs once. The session-start hook bakes the absolute
+  `${CLAUDE_PLUGIN_ROOT}` path into the installed short forms, since that variable
+  does not expand in user commands under `~/.claude/commands/`. Cross-platform
+  safe: `commands/` is still consumed as-is by the Gemini extension, and Codex is
+  unaffected (it loads `skills/` only).
+
+[#21]: https://github.com/hyhmrright/brooks-lint/issues/21
+[anthropics/claude-code#54535]: https://github.com/anthropics/claude-code/issues/54535
+
 ## [1.4.0] - 2026-06-19
 
 ### Added

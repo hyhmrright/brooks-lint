@@ -266,7 +266,7 @@ graph TD
 
 短命令（`/brooks-review`）會在首次工作階段啟動時自動安裝。手動安裝：
 ```bash
-cp commands/*.md ~/.claude/commands/
+bash hooks/session-start
 ```
 
 #### 手動安裝

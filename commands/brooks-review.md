@@ -1,6 +1,5 @@
 ---
 description: Run a Brooks-Lint PR code review
-allowed-tools: Skill
 ---
 
-Use the Skill tool to invoke the `brooks-lint:brooks-review` skill, then follow its instructions exactly.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/brooks-review/SKILL.md` and follow its instructions exactly. If that file cannot be found, locate the `brooks-review` skill's `SKILL.md` in this plugin and follow it.

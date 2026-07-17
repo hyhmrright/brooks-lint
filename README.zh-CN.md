@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.4.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.4.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -266,7 +266,7 @@ graph TD
 
 短命令（`/brooks-review`）会在首次会话启动时自动安装。手动安装：
 ```bash
-cp commands/*.md ~/.claude/commands/
+bash hooks/session-start
 ```
 
 #### 手动安装

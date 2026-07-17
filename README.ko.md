@@ -266,7 +266,7 @@ graph TD
 
 단축 명령（`/brooks-review`）은 첫 세션 시작 시 자동으로 설치됩니다. 수동으로 설치하려면:
 ```bash
-cp commands/*.md ~/.claude/commands/
+bash hooks/session-start
 ```
 
 #### 수동 설치
