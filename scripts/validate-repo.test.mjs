@@ -659,6 +659,21 @@ test("does not mistake prose for a file reference", () => {
   assert.deepEqual(extractLocation("see line 3 (i.e. nowhere)"), { file: null, line: null });
 });
 
+// Bare filenames (no `/`) exercise the extension allowlist; a path with a
+// slash would match the first branch's generic `.\w+` regardless of the list.
+test("captures newer-language extensions from bare filenames", () => {
+  assert.deepEqual(extractLocation("bug in user.ex:42"), { file: "user.ex", line: 42 });
+  assert.deepEqual(extractLocation("see main.dart"), { file: "main.dart", line: null });
+  assert.deepEqual(extractLocation("main.tf drifts"), { file: "main.tf", line: null });
+});
+
+test("prefers the longer of two prefix-sharing extensions", () => {
+  // A bare `ex`/`clj`/`ml` must not truncate `.exs`/`.cljs`/`.mli`.
+  assert.equal(extractLocation("runtime.exs boots the app").file, "runtime.exs");
+  assert.equal(extractLocation("core.cljs mounts").file, "core.cljs");
+  assert.equal(extractLocation("parser.mli exports").file, "parser.mli");
+});
+
 // ── sarif: reportToSarif ───────────────────────────────────────────────────
 
 console.log("\nreportToSarif");
