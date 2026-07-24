@@ -4,6 +4,27 @@ All notable changes to brooks-lint are documented here.
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-07-24
+
+### Fixed
+
+- **Duplicate skills on Codex CLI** ([#22]) — after installing on Codex, the
+  skill picker showed both the six native `brooks-*` skills and six generated
+  `source-command-brooks-*` adapters. Codex's command-migration
+  ([openai/codex#33411]) falls back to scanning a plugin's `commands/` directory
+  when the manifest does not declare `commands`, so it migrated the
+  `commands/brooks-*.md` wrappers into standalone skills that duplicated the
+  native ones (and bypassed a user's `enabled = false` on a native skill, since
+  the adapter has a different identity). `.codex-plugin/plugin.json` now declares
+  an explicit `"commands": []`, which Codex treats as authoritative and stops
+  migrating the wrappers. Claude Code and Gemini do not read this manifest and are
+  unaffected — `commands/` is still consumed as-is by the Gemini extension.
+  Thanks to [@grevgeny] for the detailed diagnosis.
+
+[#22]: https://github.com/hyhmrright/brooks-lint/issues/22
+[openai/codex#33411]: https://github.com/openai/codex/commit/2cd6ed750940fd4493298b4e602e2cae9a5a2afb
+[@grevgeny]: https://github.com/grevgeny
+
 ## [1.4.1] - 2026-07-18
 
 ### Fixed
