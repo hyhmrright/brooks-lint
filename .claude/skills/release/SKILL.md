@@ -2,7 +2,8 @@
 name: release
 description: >
   Cut a brooks-lint release: set the version in package.json, propagate it across
-  all four plugin manifests + README badge, write the CHANGELOG entry, validate,
+  all four plugin manifests, every README badge and the docs-site metadata, write
+  the CHANGELOG entry, validate,
   then commit, push, tag, and publish the GitHub release.
   Triggers when the maintainer asks to "release", "cut a release", "ship a new
   version", or "bump and publish" brooks-lint.
@@ -26,7 +27,9 @@ CHANGELOG entry are manual; the script only fans the version out to manifests + 
    its own commit + tag and collide with the manual commit in step 5).
 2. **Propagate.** `npm run bump` — writes the version into
    `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`,
-   `.codex-plugin/plugin.json`, `gemini-extension.json`, and the README badge.
+   `.codex-plugin/plugin.json`, `gemini-extension.json`, the badge in every
+   README (English + all localized siblings), and the JSON-LD `softwareVersion`
+   in `docs/index.html`.
 3. **Write the changelog.** Add a new `## <version>` section at the top of
    `CHANGELOG.md` with categorized notes (Added / Fixed / Changed) summarizing the
    commits since the last release tag (`git log <last-tag>..HEAD --oneline`).

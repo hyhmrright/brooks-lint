@@ -13,6 +13,12 @@ import {
   PRODUCTION_RISK_COUNT,
   TEST_RISK_COUNT,
 } from "./frontmatter.mjs";
+import {
+  readmeFiles,
+  versionBadge,
+  SITE_METADATA_FILE,
+  SOFTWARE_VERSION_RE,
+} from "./versioned-files.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -98,9 +104,14 @@ const CANONICAL_INSTALL_CMD = "/plugin marketplace add hyhmrright/brooks-lint";
 
 function checkReadmeIntegrity() {
   const readme = readText("README.md");
-  check(readme.includes(`version-${version}-blue.svg`), `README.md badge does not reference version ${version}`);
-  const readmeZh = readText("README.zh-CN.md");
-  check(readmeZh.includes(`version-${version}-blue.svg`), `README.zh-CN.md badge does not reference version ${version} (run npm run bump)`);
+  // Every localized README carries its own badge — checking only the two that
+  // bump-version.mjs used to rewrite is how ja/ko/es/zh-TW silently fell behind.
+  for (const readmeRel of readmeFiles(root)) {
+    check(
+      readText(readmeRel).includes(versionBadge(version)),
+      `${readmeRel} badge does not reference version ${version} (run npm run bump)`,
+    );
+  }
   check(readme.includes(CANONICAL_INSTALL_CMD), `README.md should contain canonical install command`);
   check(
     readme.includes(`grounded in ${sourceWord} classic engineering books`),
@@ -113,6 +124,13 @@ function checkReadmeIntegrity() {
   check(readme.includes("*The Art of Unit Testing*"), "README.md should list The Art of Unit Testing in the source inventory");
   check(readme.includes("*How Google Tests Software*"), "README.md should list How Google Tests Software in the source inventory");
   check(readme.includes("source-coverage.md"), "README.md should link to the source coverage matrix");
+
+  const siteMetadata = readText(SITE_METADATA_FILE);
+  const softwareVersion = siteMetadata.match(SOFTWARE_VERSION_RE)?.[0];
+  check(
+    softwareVersion?.includes(`"${version}"`),
+    `${SITE_METADATA_FILE} JSON-LD softwareVersion does not reference version ${version} (run npm run bump)`,
+  );
 }
 
 function checkConfigExamples() {

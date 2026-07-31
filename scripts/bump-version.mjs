@@ -4,6 +4,13 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  readmeFiles,
+  versionBadge,
+  VERSION_BADGE_RE,
+  SITE_METADATA_FILE,
+  SOFTWARE_VERSION_RE,
+} from "./versioned-files.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -28,11 +35,16 @@ for (const { rel, update } of manifests) {
   console.log(`  ✓ ${rel}`);
 }
 
-for (const readmeRel of ["README.md", "README.zh-CN.md"]) {
+for (const readmeRel of readmeFiles(root)) {
   let readme = readFileSync(path.join(root, readmeRel), "utf8");
-  readme = readme.replace(/version-[\d.]+?-blue\.svg/g, `version-${version}-blue.svg`);
+  readme = readme.replace(VERSION_BADGE_RE, versionBadge(version));
   writeFileSync(path.join(root, readmeRel), readme, "utf8");
   console.log(`  ✓ ${readmeRel} badge`);
 }
+
+let siteMetadata = readFileSync(path.join(root, SITE_METADATA_FILE), "utf8");
+siteMetadata = siteMetadata.replace(SOFTWARE_VERSION_RE, `$1${version}$2`);
+writeFileSync(path.join(root, SITE_METADATA_FILE), siteMetadata, "utf8");
+console.log(`  ✓ ${SITE_METADATA_FILE} softwareVersion`);
 
 console.log(`\nAll manifests updated to ${version}. Run npm run validate to confirm.`);

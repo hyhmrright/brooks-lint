@@ -27,6 +27,7 @@ import { parseFindings, countFindings, extractLocation } from "./report-parse.mj
 import { reportToSarif } from "./sarif.mjs";
 import { severityBreached, isRegression } from "./ci-gate.mjs";
 import { summarize } from "./benchmark.mjs";
+import { readmeFiles, versionBadge, SOFTWARE_VERSION_RE } from "./versioned-files.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -816,6 +817,52 @@ test("risk-code extraction has zero false positives / negatives on the corpus", 
   assert.equal(BENCH.fn, 0, `${BENCH.fn} false-negative code(s)`);
   assert.equal(BENCH.precision, 1);
   assert.equal(BENCH.recall, 1);
+});
+
+// ── versioned-files ────────────────────────────────────────────────────────
+
+console.log("\nreadmeFiles");
+
+test("picks up README.md and every localized sibling", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "brooks-lint-readme-"));
+  try {
+    for (const name of ["README.md", "README.zh-CN.md", "README.ja.md", "README.es.md"]) {
+      writeFileSync(path.join(dir, name), "");
+    }
+    assert.deepEqual(readmeFiles(dir), ["README.es.md", "README.ja.md", "README.md", "README.zh-CN.md"]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("ignores docs that merely start with README", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "brooks-lint-readme-"));
+  try {
+    for (const name of ["README.md", "READMEISH.md", "README-CONTRIBUTORS.md", "CHANGELOG.md"]) {
+      writeFileSync(path.join(dir, name), "");
+    }
+    assert.deepEqual(readmeFiles(dir), ["README.md"]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("every README in the repository is listed", () => {
+  const root = path.resolve(__dirname, "..");
+  const found = readmeFiles(root);
+  assert.ok(found.includes("README.md"), "README.md must be listed");
+  assert.ok(found.length >= 2, `expected localized READMEs, got ${found.join(", ")}`);
+});
+
+console.log("\nsoftwareVersion metadata");
+
+test("SOFTWARE_VERSION_RE round-trips a version through the JSON-LD block", () => {
+  const before = '  "softwareVersion": "1.4.0",';
+  assert.equal(before.replace(SOFTWARE_VERSION_RE, "$11.5.0$2"), '  "softwareVersion": "1.5.0",');
+});
+
+test("versionBadge builds the shields.io fragment the READMEs embed", () => {
+  assert.equal(versionBadge("1.4.2"), "version-1.4.2-blue.svg");
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────
