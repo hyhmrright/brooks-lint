@@ -827,6 +827,16 @@ test("validate-repo.mjs exits 0 against the current repository", () => {
   // execFileSync throws on non-zero exit — reaching here means exit 0
 });
 
+test("validate-repo.mjs ignores an inherited CLAUDE_PLUGIN_ROOT", () => {
+  // Running `npm run validate` from inside Claude Code exports CLAUDE_PLUGIN_ROOT.
+  // The hook branches on that variable, so leaking it into the default-output
+  // check turned every such run into a spurious failure.
+  execFileSync("node", [path.join(__dirname, "validate-repo.mjs")], {
+    encoding: "utf8",
+    env: { ...process.env, CLAUDE_PLUGIN_ROOT: path.resolve(__dirname, "..") },
+  });
+});
+
 // ── Summary ────────────────────────────────────────────────────────────────
 
 console.log(`\n${passed + failed} tests: ${passed} passed, ${failed} failed`);

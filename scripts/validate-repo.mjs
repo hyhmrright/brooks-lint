@@ -304,9 +304,14 @@ function checkSecurity() {
 function checkHookOutput() {
   function runHook(env = {}) {
     const tempHome = mkdtempSync(path.join(os.tmpdir(), "brooks-lint-hook-home-"));
+    // The hook branches on CLAUDE_PLUGIN_ROOT, so it must never leak in from the
+    // surrounding shell: a maintainer running `npm run validate` from inside
+    // Claude Code would otherwise get the plugin-shaped output for the default
+    // run and fail a check that has nothing to do with their change.
+    const { CLAUDE_PLUGIN_ROOT: _pluginRoot, ...baseEnv } = process.env;
     const stdout = execFileSync(process.execPath, [path.join(root, "hooks", "session-start.mjs")], {
       cwd: root,
-      env: { ...process.env, HOME: tempHome, ...env },
+      env: { ...baseEnv, HOME: tempHome, ...env },
       encoding: "utf8",
     });
     return JSON.parse(stdout);
