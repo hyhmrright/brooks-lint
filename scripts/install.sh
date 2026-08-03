@@ -94,7 +94,10 @@ while [ $# -gt 0 ]; do
     --project|--here) SCOPE="project" ;;
     --dir)            shift; EXPLICIT_DIR="${1:-}" ;;
     --list)           printf 'Supported platforms: %s\n' "$PLATFORMS"; exit 0 ;;
-    -h|--help)        sed -n '2,28p' "${BASH_SOURCE[0]:-$0}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    # Print the header comment block, stopping at the first non-comment line. A
+    # hardcoded line range drifted out of sync and leaked `set -euo pipefail`
+    # and the variable assignments into the help text.
+    -h|--help)        awk 'NR>1 { if (!/^#/) exit; sub(/^# ?/, ""); print }' "${BASH_SOURCE[0]:-$0}"; exit 0 ;;
     -*)               err "unknown flag: $1"; exit 2 ;;
     *)                PLATFORM="$1" ;;
   esac

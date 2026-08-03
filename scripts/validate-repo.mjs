@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
@@ -99,9 +99,15 @@ const CANONICAL_INSTALL_CMD = "/plugin marketplace add hyhmrright/brooks-lint";
 
 function checkReadmeIntegrity() {
   const readme = readText("README.md");
-  check(readme.includes(`version-${version}-blue.svg`), `README.md badge does not reference version ${version}`);
-  const readmeZh = readText("README.zh-CN.md");
-  check(readmeZh.includes(`version-${version}-blue.svg`), `README.zh-CN.md badge does not reference version ${version} (run npm run bump)`);
+  // Check every localized README, discovered from disk. A hardcoded pair here
+  // mirrored the one in bump-version.mjs and let es/ja/ko/zh-TW badges go stale
+  // unnoticed; deriving the list means a new translation is covered on arrival.
+  for (const readmeRel of readdirSync(root).filter((f) => f.startsWith("README") && f.endsWith(".md"))) {
+    check(
+      readText(readmeRel).includes(`version-${version}-blue.svg`),
+      `${readmeRel} badge does not reference version ${version} (run npm run bump)`,
+    );
+  }
   check(readme.includes(CANONICAL_INSTALL_CMD), `README.md should contain canonical install command`);
   check(
     readme.includes(`grounded in ${sourceWord} classic engineering books`),

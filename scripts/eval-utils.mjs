@@ -23,9 +23,11 @@ export function classify(scenario, aiText) {
   const foundCodes    = extractRiskCodes(aiText);
 
   // no_risk_codes exits after extraction (needs codes, not Iron Law / Health Score).
+  // In this branch expected_output describes what must NOT be flagged, so
+  // expectedCodes is a *forbidden* set — hence the inverted-looking filter.
   if (scenario.no_risk_codes) {
-    const unexpected = [...foundCodes].filter((c) => expectedCodes.has(c));
-    return unexpected.length === 0 ? "false-positive-pass" : "fail";
+    const forbiddenHits = [...foundCodes].filter((c) => expectedCodes.has(c));
+    return forbiddenHits.length === 0 ? "false-positive-pass" : "fail";
   }
 
   const hasIronLaw =

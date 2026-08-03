@@ -1,7 +1,7 @@
 // Propagates the version from package.json to all other manifests and README.
 // Run after manually bumping version in package.json.
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,7 +28,10 @@ for (const { rel, update } of manifests) {
   console.log(`  ✓ ${rel}`);
 }
 
-for (const readmeRel of ["README.md", "README.zh-CN.md"]) {
+// Discover the localized READMEs instead of hardcoding them: a hardcoded pair
+// silently skipped README.es/ja/ko/zh-TW and let their badges fall behind.
+const readmes = readdirSync(root).filter((f) => f.startsWith("README") && f.endsWith(".md"));
+for (const readmeRel of readmes) {
   let readme = readFileSync(path.join(root, readmeRel), "utf8");
   readme = readme.replace(/version-[\d.]+?-blue\.svg/g, `version-${version}-blue.svg`);
   writeFileSync(path.join(root, readmeRel), readme, "utf8");

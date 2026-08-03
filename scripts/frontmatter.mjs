@@ -10,6 +10,11 @@ function normalizeNewlines(text) {
   return text.replace(/\r\n/g, "\n");
 }
 
+/** Global-regex matches against newline-normalized text, or [] when none. */
+function findMatches(text, pattern) {
+  return normalizeNewlines(text).match(pattern) ?? [];
+}
+
 /**
  * Parse the `books:` list from a YAML frontmatter block at the top of a
  * markdown file. Returns an array of book title strings, or null if the
@@ -43,7 +48,7 @@ export function parseFrontmatterBooks(text) {
  * Each book section uses the pattern: ## Author Name — *Book Title*
  */
 export function countBookSections(text) {
-  return (normalizeNewlines(text).match(/^## .+ — \*/gm) ?? []).length;
+  return findMatches(text, /^## .+ — \*/gm).length;
 }
 
 /**
@@ -51,7 +56,7 @@ export function countBookSections(text) {
  * Each risk section uses the pattern: ## Risk N: Title
  */
 export function countProductionRisks(text) {
-  return (normalizeNewlines(text).match(/^## Risk \d+:/gm) ?? []).length;
+  return findMatches(text, /^## Risk \d+:/gm).length;
 }
 
 /**
@@ -59,7 +64,7 @@ export function countProductionRisks(text) {
  * Each risk section uses the pattern: ## Risk TN: Title
  */
 export function countTestRisks(text) {
-  return (normalizeNewlines(text).match(/^## Risk T\d+:/gm) ?? []).length;
+  return findMatches(text, /^## Risk T\d+:/gm).length;
 }
 
 /**
@@ -76,7 +81,7 @@ export function extractChangelogVersion(text) {
  * Returns: ["1", "2a", "6b", ...] — the label portion only.
  */
 export function extractGuideStepLabels(text) {
-  return (normalizeNewlines(text).match(/^### Step (\d+[a-z]?)/gm) ?? [])
+  return findMatches(text, /^### Step (\d+[a-z]?)/gm)
     .map(m => m.replace(/^### Step /, ""));
 }
 

@@ -1,5 +1,8 @@
 /**
- * Unit tests for parseFrontmatterBooks().
+ * Unit tests for the scripts/ helpers: frontmatter parsing, prompt assembly,
+ * history, eval classification, report parsing, SARIF export, CI gates, and the
+ * parser-fidelity summarizer — plus an integration check that validate-repo.mjs
+ * exits 0 against this repository.
  *
  * Run:  node scripts/validate-repo.test.mjs
  *

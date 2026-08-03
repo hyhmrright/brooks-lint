@@ -57,7 +57,6 @@ function getSystemPrompt(mode) {
   return promptCache[mode];
 }
 
-
 // ── Run scenarios ─────────────────────────────────────────────────────────────
 
 const client = new Anthropic();
