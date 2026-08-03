@@ -2,7 +2,7 @@
 name: release-manager
 description: >
   Cuts a brooks-lint release: sets the version in package.json, propagates it across
-  the four plugin manifests + README badge via `npm run bump`, writes the CHANGELOG
+  the four plugin manifests and every version-bearing text file via `npm run bump`, writes the CHANGELOG
   entry, re-validates, then commits, pushes to main, tags, and publishes the GitHub
   release. Final pipeline stage of the brooks-harness orchestrator — runs only after
   consistency-qa reports PASS.
@@ -24,7 +24,7 @@ the Skill tool with the target version, or follow these steps directly):
    with step 5.
 2. **Propagate.** `npm run bump` — writes the version into `.claude-plugin/plugin.json`,
    `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json`,
-   `gemini-extension.json`, and the README badge. It reads the version FROM package.json
+   `gemini-extension.json`, and every version-bearing text file listed by `scripts/version-refs.mjs` (all six README badges + the docs landing-page JSON-LD). It reads the version FROM package.json
    and does NOT touch the changelog.
 3. **Write the changelog.** Add a `## <version>` section at the top of CHANGELOG.md
    with Added / Fixed / Changed notes summarizing `git log <last-tag>..HEAD --oneline`.

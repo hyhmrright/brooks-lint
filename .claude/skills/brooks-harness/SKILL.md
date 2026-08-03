@@ -3,7 +3,7 @@ name: brooks-harness
 description: >
   Maintenance orchestrator for the brooks-lint plugin itself. Runs a sequential
   subagent pipeline — author → eval → QA → trigger-audit → release — to add or
-  edit a skill, refresh the eval suite, keep the four manifests + README + CHANGELOG
+  edit a skill, refresh the eval suite, keep the four manifests + all README translations + CHANGELOG
   + AGENTS/GEMINI in sync, audit trigger boundaries, and cut releases. Drives the
   five agents in .claude/agents/ (skill-author, eval-curator, consistency-qa,
   trigger-boundary-auditor, release-manager).
@@ -84,7 +84,7 @@ contract and (b) the previous stage's summary. Agents write their summaries to
 2. **eval-curator** — if `skill-author` reported new/changed risk codes or modes, adds
    the paired happy-path + false-positive scenarios and runs `npm run evals`.
 3. **consistency-qa** *(gate — never skipped)* — runs `npm run validate` + `npm test` +
-   `npm run evals`, then the cross-document sync checks (manifests, README badge,
+   `npm run evals`, then the cross-document sync checks (manifests, all version-bearing text files,
    CHANGELOG, AGENTS/GEMINI book count, eval count). Writes a PASS/FAIL verdict.
    **On FAIL: loop back to the agent named in the verdict (author or eval-curator),
    fix, then re-run QA. Repeat once; if it still fails, stop and report to the

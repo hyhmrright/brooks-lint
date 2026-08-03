@@ -1,11 +1,23 @@
 /**
  * Shared eval classification utilities.
- * Used by run-evals-live.mjs (runtime) and validate-repo.test.mjs (tests).
+ * Used by run-evals.mjs and run-evals-live.mjs (runtime) and validate-repo.test.mjs.
  */
 
-// Only R1–R6 / T1–T6 are valid codes; \d+ would also match typos like R10 or
+import { PRODUCTION_RISK_COUNT, TEST_RISK_COUNT } from "./frontmatter.mjs";
+
+/**
+ * Canonical risk codes, derived from the counts rather than spelled out, so a
+ * seventh risk becomes valid everywhere at once instead of in whichever regexes
+ * someone remembered to widen.
+ */
+export const RISK_CODES = [
+  ...Array.from({ length: PRODUCTION_RISK_COUNT }, (_, i) => `R${i + 1}`),
+  ...Array.from({ length: TEST_RISK_COUNT }, (_, i) => `T${i + 1}`),
+];
+
+// Word-bounded and enumerated: a bare `\d+` would also match typos like `R10` or
 // stray text like "R20", polluting true/false-positive classification.
-const RISK_CODE_RE = /\b([RT][1-6])\b/g;
+const RISK_CODE_RE = new RegExp(`\\b(${RISK_CODES.join("|")})\\b`, "g");
 
 export function extractRiskCodes(text) {
   return new Set(text.match(RISK_CODE_RE) ?? []);

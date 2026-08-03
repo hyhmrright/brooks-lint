@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { VALID_MODES } from "./assemble-prompt.mjs";
-import { PRODUCTION_RISK_COUNT, TEST_RISK_COUNT } from "./frontmatter.mjs";
+import { RISK_CODES, extractRiskCodes } from "./eval-utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -29,11 +29,6 @@ const evalsData = JSON.parse(
 const evals = evalsData.evals;
 
 const REQUIRED_FIELDS = ["id", "name", "prompt", "expected_output", "mode"];
-
-const RISK_CODES = [
-  ...Array.from({ length: PRODUCTION_RISK_COUNT }, (_, i) => `R${i + 1}`),
-  ...Array.from({ length: TEST_RISK_COUNT }, (_, i) => `T${i + 1}`),
-];
 
 // Errors carry the summary bucket they belong to, so the report below never has
 // to re-derive it by substring-matching its own message text.
@@ -94,7 +89,9 @@ for (const ev of evals) {
   // health-score-suppression (no_health_score) scenarios are code-free by
   // design — warning on them is noise, so the check skips boundary scenarios.
   if (typeof ev.expected_output === "string") {
-    const referencedCodes = RISK_CODES.filter((code) => ev.expected_output.includes(code));
+    // Same word-bounded extraction the live runner classifies with — a substring
+    // scan here would let the two disagree about what a scenario expects.
+    const referencedCodes = [...extractRiskCodes(ev.expected_output)];
     const isBoundaryScenario = ev.no_risk_codes || ev.no_health_score;
     if (referencedCodes.length === 0 && !isBoundaryScenario) {
       warnings.push(`${label}: expected_output does not reference any risk code (${RISK_CODES.join(", ")})`);
@@ -141,9 +138,7 @@ const coveredCodes = new Set();
 for (const ev of evals) {
   if (ev.no_risk_codes || ev.no_health_score) continue;
   if (typeof ev.expected_output !== "string") continue;
-  for (const code of RISK_CODES) {
-    if (ev.expected_output.includes(code)) coveredCodes.add(code);
-  }
+  for (const code of extractRiskCodes(ev.expected_output)) coveredCodes.add(code);
 }
 const uncoveredCodes = RISK_CODES.filter((code) => !coveredCodes.has(code));
 if (uncoveredCodes.length > 0) {

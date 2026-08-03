@@ -29,6 +29,8 @@ The guide files define how Claude analyzes each scenario:
 | `skills/brooks-debt/debt-guide.md` | How tech debt is classified and scored |
 | `skills/brooks-test/test-guide.md` | How test quality reviews run |
 | `skills/brooks-health/health-guide.md` | How the health dashboard aggregates scores across all four dimensions |
+| `skills/brooks-sweep/sweep-guide.md` | How the full sweep classifies, applies, and reverts fixes |
+| `skills/brooks-audit/onboarding-guide.md` | How the codebase tour (onboarding mode) is produced |
 | `skills/_shared/test-decay-risks.md` | Six test-space decay risks with book citations |
 
 Better heuristics here mean better reviews for every user. If you find the skill
@@ -38,9 +40,10 @@ which captures book-level scope, exceptions, and tradeoffs.
 
 ### 3. Add an eval test case (most impactful)
 
-The benchmark (94% pass rate) was produced by running the skill against test cases
-in `evals/evals.json`. Adding a new test case that catches a real problem the
-current skill misses is the highest-value contribution.
+`evals/evals.json` holds the scenarios the skill is graded against. Adding a new
+test case that catches a real problem the current skill misses is the highest-value
+contribution. (The 94% figure in the README is a separate, three-scenario
+head-to-head against an unaided review — not this suite's pass rate.)
 
 **Format:**
 
@@ -67,14 +70,19 @@ and what it produces after. Even a screenshot or paste of the output is enough.
 
 ### 4. Adding a new decay risk (advanced)
 
-Adding an entirely new risk category (e.g., R7 or T7) requires touching five places.
-Run `npm run validate` after each step to confirm no drift:
+Adding an entirely new risk category (e.g., R7 or T7) requires touching six places.
+Run `npm run validate` and `npm run evals` after each step to confirm no drift:
 
 1. **`skills/_shared/decay-risks.md`** or **`test-decay-risks.md`** — add the full risk definition (Diagnostic Question, Symptoms, Sources table, Severity Guide, What Not to Flag)
 2. **`skills/_shared/source-coverage.md`** — add the new risk to the relevant book sections under "Encoded today"
-3. **`validate-repo.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
-4. **Mode guide(s)** (`pr-review-guide.md`, `architecture-guide.md`, `debt-guide.md`, `test-guide.md`) — add diagnostic questions for the new risk where relevant
-5. **`evals/evals.json`** — add a scenario (see §3 for format)
+3. **`scripts/frontmatter.mjs`** — increment `PRODUCTION_RISK_COUNT` or `TEST_RISK_COUNT`
+4. **`scripts/report-parse.mjs`** — add the code → display-name entry to `RISK_CATALOG`
+5. **Mode guide(s)** (`pr-review-guide.md`, `architecture-guide.md`, `debt-guide.md`, `test-guide.md`) — add diagnostic questions for the new risk where relevant
+6. **`evals/evals.json`** — add a scenario (see §3 for format). `npm run evals` fails until the new code has at least one positive scenario.
+
+Nothing else needs widening: the risk-code regexes in `eval-utils.mjs`,
+`report-parse.mjs`, and `benchmark.mjs` are all derived from steps 3 and 4, not
+spelled out — a hardcoded `[RT][1-6]` range used to drop new codes silently.
 
 ## Local Testing
 
@@ -98,10 +106,13 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start
 
 Expected output: a JSON object with an `additionalContext` or `hookSpecificOutput` key.
 
-To test the skill itself, install it into your Claude Code session:
+To test the skill itself, install it into your Claude Code session. Copy the
+*contents* of `skills/` — `cp -r skills/ <dest>` would nest a second `skills/`
+inside an existing destination, and `../_shared/` would stop resolving:
 
 ```bash
-cp -r skills/ ~/.claude/skills/brooks-lint
+mkdir -p ~/.claude/skills/brooks-lint
+cp -r skills/* ~/.claude/skills/brooks-lint/
 ```
 
 Then open Claude Code and run one of the slash commands:
@@ -112,6 +123,7 @@ Then open Claude Code and run one of the slash commands:
 /brooks-debt                    # or /brooks-lint:brooks-debt
 /brooks-test                    # or /brooks-lint:brooks-test
 /brooks-health                  # or /brooks-lint:brooks-health
+/brooks-sweep                   # or /brooks-lint:brooks-sweep
 ```
 
 ## PR Conventions

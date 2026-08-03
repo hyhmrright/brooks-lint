@@ -4,6 +4,80 @@ All notable changes to brooks-lint are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The GitHub Action could never have run** — `action.yml` invoked
+  `$GITHUB_ACTION_PATH/scripts/ci-review.mjs` and passed
+  `--skills-dir "$GITHUB_ACTION_PATH/skills"`, but `github.action_path` points at
+  `.github/actions/brooks-lint/` (which contains only `action.yml`), not at the
+  checked-out repository root three levels up where `scripts/` and `skills/`
+  actually live. The same mistake made the cache key hash a nonexistent
+  `package.json`, so the key was constant and the cache never invalidated. The
+  action now resolves the repository root once and derives every path from it.
+- **`.tsx`, `.jsx`, `.hpp`, `.kts` and `.mm` filenames were truncated by the
+  report parser** — the extension allowlist in `report-parse.mjs` is a
+  first-match alternation, and five entries listed the short extension before its
+  longer sibling. A bare `App.tsx:12` in a finding parsed as `App.ts` *and lost
+  the line number*, so the emitted SARIF pointed GitHub Code Scanning at a file
+  that does not exist. The list is now sorted longest-first at build time, and a
+  test walks the real allowlist so a future entry cannot regress it.
+- **Onboarding mode was missing from every non-interactive run** — brooks-audit
+  advertises "explain this codebase to a new developer" and dispatches to
+  `onboarding-guide.md`, but `assemble-prompt.mjs` never loaded that guide, so
+  the CI path and the two onboarding eval scenarios graded a model that had never
+  been given the instructions. A mode may now declare several guides, and
+  `npm run validate` checks step continuity for all of them.
+- **Step 7 of the PR review guide was unvalidated** — it was written as `##`
+  while every other step uses `###`, making it invisible to the step-continuity
+  check even though `SKILL.md` cites it by number. The heading is fixed, and the
+  validator now rejects a step heading at any other level instead of silently
+  skipping it.
+- **Shell injection surface in the composite action** — the `Check Threshold` and
+  `Quality Gates` steps interpolated `${{ inputs.* }}` directly into their script
+  bodies while the neighbouring step already used `env:` correctly. All inputs now
+  go through the environment.
+- **CONTRIBUTING pointed contributors at the wrong file** — the "add a new decay
+  risk" checklist named `validate-repo.mjs` for `PRODUCTION_RISK_COUNT` /
+  `TEST_RISK_COUNT` (they live in `scripts/frontmatter.mjs`) and omitted
+  `RISK_CATALOG`, so a new `R7` would have parsed as an uncategorised finding.
+  It also documented a `cp -r skills/ …` that nests a second `skills/` directory
+  on re-run, breaking `../_shared/` resolution.
+
+### Changed
+
+- **Risk-code ranges are derived, not hardcoded** — `eval-utils.mjs`,
+  `report-parse.mjs` and `benchmark.mjs` each carried their own `[RT][1-6]`
+  literal. They now derive from the risk counts and `RISK_CATALOG`, so adding a
+  seventh risk widens every code path at once. `run-evals.mjs` also switched from
+  a substring scan to the same word-bounded extraction the live runner
+  classifies with, so the two can no longer disagree about what a scenario expects.
+- **`strictness` presets propagated to the agent-facing docs** — `AGENTS.md` and
+  `GEMINI.md` still advertised balanced-only scoring (−15/−5/−1) as *the* scoring
+  system, which is what Codex CLI and Gemini CLI are told to prioritize. Both now
+  carry the full preset table, and `npm run validate` checks both files instead of
+  only `AGENTS.md` — the asymmetry is why `GEMINI.md` had also lost the eval count
+  and the benchmark corpus. Both also described six decay dimensions when there
+  are twelve.
+- **Dependencies and third-party code are pinned** — the Anthropic SDK is pinned
+  exactly in `package.json` and the action derives its install and cache key from
+  that single source; the documented workflow pins the action to a release tag
+  instead of `@main`; and the gallery page pins Mermaid to an exact version
+  rather than a floating `@11`.
+- **The dev PostToolUse hook watches what it claims to** — its file list omitted
+  the five localized READMEs and the docs landing page, so editing them never
+  triggered `npm run validate`. It now derives that part of the list from
+  `version-refs.mjs`, the same source bump and validate use.
+- **One language switcher instead of three** — the ~30-line IIFE was copy-pasted
+  into `index.html`, `gallery.html` and `guide.html` and had already diverged
+  (only `index.html` handled `data-src-*`). It now lives in `docs/lang-toggle.js`.
+- **Guide severity tiers reconciled with the canonical definitions** — the test
+  guide's inline calibration skipped the Warning tier for T2, left gaps in T3, and
+  promoted a slow suite to Critical where `test-decay-risks.md` caps it at
+  Warning. `remedy-guide.md`'s "do NOT modify any files" now says which modes it
+  binds, so it no longer contradicts brooks-sweep. `sweep.max_iterations` is
+  documented instead of only referenced, and the sweep report's Config line
+  carries `strictness:` like every other mode.
+
 ### Added
 
 - **`interface.defaultPrompt` in the Codex manifest** — OpenAI's plugin

@@ -15,19 +15,26 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { versionRefs } from "./version-refs.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const ROOT_MANIFESTS = new Set([
+// Files that make `npm run validate` meaningful. The version-bearing text files
+// come from version-refs.mjs — the same list bump and validate derive from — so
+// a new README translation or docs page is watched on arrival. Keeping a third
+// hand-written copy here is what left the localized READMEs and the docs landing
+// page editable without ever tripping the gate.
+const WATCHED = new Set([
   "package.json",
-  "README.md",
   "CHANGELOG.md",
   "AGENTS.md",
   "GEMINI.md",
+  "CONTRIBUTING.md",
   "gemini-extension.json",
   ".claude-plugin/plugin.json",
   ".claude-plugin/marketplace.json",
   ".codex-plugin/plugin.json",
+  ...versionRefs(repoRoot, "0.0.0").map((r) => r.rel),
 ]);
 
 function readStdin() {
@@ -55,7 +62,7 @@ try {
 }
 if (!rel) process.exit(0);
 
-if (!rel.startsWith("skills/") && !ROOT_MANIFESTS.has(rel)) process.exit(0);
+if (!rel.startsWith("skills/") && !WATCHED.has(rel)) process.exit(0);
 
 try {
   execFileSync("npm", ["run", "validate"], { cwd: repoRoot, stdio: "pipe" });

@@ -13,7 +13,7 @@ import {
   PRODUCTION_RISK_COUNT,
   TEST_RISK_COUNT,
 } from "./frontmatter.mjs";
-import { GUIDE_BY_MODE } from "./assemble-prompt.mjs";
+import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
 import { versionRefs } from "./version-refs.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -188,46 +188,55 @@ function checkSharedFramework() {
 // declared once (in assemble-prompt.mjs) to be validated here.
 const SKILL_GUIDES = Object.values(GUIDE_BY_MODE);
 
+/** Steps in one guide must be present, unique, and numerically contiguous. */
+function checkGuideSteps(rel) {
+  const text = readText(rel);
+  const labels = extractGuideStepLabels(text);
+
+  // A step at the wrong heading level is invisible to the label extractor, so the
+  // continuity check below silently skips it — that is how `## Step 7` in the PR
+  // guide stayed unvalidated while SKILL.md cited it by number. Catch the level
+  // itself, not just the sequence.
+  for (const heading of text.match(/^#{1,6} Step \d[a-z]?\b.*$/gm) ?? []) {
+    check(
+      heading.startsWith("### "),
+      `${rel} has a step heading at the wrong level (must be ###): "${heading.trim()}"`,
+    );
+  }
+
+  check(labels.length > 0, `${rel} has no ### Step headings — expected at least one`);
+
+  check(
+    new Set(labels).size === labels.length,
+    `${rel} has duplicate step labels: ${labels.filter((l, i) => labels.indexOf(l) !== i).join(", ")}`,
+  );
+
+  // Compare main step numbers only, ignoring sub-step suffixes: "6a" → 6, "0" → 0.
+  const mainSteps = [...new Set(labels.map(l => parseInt(l, 10)))].sort((a, b) => a - b);
+  const expectedStart = mainSteps[0]; // 0-indexed (architecture) or 1-indexed (others)
+  for (let i = 0; i < mainSteps.length; i++) {
+    check(
+      mainSteps[i] === expectedStart + i,
+      `${rel} main step sequence has a gap: expected ${expectedStart + i}, found ${mainSteps[i]}`,
+    );
+  }
+}
+
 function checkStepAlignment() {
-  for (const [mode, guide] of SKILL_GUIDES) {
-    const guideText = readText(`skills/${mode}/${guide}`);
-    const guideLabels = extractGuideStepLabels(guideText);
-
-    // Guard: guide must have at least 1 step
-    check(
-      guideLabels.length > 0,
-      `skills/${mode}/${guide} has no ### Step headings — expected at least one`,
-    );
-
-    // Check for duplicate step labels within the guide
-    const uniqueLabels = new Set(guideLabels);
-    check(
-      uniqueLabels.size === guideLabels.length,
-      `skills/${mode}/${guide} has duplicate step labels: ${guideLabels.filter((l, i) => guideLabels.indexOf(l) !== i).join(", ")}`,
-    );
-
-    // Verify main step numbers are sequential (ignoring sub-step suffixes).
-    // Extract the numeric base of each label: "6a" → 6, "2b" → 2, "0" → 0
-    const mainSteps = [...new Set(guideLabels.map(l => parseInt(l, 10)))].sort((a, b) => a - b);
-    const expectedStart = mainSteps[0]; // 0-indexed (architecture) or 1-indexed (others)
-    for (let i = 0; i < mainSteps.length; i++) {
-      check(
-        mainSteps[i] === expectedStart + i,
-        `skills/${mode}/${guide} main step sequence has a gap: expected ${expectedStart + i}, found ${mainSteps[i]}`,
-      );
-    }
+  for (const [dir, ...guides] of SKILL_GUIDES) {
+    for (const guide of guides) checkGuideSteps(`skills/${dir}/${guide}`);
 
     // SKILL.md Process section must exist and have at least one numbered item
-    const skillText = readText(`skills/${mode}/SKILL.md`);
+    const skillText = readText(`skills/${dir}/SKILL.md`);
     const processMatch = skillText.match(/## Process\n([\s\S]*?)(?=\n##|$)/);
     check(
       processMatch !== null,
-      `skills/${mode}/SKILL.md has no ## Process section`,
+      `skills/${dir}/SKILL.md has no ## Process section`,
     );
     if (processMatch) {
       check(
         /^\d+\./m.test(processMatch[1]),
-        `skills/${mode}/SKILL.md Process section has no numbered items`,
+        `skills/${dir}/SKILL.md Process section has no numbered items`,
       );
     }
   }
@@ -243,10 +252,10 @@ function checkSkillsContent() {
   } catch (_) { /* expected — file should not exist */ }
   check(!sharedHasSkillMd, "skills/_shared/SKILL.md must not exist — _shared/ is a library, not a skill");
 
-  for (const [mode, guide] of SKILL_GUIDES) {
-    const skillMd = readText(`skills/${mode}/SKILL.md`);
-    check(skillMd.includes("## Setup"), `skills/${mode}/SKILL.md should have a ## Setup section`);
-    check(skillMd.includes("## Process"), `skills/${mode}/SKILL.md should have a ## Process section`);
+  for (const [dir, ...guides] of SKILL_GUIDES) {
+    const skillMd = readText(`skills/${dir}/SKILL.md`);
+    check(skillMd.includes("## Setup"), `skills/${dir}/SKILL.md should have a ## Setup section`);
+    check(skillMd.includes("## Process"), `skills/${dir}/SKILL.md should have a ## Process section`);
 
     // Guard: SKILL.md frontmatter description must reference the current book count.
     // Positive assertion — self-updates when sourceWord changes with the book inventory.
@@ -255,21 +264,27 @@ function checkSkillsContent() {
     const frontmatter = frontmatterMatch ? frontmatterMatch[1] : "";
     check(
       frontmatter.includes(`${sourceWord} classic`),
-      `skills/${mode}/SKILL.md frontmatter description should reference "${sourceWord} classic engineering books" — update stale book count`,
+      `skills/${dir}/SKILL.md frontmatter description should reference "${sourceWord} classic engineering books" — update stale book count`,
     );
 
-    check(
-      readText(`skills/${mode}/${guide}`).includes("Iron Law"),
-      `skills/${mode}/${guide} should reference the Iron Law`,
-    );
+    for (const guide of guides) {
+      check(
+        readText(`skills/${dir}/${guide}`).includes("Iron Law"),
+        `skills/${dir}/${guide} should reference the Iron Law`,
+      );
+    }
   }
 }
 
+// Every shipped mode needs at least one scenario. This replaced a hardcoded
+// ">= 49 scenarios" floor: that number stopped tracking reality the moment the
+// suite grew past it, and run-evals.mjs already enforces per-risk-code coverage.
+// Mode coverage is the invariant neither check owned.
 function checkEvalSuite() {
-  check(
-    evalCount >= 49,
-    `evals/evals.json should include at least 49 benchmark scenarios (found ${evalCount})`,
-  );
+  const modes = new Set(evals.evals.map((ev) => ev.mode));
+  for (const mode of VALID_MODES) {
+    check(modes.has(mode), `evals/evals.json has no scenario for mode '${mode}'`);
+  }
 }
 
 function checkContributing() {
@@ -280,16 +295,34 @@ function checkContributing() {
   );
 }
 
+// AGENTS.md and GEMINI.md are near-duplicates that Codex CLI and Gemini CLI are
+// each told to prioritize, so they have to stay factually identical. Checking only
+// AGENTS.md is what let GEMINI.md quietly lose the eval count and the benchmark
+// corpus, and let both keep advertising balanced-only scoring after strictness
+// presets shipped.
+const AGENT_DOCS = ["AGENTS.md", "GEMINI.md"];
+// Backticked, as the scoring table writes them. A bare "strict" would also match
+// inside the word "strictness" and pass on a doc that never lists the presets.
+const STRICTNESS_PRESETS = ["`strict`", "`balanced`", "`legacy-friendly`"];
+
 function checkAgentsDocs() {
-  const agents = readText("AGENTS.md");
-  check(
-    agents.includes(`${sourceWord} classic engineering books`),
-    `AGENTS.md should describe the repository as grounded in ${sourceWord} classic engineering books`,
-  );
-  check(
-    agents.includes(`${evalCount} scenarios`),
-    `AGENTS.md should mention the expanded eval suite (${evalCount} scenarios)`,
-  );
+  for (const file of AGENT_DOCS) {
+    const text = readText(file);
+    check(
+      text.includes(`${sourceWord} classic engineering books`),
+      `${file} should describe the repository as grounded in ${sourceWord} classic engineering books`,
+    );
+    check(
+      text.includes(`${evalCount} scenarios`),
+      `${file} should mention the current eval suite (${evalCount} scenarios)`,
+    );
+    for (const preset of STRICTNESS_PRESETS) {
+      check(
+        text.includes(preset),
+        `${file} should document the '${preset}' strictness preset — its scoring table is stale`,
+      );
+    }
+  }
 }
 
 function checkSecurity() {

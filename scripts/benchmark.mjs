@@ -9,25 +9,26 @@
  * Because the parser is deterministic and the corpus is frozen, the numbers are
  * exactly reproducible: anyone can re-run `npm run benchmark` and get the same
  * result. This benchmarks the PARSER (the SARIF/CI-gate plumbing), not the model
- * — model quality is measured separately by the 57-scenario suite (npm run evals:live).
+ * — model quality is measured separately by evals/evals.json (npm run evals:live).
  *
  * Exit code: 0 if every report is parsed faithfully and emits valid SARIF; 1 otherwise.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseFindings, countFindings } from "./report-parse.mjs";
+import { parseFindings, countFindings, RISK_CATALOG } from "./report-parse.mjs";
 import { reportToSarif } from "./sarif.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const VALID_LEVELS = new Set(["error", "warning", "note"]);
+const KNOWN_CODES = new Set(Object.keys(RISK_CATALOG));
 
-/** Keep only valid R1–R6 / T1–T6 codes (duplicates preserved), uppercased. */
+/** Keep only catalogued risk codes (duplicates preserved), uppercased. */
 function validCodes(codes) {
   return (codes ?? [])
     .map((c) => String(c).toUpperCase().trim())
-    .filter((c) => /^[RT][1-6]$/.test(c));
+    .filter((c) => KNOWN_CODES.has(c));
 }
 
 /** Count occurrences of each code → { code: n }. */

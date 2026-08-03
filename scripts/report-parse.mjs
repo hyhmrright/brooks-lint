@@ -44,12 +44,27 @@ const EMOJI_SEVERITY = { "🔴": "critical", "🟡": "warning", "🟢": "suggest
 // A path with a directory separator, or a bare filename with a known source
 // extension — optionally followed by `:line`. The extension allowlist keeps
 // prose like "e.g." or "i.e." from being mistaken for a file reference.
-// Within a shared prefix the longer extension must come first (`exs` before
-// `ex`, `cljs` before `clj`) so JS alternation doesn't stop at the short one;
-// the newer extensions lead the list so a bare `c`/`h`/`m` can't shadow `cr`/
-// `hs`/`ml`.
-const LOCATION_RE =
-  /([\w.-]*\/[\w./-]*\.\w+|[\w.-]+\.(?:astro|cljc|cljs|clj|cr|dart|elm|erl|exs|ex|fsx|fs|gradle|groovy|hs|jl|lua|mli|ml|nim|pl|pm|proto|sol|svelte|tf|zig|ts|tsx|js|jsx|mjs|cjs|py|java|go|rb|rs|cc|cpp|cxx|c|h|hpp|cs|php|kt|kts|swift|scala|vue|sql|rsx|m|mm))(?::(\d+))?/;
+//
+// ORDERING IS LOAD-BEARING: JS alternation is first-match, not longest-match, so
+// within a shared prefix the LONGER extension must come first (`tsx` before `ts`,
+// `hpp` before `h`, `exs` before `ex`). Getting this backwards silently truncates
+// the filename — `App.tsx:12` parsed as `App.ts` with no line number — and the
+// resulting SARIF location points at a file that does not exist.
+// Sorting the list longest-first enforces the rule mechanically; the extensions
+// are grouped alphabetically within each length only for readability.
+export const SOURCE_EXTENSIONS = [
+  "astro", "cljc", "cljs", "clj", "cpp", "cxx", "cjs", "cr", "cs", "cc", "c",
+  "dart", "elm", "erl", "exs", "ex", "fsx", "fs", "gradle", "groovy", "hpp",
+  "hs", "h", "java", "jl", "jsx", "js", "kts", "kt", "lua", "mjs", "mli", "ml",
+  "mm", "m", "nim", "php", "pl", "pm", "proto", "py", "rb", "rs", "rsx", "scala",
+  "sol", "sql", "svelte", "tf", "tsx", "ts", "vue", "zig",
+];
+
+const LOCATION_RE = new RegExp(
+  "([\\w.-]*\\/[\\w./-]*\\.\\w+|[\\w.-]+\\.(?:" +
+    [...SOURCE_EXTENSIONS].sort((a, b) => b.length - a.length).join("|") +
+    "))(?::(\\d+))?",
+);
 
 function splitTitle(bold) {
   // Dash is the template separator; a colon is a common LLM variant. `.match`
@@ -62,11 +77,18 @@ function splitTitle(bold) {
   };
 }
 
+// Built from RISK_CATALOG so a newly catalogued code is recognised here too —
+// a hardcoded `[RT][1-6]` range silently dropped anything outside it.
+const CODES = Object.keys(RISK_CATALOG).join("|");
+// Case-sensitive on purpose: a lowercase `r1` in prose is not a risk citation.
+const EXPLICIT_CODE_RE = new RegExp(`\\b(${CODES})\\b`);
+const PARENTHESISED_CODE_RE = new RegExp(`\\((${CODES})\\)`, "i");
+
 function resolveCode(namePart) {
-  const explicit = namePart.match(/\b([RT][1-6])\b/);
+  const explicit = namePart.match(EXPLICIT_CODE_RE);
   if (explicit) return explicit[1].toUpperCase();
   const cleaned = namePart
-    .replace(/\(([RT][1-6])\)/i, "")
+    .replace(PARENTHESISED_CODE_RE, "")
     .replace(/[[\]]/g, "")
     .trim()
     .toLowerCase();

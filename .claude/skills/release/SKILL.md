@@ -2,8 +2,9 @@
 name: release
 description: >
   Cut a brooks-lint release: set the version in package.json, propagate it across
-  all four plugin manifests + README badge, write the CHANGELOG entry, validate,
-  then commit, push, tag, and publish the GitHub release.
+  all four plugin manifests and every version-bearing text file (README badges,
+  docs site metadata), write the CHANGELOG entry, validate, then commit, push,
+  tag, and publish the GitHub release.
   Triggers when the maintainer asks to "release", "cut a release", "ship a new
   version", or "bump and publish" brooks-lint.
   Do NOT trigger for: propagating an already-decided version without releasing
@@ -26,10 +27,15 @@ CHANGELOG entry are manual; the script only fans the version out to manifests + 
    its own commit + tag and collide with the manual commit in step 5).
 2. **Propagate.** `npm run bump` — writes the version into
    `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`,
-   `.codex-plugin/plugin.json`, `gemini-extension.json`, and the README badge.
-3. **Write the changelog.** Add a new `## <version>` section at the top of
-   `CHANGELOG.md` with categorized notes (Added / Fixed / Changed) summarizing the
-   commits since the last release tag (`git log <last-tag>..HEAD --oneline`).
+   `.codex-plugin/plugin.json`, `gemini-extension.json`, and every version-bearing
+   text file discovered by `scripts/version-refs.mjs` (all six README badges plus
+   the JSON-LD `softwareVersion` on the docs landing page). Do not maintain a list
+   here — the script's is authoritative.
+3. **Write the changelog.** Add a new section at the top of `CHANGELOG.md` with
+   categorized notes (Added / Fixed / Changed) summarizing the commits since the
+   last release tag (`git log <last-tag>..HEAD --oneline`). The heading MUST be
+   `## [<version>] - YYYY-MM-DD` — `npm run validate` parses that exact shape and
+   fails on a bare `## <version>`.
 4. **Validate.** `npm run validate` — fails if any manifest, the README badge, or
    the CHANGELOG entry is out of sync. Fix and re-run until clean. Then `npm test`.
 5. **Commit & push.** Stage the changed manifests, README, and CHANGELOG; commit

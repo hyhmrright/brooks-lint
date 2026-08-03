@@ -2,12 +2,18 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 /**
- * Canonical mode registry: mode → [skill directory, guide filename].
- * Adding a mode here is the only edit needed — VALID_MODES derives from it.
+ * Canonical mode registry: mode → [skill directory, ...guide filenames].
+ * Adding a mode here is the only edit needed — VALID_MODES derives from it, and
+ * validate-repo.mjs checks step continuity for every guide listed.
+ *
+ * A mode may carry more than one guide. Interactively, SKILL.md tells the agent
+ * to read the secondary guide on demand; in the CI and eval paths there is no
+ * on-demand read, so every guide the mode can dispatch to has to be in the
+ * assembled system prompt or the mode simply does not exist there.
  */
 export const GUIDE_BY_MODE = {
   review: ["brooks-review", "pr-review-guide.md"],
-  audit: ["brooks-audit", "architecture-guide.md"],
+  audit: ["brooks-audit", "architecture-guide.md", "onboarding-guide.md"],
   debt: ["brooks-debt", "debt-guide.md"],
   test: ["brooks-test", "test-guide.md"],
   health: ["brooks-health", "health-guide.md"],
@@ -45,11 +51,13 @@ export function assembleSystemPrompt(mode, skillsDir) {
     sections.push(read(path.join(sharedDir, "decay-risks.md")));
   }
 
-  // Add mode-specific guide
-  const guide = GUIDE_BY_MODE[mode];
-  if (!guide) throw new Error(`Unknown mode: ${mode}`);
-  const [modeDir, guideFile] = guide;
-  sections.push(read(path.join(skillsDir, modeDir, guideFile)));
+  // Add mode-specific guide(s)
+  const entry = GUIDE_BY_MODE[mode];
+  if (!entry) throw new Error(`Unknown mode: ${mode}`);
+  const [modeDir, ...guideFiles] = entry;
+  for (const guideFile of guideFiles) {
+    sections.push(read(path.join(skillsDir, modeDir, guideFile)));
+  }
 
   return sections.join("\n\n---\n\n");
 }

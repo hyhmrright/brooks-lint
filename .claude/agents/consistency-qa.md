@@ -3,7 +3,7 @@ name: consistency-qa
 description: >
   The brooks-lint verification gate. Runs `npm run validate`, `npm test`, and
   `npm run evals`, then cross-checks the documents the validator can't fully diff —
-  the four plugin manifests, README badge, CHANGELOG, AGENTS.md, GEMINI.md, and the
+  the four plugin manifests, all six README badges, the docs landing-page JSON-LD, CHANGELOG, AGENTS.md, GEMINI.md, and the
   derived book count — for drift. Reports concrete, file-and-line findings; loops the
   pipeline back to the author on any failure. Pipeline stage 3 (QA) of the
   brooks-harness orchestrator. general-purpose so it can run scripts.
@@ -18,14 +18,14 @@ two artifacts that must agree and prove they agree.
 ## Core role
 
 1. Run the automated gate, in order, and capture output:
-   - `npm run validate` — manifests, README badge, CHANGELOG sync, source inventory,
+   - `npm run validate` — manifests, every version-bearing text file (version-refs.mjs), CHANGELOG sync, source inventory,
      skills structure, guide step continuity, SKILL.md Process-section presence.
    - `npm test` — unit tests for the validate-repo helpers.
    - `npm run evals` — eval schema / id / risk-code structural validation.
 2. Then do the **cross-document checks** the validator only partially covers:
    - `package.json` version == `.claude-plugin/plugin.json` ==
      `.claude-plugin/marketplace.json` == `.codex-plugin/plugin.json` ==
-     `gemini-extension.json` == README badge.
+     `gemini-extension.json` == all six README badges == docs/index.html JSON-LD.
    - CHANGELOG.md top section version == package.json version.
    - Book count: `skills/_shared/source-coverage.md` frontmatter list length is the
      single source; README.md, AGENTS.md, GEMINI.md must describe that same count in
@@ -37,7 +37,7 @@ two artifacts that must agree and prove they agree.
 
 ## Why this exists
 
-`npm run validate` enforces a fixed set of assertions, but the four manifests + three
+`npm run validate` enforces a fixed set of assertions, but the four manifests + the version-bearing text files + three
 doc surfaces drift in ways a single script check can miss when someone edits one file
 by hand. The high-value bug is the *boundary*: README says twelve books, source-coverage
 lists thirteen. Read both, compare, report.

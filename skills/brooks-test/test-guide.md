@@ -62,8 +62,12 @@ Look for:
   to the observable behavior?
 - Are tests coupled to private methods or internal state directly?
 
-If brittleness is systemic (most tests in the file break on a rename) → 🔴 Critical.
-If isolated (1–2 brittle tests) → 🟢 Suggestion.
+Severity (mirrors the T2 Severity Guide in `../_shared/test-decay-risks.md`):
+- 🔴 Critical — systemic: most tests in the file break on a rename, or > 5 tests are
+  coupled to one implementation detail
+- 🟡 Warning — Eager Tests are common across the suite; moderate implementation-detail
+  assertions
+- 🟢 Suggestion — isolated (1–2 brittle tests) in non-critical paths
 
 ### Step 2b: Scan for Mock Abuse
 
@@ -97,8 +101,11 @@ Look for:
 - Is the same business scenario covered at unit, integration, and E2E level with no
   difference in what each layer is testing?
 
-If duplication is systemic (10 or more instances) → Critical.
-If localized (3–5 instances) → Warning.
+Severity (mirrors the T3 Severity Guide in `../_shared/test-decay-risks.md`):
+- 🔴 Critical — a core business scenario fully duplicated across all three test layers
+  with no differentiation, or duplication is systemic (10+ instances)
+- 🟡 Warning — the same setup repeated in 5 or more tests without extraction (3–9 instances)
+- 🟢 Suggestion — minor helper duplication or isolated Lazy Tests (1–2 instances)
 
 ### Step 4: Scan for Coverage Illusion and Architecture Mismatch
 
@@ -131,9 +138,12 @@ Look for Architecture Mismatch:
 
 **Test suite performance:** A slow test suite is a first-class maintainability risk — it
 breaks the fast-feedback loop and causes developers to skip running tests locally.
-- If the full suite runtime is known and > 10 minutes → 🟡 Warning
-- If the full suite runtime is > 30 minutes or unknown → 🔴 Critical (unknown suite time
-  means nobody is running it regularly)
+- If the full suite runtime is > 10 minutes → 🟡 Warning (per the T6 Severity Guide in
+  `../_shared/test-decay-risks.md`; runtime alone does not reach Critical)
+- Runtime > 30 minutes, or unknown because nobody runs the suite, is still 🟡 Warning —
+  but say so explicitly in the Symptom. It reaches 🔴 Critical only when combined with a
+  Critical T6 condition: legacy code under modification with no seams and no
+  characterization tests, or a fully inverted pyramid
 - If tests that could be unit tests are integration tests, that is a Performance Mismatch:
   each misclassified test adds seconds of avoidable wait time
 

@@ -595,7 +595,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@main
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.4.3
         with:
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

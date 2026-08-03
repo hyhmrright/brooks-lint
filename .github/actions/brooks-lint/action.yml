@@ -42,17 +42,30 @@ runs:
       with:
         node-version: 20
 
+    # github.action_path points at this directory (.github/actions/brooks-lint),
+    # NOT at the checked-out action repository — but scripts/ and skills/ live at
+    # the repo root, three levels up. Resolving the root once here is what makes
+    # the paths below actually exist.
+    - name: Resolve brooks-lint root
+      shell: bash
+      run: |
+        root="$(cd "$GITHUB_ACTION_PATH/../../.." && pwd)"
+        echo "BROOKS_LINT_ROOT=$root" >> "$GITHUB_ENV"
+        # package.json is the single source of truth for the SDK version, so the
+        # cache key and the install below can never pin different things.
+        echo "BROOKS_LINT_SDK=$(node -p "require('$root/package.json').devDependencies['@anthropic-ai/sdk']")" >> "$GITHUB_ENV"
+
     - name: Cache SDK
       id: cache
       uses: actions/cache@v4
       with:
-        path: ${{ github.action_path }}/node_modules
-        key: brooks-lint-sdk-${{ runner.os }}-${{ hashFiles(format('{0}/package.json', github.action_path)) }}
+        path: ${{ env.BROOKS_LINT_ROOT }}/node_modules
+        key: brooks-lint-sdk-${{ runner.os }}-${{ env.BROOKS_LINT_SDK }}
 
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npm install --prefix "$GITHUB_ACTION_PATH" @anthropic-ai/sdk
+      run: npm install --prefix "$BROOKS_LINT_ROOT" "@anthropic-ai/sdk@$BROOKS_LINT_SDK"
 
     - name: Run Brooks-Lint
       shell: bash
@@ -66,10 +79,10 @@ runs:
         if [ -n "$SARIF_FILE" ]; then
           sarif_arg=(--sarif-out "$SARIF_FILE")
         fi
-        node "$GITHUB_ACTION_PATH/scripts/ci-review.mjs" \
+        node "$BROOKS_LINT_ROOT/scripts/ci-review.mjs" \
           --mode "$MODE" \
           --model "$MODEL" \
-          --skills-dir "$GITHUB_ACTION_PATH/skills" \
+          --skills-dir "$BROOKS_LINT_ROOT/skills" \
           --project-dir "$GITHUB_WORKSPACE" \
           "${sarif_arg[@]}" \
           > brooks-lint-report.json
@@ -106,20 +119,29 @@ runs:
       with:
         sarif_file: ${{ inputs.sarif-file }}
 
+    # Inputs go through env, never straight into the script body: a caller wiring
+    # an input to attacker-controlled text (a PR title, a branch name) would
+    # otherwise be injecting shell here. Same reason as the Run step above.
     - name: Check Threshold
       if: inputs.fail-below != '0'
       shell: bash
+      env:
+        SCORE: ${{ steps.score.outputs.score }}
+        FAIL_BELOW: ${{ inputs.fail-below }}
       run: |
-        if [ "${{ steps.score.outputs.score }}" -lt "${{ inputs.fail-below }}" ]; then
-          echo "Health Score ${{ steps.score.outputs.score }} is below threshold ${{ inputs.fail-below }}"
+        if [ "$SCORE" -lt "$FAIL_BELOW" ]; then
+          echo "Health Score $SCORE is below threshold $FAIL_BELOW"
           exit 1
         fi
 
     - name: Quality Gates
       if: inputs.fail-on != 'none' || inputs.fail-on-regression == 'true'
       shell: bash
+      env:
+        FAIL_ON: ${{ inputs.fail-on }}
+        FAIL_ON_REGRESSION: ${{ inputs.fail-on-regression }}
       run: |
-        node "$GITHUB_ACTION_PATH/scripts/ci-gate.mjs" \
+        node "$BROOKS_LINT_ROOT/scripts/ci-gate.mjs" \
           --report brooks-lint-report.json \
-          --fail-on "${{ inputs.fail-on }}" \
-          --fail-on-regression "${{ inputs.fail-on-regression }}"
+          --fail-on "$FAIL_ON" \
+          --fail-on-regression "$FAIL_ON_REGRESSION"

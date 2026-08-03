@@ -480,7 +480,11 @@ Target  ratio:  Unit 70% : Integration 20% : E2E 10%</pre>
 </footer>
 
 <script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  // Pinned to an exact version on purpose: `mermaid@11` floats across every
+  // future 11.x, so this page would silently execute third-party code nobody
+  // reviewed. Bump deliberately. (ESM imports cannot carry an SRI hash, so the
+  // pin is the only control available here.)
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
   mermaid.initialize({
     startOnLoad: true,
     theme: 'base',
@@ -507,37 +511,6 @@ Target  ratio:  Unit 70% : Integration 20% : E2E 10%</pre>
     });
   })();
 </script>
-<script>
-(function () {
-  var STORE = "brooks-lint-lang";
-  var HTML_LANG = { en:"en", zh:"zh-CN", zhtw:"zh-TW", ja:"ja", ko:"ko", es:"es" };
-  function apply(lang) {
-    document.documentElement.lang = HTML_LANG[lang] || "en";
-    document.querySelectorAll("[data-en]").forEach(function (el) {
-      var v = el.getAttribute("data-" + lang);
-      if (v != null) el.innerHTML = v;
-    });
-    document.querySelectorAll(".lang-toggle button").forEach(function (b) {
-      b.classList.toggle("active", b.getAttribute("data-set-lang") === lang);
-    });
-    try { localStorage.setItem(STORE, lang); } catch (e) {}
-  }
-  document.querySelectorAll("[data-set-lang]").forEach(function (b) {
-    b.addEventListener("click", function () { apply(b.getAttribute("data-set-lang")); });
-  });
-  var saved;
-  try { saved = localStorage.getItem(STORE); } catch (e) {}
-  if (!saved) {
-    var nav = (navigator.language || "").toLowerCase();
-    saved = (nav.indexOf("zh-tw")===0||nav.indexOf("zh-hant")===0||nav.indexOf("zh-hk")===0||nav.indexOf("zh-mo")===0) ? "zhtw"
-          : nav.indexOf("zh")===0 ? "zh"
-          : nav.indexOf("ja")===0 ? "ja"
-          : nav.indexOf("ko")===0 ? "ko"
-          : nav.indexOf("es")===0 ? "es"
-          : "en";
-  }
-  apply(saved);
-})();
-</script>
+<script src="lang-toggle.js"></script>
 </body>
 </html>

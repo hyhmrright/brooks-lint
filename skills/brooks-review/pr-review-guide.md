@@ -86,23 +86,7 @@ If no new imports and no structural changes → skip, no finding.
 - Does any new class hold only data with no behavior (pure data bag), where behavior was expected?
 - Does any new method put logic that belongs to the domain in a service or utility layer?
 
----
-
-## Severity Calibration
-
-Apply the Iron Law format from `../_shared/common.md`. Each risk in `../_shared/decay-risks.md` has its own Severity
-Guide with numeric thresholds — use those as the primary reference. When a finding sits
-on the boundary between two tiers, use this as a tiebreaker:
-- 🔴 Critical — actively breaking velocity or creating production risk *today*
-- 🟡 Warning — will if left unaddressed through the next few features
-- 🟢 Suggestion — worth fixing when nearby, not urgent
-
-When multiple findings exist, list Critical items first. If there are more than 5 findings,
-add a one-line "Recommended fix order" at the end of the Findings section.
-
----
-
-## Step 7: Quick Test Check
+### Step 7: Quick Test Check
 
 *Run this last. Three signals only — this is not a full Mode 4 review.*
 
@@ -153,6 +137,20 @@ Label the risk as the test decay risk name (e.g., "Coverage Illusion", "Mock Abu
 > **Note:** Step 7 is a fast check, not a full test audit. When systemic test problems
 > are found, note in the Summary: "Consider running `/brooks-lint:brooks-test` for a
 > complete test quality diagnosis."
+
+---
+
+## Severity Calibration
+
+Apply the Iron Law format from `../_shared/common.md`. Each risk in `../_shared/decay-risks.md` has its own Severity
+Guide with numeric thresholds — use those as the primary reference. When a finding sits
+on the boundary between two tiers, use this as a tiebreaker:
+- 🔴 Critical — actively breaking velocity or creating production risk *today*
+- 🟡 Warning — will if left unaddressed through the next few features
+- 🟢 Suggestion — worth fixing when nearby, not urgent
+
+When multiple findings exist, list Critical items first. If there are more than 5 findings,
+add a one-line "Recommended fix order" at the end of the Findings section.
 
 ---
 

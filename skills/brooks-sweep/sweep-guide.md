@@ -222,7 +222,7 @@ Output the final report. Use the standard Report Template from
 ```
 # Brooks-Lint — Full Sweep Report
 Mode: Full Sweep | Scope: <files or directory>
-Config: .brooks-lint.yaml applied (N risks disabled, M paths ignored)   # omit if no config
+Config: .brooks-lint.yaml applied (strictness: <preset>, N risks disabled, M paths ignored)   # omit if no config
 
 ## Dimension Summary
 | Dimension | Scanned | Safe Applied | Extended Applied | Reverted | Residual |

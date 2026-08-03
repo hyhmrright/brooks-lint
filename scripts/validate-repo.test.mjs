@@ -26,7 +26,7 @@ import {
   extractGuideStepLabels,
 } from "./frontmatter.mjs";
 import { extractRiskCodes, classify } from "./eval-utils.mjs";
-import { parseFindings, countFindings, extractLocation } from "./report-parse.mjs";
+import { parseFindings, countFindings, extractLocation, SOURCE_EXTENSIONS } from "./report-parse.mjs";
 import { reportToSarif } from "./sarif.mjs";
 import { severityBreached, isRegression } from "./ci-gate.mjs";
 import { summarize } from "./benchmark.mjs";
@@ -672,10 +672,34 @@ test("captures newer-language extensions from bare filenames", () => {
 });
 
 test("prefers the longer of two prefix-sharing extensions", () => {
-  // A bare `ex`/`clj`/`ml` must not truncate `.exs`/`.cljs`/`.mli`.
-  assert.equal(extractLocation("runtime.exs boots the app").file, "runtime.exs");
-  assert.equal(extractLocation("core.cljs mounts").file, "core.cljs");
-  assert.equal(extractLocation("parser.mli exports").file, "parser.mli");
+  // Regression: the alternation is first-match, so a short extension listed
+  // before its longer sibling truncated the filename — `.tsx` parsed as `.ts`,
+  // which also swallowed the `:line` and pointed SARIF at a nonexistent file.
+  const pairs = [
+    ["runtime.exs boots the app", "runtime.exs"],
+    ["core.cljs mounts", "core.cljs"],
+    ["parser.mli exports", "parser.mli"],
+    ["App.tsx renders twice", "App.tsx"],
+    ["Button.jsx re-renders", "Button.jsx"],
+    ["Foo.hpp declares it", "Foo.hpp"],
+    ["build.gradle.kts configures it", "build.gradle.kts"],
+    ["Bridge.mm wraps the ObjC side", "Bridge.mm"],
+  ];
+  for (const [text, expected] of pairs) {
+    assert.equal(extractLocation(text).file, expected, text);
+  }
+});
+
+test("keeps the line number on a bare filename with a long extension", () => {
+  assert.deepEqual(extractLocation("App.tsx:12 mounts twice"), { file: "App.tsx", line: 12 });
+});
+
+test("no extension shadows a longer one that starts with it", () => {
+  // Mechanical guard over the real allowlist: every `name.<ext>` must round-trip.
+  // An extension added in the wrong position fails here, not in production SARIF.
+  for (const ext of SOURCE_EXTENSIONS) {
+    assert.equal(extractLocation(`sample.${ext}`).file, `sample.${ext}`, `.${ext} was truncated`);
+  }
 });
 
 // ── sarif: reportToSarif ───────────────────────────────────────────────────
@@ -822,10 +846,6 @@ test("risk-code extraction has zero false positives / negatives on the corpus", 
   assert.equal(BENCH.recall, 1);
 });
 
-// ── Integration: validate-repo.mjs passes against current repo ─────────────
-
-console.log("\nvalidate-repo integration");
-
 // ── versionRefs ────────────────────────────────────────────────────────────
 
 console.log("\nversionRefs");
@@ -885,7 +905,9 @@ test("patterns match the real badge and JSON-LD shapes", () => {
   });
 });
 
-// ── Integration ────────────────────────────────────────────────────────────
+// ── Integration: validate-repo.mjs passes against current repo ─────────────
+
+console.log("\nvalidate-repo integration");
 
 test("validate-repo.mjs exits 0 against the current repository", () => {
   execFileSync("node", [path.join(__dirname, "validate-repo.mjs")], { encoding: "utf8" });

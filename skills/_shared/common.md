@@ -55,6 +55,11 @@ maturity stages. One of:
 
 See **Health Score Calculation** below for the per-preset deduction weights.
 
+**`sweep`** — Full Sweep only. `max_iterations` (default 3) caps how many
+non-critical re-scan rounds the sweep pipeline runs before it stops and reports
+the remainder as unresolved. Critical findings are exempt from the cap — they
+iterate until resolved or retired. Ignored by every other mode.
+
 **Minimal example:**
 ```yaml
 version: 1
@@ -65,6 +70,8 @@ severity:
   R1: suggestion
 ignore:
   - "**/*.generated.*"
+sweep:
+  max_iterations: 3
 ```
 
 If `.brooks-lint.yaml` contains a `custom_risks` map, read `custom-risks-guide.md`
@@ -137,7 +144,7 @@ and fixed structural headers from the template below (`Findings`, `Summary`,
 ````
 # Brooks-Lint Review
 
-**Mode:** [PR Review / Architecture Audit / Tech Debt Assessment / Test Quality Review]
+**Mode:** [PR Review / Architecture Audit / Tech Debt Assessment / Test Quality Review / Health Dashboard / Full Sweep]
 **Scope:** [file(s), directory, or description of what was reviewed]
 **Health Score:** XX/100
 
@@ -196,7 +203,10 @@ Remedy: ...
 ## Remedy Mode
 
 When the user passes `--fix` or asks to "fix the findings", read
-`remedy-guide.md` from the `_shared/` directory before writing the report.
+`remedy-guide.md` from the `_shared/` directory before writing the report. It
+sharpens each Remedy into a concrete action — the diagnostic modes still do not
+edit files. Full Sweep is the mode that applies fixes, and it follows
+`brooks-sweep/sweep-guide.md` instead.
 
 ## Health Score Calculation
 
@@ -240,7 +250,9 @@ After reporting Warning or Suggestion findings, offer:
 
 For each finding one at a time (lowest severity first): show title, ask `[a]ccept / [d]ismiss / [f]defer / [s]kip`; wait for reply before moving to the next.
 
-**Dismiss:** ask one-line reason → append to `.brooks-lint.yaml` under `suppress:` → downgraded to info in future runs.
+**Dismiss:** ask one-line reason → append to `.brooks-lint.yaml` under `suppress:` →
+downgraded to info in future runs. Entry fields: `risk` (code), `pattern` (file glob),
+`reason` (required), `date` (when it was dismissed).
 
 **Defer:** same as dismiss, add `expires: YYYY-MM-DD` (default 90 days) → resurfaces at original severity after expiry.
 
