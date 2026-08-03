@@ -4,6 +4,17 @@ All notable changes to brooks-lint are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **`interface.defaultPrompt` in the Codex manifest** — OpenAI's plugin
+  validator (`plugin-creator/scripts/validate_plugin.py`, shipped with
+  codex-cli) requires `interface.defaultPrompt`, and `.codex-plugin/plugin.json`
+  did not declare it. It now carries three starter prompts covering the review,
+  audit, and debt modes. The two remaining validator complaints are deliberate
+  and documented in `CLAUDE.md`: `"commands": []` is what prevents the duplicate
+  `source-command-brooks-*` skills fixed in 1.4.2, and `skills/_shared/` is a
+  shared-framework directory rather than a skill.
+
 ## [1.4.2] - 2026-07-24
 
 ### Fixed
