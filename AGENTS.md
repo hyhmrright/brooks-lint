@@ -25,17 +25,12 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - **Trigger descriptions:** Every `SKILL.md` `description:` field must include a "Do NOT trigger for:" clause defining the negative boundary to prevent false triggering.
 
 ## Project Structure
-- `skills/brooks-review/`: PR Review skill and guide.
-- `skills/brooks-audit/`: Architecture Audit skill and guide.
-- `skills/brooks-debt/`: Tech Debt Assessment skill and guide.
-- `skills/brooks-test/`: Test Quality Review skill and guide.
-- `skills/brooks-health/`: Health Dashboard skill and guide.
-- `skills/brooks-sweep/`: Full Sweep & Auto-Fix skill and guide.
-- `skills/_shared/`: Shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
+- `skills/brooks-{review,audit,debt,test,health,sweep}/`: the six skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — each a `SKILL.md` plus its guide.
+- `skills/_shared/`: shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `hooks/`: SessionStart hook for session-level awareness (not used by Codex CLI).
 - `commands/`: Short-form command wrappers for Claude Code (not used by Codex CLI).
-- `evals/`: Performance benchmark test cases (57 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks). Structural validation: `npm run evals`. Live evals against the AI: `npm run evals:live` (requires `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
+- `evals/`: 57 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks — `npm run evals` (structural), `npm run evals:live` (against the AI, needs `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
 
 ---
 **Note:** Codex CLI should prioritize instructions found in `AGENTS.md` when operating in this repository.

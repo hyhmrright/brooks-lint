@@ -14,13 +14,8 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 ./scripts/install.sh opencode --project  # this repo: ./.opencode/skills
 ```
 
-Manual equivalent:
-
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.config/opencode/skills
-cp -r /tmp/brooks-lint/skills/* ~/.config/opencode/skills/   # flat — brooks-* and _shared/ as siblings
-```
+Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.config/opencode/skills/` — the contents, not the
+`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
 
 OpenCode also discovers Claude-compatible `~/.claude/skills/*/SKILL.md`, so an existing Claude install
 (if flat) is picked up automatically.

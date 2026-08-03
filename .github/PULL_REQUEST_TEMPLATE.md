@@ -11,20 +11,6 @@
 - [ ] New decay risk — added a new R or T risk entry
 - [ ] Other: ___
 
-## Files changed
-
-<!-- List the skill files touched. Helps reviewers focus. -->
-
-- [ ] `skills/_shared/common.md`
-- [ ] `skills/_shared/decay-risks.md`
-- [ ] `skills/_shared/test-decay-risks.md`
-- [ ] `skills/brooks-review/`
-- [ ] `skills/brooks-audit/`
-- [ ] `skills/brooks-debt/`
-- [ ] `skills/brooks-test/`
-- [ ] `evals/evals.json`
-- [ ] Other: ___
-
 ## Testing
 
 <!-- How did you verify the change? Running the skill manually counts. -->

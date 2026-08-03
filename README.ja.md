@@ -73,35 +73,30 @@
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
 
-あとは話しかけるだけ（「この PR をレビューして」「アーキテクチャを監査して」）——あるいはコマンドを実行します。
+あとは話しかけるだけ（「この PR をレビューして」「アーキテクチャを監査して」）、あるいは六つのコマンドの
+いずれかを実行します——`/brooks-review`、`/brooks-audit`、`/brooks-debt`、`/brooks-test`、
+`/brooks-health`、`/brooks-sweep`（[それぞれの機能](#スラッシュコマンド)）。
 
-| コマンド | 機能 |
-|---------|--------------|
-| `/brooks-review` | PR または diff をレビュー |
-| `/brooks-audit` | アーキテクチャを監査（+ Mermaid 依存関係グラフ） |
-| `/brooks-debt` | 優先順位付けされた技術的負債のロードマップ |
-| `/brooks-test` | テストスイートの品質レビュー |
-| `/brooks-health` | 全次元を横断する健全性ダッシュボード |
-| `/brooks-sweep` | 全次元をスイープし、指摘を自動修正 |
-
-すべての指摘は **症状 → 根源 → 結果 → 対策** の形式で、書籍の出典と 0〜100 の健全性スコアとともに返されます。完全なインストール方法（さらに 8 つのプラットフォーム）、コマンドごとの使い方、CI/CD のセットアップは[以下](#インストール)を参照してください。
+すべての指摘は **症状 → 根源 → 結果 → 対策** の形式で、書籍の出典と 0〜100 の健全性スコアとともに
+返されます。完全なインストール方法（さらに 8 つのプラットフォーム）と CI/CD のセットアップは
+[以下](#インストール)を参照してください。
 
 ## 十二冊の書籍
 
 | 書籍 | 著者 | 寄与する先 |
 |------|--------|----------------|
-| *The Mythical Man-Month*（人月の神話） | Frederick Brooks | R2, R4, R5 |
-| *Code Complete*（コードコンプリート） | Steve McConnell | R1, R4 |
-| *Refactoring*（リファクタリング） | Martin Fowler | R1, R2, R3, R4, R6 |
-| *Clean Architecture*（クリーンアーキテクチャ） | Robert C. Martin | R2, R5 |
-| *The Pragmatic Programmer*（達人プログラマー） | Hunt & Thomas | R2, R3, R4, R5, T2, T3 |
-| *Domain-Driven Design*（エリック・エヴァンスのドメイン駆動設計） | Eric Evans | R1, R3, R6 |
-| *A Philosophy of Software Design*（ソフトウェア設計の哲学） | John Ousterhout | R1, R4 |
-| *Software Engineering at Google*（Google のソフトウェアエンジニアリング） | Winters, Manshreck & Wright | R2, R5 |
-| *The Art of Unit Testing*（単体テストの考え方／使い方） | Roy Osherove | T1, T2, T4, T5 |
-| *How Google Tests Software*（テストから見えてくるグーグルのソフトウェア開発） | James A. Whittaker, Jason Arbon & Jeff Carollo | T5, T6 |
-| *Working Effectively with Legacy Code*（レガシーコード改善ガイド） | Michael Feathers | T4, T5, T6 |
-| *xUnit Test Patterns*（xUnit テストパターン） | Gerard Meszaros | T1, T2, T3, T4 |
+| *The Mythical Man-Month*（人月の神話、1975） | Frederick P. Brooks Jr. | R2, R4, R5 |
+| *Code Complete*（コードコンプリート、1993、第2版 2004） | Steve McConnell | R1, R4 |
+| *Refactoring*（リファクタリング、1999、第2版 2018） | Martin Fowler | R1, R2, R3, R4, R6 |
+| *Clean Architecture*（クリーンアーキテクチャ、2017） | Robert C. Martin | R2, R5 |
+| *The Pragmatic Programmer*（達人プログラマー、1999、20周年版 2019） | Andrew Hunt & David Thomas | R2, R3, R4, R5, T2, T3 |
+| *Domain-Driven Design*（エリック・エヴァンスのドメイン駆動設計、2003） | Eric Evans | R1, R3, R6 |
+| *A Philosophy of Software Design*（ソフトウェア設計の哲学、2018） | John Ousterhout | R1, R4 |
+| *Software Engineering at Google*（Google のソフトウェアエンジニアリング、2020） | Winters, Manshreck & Wright | R2, R5 |
+| *The Art of Unit Testing*（単体テストの考え方／使い方、2009、第3版 2023） | Roy Osherove | T1, T2, T4, T5 |
+| *How Google Tests Software*（テストから見えてくるグーグルのソフトウェア開発、2012） | Whittaker, Arbon & Carollo | T5, T6 |
+| *Working Effectively with Legacy Code*（レガシーコード改善ガイド、2004） | Michael Feathers | T4, T5, T6 |
+| *xUnit Test Patterns*（xUnit テストパターン、2007） | Gerard Meszaros | T1, T2, T3, T4 |
 
 ## 六つの劣化リスク
 
@@ -258,59 +253,27 @@ graph TD
 
 ### Claude Code（推奨）
 
-#### プラグインマーケットプレイス経由
 ```bash
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-短縮形コマンド（`/brooks-review`）は、最初のセッション開始時に自動インストールされます。手動でインストールするには：
+短縮コマンド（`/brooks-review`）は最初のセッション開始時に自動インストールされます——自分で
+`bash hooks/session-start` を実行しても構いません。マーケットプレイスを使わない場合：
+`mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`。
+
+### Gemini CLI · Codex CLI
+
 ```bash
-bash hooks/session-start
+/extensions install https://github.com/hyhmrright/brooks-lint   # Gemini CLI
+```
+```
+Install the brooks-lint skill from hyhmrright/brooks-lint       # Codex セッション内で話しかける
 ```
 
-#### 手動インストール
-```bash
-mkdir -p ~/.claude/skills/brooks-lint
-cp -r skills/* ~/.claude/skills/brooks-lint/
-```
+または下記のインストーラーを使用：`./scripts/install.sh gemini` / `./scripts/install.sh codex`。
 
-### Gemini CLI
-
-#### 拡張機能経由
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint
-```
-
-#### 手動インストール
-```bash
-mkdir -p ~/.gemini/skills
-cp -r skills/* ~/.gemini/skills/      # フラット — Gemini はスキルを 1 階層深さまでしか発見しない
-```
-> または単に：`./scripts/install.sh gemini`
-
-### Codex CLI
-
-#### スキルインストーラー経由（Codex セッション内）
-```
-Install the brooks-lint skill from hyhmrright/brooks-lint
-```
-
-#### コマンドライン
-```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo hyhmrright/brooks-lint --path skills --name brooks-lint
-```
-
-#### 手動インストール
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.codex/skills
-cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/   # フラット — スキルインストーラーのレイアウトと一致
-```
-> または単に：`./scripts/install.sh codex`
-
-### さらなるプラットフォーム — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### その他すべてのプラットフォーム — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
 
 brooks-lint は標準的な [Agent Skills](https://agentskills.io) として配布されています。**Agent
 Skills を読み込むエージェントなら、どれも変換なしで六つすべてのモードを実行できます**——1 つのコマンドでインストールできます：
@@ -323,56 +286,22 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 
 インストーラーはスキルをあなたのプラットフォームに適したフォルダへ**フラット**にコピーするため、共有フレームワーク
 （`../_shared/`）は常に正しく解決されます——レイアウトを間違えようがありません。あとは話しかけるだけ
-（「この PR をレビューして」「アーキテクチャを監査して」）で、該当するスキルがその
-`description` に基づいて自動的にトリガーされます。スキルが初めて、または別のエージェントをお使いですか？ **[docs/getting-started.md](docs/getting-started.md)** を参照してください。
+（「この PR をレビューして」「アーキテクチャを監査して」）で、該当するスキルがその `description` に基づいて
+自動的にトリガーされます。
 
-<details><summary><b>OpenCode</b></summary>
+| プラットフォーム | インストール先 | 併せて読む | ガイド |
+|---|---|---|---|
+| OpenCode | `~/.config/opencode/skills` | `~/.claude/skills`、`AGENTS.md` | [設定](docs/opencode-setup.md) |
+| Cursor（2.4+） | `~/.cursor/skills` | `.agents/skills`、`AGENTS.md` | [設定](docs/cursor-setup.md) |
+| Windsurf（Cascade） | `~/.codeium/windsurf/skills` | `AGENTS.md` | [設定](docs/windsurf-setup.md) |
+| Antigravity（Google） | `.agent/skills`（`--project`） | `AGENTS.md`、`GEMINI.md` | [設定](docs/antigravity-setup.md) |
+| pi（earendil-works） | `~/.pi/agent/skills` | — | [設定](docs/pi-setup.md) |
+| GitHub Copilot | `.github/skills`（`--project`） | `.claude/skills`、`AGENTS.md` | [設定](docs/copilot-setup.md) |
+| Kiro（AWS） | `~/.kiro/skills` | `AGENTS.md` | [設定](docs/kiro-setup.md) |
+| Factory Droid | `~/.factory/skills` | `AGENTS.md` | [設定](docs/factory-droid-setup.md) |
 
-`./scripts/install.sh opencode` → `~/.config/opencode/skills`（`~/.claude/skills` と
-`AGENTS.md` も読み取ります）。完全ガイド：[docs/opencode-setup.md](docs/opencode-setup.md)。
-</details>
-
-<details><summary><b>Cursor</b>（2.4+）</summary>
-
-`./scripts/install.sh cursor` → `~/.cursor/skills`（`.agents/skills` も；`AGENTS.md` を読み取ります）。
-完全ガイド：[docs/cursor-setup.md](docs/cursor-setup.md)。
-</details>
-
-<details><summary><b>Windsurf</b>（Cascade）</summary>
-
-`./scripts/install.sh windsurf` → `~/.codeium/windsurf/skills`（`AGENTS.md` を読み取ります）。
-完全ガイド：[docs/windsurf-setup.md](docs/windsurf-setup.md)。
-</details>
-
-<details><summary><b>Antigravity</b>（Google）</summary>
-
-`./scripts/install.sh antigravity --project` → `.agent/skills`（`AGENTS.md` / `GEMINI.md` を読み取ります）。
-完全ガイド：[docs/antigravity-setup.md](docs/antigravity-setup.md)。
-</details>
-
-<details><summary><b>pi</b>（earendil-works）</summary>
-
-`./scripts/install.sh pi` → `~/.pi/agent/skills`、または pi の `skills` 設定をクローンに向けます。
-完全ガイド：[docs/pi-setup.md](docs/pi-setup.md)。
-</details>
-
-<details><summary><b>GitHub Copilot</b></summary>
-
-`./scripts/install.sh copilot --project` → `.github/skills`（`.claude/skills` も自動検出；
-`AGENTS.md` を読み取ります）。完全ガイド：[docs/copilot-setup.md](docs/copilot-setup.md)。
-</details>
-
-<details><summary><b>Kiro</b>（AWS）</summary>
-
-`./scripts/install.sh kiro` → `~/.kiro/skills`（`/brooks-review` を自動登録；`AGENTS.md` を読み取ります）。
-完全ガイド：[docs/kiro-setup.md](docs/kiro-setup.md)。
-</details>
-
-<details><summary><b>Factory Droid</b></summary>
-
-`./scripts/install.sh droid` → `~/.factory/skills`（`/brooks-review` を登録；`AGENTS.md` を読み取ります）。
-完全ガイド：[docs/factory-droid-setup.md](docs/factory-droid-setup.md)。
-</details>
+Kiro と Factory Droid は `/brooks-review` も自動登録します。スキルが初めて、または上記にないエージェントを
+お使いですか？ **[docs/getting-started.md](docs/getting-started.md)** を参照してください。
 
 > **🧪 検証状況。** Claude Code、Gemini CLI、Codex CLI はメンテナーによって検証済みです。上記の八つの
 > プラットフォームは各ツールの公式スキル仕様から文書化され、ファイルレイアウトのレベルで検証されています
@@ -383,109 +312,26 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 
 ## スラッシュコマンド
 
-### Claude Code
-| コマンド | 短縮形 | アクション |
-|---------|------------|--------|
-| `/brooks-lint:brooks-review` | `/brooks-review` | PR レベルのコードレビュー |
-| `/brooks-lint:brooks-audit` | `/brooks-audit` | 完全なアーキテクチャ監査 |
-| `/brooks-lint:brooks-debt` | `/brooks-debt` | 技術的負債の評価 |
-| `/brooks-lint:brooks-test` | `/brooks-test` | テストスイートの健全性レビュー |
-| `/brooks-lint:brooks-health` | `/brooks-health` | 健全性ダッシュボード — 全四次元 |
-| `/brooks-lint:brooks-sweep` | `/brooks-sweep` | 全面スイープ — 全次元を分析し指摘を自動修正 |
+| コマンド | 内容 |
+|---------|--------------|
+| `/brooks-review` | diff を貼り付けるか、変更されたファイルを AI に指し示します。症状 → 出典 → 帰結 → 対策 の形式で六つの劣化リスクをそれぞれ診断します。 |
+| `/brooks-audit` | モジュール依存関係を（Mermaid グラフ付きで）マッピングし、循環依存を特定し、コンウェイの法則との整合性を確認します。 |
+| `/brooks-debt` | 負債を六つの劣化リスクで分類し、痛み × 波及範囲で優先度を付け、Critical / Scheduled / Monitored の階層を持つ返済ロードマップを生成します。 |
+| `/brooks-test` | 六つのテスト空間の劣化リスク——テストの不明瞭さ、テストの脆さ、テストの重複、モックの濫用、カバレッジの幻想、アーキテクチャの不整合——に照らしてテストスイートを監査します。 |
+| `/brooks-health` | 四つの品質次元すべてを簡略スキャンし、加重された総合ヘルススコアを 1 つ算出します。リリース前やチームのオンボーディング時に。 |
+| `/brooks-sweep` | R1–R6、T1–T6、アーキテクチャを一括スキャンし、修正を適用します：安全な変更は自動適用、複数ファイルにまたがる変更は確認、アーキテクチャ上の判断は手動項目としてフラグ。修正ログとスコア差分を出力します。 |
 
-> 短縮形コマンドは、session-start フックによって最初のセッション開始時に自動インストールされます。
+**プラットフォーム別の構文。** Claude Code は名前空間付きの完全形 `/brooks-lint:brooks-review` も受け付けます
+——短縮形は session-start フックが最初のセッション開始時に自動インストールします。Codex CLI は
+`$brooks-review`。Gemini CLI は上の表のとおり。OpenCode、Cursor、Antigravity、pi は各スキルの
+`description` から Agent Skills を呼び出すので、話しかけるだけで十分です（「この PR をレビューして」
+「最悪の技術的負債はどこ？」）。明示的に呼び出す場合は各プラットフォームの構文を使います（pi は各スキルを
+`/skill:brooks-review` として登録）。どのプラットフォームでも、コード品質・アーキテクチャ・テストの健全性に
+ついて話すと、スキルは自動的にトリガーされます。
 
-### Gemini CLI
-| コマンド | アクション |
-|---------|--------|
-| `/brooks-review` | PR レベルのコードレビュー |
-| `/brooks-audit` | 完全なアーキテクチャ監査 |
-| `/brooks-debt` | 技術的負債の評価 |
-| `/brooks-test` | テストスイートの健全性レビュー |
-| `/brooks-health` | 健全性ダッシュボード — 全四次元 |
-| `/brooks-sweep` | 全面スイープ — 全次元を分析し指摘を自動修正 |
-
-### Codex CLI
-
-| コマンド | アクション |
-|---------|--------|
-| `$brooks-review` | PR レベルのコードレビュー |
-| `$brooks-audit` | 完全なアーキテクチャ監査 |
-| `$brooks-debt` | 技術的負債の評価 |
-| `$brooks-test` | テストスイートの健全性レビュー |
-| `$brooks-health` | 健全性ダッシュボード — 全四次元 |
-| `$brooks-sweep` | 全面スイープ — 全次元を分析し指摘を自動修正 |
-
-コード品質、アーキテクチャ、保守性、テストの健全性について話すと、これらのスキルは自動的にもトリガーされます。
-
-### OpenCode · Cursor · Antigravity · pi
-
-これらのプラットフォームは、各スキルの `description` に基づいて Agent Skills を自動的に呼び出します——話しかけるだけ
-（「この PR をレビューして」「アーキテクチャを監査して」「うちの最悪の技術的負債はどこ？」）で、該当するモードが
-実行されます。明示的に呼び出すには、各プラットフォームのスキルコマンド構文を使います（例：pi は各スキルを
-`/skill:brooks-review` として登録します；Cursor と OpenCode はスキルが発見されると `/brooks-review` を公開します）。
-
-## 使い方
-
-### PR レビュー
-
-```
-/brooks-review                      # Claude Code（短縮形）/ Gemini CLI
-/brooks-lint:brooks-review          # Claude Code（完全形）
-$brooks-review                      # Codex CLI
-```
-
-diff を貼り付けるか、AI を変更されたファイルに向けてください。六つの劣化リスクそれぞれを、症状 → 根源 → 結果 → 対策 の形式で具体的な指摘とともに診断します。
-
-### アーキテクチャ監査
-
-```
-/brooks-audit                       # Claude Code（短縮形）/ Gemini CLI
-/brooks-lint:brooks-audit           # Claude Code（完全形）
-$brooks-audit                       # Codex CLI
-```
-
-プロジェクト構造を説明するか、主要なファイルを共有してください。モジュールの依存関係をマッピングし、循環依存を特定し、コンウェイの法則との整合性をチェックします。
-
-### 技術的負債の評価
-
-```
-/brooks-debt                        # Claude Code（短縮形）/ Gemini CLI
-/brooks-lint:brooks-debt            # Claude Code（完全形）
-$brooks-debt                        # Codex CLI
-```
-
-あなたの負債を六つの劣化リスクにわたって分類し、各指摘を 痛み × 広がり の優先度で採点し、Critical / Scheduled / Monitored の分類を備えた優先順位付き返済ロードマップを生成します。
-
-### テスト品質レビュー
-
-```
-/brooks-test                        # Claude Code（短縮形）/ Gemini CLI
-/brooks-lint:brooks-test            # Claude Code（完全形）
-$brooks-test                        # Codex CLI
-```
-
-あなたのテストスイートを、六つのテスト空間の劣化リスク——テストの不透明性、テストの脆さ、テストの重複、モックの濫用、カバレッジの幻想、アーキテクチャの不一致——に照らして監査します。出典は xUnit Test Patterns、The Art of Unit Testing、How Google Tests Software、Working Effectively with Legacy Code です。PR レビューには、軽量な Step 7 のクイックテストチェックも自動的に含まれます（ドキュメントのみ、または非本番の diff ではスキップ）。
-
-### 健全性ダッシュボード
-
-```
-/brooks-health                      # Claude Code（短縮形）/ Gemini CLI
-/brooks-lint:brooks-health          # Claude Code（完全形）
-$brooks-health                      # Codex CLI
-```
-
-全四つの品質次元にわたって簡略化されたスキャンを実行し、重み付けされた総合健全性スコア（0〜100）を生成します。リリース前、新しいチームのオンボーディング時、あるいは「うちは今どうなっている？」という全体像レポートが欲しいときに使ってください。いずれかの次元についてより深い診断が必要な場合は、代わりに専用スキルを使ってください。
-
-### 全面スイープ
-
-```
-/brooks-sweep                       # Claude Code（短縮形）/ Gemini CLI
-/brooks-lint:brooks-sweep           # Claude Code（完全形）
-$brooks-sweep                       # Codex CLI
-```
-
-すべての本番（R1–R6）とテスト（T1–T6）の劣化リスク、加えてアーキテクチャを一度のパスでスキャンし、その後修正を適用します：安全な変更は即座に自動適用され、複数ファイルにまたがる、またはインターフェースに触れる変更は確認を必要とし、複雑なアーキテクチャ上の決定は手動対応項目としてフラグが立てられます。修正ログ、健全性スコアの差分、残存項目リストを出力します。
+> PR レビューには軽量な Step 7 クイックテストチェックが自動的に含まれます（ドキュメントのみの diff では
+> スキップ）。完全なテスト監査には `/brooks-test` を、単一次元の深掘りには `/brooks-health` ではなく
+> その次元専用のスキルを使ってください。
 
 ## 設定
 
@@ -527,56 +373,35 @@ ignore:
 
 ## なぜこれらの書籍か、なぜ今か？
 
-AI 支援コーディングの時代において、私たちはこれまで以上に速く、多くのコードを書いています。しかし、六十年にわたるソフトウェア工学の洞察は変わっていません：
-
-> *"ソフトウェアの複雑性は本質的な性質であって、偶発的な性質ではない。"*
+> *「ソフトウェアの複雑さは本質的な性質であり、偶有的なものではない。」*
 > — Frederick Brooks
 
-AI はコードをより速く書く手助けはできても、あなたが大聖堂を建てているのかタールの穴を掘っているのかは教えてくれません。**brooks-lint はそのギャップを埋めます**——十二冊の古典的ソフトウェア工学書から得られた、苦労して獲得された知恵を、あなたの現代的な開発ワークフローに持ち込みます。
-
-これらの著者が特定した劣化リスクは、かつてないほど切実です：
-- **AI アシスタントを追加しても** 認知過負荷やドメインモデルの歪みは解消されません
-- **より多くのコードを生成すると** 変更の波及と知識の重複が増大します
-- **より速く動くことは** 偶発的複雑性と依存関係の無秩序をいっそう危険にします
+AI はコードを速く書く手助けはできても、あなたが大聖堂を建てているのかタールの穴を掘っているのかは
+教えてくれません——そして生成が安くなるほど、これらの著者が特定した劣化リスクは鋭くなります。AI
+アシスタントを導入しても認知的過負荷やドメインモデルの歪みは直りません。コードを多く生成すれば変更の
+波及と知識の重複が増えます。速く動くほど、偶発的複雑性と依存関係の混乱は危険になります。
 
 ## プロジェクト構成
 
+各スキルは 1 つの `SKILL.md`（トリガー + プロセスの骨格）と、それ専用のガイドで構成されます：
+
 ```
 brooks-lint/
-├── .claude-plugin/              # Claude Code plugin metadata
-├── .codex-plugin/               # Codex CLI plugin metadata
+├── .claude-plugin/ · .codex-plugin/  # プラットフォーム別プラグインメタデータ
 ├── skills/
-│   ├── _shared/                 # Shared framework files
-│   │   ├── common.md            # Iron Law, Project Config, Report Template, Health Score
-│   │   ├── source-coverage.md   # 12-book coverage matrix, tradeoffs, false-positive guards
-│   │   ├── decay-risks.md       # Six decay risks with symptoms and book citations
-│   │   ├── test-decay-risks.md  # Six test-space decay risks with book citations
-│   │   ├── remedy-guide.md      # --fix mode: actionable Remedy enhancement rules
-│   │   └── custom-risks-guide.md  # Template for project-specific risk codes
-│   ├── brooks-review/           # Mode 1: PR Review
-│   │   ├── SKILL.md
-│   │   └── pr-review-guide.md
-│   ├── brooks-audit/            # Mode 2: Architecture Audit
-│   │   ├── SKILL.md
-│   │   └── architecture-guide.md
-│   ├── brooks-debt/             # Mode 3: Tech Debt Assessment
-│   │   ├── SKILL.md
-│   │   └── debt-guide.md
-│   ├── brooks-test/             # Mode 4: Test Quality Review
-│   │   ├── SKILL.md
-│   │   └── test-guide.md
-│   ├── brooks-health/           # Mode 5: Health Dashboard
-│   │   ├── SKILL.md
-│   │   └── health-guide.md
-│   └── brooks-sweep/            # Mode 6: Full Sweep & Auto-Fix
-│       ├── SKILL.md
-│       └── sweep-guide.md
-├── hooks/                       # SessionStart hook
-├── commands/                    # Short-form command wrappers (auto-installed by hook)
-├── evals/                       # Benchmark test cases
-│   └── evals.json
-└── assets/
-    └── logo.svg
+│   ├── _shared/          # common.md（鉄則、設定、レポートテンプレート、ヘルススコア）
+│   │                     # source-coverage.md · decay-risks.md（R1–R6）
+│   │                     # test-decay-risks.md（T1–T6）· remedy-guide.md · custom-risks-guide.md
+│   ├── brooks-review/    # モード 1：PR レビュー          → pr-review-guide.md
+│   ├── brooks-audit/     # モード 2：アーキテクチャ監査   → architecture-guide.md、onboarding-guide.md
+│   ├── brooks-debt/      # モード 3：技術的負債           → debt-guide.md
+│   ├── brooks-test/      # モード 4：テスト品質           → test-guide.md
+│   ├── brooks-health/    # モード 5：健全性ダッシュボード → health-guide.md
+│   └── brooks-sweep/     # モード 6：全面スイープ         → sweep-guide.md
+├── hooks/                # SessionStart フック
+├── commands/             # 短縮コマンドのラッパー（フックが自動インストール）
+├── evals/                # 57 シナリオの eval スイート + 凍結されたパーサー忠実度コーパス
+└── assets/               # ロゴ、バナー、デモ
 ```
 
 ## CI/CD 統合
@@ -627,55 +452,35 @@ jobs:
 
 ## ロードマップ
 
-> **現状（v1.4）：** 12 冊の書籍を土台に、6 つの本番劣化リスク（R1–R6）+ 6 つのテスト劣化リスク（T1–T6）、6 つのスキル——PR レビュー、アーキテクチャ監査、技術的負債、テスト品質、健全性ダッシュボード、全面スイープ——に加え、CI 品質ゲート、GitHub Code Scanning 向けの SARIF 出力、厳格度プリセット、そして再現可能なパーサー忠実度ベンチマーク。下の以前のエントリは歴史的なマイルストーンを記述したものであり、現在の機能セットではありません。
+**現在の状態（v1.4）：** 12 冊の書籍を基礎に、6 つの本番劣化リスク（R1–R6）+ 6 つのテスト劣化リスク
+（T1–T6）、6 つのスキル、CI 品質ゲート、GitHub Code Scanning 向け SARIF 出力、厳格度プリセット、
+そして再現可能なパーサー忠実度ベンチマーク。
 
-- [x] **v0.2**：プラグインインフラ（`.claude-plugin/`、フック、スラッシュコマンド）
-- [x] **v0.3**：八つの Brooks 次元、ドキュメント完全性スコアリング
-- [x] **v0.4**：六冊の書籍フレームワーク、劣化リスク次元、診断チェーン、ベンチマークスイート
-- [x] **v0.5**：テスト品質レビュー（モード 4）——四冊のテスト書籍、六つのテスト劣化リスク
-- [x] **v0.6**：アーキテクチャ監査における Mermaid 依存関係グラフ
-- [x] **v0.7**：`.brooks-lint.yaml` プロジェクト設定、モード 2 のプロアクティブコンテキスト、10 冊への拡張
-- [x] **v0.8**：名前空間付きコマンドを備えた独立スキルアーキテクチャ
-- [x] **v0.9**：ステップ検証、自動 diff スコープ、`/brooks-health` ダッシュボード、トレンド追跡、トリアージモード、`--fix` 対策、オンボーディングレポート、GitHub Action
-- [x] **v1.0**：eval 自動化（`run-evals-live.mjs`）、カスタムリスク拡張（`Cx` コード）
-- [x] **v1.1**：全面スイープスキル（`brooks-sweep`）——統合された多次元自動修正
-- [x] **v1.2**：自律的なスイープパイプライン、`npm run bump` によるバージョン伝播
-- [x] **v1.3**：Codex マーケットプレイスメタデータ、複数のエージェントプラットフォーム向けのワンコマンドインストーラー、バイリンガル README + ランディングサイト
-- [x] **v1.4**：GitHub Code Scanning 向けの SARIF 出力、CI の severity + 回帰ゲート、厳格度プリセット（strict/balanced/legacy-friendly）、57 シナリオの eval スイート、再現可能なパーサー忠実度ベンチマーク（`npm run benchmark`）
+<details><summary>マイルストーン v0.2 → v1.4</summary>
 
-手伝いたいですか？ 今もっとも価値ある貢献は、新しい eval テストケースと、より優れた劣化リスクの症状パターンです。[CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+- **v0.2–v0.4**：プラグイン基盤、六冊フレームワーク、劣化リスク次元、ベンチマークスイート
+- **v0.5–v0.7**：テスト品質レビュー、Mermaid 依存グラフ、`.brooks-lint.yaml`、10 冊への拡張
+- **v0.8–v0.9**：独立スキルアーキテクチャ、ステップ検証、自動 diff スコープ、`/brooks-health`、トレンド追跡、トリアージモード、`--fix` 対策、GitHub Action
+- **v1.0–v1.2**：eval 自動化、カスタム `Cx` リスクコード、全面スイープスキル、`npm run bump` によるバージョン伝播
+- **v1.3**：Codex マーケットプレイスメタデータ、マルチプラットフォーム一発インストーラー、多言語 README + ランディングサイト
+- **v1.4**：SARIF 出力、CI 重大度 + リグレッションゲート、厳格度プリセット、57 シナリオ eval スイート、`npm run benchmark`
+</details>
 
 ## 貢献
 
-指摘の追加、ガイドの改善、ベンチマークスイートの拡張の方法は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
-
-あなた自身の PR で `/brooks-review` を実行してください——私たちは、作っているそのツールで貢献をレビューしています。
+[CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。現在もっとも価値ある貢献は、新しい eval
+テストケースと、より良い劣化リスクの症状パターンです。ご自分の PR で `/brooks-review` を実行して
+みてください——私たちは作っているツールそのもので貢献をレビューしています。
 
 ## ライセンス
 
-MIT License——詳細は [LICENSE](LICENSE) を参照してください。
+MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 
 ## 謝辞
 
-このプロジェクトは十二人の巨人の肩の上に立っています：
-
-**本番コードフレームワーク**
-- Frederick P. Brooks Jr. — *The Mythical Man-Month*（1975、記念版 1995）
-- Steve McConnell — *Code Complete*（1993、第 2 版 2004）
-- Martin Fowler — *Refactoring*（1999、第 2 版 2018）
-- Robert C. Martin — *Clean Architecture*（2017）
-- Andrew Hunt & David Thomas — *The Pragmatic Programmer*（1999、20 周年版 2019）
-- Eric Evans — *Domain-Driven Design*（2003）
-- John Ousterhout — *A Philosophy of Software Design*（2018）
-- Titus Winters, Tom Manshreck, Hyrum Wright — *Software Engineering at Google*（2020）
-
-**テスト品質フレームワーク**
-- Gerard Meszaros — *xUnit Test Patterns*（2007）
-- Roy Osherove — *The Art of Unit Testing*（2009、第 3 版 2023）
-- Google Engineering — *How Google Tests Software*（2012）
-- Michael Feathers — *Working Effectively with Legacy Code*（2004）
-
-このツールにエンコードされた劣化リスクは、彼らのアイデアを統合し、現代のコード品質評価に応用した私たちの成果です。
+本プロジェクトは十二人の巨人の肩の上に立っています——版を含む全リストは上記の
+[十二冊の書籍](#十二冊の書籍)を参照してください。本ツールに符号化された劣化リスクは、彼らの思想を
+現代のコード品質評価に応用した私たちの統合です。
 
 ---
 

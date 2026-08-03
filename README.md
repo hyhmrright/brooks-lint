@@ -73,35 +73,29 @@ For the full source-to-skill mapping, including exceptions and false-positive gu
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
 
-Then just ask ("review this PR", "audit the architecture") — or run a command:
+Then just ask ("review this PR", "audit the architecture"), or run one of the six commands —
+`/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`, `/brooks-sweep`
+([what each one does](#slash-commands)).
 
-| Command | What it does |
-|---------|--------------|
-| `/brooks-review` | Review a PR or diff |
-| `/brooks-audit` | Audit architecture (+ Mermaid dependency graph) |
-| `/brooks-debt` | Prioritized tech-debt roadmap |
-| `/brooks-test` | Test-suite quality review |
-| `/brooks-health` | Health dashboard across all dimensions |
-| `/brooks-sweep` | Sweep every dimension and auto-fix findings |
-
-Every finding comes back as **Symptom → Source → Consequence → Remedy** with a book citation and a 0–100 Health Score. Full install options (8 more platforms), per-command usage, and CI/CD setup are [below](#installation).
+Every finding comes back as **Symptom → Source → Consequence → Remedy** with a book citation and a
+0–100 Health Score. Full install options (8 more platforms) and CI/CD setup are [below](#installation).
 
 ## The Twelve Books
 
 | Book | Author | Contributes to |
 |------|--------|----------------|
-| *The Mythical Man-Month* | Frederick Brooks | R2, R4, R5 |
-| *Code Complete* | Steve McConnell | R1, R4 |
-| *Refactoring* | Martin Fowler | R1, R2, R3, R4, R6 |
-| *Clean Architecture* | Robert C. Martin | R2, R5 |
-| *The Pragmatic Programmer* | Hunt & Thomas | R2, R3, R4, R5, T2, T3 |
-| *Domain-Driven Design* | Eric Evans | R1, R3, R6 |
-| *A Philosophy of Software Design* | John Ousterhout | R1, R4 |
-| *Software Engineering at Google* | Winters, Manshreck & Wright | R2, R5 |
-| *The Art of Unit Testing* | Roy Osherove | T1, T2, T4, T5 |
-| *How Google Tests Software* | James A. Whittaker, Jason Arbon & Jeff Carollo | T5, T6 |
-| *Working Effectively with Legacy Code* | Michael Feathers | T4, T5, T6 |
-| *xUnit Test Patterns* | Gerard Meszaros | T1, T2, T3, T4 |
+| *The Mythical Man-Month* (1975) | Frederick P. Brooks Jr. | R2, R4, R5 |
+| *Code Complete* (1993, 2nd ed. 2004) | Steve McConnell | R1, R4 |
+| *Refactoring* (1999, 2nd ed. 2018) | Martin Fowler | R1, R2, R3, R4, R6 |
+| *Clean Architecture* (2017) | Robert C. Martin | R2, R5 |
+| *The Pragmatic Programmer* (1999, 20th Anniv. 2019) | Andrew Hunt & David Thomas | R2, R3, R4, R5, T2, T3 |
+| *Domain-Driven Design* (2003) | Eric Evans | R1, R3, R6 |
+| *A Philosophy of Software Design* (2018) | John Ousterhout | R1, R4 |
+| *Software Engineering at Google* (2020) | Winters, Manshreck & Wright | R2, R5 |
+| *The Art of Unit Testing* (2009, 3rd ed. 2023) | Roy Osherove | T1, T2, T4, T5 |
+| *How Google Tests Software* (2012) | Whittaker, Arbon & Carollo | T5, T6 |
+| *Working Effectively with Legacy Code* (2004) | Michael Feathers | T4, T5, T6 |
+| *xUnit Test Patterns* (2007) | Gerard Meszaros | T1, T2, T3, T4 |
 
 ## The Six Decay Risks
 
@@ -256,61 +250,29 @@ Because the parser is deterministic and the corpus is frozen, `npm run benchmark
 
 ## Installation
 
-### Claude Code (Recommended)
+### Claude Code (recommended)
 
-#### Via Plugin Marketplace
 ```bash
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-Short-form commands (`/brooks-review`) are auto-installed on first session start. To install manually:
+Short-form commands (`/brooks-review`) are auto-installed on first session start — or run
+`bash hooks/session-start` yourself. To skip the marketplace:
+`mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`.
+
+### Gemini CLI · Codex CLI
+
 ```bash
-bash hooks/session-start
+/extensions install https://github.com/hyhmrright/brooks-lint   # Gemini CLI
+```
+```
+Install the brooks-lint skill from hyhmrright/brooks-lint       # ask inside a Codex session
 ```
 
-#### Manual Install
-```bash
-mkdir -p ~/.claude/skills/brooks-lint
-cp -r skills/* ~/.claude/skills/brooks-lint/
-```
+Or use the installer below: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### Gemini CLI
-
-#### Via Extension
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint
-```
-
-#### Manual Install
-```bash
-mkdir -p ~/.gemini/skills
-cp -r skills/* ~/.gemini/skills/      # flat — Gemini discovers skills only one level deep
-```
-> Or simply: `./scripts/install.sh gemini`
-
-### Codex CLI
-
-#### Via Skill Installer (in Codex session)
-```
-Install the brooks-lint skill from hyhmrright/brooks-lint
-```
-
-#### Command Line
-```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo hyhmrright/brooks-lint --path skills --name brooks-lint
-```
-
-#### Manual Install
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.codex/skills
-cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/   # flat — matches the skill-installer layout
-```
-> Or simply: `./scripts/install.sh codex`
-
-### More platforms — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### Every other platform — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
 
 brooks-lint ships as standard [Agent Skills](https://agentskills.io). **Any agent that loads Agent
 Skills runs all six modes with no conversion** — one command installs them:
@@ -321,171 +283,54 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini · codex · agents
 ```
 
-The installer copies the skills **flat** into the right folder for your platform, so the shared
-framework (`../_shared/`) always resolves — you can't get the layout wrong. Then just ask
-("review this PR", "audit the architecture") and the matching skill auto-triggers from its
-`description`. New to skills, or using another agent? See **[docs/getting-started.md](docs/getting-started.md)**.
+The installer copies the skills **flat** into the right folder, so the shared framework
+(`../_shared/`) always resolves — you can't get the layout wrong. Then just ask ("review this PR",
+"audit the architecture") and the matching skill auto-triggers from its `description`.
 
-<details><summary><b>OpenCode</b></summary>
+| Platform | Installs into | Also reads | Guide |
+|---|---|---|---|
+| OpenCode | `~/.config/opencode/skills` | `~/.claude/skills`, `AGENTS.md` | [setup](docs/opencode-setup.md) |
+| Cursor (2.4+) | `~/.cursor/skills` | `.agents/skills`, `AGENTS.md` | [setup](docs/cursor-setup.md) |
+| Windsurf (Cascade) | `~/.codeium/windsurf/skills` | `AGENTS.md` | [setup](docs/windsurf-setup.md) |
+| Antigravity (Google) | `.agent/skills` (`--project`) | `AGENTS.md`, `GEMINI.md` | [setup](docs/antigravity-setup.md) |
+| pi (earendil-works) | `~/.pi/agent/skills` | — | [setup](docs/pi-setup.md) |
+| GitHub Copilot | `.github/skills` (`--project`) | `.claude/skills`, `AGENTS.md` | [setup](docs/copilot-setup.md) |
+| Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [setup](docs/kiro-setup.md) |
+| Factory Droid | `~/.factory/skills` | `AGENTS.md` | [setup](docs/factory-droid-setup.md) |
 
-`./scripts/install.sh opencode` → `~/.config/opencode/skills` (also reads `~/.claude/skills` and
-`AGENTS.md`). Full guide: [docs/opencode-setup.md](docs/opencode-setup.md).
-</details>
+Kiro and Factory Droid also auto-register `/brooks-review`. New to skills, or using an agent not
+listed? See **[docs/getting-started.md](docs/getting-started.md)**.
 
-<details><summary><b>Cursor</b> (2.4+)</summary>
-
-`./scripts/install.sh cursor` → `~/.cursor/skills` (also `.agents/skills`; reads `AGENTS.md`).
-Full guide: [docs/cursor-setup.md](docs/cursor-setup.md).
-</details>
-
-<details><summary><b>Windsurf</b> (Cascade)</summary>
-
-`./scripts/install.sh windsurf` → `~/.codeium/windsurf/skills` (reads `AGENTS.md`).
-Full guide: [docs/windsurf-setup.md](docs/windsurf-setup.md).
-</details>
-
-<details><summary><b>Antigravity</b> (Google)</summary>
-
-`./scripts/install.sh antigravity --project` → `.agent/skills` (reads `AGENTS.md` / `GEMINI.md`).
-Full guide: [docs/antigravity-setup.md](docs/antigravity-setup.md).
-</details>
-
-<details><summary><b>pi</b> (earendil-works)</summary>
-
-`./scripts/install.sh pi` → `~/.pi/agent/skills`, or point pi's `skills` setting at a clone.
-Full guide: [docs/pi-setup.md](docs/pi-setup.md).
-</details>
-
-<details><summary><b>GitHub Copilot</b></summary>
-
-`./scripts/install.sh copilot --project` → `.github/skills` (also auto-detects `.claude/skills`; reads
-`AGENTS.md`). Full guide: [docs/copilot-setup.md](docs/copilot-setup.md).
-</details>
-
-<details><summary><b>Kiro</b> (AWS)</summary>
-
-`./scripts/install.sh kiro` → `~/.kiro/skills` (auto-registers `/brooks-review`; reads `AGENTS.md`).
-Full guide: [docs/kiro-setup.md](docs/kiro-setup.md).
-</details>
-
-<details><summary><b>Factory Droid</b></summary>
-
-`./scripts/install.sh droid` → `~/.factory/skills` (registers `/brooks-review`; reads `AGENTS.md`).
-Full guide: [docs/factory-droid-setup.md](docs/factory-droid-setup.md).
-</details>
-
-> **🧪 Verification status.** Claude Code, Gemini CLI, and Codex CLI are maintainer-verified. The eight
-> platforms above are documented from each tool's official skill spec and verified at the file-layout
-> level (the installer is tested), but not yet end-to-end run by the maintainer on every platform. Tried
-> one — working **or** broken? [Open an issue](https://github.com/hyhmrright/brooks-lint/issues/new) with
-> the platform, version, and what you saw. Another Agent-Skills agent? It almost certainly works the same
-> way — tell us and we'll add it.
+> **🧪 Verification status.** Claude Code, Gemini CLI, and Codex CLI are maintainer-verified. The
+> eight platforms above are documented from each tool's official skill spec and verified at the
+> file-layout level (the installer is tested), but not yet run end-to-end by the maintainer on every
+> platform. Tried one — working **or** broken?
+> [Open an issue](https://github.com/hyhmrright/brooks-lint/issues/new) with the platform, version,
+> and what you saw. Another Agent-Skills agent? It almost certainly works the same way — tell us and
+> we'll add it.
 
 ## Slash Commands
 
-### Claude Code
-| Command | Short Form | Action |
-|---------|------------|--------|
-| `/brooks-lint:brooks-review` | `/brooks-review` | PR-level code review |
-| `/brooks-lint:brooks-audit` | `/brooks-audit` | Full architecture audit |
-| `/brooks-lint:brooks-debt` | `/brooks-debt` | Tech debt assessment |
-| `/brooks-lint:brooks-test` | `/brooks-test` | Test suite health review |
-| `/brooks-lint:brooks-health` | `/brooks-health` | Health dashboard — all four dimensions |
-| `/brooks-lint:brooks-sweep` | `/brooks-sweep` | Full sweep — analyse all dimensions and auto-fix findings |
+| Command | What it does |
+|---------|--------------|
+| `/brooks-review` | Paste a diff or point the AI at changed files. Diagnoses each of the six decay risks in Symptom → Source → Consequence → Remedy format. |
+| `/brooks-audit` | Maps module dependencies (with a Mermaid graph), identifies circular dependencies, and checks Conway's Law alignment. |
+| `/brooks-debt` | Classifies debt across the six decay risks, scores each finding by Pain × Spread, and produces a repayment roadmap with Critical / Scheduled / Monitored tiers. |
+| `/brooks-test` | Audits the suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, Architecture Mismatch. |
+| `/brooks-health` | Abbreviated scans across all four quality dimensions → one weighted composite Health Score. Use it before a release or when onboarding a team. |
+| `/brooks-sweep` | Unified scan across R1–R6, T1–T6, and architecture, then applies fixes: safe changes auto-applied, multi-file changes confirmed, architectural decisions flagged as manual. Outputs a Fix Log and score delta. |
 
-> Short-form commands are auto-installed on first session start by the session-start hook.
+**Syntax by platform.** Claude Code also accepts the namespaced form
+`/brooks-lint:brooks-review` — short forms are auto-installed on first session start by the
+session-start hook. Codex CLI uses `$brooks-review`. Gemini CLI uses the table as written.
+OpenCode, Cursor, Antigravity, and pi invoke Agent Skills from each skill's `description`, so
+just ask ("review this PR", "where's our worst tech debt?"); for explicit invocation use the
+platform's own syntax (pi registers each skill as `/skill:brooks-review`). On every platform the
+skills also trigger automatically when you discuss code quality, architecture, or test health.
 
-### Gemini CLI
-| Command | Action |
-|---------|--------|
-| `/brooks-review` | PR-level code review |
-| `/brooks-audit` | Full architecture audit |
-| `/brooks-debt` | Tech debt assessment |
-| `/brooks-test` | Test suite health review |
-| `/brooks-health` | Health dashboard — all four dimensions |
-| `/brooks-sweep` | Full sweep — analyse all dimensions and auto-fix findings |
-
-### Codex CLI
-
-| Command | Action |
-|---------|--------|
-| `$brooks-review` | PR-level code review |
-| `$brooks-audit` | Full architecture audit |
-| `$brooks-debt` | Tech debt assessment |
-| `$brooks-test` | Test suite health review |
-| `$brooks-health` | Health dashboard — all four dimensions |
-| `$brooks-sweep` | Full sweep — analyse all dimensions and auto-fix findings |
-
-The skills also trigger automatically when you discuss code quality, architecture, maintainability, or test health.
-
-### OpenCode · Cursor · Antigravity · pi
-
-These platforms invoke Agent Skills automatically from each skill's `description` — just ask
-("review this PR", "audit the architecture", "where's our worst tech debt?") and the matching mode
-runs. For explicit invocation, use the platform's skill-command syntax (e.g. pi registers each skill
-as `/skill:brooks-review`; Cursor and OpenCode expose `/brooks-review` once the skill is discovered).
-
-## Usage
-
-### PR Review
-
-```
-/brooks-review                      # Claude Code (short form) / Gemini CLI
-/brooks-lint:brooks-review          # Claude Code (full form)
-$brooks-review                      # Codex CLI
-```
-
-Paste a diff or point the AI at changed files. Diagnoses each of the six decay risks with specific findings in Symptom → Source → Consequence → Remedy format.
-
-### Architecture Audit
-
-```
-/brooks-audit                       # Claude Code (short form) / Gemini CLI
-/brooks-lint:brooks-audit           # Claude Code (full form)
-$brooks-audit                       # Codex CLI
-```
-
-Describe your project structure or share key files. It maps module dependencies, identifies circular dependencies, and checks Conway's Law alignment.
-
-### Tech Debt Assessment
-
-```
-/brooks-debt                        # Claude Code (short form) / Gemini CLI
-/brooks-lint:brooks-debt            # Claude Code (full form)
-$brooks-debt                        # Codex CLI
-```
-
-Classifies your debt across the six decay risks, scores each finding by Pain × Spread priority, and produces a prioritized repayment roadmap with Critical / Scheduled / Monitored classification.
-
-### Test Quality Review
-
-```
-/brooks-test                        # Claude Code (short form) / Gemini CLI
-/brooks-lint:brooks-test            # Claude Code (full form)
-$brooks-test                        # Codex CLI
-```
-
-Audits your test suite against six test-space decay risks — Test Obscurity, Test Brittleness, Test Duplication, Mock Abuse, Coverage Illusion, and Architecture Mismatch — sourced from xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and Working Effectively with Legacy Code. PR reviews also include a lightweight Step 7 Quick Test Check automatically (skipped for docs-only or non-production diffs).
-
-### Health Dashboard
-
-```
-/brooks-health                      # Claude Code (short form) / Gemini CLI
-/brooks-lint:brooks-health          # Claude Code (full form)
-$brooks-health                      # Codex CLI
-```
-
-Runs abbreviated scans across all four quality dimensions and produces a weighted composite Health Score (0–100). Use it before a release, when onboarding a new team, or whenever you want a big-picture "how are we doing?" report. For deeper diagnosis on any dimension, use the focused skill instead.
-
-### Full Sweep
-
-```
-/brooks-sweep                       # Claude Code (short form) / Gemini CLI
-/brooks-lint:brooks-sweep           # Claude Code (full form)
-$brooks-sweep                       # Codex CLI
-```
-
-Runs a unified scan across all production (R1–R6) and test (T1–T6) decay risks plus architecture in a single pass, then applies fixes: safe changes are auto-applied immediately, multi-file or interface-touching changes require confirmation, and complex architectural decisions are flagged as manual items. Outputs a Fix Log, Health Score delta, and a residual item list.
+> PR reviews include a lightweight Step 7 Quick Test Check automatically (skipped for docs-only
+> diffs). For a full test audit, run `/brooks-test`; for a deep dive on any single dimension,
+> use that dimension's own skill rather than `/brooks-health`.
 
 ## Configuration
 
@@ -527,56 +372,36 @@ All settings are optional — omit the file entirely for default behavior.
 
 ## Why These Books, Why Now?
 
-In the age of AI-assisted coding, we're writing more code faster than ever. But the insights from six decades of software engineering haven't changed:
-
 > *"The complexity of software is an essential property, not an accidental one."*
 > — Frederick Brooks
 
-AI can help you write code faster, but it can't tell you whether you're building a cathedral or a tar pit. **brooks-lint bridges that gap** — it brings the hard-won wisdom of twelve classic engineering books into your modern development workflow.
-
-The decay risks these authors identified are more relevant than ever:
-- **Adding AI assistants** doesn't fix cognitive overload or domain model distortion
-- **Generating more code** increases change propagation and knowledge duplication
-- **Moving faster** makes accidental complexity and dependency disorder even more dangerous
+AI can help you write code faster, but it can't tell you whether you're building a cathedral or a
+tar pit — and the decay risks these authors identified only get sharper as generation gets cheaper.
+Adding an AI assistant doesn't fix cognitive overload or domain model distortion; generating more
+code increases change propagation and knowledge duplication; moving faster makes accidental
+complexity and dependency disorder more dangerous.
 
 ## Project Structure
 
+Every skill is one `SKILL.md` (trigger + process skeleton) plus its own guide:
+
 ```
 brooks-lint/
-├── .claude-plugin/              # Claude Code plugin metadata
-├── .codex-plugin/               # Codex CLI plugin metadata
+├── .claude-plugin/ · .codex-plugin/  # plugin metadata per platform
 ├── skills/
-│   ├── _shared/                 # Shared framework files
-│   │   ├── common.md            # Iron Law, Project Config, Report Template, Health Score
-│   │   ├── source-coverage.md   # 12-book coverage matrix, tradeoffs, false-positive guards
-│   │   ├── decay-risks.md       # Six decay risks with symptoms and book citations
-│   │   ├── test-decay-risks.md  # Six test-space decay risks with book citations
-│   │   ├── remedy-guide.md      # --fix mode: actionable Remedy enhancement rules
-│   │   └── custom-risks-guide.md  # Template for project-specific risk codes
-│   ├── brooks-review/           # Mode 1: PR Review
-│   │   ├── SKILL.md
-│   │   └── pr-review-guide.md
-│   ├── brooks-audit/            # Mode 2: Architecture Audit
-│   │   ├── SKILL.md
-│   │   └── architecture-guide.md
-│   ├── brooks-debt/             # Mode 3: Tech Debt Assessment
-│   │   ├── SKILL.md
-│   │   └── debt-guide.md
-│   ├── brooks-test/             # Mode 4: Test Quality Review
-│   │   ├── SKILL.md
-│   │   └── test-guide.md
-│   ├── brooks-health/           # Mode 5: Health Dashboard
-│   │   ├── SKILL.md
-│   │   └── health-guide.md
-│   └── brooks-sweep/            # Mode 6: Full Sweep & Auto-Fix
-│       ├── SKILL.md
-│       └── sweep-guide.md
-├── hooks/                       # SessionStart hook
-├── commands/                    # Short-form command wrappers (auto-installed by hook)
-├── evals/                       # Benchmark test cases
-│   └── evals.json
-└── assets/
-    └── logo.svg
+│   ├── _shared/          # common.md (Iron Law, config, report template, Health Score)
+│   │                     # source-coverage.md · decay-risks.md (R1–R6)
+│   │                     # test-decay-risks.md (T1–T6) · remedy-guide.md · custom-risks-guide.md
+│   ├── brooks-review/    # Mode 1: PR Review          → pr-review-guide.md
+│   ├── brooks-audit/     # Mode 2: Architecture Audit → architecture-guide.md, onboarding-guide.md
+│   ├── brooks-debt/      # Mode 3: Tech Debt          → debt-guide.md
+│   ├── brooks-test/      # Mode 4: Test Quality       → test-guide.md
+│   ├── brooks-health/    # Mode 5: Health Dashboard   → health-guide.md
+│   └── brooks-sweep/     # Mode 6: Full Sweep         → sweep-guide.md
+├── hooks/                # SessionStart hook
+├── commands/             # short-form command wrappers (auto-installed by the hook)
+├── evals/                # 57-scenario eval suite + frozen parser-fidelity corpus
+└── assets/               # logo, banner, demo
 ```
 
 ## CI/CD Integration
@@ -627,29 +452,25 @@ The action posts the review as a PR comment and optionally fails the check if th
 
 ## Roadmap
 
-> **Current state (v1.4):** 12-book foundation, 6 production decay risks (R1–R6) + 6 test decay risks (T1–T6), 6 skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — plus CI quality gates, SARIF output for GitHub Code Scanning, strictness presets, and a reproducible parser-fidelity benchmark. Earlier entries below describe historical milestones, not the current feature set.
+**Current state (v1.4):** 12-book foundation, 6 production decay risks (R1–R6) + 6 test decay
+risks (T1–T6), 6 skills, CI quality gates, SARIF output for GitHub Code Scanning, strictness
+presets, and a reproducible parser-fidelity benchmark.
 
-- [x] **v0.2**: Plugin infrastructure (`.claude-plugin/`, hooks, slash commands)
-- [x] **v0.3**: Eight Brooks dimensions, documentation completeness scoring
-- [x] **v0.4**: Six-book framework, decay risk dimensions, diagnosis chain, benchmark suite
-- [x] **v0.5**: Test Quality Review (Mode 4) — four testing books, six test decay risks
-- [x] **v0.6**: Mermaid dependency graph in Architecture Audit
-- [x] **v0.7**: `.brooks-lint.yaml` project config, Mode 2 proactive context, 10-book expansion
-- [x] **v0.8**: Independent skill architecture with namespaced commands
-- [x] **v0.9**: Step validation, auto-diff scope, `/brooks-health` dashboard, trend tracking, triage mode, `--fix` remedies, onboarding report, GitHub Action
-- [x] **v1.0**: Eval automation (`run-evals-live.mjs`), custom risk extension (`Cx` codes)
-- [x] **v1.1**: Full Sweep skill (`brooks-sweep`) — unified multi-dimension auto-fix
-- [x] **v1.2**: Autonomous sweep pipeline, `npm run bump` version propagation
-- [x] **v1.3**: Codex marketplace metadata, one-command installer for multiple agent platforms, bilingual README + landing site
-- [x] **v1.4**: SARIF output for GitHub Code Scanning, CI severity + regression gates, strictness presets (strict/balanced/legacy-friendly), 57-scenario eval suite, reproducible parser-fidelity benchmark (`npm run benchmark`)
+<details><summary>Milestones v0.2 → v1.4</summary>
 
-Want to help? The best contributions right now are new eval test cases and improved decay risk symptom patterns. See [CONTRIBUTING.md](CONTRIBUTING.md).
+- **v0.2–v0.4**: Plugin infrastructure, six-book framework, decay risk dimensions, benchmark suite
+- **v0.5–v0.7**: Test Quality Review, Mermaid dependency graph, `.brooks-lint.yaml`, 10-book expansion
+- **v0.8–v0.9**: Independent skill architecture; step validation, auto-diff scope, `/brooks-health`, trend tracking, triage mode, `--fix` remedies, GitHub Action
+- **v1.0–v1.2**: Eval automation, custom `Cx` risk codes, Full Sweep skill, `npm run bump` version propagation
+- **v1.3**: Codex marketplace metadata, one-command multi-platform installer, localized READMEs + landing site
+- **v1.4**: SARIF output, CI severity + regression gates, strictness presets, 57-scenario eval suite, `npm run benchmark`
+</details>
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add findings, improve guides, or expand the benchmark suite.
-
-Run `/brooks-review` on your own PR — we review contributions with the tool we're building.
+See [CONTRIBUTING.md](CONTRIBUTING.md). The most valuable contributions right now are new eval
+test cases and improved decay-risk symptom patterns. Run `/brooks-review` on your own PR — we
+review contributions with the tool we're building.
 
 ## License
 
@@ -657,25 +478,9 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-This project stands on the shoulders of twelve giants:
-
-**Production Code Framework**
-- Frederick P. Brooks Jr. — *The Mythical Man-Month* (1975, Anniversary Edition 1995)
-- Steve McConnell — *Code Complete* (1993, 2nd ed. 2004)
-- Martin Fowler — *Refactoring* (1999, 2nd ed. 2018)
-- Robert C. Martin — *Clean Architecture* (2017)
-- Andrew Hunt & David Thomas — *The Pragmatic Programmer* (1999, 20th Anniversary Ed. 2019)
-- Eric Evans — *Domain-Driven Design* (2003)
-- John Ousterhout — *A Philosophy of Software Design* (2018)
-- Titus Winters, Tom Manshreck, and Hyrum Wright — *Software Engineering at Google* (2020)
-
-**Test Quality Framework**
-- Gerard Meszaros — *xUnit Test Patterns* (2007)
-- Roy Osherove — *The Art of Unit Testing* (2009, 3rd ed. 2023)
-- Google Engineering — *How Google Tests Software* (2012)
-- Michael Feathers — *Working Effectively with Legacy Code* (2004)
-
-The decay risks encoded in this tool are our synthesis of their ideas, applied to modern code quality assessment.
+This project stands on the shoulders of twelve giants — see [The Twelve Books](#the-twelve-books)
+above for the full list with editions. The decay risks encoded in this tool are our synthesis of
+their ideas, applied to modern code quality assessment.
 
 ---
 

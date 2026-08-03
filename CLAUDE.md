@@ -49,17 +49,11 @@ Guidance for Claude Code when modifying this repository. For repo layout, instal
 
 ## Adding a New Skill
 
-Each skill is two files inside `skills/{name}/`:
-
-- `SKILL.md` — frontmatter with `name`, `description` (must include "Do NOT trigger for:" clause), and a `Process` section (3–6 bullets citing guide step ranges)
-- `{name}-guide.md` — sequentially numbered steps, no gaps; sub-steps like `Step 2a` are allowed
-
-Checklist:
-1. Create `skills/{name}/SKILL.md` and `skills/{name}/{name}-guide.md`
-2. Add ≥1 happy-path eval scenario + ≥1 false-positive scenario (`no_risk_codes: true`) to `evals/evals.json`
-3. Run `npm run validate` (structure + step continuity) and `npm run evals` (eval schema)
-4. Test locally: `cp -r skills/* ~/.claude/skills/brooks-lint/` → trigger in a Claude session → verify output
-5. Restore the marketplace version using the commands in the "Skill sync after edit" gotcha above
+1. `skills/{name}/SKILL.md` — frontmatter with `name`, `description` (must include the "Do NOT trigger for:" clause), and a `Process` section (3–6 bullets citing guide step ranges)
+2. `skills/{name}/{name}-guide.md` — sequentially numbered steps, no gaps; sub-steps like `Step 2a` allowed
+3. Add ≥1 happy-path eval scenario + ≥1 false-positive scenario (`no_risk_codes: true`) to `evals/evals.json`
+4. `npm run validate` (structure + step continuity) and `npm run evals` (eval schema)
+5. Test locally: `cp -r skills/* ~/.claude/skills/brooks-lint/` → trigger in a Claude session → verify output, then restore the marketplace version per the "Skill sync after edit" gotcha above
 
 ## Eval Suite
 

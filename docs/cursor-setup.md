@@ -14,13 +14,8 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 ./scripts/install.sh cursor --project  # this repo: ./.cursor/skills
 ```
 
-Manual equivalent:
-
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.cursor/skills
-cp -r /tmp/brooks-lint/skills/* ~/.cursor/skills/   # flat — brooks-* and _shared/ as siblings
-```
+Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.cursor/skills/` — the contents, not the
+`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
 
 Cursor also loads `.agents/skills/` / `~/.agents/skills/` and existing Claude/Codex skill folders, so
 `./scripts/install.sh agents` works too and is shared with Copilot and pi.

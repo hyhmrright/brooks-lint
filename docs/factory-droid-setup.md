@@ -15,13 +15,8 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 ./scripts/install.sh droid --project  # this repo: ./.factory/skills
 ```
 
-Manual equivalent:
-
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.factory/skills
-cp -r /tmp/brooks-lint/skills/* ~/.factory/skills/   # flat — brooks-* and _shared/ as siblings
-```
+Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.factory/skills/` — the contents, not the
+`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
 
 Droid discovers skills from `~/.factory/skills` (personal), `.factory/skills` (project), and the legacy
 `.agent/skills`, each a single level deep.

@@ -73,35 +73,30 @@ Para el mapeo completo de fuente a skill, incluyendo excepciones y protecciones 
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
 
-Luego solo pide ("revisa este PR", "audita la arquitectura") — o ejecuta un comando:
+Luego solo pide ("revisa este PR", "audita la arquitectura"), o ejecuta uno de los seis comandos —
+`/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`, `/brooks-sweep`
+([qué hace cada uno](#comandos-de-barra)).
 
-| Comando | Qué hace |
-|---------|--------------|
-| `/brooks-review` | Revisa un PR o diff |
-| `/brooks-audit` | Audita la arquitectura (+ grafo de dependencias en Mermaid) |
-| `/brooks-debt` | Hoja de ruta de deuda técnica priorizada |
-| `/brooks-test` | Revisión de calidad de la suite de pruebas |
-| `/brooks-health` | Panel de salud en todas las dimensiones |
-| `/brooks-sweep` | Barre todas las dimensiones y corrige hallazgos automáticamente |
-
-Cada hallazgo se devuelve como **Síntoma → Origen → Consecuencia → Remedio** con una cita de libro y una puntuación de salud de 0 a 100. Las opciones completas de instalación (8 plataformas más), el uso por comando y la configuración de CI/CD están [más abajo](#instalación).
+Cada hallazgo se devuelve como **Síntoma → Origen → Consecuencia → Remedio** con una cita de libro y
+una puntuación de salud de 0 a 100. Las opciones completas de instalación (8 plataformas más) y la
+configuración de CI/CD están [más abajo](#instalación).
 
 ## Los doce libros
 
 | Libro | Autor | Contribuye a |
 |------|--------|----------------|
-| *The Mythical Man-Month* | Frederick Brooks | R2, R4, R5 |
-| *Code Complete* | Steve McConnell | R1, R4 |
-| *Refactoring* | Martin Fowler | R1, R2, R3, R4, R6 |
-| *Clean Architecture* | Robert C. Martin | R2, R5 |
-| *The Pragmatic Programmer* | Hunt & Thomas | R2, R3, R4, R5, T2, T3 |
-| *Domain-Driven Design* | Eric Evans | R1, R3, R6 |
-| *A Philosophy of Software Design* | John Ousterhout | R1, R4 |
-| *Software Engineering at Google* | Winters, Manshreck & Wright | R2, R5 |
-| *The Art of Unit Testing* | Roy Osherove | T1, T2, T4, T5 |
-| *How Google Tests Software* | James A. Whittaker, Jason Arbon & Jeff Carollo | T5, T6 |
-| *Working Effectively with Legacy Code* | Michael Feathers | T4, T5, T6 |
-| *xUnit Test Patterns* | Gerard Meszaros | T1, T2, T3, T4 |
+| *The Mythical Man-Month* (1975) | Frederick P. Brooks Jr. | R2, R4, R5 |
+| *Code Complete* (1993, 2.ª ed. 2004) | Steve McConnell | R1, R4 |
+| *Refactoring* (1999, 2.ª ed. 2018) | Martin Fowler | R1, R2, R3, R4, R6 |
+| *Clean Architecture* (2017) | Robert C. Martin | R2, R5 |
+| *The Pragmatic Programmer* (1999, 20.º aniv. 2019) | Andrew Hunt & David Thomas | R2, R3, R4, R5, T2, T3 |
+| *Domain-Driven Design* (2003) | Eric Evans | R1, R3, R6 |
+| *A Philosophy of Software Design* (2018) | John Ousterhout | R1, R4 |
+| *Software Engineering at Google* (2020) | Winters, Manshreck & Wright | R2, R5 |
+| *The Art of Unit Testing* (2009, 3.ª ed. 2023) | Roy Osherove | T1, T2, T4, T5 |
+| *How Google Tests Software* (2012) | Whittaker, Arbon & Carollo | T5, T6 |
+| *Working Effectively with Legacy Code* (2004) | Michael Feathers | T4, T5, T6 |
+| *xUnit Test Patterns* (2007) | Gerard Meszaros | T1, T2, T3, T4 |
 
 ## Los seis riesgos de deterioro
 
@@ -258,59 +253,27 @@ Como el parser es determinista y el corpus está congelado, `npm run benchmark` 
 
 ### Claude Code (recomendado)
 
-#### Mediante el Plugin Marketplace
 ```bash
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-Los comandos en forma corta (`/brooks-review`) se instalan automáticamente al iniciar la primera sesión. Para instalarlos manualmente:
+Los comandos cortos (`/brooks-review`) se instalan solos al iniciar la primera sesión — o ejecuta
+`bash hooks/session-start` tú mismo. Para saltarte el marketplace:
+`mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`.
+
+### Gemini CLI · Codex CLI
+
 ```bash
-bash hooks/session-start
+/extensions install https://github.com/hyhmrright/brooks-lint   # Gemini CLI
+```
+```
+Install the brooks-lint skill from hyhmrright/brooks-lint       # pídelo dentro de una sesión de Codex
 ```
 
-#### Instalación manual
-```bash
-mkdir -p ~/.claude/skills/brooks-lint
-cp -r skills/* ~/.claude/skills/brooks-lint/
-```
+O usa el instalador de abajo: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### Gemini CLI
-
-#### Mediante extensión
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint
-```
-
-#### Instalación manual
-```bash
-mkdir -p ~/.gemini/skills
-cp -r skills/* ~/.gemini/skills/      # flat — Gemini discovers skills only one level deep
-```
-> O simplemente: `./scripts/install.sh gemini`
-
-### Codex CLI
-
-#### Mediante el instalador de skills (en una sesión de Codex)
-```
-Install the brooks-lint skill from hyhmrright/brooks-lint
-```
-
-#### Línea de comandos
-```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo hyhmrright/brooks-lint --path skills --name brooks-lint
-```
-
-#### Instalación manual
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.codex/skills
-cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/   # flat — matches the skill-installer layout
-```
-> O simplemente: `./scripts/install.sh codex`
-
-### Más plataformas — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### Cualquier otra plataforma — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
 
 brooks-lint se distribuye como [Agent Skills](https://agentskills.io) estándar. **Cualquier agente que cargue Agent
 Skills ejecuta los seis modos sin conversión alguna** — un solo comando los instala:
@@ -321,58 +284,23 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini · codex · agents
 ```
 
-El instalador copia los skills **de forma plana** en la carpeta correcta para tu plataforma, de modo que el framework
-compartido (`../_shared/`) siempre se resuelve — no puedes equivocarte con el diseño. Luego solo pide
-("revisa este PR", "audita la arquitectura") y el skill correspondiente se activa automáticamente desde su
-`description`. ¿Nuevo en los skills, o usas otro agente? Consulta **[docs/getting-started.md](docs/getting-started.md)**.
+El instalador copia los skills **de forma plana** en la carpeta correcta, de modo que el framework compartido
+(`../_shared/`) siempre se resuelve — no puedes equivocarte con el diseño. Luego solo pide ("revisa este PR",
+"audita la arquitectura") y el skill correspondiente se activa automáticamente desde su `description`.
 
-<details><summary><b>OpenCode</b></summary>
+| Plataforma | Instala en | También lee | Guía |
+|---|---|---|---|
+| OpenCode | `~/.config/opencode/skills` | `~/.claude/skills`, `AGENTS.md` | [configuración](docs/opencode-setup.md) |
+| Cursor (2.4+) | `~/.cursor/skills` | `.agents/skills`, `AGENTS.md` | [configuración](docs/cursor-setup.md) |
+| Windsurf (Cascade) | `~/.codeium/windsurf/skills` | `AGENTS.md` | [configuración](docs/windsurf-setup.md) |
+| Antigravity (Google) | `.agent/skills` (`--project`) | `AGENTS.md`, `GEMINI.md` | [configuración](docs/antigravity-setup.md) |
+| pi (earendil-works) | `~/.pi/agent/skills` | — | [configuración](docs/pi-setup.md) |
+| GitHub Copilot | `.github/skills` (`--project`) | `.claude/skills`, `AGENTS.md` | [configuración](docs/copilot-setup.md) |
+| Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [configuración](docs/kiro-setup.md) |
+| Factory Droid | `~/.factory/skills` | `AGENTS.md` | [configuración](docs/factory-droid-setup.md) |
 
-`./scripts/install.sh opencode` → `~/.config/opencode/skills` (también lee `~/.claude/skills` y
-`AGENTS.md`). Guía completa: [docs/opencode-setup.md](docs/opencode-setup.md).
-</details>
-
-<details><summary><b>Cursor</b> (2.4+)</summary>
-
-`./scripts/install.sh cursor` → `~/.cursor/skills` (también `.agents/skills`; lee `AGENTS.md`).
-Guía completa: [docs/cursor-setup.md](docs/cursor-setup.md).
-</details>
-
-<details><summary><b>Windsurf</b> (Cascade)</summary>
-
-`./scripts/install.sh windsurf` → `~/.codeium/windsurf/skills` (lee `AGENTS.md`).
-Guía completa: [docs/windsurf-setup.md](docs/windsurf-setup.md).
-</details>
-
-<details><summary><b>Antigravity</b> (Google)</summary>
-
-`./scripts/install.sh antigravity --project` → `.agent/skills` (lee `AGENTS.md` / `GEMINI.md`).
-Guía completa: [docs/antigravity-setup.md](docs/antigravity-setup.md).
-</details>
-
-<details><summary><b>pi</b> (earendil-works)</summary>
-
-`./scripts/install.sh pi` → `~/.pi/agent/skills`, o apunta el ajuste `skills` de pi a un clon.
-Guía completa: [docs/pi-setup.md](docs/pi-setup.md).
-</details>
-
-<details><summary><b>GitHub Copilot</b></summary>
-
-`./scripts/install.sh copilot --project` → `.github/skills` (también detecta automáticamente `.claude/skills`; lee
-`AGENTS.md`). Guía completa: [docs/copilot-setup.md](docs/copilot-setup.md).
-</details>
-
-<details><summary><b>Kiro</b> (AWS)</summary>
-
-`./scripts/install.sh kiro` → `~/.kiro/skills` (registra automáticamente `/brooks-review`; lee `AGENTS.md`).
-Guía completa: [docs/kiro-setup.md](docs/kiro-setup.md).
-</details>
-
-<details><summary><b>Factory Droid</b></summary>
-
-`./scripts/install.sh droid` → `~/.factory/skills` (registra `/brooks-review`; lee `AGENTS.md`).
-Guía completa: [docs/factory-droid-setup.md](docs/factory-droid-setup.md).
-</details>
+Kiro y Factory Droid también registran `/brooks-review` automáticamente. ¿Nuevo en los skills, o usas un
+agente que no aparece aquí? Consulta **[docs/getting-started.md](docs/getting-started.md)**.
 
 > **🧪 Estado de verificación.** Claude Code, Gemini CLI y Codex CLI están verificados por el mantenedor. Las ocho
 > plataformas anteriores están documentadas a partir de la especificación oficial de skills de cada herramienta y verificadas a nivel
@@ -383,109 +311,26 @@ Guía completa: [docs/factory-droid-setup.md](docs/factory-droid-setup.md).
 
 ## Comandos de barra
 
-### Claude Code
-| Comando | Forma corta | Acción |
-|---------|------------|--------|
-| `/brooks-lint:brooks-review` | `/brooks-review` | Revisión de código a nivel de PR |
-| `/brooks-lint:brooks-audit` | `/brooks-audit` | Auditoría completa de arquitectura |
-| `/brooks-lint:brooks-debt` | `/brooks-debt` | Evaluación de deuda técnica |
-| `/brooks-lint:brooks-test` | `/brooks-test` | Revisión de salud de la suite de pruebas |
-| `/brooks-lint:brooks-health` | `/brooks-health` | Panel de salud — las cuatro dimensiones |
-| `/brooks-lint:brooks-sweep` | `/brooks-sweep` | Barrido completo — analiza todas las dimensiones y corrige hallazgos automáticamente |
+| Comando | Qué hace |
+|---------|--------------|
+| `/brooks-review` | Pega un diff o apunta la IA a los archivos modificados. Diagnostica cada uno de los seis riesgos de deterioro en formato Síntoma → Fuente → Consecuencia → Remedio. |
+| `/brooks-audit` | Mapea las dependencias entre módulos (con grafo Mermaid), detecta dependencias circulares y comprueba la alineación con la ley de Conway. |
+| `/brooks-debt` | Clasifica la deuda según los seis riesgos de deterioro, puntúa cada hallazgo por Dolor × Alcance y produce una hoja de ruta de pago con niveles Critical / Scheduled / Monitored. |
+| `/brooks-test` | Audita la suite frente a seis riesgos de deterioro del espacio de pruebas — Oscuridad, Fragilidad, Duplicación, Abuso de mocks, Ilusión de cobertura y Desajuste arquitectónico. |
+| `/brooks-health` | Escaneos abreviados de las cuatro dimensiones de calidad → una única Health Score compuesta y ponderada. Úsalo antes de una release o al incorporar a un equipo. |
+| `/brooks-sweep` | Escaneo unificado de R1–R6, T1–T6 y arquitectura, y luego aplica correcciones: los cambios seguros se aplican solos, los que tocan varios archivos se confirman y las decisiones arquitectónicas se marcan como manuales. Devuelve un Fix Log y el delta de puntuación. |
 
-> Los comandos en forma corta se instalan automáticamente al iniciar la primera sesión, mediante el hook session-start.
+**Sintaxis por plataforma.** Claude Code también acepta la forma con espacio de nombres
+`/brooks-lint:brooks-review` — las formas cortas las instala el hook session-start al iniciar la primera
+sesión. Codex CLI usa `$brooks-review`. Gemini CLI usa la tabla tal cual. OpenCode, Cursor, Antigravity y pi
+invocan los Agent Skills desde la `description` de cada skill, así que basta con pedirlo ("revisa este PR",
+"¿dónde está nuestra peor deuda técnica?"); para invocarlos explícitamente usa la sintaxis propia de cada
+plataforma (pi registra cada skill como `/skill:brooks-review`). En todas las plataformas los skills también
+se activan solos cuando hablas de calidad de código, arquitectura o salud de las pruebas.
 
-### Gemini CLI
-| Comando | Acción |
-|---------|--------|
-| `/brooks-review` | Revisión de código a nivel de PR |
-| `/brooks-audit` | Auditoría completa de arquitectura |
-| `/brooks-debt` | Evaluación de deuda técnica |
-| `/brooks-test` | Revisión de salud de la suite de pruebas |
-| `/brooks-health` | Panel de salud — las cuatro dimensiones |
-| `/brooks-sweep` | Barrido completo — analiza todas las dimensiones y corrige hallazgos automáticamente |
-
-### Codex CLI
-
-| Comando | Acción |
-|---------|--------|
-| `$brooks-review` | Revisión de código a nivel de PR |
-| `$brooks-audit` | Auditoría completa de arquitectura |
-| `$brooks-debt` | Evaluación de deuda técnica |
-| `$brooks-test` | Revisión de salud de la suite de pruebas |
-| `$brooks-health` | Panel de salud — las cuatro dimensiones |
-| `$brooks-sweep` | Barrido completo — analiza todas las dimensiones y corrige hallazgos automáticamente |
-
-Los skills también se activan automáticamente cuando hablas de calidad de código, arquitectura, mantenibilidad o salud de las pruebas.
-
-### OpenCode · Cursor · Antigravity · pi
-
-Estas plataformas invocan los Agent Skills automáticamente a partir del `description` de cada skill — solo pide
-("revisa este PR", "audita la arquitectura", "¿dónde está nuestra peor deuda técnica?") y se ejecuta el modo
-correspondiente. Para una invocación explícita, usa la sintaxis de comando de skill de la plataforma (por ejemplo, pi registra cada skill
-como `/skill:brooks-review`; Cursor y OpenCode exponen `/brooks-review` una vez que el skill es descubierto).
-
-## Uso
-
-### Revisión de PR
-
-```
-/brooks-review                      # Claude Code (forma corta) / Gemini CLI
-/brooks-lint:brooks-review          # Claude Code (forma completa)
-$brooks-review                      # Codex CLI
-```
-
-Pega un diff o apunta la IA a los archivos modificados. Diagnostica cada uno de los seis riesgos de deterioro con hallazgos específicos en el formato Síntoma → Origen → Consecuencia → Remedio.
-
-### Auditoría de arquitectura
-
-```
-/brooks-audit                       # Claude Code (forma corta) / Gemini CLI
-/brooks-lint:brooks-audit           # Claude Code (forma completa)
-$brooks-audit                       # Codex CLI
-```
-
-Describe la estructura de tu proyecto o comparte archivos clave. Mapea las dependencias entre módulos, identifica dependencias circulares y comprueba la alineación con la Ley de Conway.
-
-### Evaluación de deuda técnica
-
-```
-/brooks-debt                        # Claude Code (forma corta) / Gemini CLI
-/brooks-lint:brooks-debt            # Claude Code (forma completa)
-$brooks-debt                        # Codex CLI
-```
-
-Clasifica tu deuda según los seis riesgos de deterioro, puntúa cada hallazgo por prioridad de Dolor × Alcance y produce una hoja de ruta de pago priorizada con clasificación Critical / Scheduled / Monitored.
-
-### Revisión de calidad de pruebas
-
-```
-/brooks-test                        # Claude Code (forma corta) / Gemini CLI
-/brooks-lint:brooks-test            # Claude Code (forma completa)
-$brooks-test                        # Codex CLI
-```
-
-Audita tu suite de pruebas frente a seis riesgos de deterioro del espacio de pruebas — Oscuridad de la prueba, Fragilidad de la prueba, Duplicación de la prueba, Abuso de mocks, Ilusión de cobertura y Desajuste de arquitectura — provenientes de xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software y Working Effectively with Legacy Code. Las revisiones de PR también incluyen automáticamente un Paso 7 ligero de Comprobación rápida de pruebas (omitido para diffs solo de documentación o que no son de código de producción).
-
-### Panel de salud
-
-```
-/brooks-health                      # Claude Code (forma corta) / Gemini CLI
-/brooks-lint:brooks-health          # Claude Code (forma completa)
-$brooks-health                      # Codex CLI
-```
-
-Ejecuta escaneos abreviados en las cuatro dimensiones de calidad y produce una puntuación de salud compuesta y ponderada (0–100). Úsalo antes de un release, al incorporar a un nuevo equipo, o siempre que quieras un informe panorámico de "¿cómo vamos?". Para un diagnóstico más profundo en cualquier dimensión, usa en su lugar el skill enfocado.
-
-### Barrido completo
-
-```
-/brooks-sweep                       # Claude Code (forma corta) / Gemini CLI
-/brooks-lint:brooks-sweep           # Claude Code (forma completa)
-$brooks-sweep                       # Codex CLI
-```
-
-Ejecuta un escaneo unificado de todos los riesgos de deterioro de producción (R1–R6) y de pruebas (T1–T6), además de la arquitectura, en una sola pasada, y luego aplica las correcciones: los cambios seguros se aplican automáticamente de inmediato, los cambios multiarchivo o que tocan interfaces requieren confirmación, y las decisiones arquitectónicas complejas se marcan como elementos manuales. Produce un Registro de correcciones, el delta de la puntuación de salud y una lista de elementos residuales.
+> Las revisiones de PR incluyen automáticamente una comprobación rápida de pruebas (Step 7, ligera; se omite
+> en diffs solo de documentación). Para una auditoría completa de pruebas usa `/brooks-test`; para profundizar
+> en una sola dimensión, usa el skill de esa dimensión en lugar de `/brooks-health`.
 
 ## Configuración
 
@@ -527,56 +372,36 @@ Todos los ajustes son opcionales — omite el archivo por completo para el compo
 
 ## ¿Por qué estos libros, por qué ahora?
 
-En la era de la programación asistida por IA, escribimos más código y más rápido que nunca. Pero las ideas de seis décadas de ingeniería de software no han cambiado:
-
-> *"La complejidad del software es una propiedad esencial, no accidental."*
+> *«La complejidad del software es una propiedad esencial, no accidental.»*
 > — Frederick Brooks
 
-La IA puede ayudarte a escribir código más rápido, pero no puede decirte si estás construyendo una catedral o un pozo de brea. **brooks-lint cierra esa brecha** — lleva la sabiduría tan duramente ganada de doce libros clásicos de ingeniería a tu flujo de trabajo de desarrollo moderno.
-
-Los riesgos de deterioro que identificaron estos autores son más relevantes que nunca:
-- **Añadir asistentes de IA** no soluciona la sobrecarga cognitiva ni la distorsión del modelo de dominio
-- **Generar más código** aumenta la propagación de cambios y la duplicación de conocimiento
-- **Ir más rápido** vuelve aún más peligrosas la complejidad accidental y el desorden de dependencias
+La IA puede ayudarte a escribir código más rápido, pero no puede decirte si estás construyendo una catedral
+o un pozo de alquitrán — y cuanto más barata es la generación, más afilados se vuelven los riesgos de
+deterioro que identificaron estos autores. Añadir un asistente de IA no arregla la sobrecarga cognitiva ni la
+distorsión del modelo de dominio; generar más código aumenta la propagación de cambios y la duplicación de
+conocimiento; ir más rápido hace más peligrosos la complejidad accidental y el desorden de dependencias.
 
 ## Estructura del proyecto
 
+Cada skill es un `SKILL.md` (activación + esqueleto del proceso) más su propia guía:
+
 ```
 brooks-lint/
-├── .claude-plugin/              # Claude Code plugin metadata
-├── .codex-plugin/               # Codex CLI plugin metadata
+├── .claude-plugin/ · .codex-plugin/  # metadatos del plugin por plataforma
 ├── skills/
-│   ├── _shared/                 # Shared framework files
-│   │   ├── common.md            # Iron Law, Project Config, Report Template, Health Score
-│   │   ├── source-coverage.md   # 12-book coverage matrix, tradeoffs, false-positive guards
-│   │   ├── decay-risks.md       # Six decay risks with symptoms and book citations
-│   │   ├── test-decay-risks.md  # Six test-space decay risks with book citations
-│   │   ├── remedy-guide.md      # --fix mode: actionable Remedy enhancement rules
-│   │   └── custom-risks-guide.md  # Template for project-specific risk codes
-│   ├── brooks-review/           # Mode 1: PR Review
-│   │   ├── SKILL.md
-│   │   └── pr-review-guide.md
-│   ├── brooks-audit/            # Mode 2: Architecture Audit
-│   │   ├── SKILL.md
-│   │   └── architecture-guide.md
-│   ├── brooks-debt/             # Mode 3: Tech Debt Assessment
-│   │   ├── SKILL.md
-│   │   └── debt-guide.md
-│   ├── brooks-test/             # Mode 4: Test Quality Review
-│   │   ├── SKILL.md
-│   │   └── test-guide.md
-│   ├── brooks-health/           # Mode 5: Health Dashboard
-│   │   ├── SKILL.md
-│   │   └── health-guide.md
-│   └── brooks-sweep/            # Mode 6: Full Sweep & Auto-Fix
-│       ├── SKILL.md
-│       └── sweep-guide.md
-├── hooks/                       # SessionStart hook
-├── commands/                    # Short-form command wrappers (auto-installed by hook)
-├── evals/                       # Benchmark test cases
-│   └── evals.json
-└── assets/
-    └── logo.svg
+│   ├── _shared/          # common.md (Ley de Hierro, config, plantilla de informe, Health Score)
+│   │                     # source-coverage.md · decay-risks.md (R1–R6)
+│   │                     # test-decay-risks.md (T1–T6) · remedy-guide.md · custom-risks-guide.md
+│   ├── brooks-review/    # Modo 1: Revisión de PR        → pr-review-guide.md
+│   ├── brooks-audit/     # Modo 2: Auditoría de arq.     → architecture-guide.md, onboarding-guide.md
+│   ├── brooks-debt/      # Modo 3: Deuda técnica         → debt-guide.md
+│   ├── brooks-test/      # Modo 4: Calidad de pruebas    → test-guide.md
+│   ├── brooks-health/    # Modo 5: Panel de salud        → health-guide.md
+│   └── brooks-sweep/     # Modo 6: Barrido completo      → sweep-guide.md
+├── hooks/                # hook SessionStart
+├── commands/             # envoltorios de comandos cortos (los instala el hook)
+├── evals/                # suite de 57 escenarios + corpus congelado de fidelidad del parser
+└── assets/               # logo, banner, demo
 ```
 
 ## Integración con CI/CD
@@ -627,29 +452,25 @@ La action publica la revisión como un comentario del PR y, opcionalmente, hace 
 
 ## Hoja de ruta
 
-> **Estado actual (v1.4):** base de 12 libros, 6 riesgos de deterioro de producción (R1–R6) + 6 riesgos de deterioro de pruebas (T1–T6), 6 skills — Revisión de PR, Auditoría de arquitectura, Deuda técnica, Calidad de pruebas, Panel de salud, Barrido completo — además de gates de calidad de CI, salida SARIF para GitHub Code Scanning, presets de severidad y un benchmark reproducible de fidelidad del parser. Las entradas anteriores más abajo describen hitos históricos, no el conjunto de funciones actual.
+**Estado actual (v1.4):** base de 12 libros, 6 riesgos de deterioro de producción (R1–R6) + 6 riesgos de
+deterioro de pruebas (T1–T6), 6 skills, quality gates de CI, salida SARIF para GitHub Code Scanning,
+presets de rigor y un benchmark reproducible de fidelidad del parser.
 
-- [x] **v0.2**: Infraestructura de plugin (`.claude-plugin/`, hooks, comandos de barra)
-- [x] **v0.3**: Ocho dimensiones de Brooks, puntuación de completitud de la documentación
-- [x] **v0.4**: Framework de seis libros, dimensiones de riesgo de deterioro, cadena de diagnóstico, suite de benchmark
-- [x] **v0.5**: Revisión de calidad de pruebas (Modo 4) — cuatro libros de testing, seis riesgos de deterioro de pruebas
-- [x] **v0.6**: Grafo de dependencias en Mermaid en la Auditoría de arquitectura
-- [x] **v0.7**: Configuración de proyecto `.brooks-lint.yaml`, contexto proactivo del Modo 2, expansión a 10 libros
-- [x] **v0.8**: Arquitectura de skills independientes con comandos con espacio de nombres
-- [x] **v0.9**: Validación de pasos, alcance de diff automático, panel `/brooks-health`, seguimiento de tendencias, modo triage, remedios `--fix`, informe de incorporación, GitHub Action
-- [x] **v1.0**: Automatización de evaluaciones (`run-evals-live.mjs`), extensión de riesgos personalizados (códigos `Cx`)
-- [x] **v1.1**: Skill de Barrido completo (`brooks-sweep`) — corrección automática unificada multidimensión
-- [x] **v1.2**: Pipeline de barrido autónomo, propagación de versión con `npm run bump`
-- [x] **v1.3**: Metadatos de marketplace de Codex, instalador de un solo comando para múltiples plataformas de agentes, README bilingüe + sitio de aterrizaje
-- [x] **v1.4**: Salida SARIF para GitHub Code Scanning, gates de CI de severidad + regresión, presets de severidad (strict/balanced/legacy-friendly), suite de evaluaciones de 57 escenarios, benchmark reproducible de fidelidad del parser (`npm run benchmark`)
+<details><summary>Hitos v0.2 → v1.4</summary>
 
-¿Quieres ayudar? Las mejores contribuciones ahora mismo son nuevos casos de prueba de evaluación y mejores patrones de síntomas de riesgo de deterioro. Consulta [CONTRIBUTING.md](CONTRIBUTING.md).
+- **v0.2–v0.4**: infraestructura de plugin, framework de seis libros, dimensiones de deterioro, suite de benchmark
+- **v0.5–v0.7**: revisión de calidad de pruebas, grafo Mermaid, `.brooks-lint.yaml`, ampliación a 10 libros
+- **v0.8–v0.9**: arquitectura de skills independientes; validación de pasos, ámbito automático por diff, `/brooks-health`, seguimiento de tendencia, modo triaje, remedios `--fix`, GitHub Action
+- **v1.0–v1.2**: automatización de evals, códigos de riesgo `Cx` propios, skill de barrido completo, propagación de versión con `npm run bump`
+- **v1.3**: metadatos del marketplace de Codex, instalador multiplataforma de un comando, READMEs localizados + sitio de aterrizaje
+- **v1.4**: salida SARIF, gates de severidad y regresión en CI, presets de rigor, suite de 57 escenarios, `npm run benchmark`
+</details>
 
 ## Contribuir
 
-Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para saber cómo añadir hallazgos, mejorar guías o ampliar la suite de benchmark.
-
-Ejecuta `/brooks-review` en tu propio PR — revisamos las contribuciones con la herramienta que estamos construyendo.
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md). Las contribuciones más valiosas ahora mismo son nuevos casos de
+prueba de eval y mejores patrones de síntomas de los riesgos de deterioro. Ejecuta `/brooks-review` en tu
+propio PR — revisamos las contribuciones con la herramienta que estamos construyendo.
 
 ## Licencia
 
@@ -657,25 +478,9 @@ Licencia MIT — consulta [LICENSE](LICENSE) para más detalles.
 
 ## Agradecimientos
 
-Este proyecto se apoya en los hombros de doce gigantes:
-
-**Framework de código de producción**
-- Frederick P. Brooks Jr. — *The Mythical Man-Month* (1975, Edición Aniversario 1995)
-- Steve McConnell — *Code Complete* (1993, 2.ª ed. 2004)
-- Martin Fowler — *Refactoring* (1999, 2.ª ed. 2018)
-- Robert C. Martin — *Clean Architecture* (2017)
-- Andrew Hunt & David Thomas — *The Pragmatic Programmer* (1999, Edición 20.º Aniversario 2019)
-- Eric Evans — *Domain-Driven Design* (2003)
-- John Ousterhout — *A Philosophy of Software Design* (2018)
-- Titus Winters, Tom Manshreck y Hyrum Wright — *Software Engineering at Google* (2020)
-
-**Framework de calidad de pruebas**
-- Gerard Meszaros — *xUnit Test Patterns* (2007)
-- Roy Osherove — *The Art of Unit Testing* (2009, 3.ª ed. 2023)
-- Google Engineering — *How Google Tests Software* (2012)
-- Michael Feathers — *Working Effectively with Legacy Code* (2004)
-
-Los riesgos de deterioro codificados en esta herramienta son nuestra síntesis de sus ideas, aplicada a la evaluación moderna de la calidad del código.
+Este proyecto se apoya en los hombros de doce gigantes — la lista completa con ediciones está arriba, en
+[Los doce libros](#los-doce-libros). Los riesgos de deterioro codificados en esta herramienta son nuestra
+síntesis de sus ideas, aplicada a la evaluación moderna de la calidad del código.
 
 ---
 

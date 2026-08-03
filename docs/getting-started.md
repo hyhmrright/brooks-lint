@@ -68,7 +68,7 @@ If your agent accepts a skills folder or an instruction file, brooks-lint works:
 ## Verification status
 
 The marketplace-installed platforms (Claude Code, Gemini CLI, Codex CLI) are maintainer-verified. The
-seven Agent-Skills platforms above are documented from each tool's official skill spec and verified at
+eight Agent-Skills platforms above are documented from each tool's official skill spec and verified at
 the file-layout level (the installer is tested), but not yet end-to-end run by the maintainer on every
 platform. **Tried one? Tell us** — [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new)
 with the platform, version, and what you saw, working or broken.

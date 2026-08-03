@@ -15,13 +15,8 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 ./scripts/install.sh antigravity             # global: ~/.gemini/skills
 ```
 
-Manual equivalent (project):
-
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p .agent/skills
-cp -r /tmp/brooks-lint/skills/* .agent/skills/   # flat — brooks-* and _shared/ as siblings
-```
+Prefer a manual copy? Clone the repo and `cp -r skills/* .agent/skills/` — the contents, not the
+`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
 
 ## Invoke
 

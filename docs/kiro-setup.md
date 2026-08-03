@@ -15,13 +15,8 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 ./scripts/install.sh kiro --project  # this repo: ./.kiro/skills
 ```
 
-Manual equivalent:
-
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.kiro/skills
-cp -r /tmp/brooks-lint/skills/* ~/.kiro/skills/   # flat — brooks-* and _shared/ as siblings
-```
+Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.kiro/skills/` — the contents, not the
+`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
 
 Or use the IDE: **Agent Steering & Skills** panel → **+** → **Import a skill** → paste a GitHub URL or
 pick a local folder (Kiro copies it into your skills folder).

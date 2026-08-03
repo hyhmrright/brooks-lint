@@ -86,57 +86,37 @@ spelled out — a hardcoded `[RT][1-6]` range used to drop new codes silently.
 
 ## Local Testing
 
-Run the repository consistency checks first:
-
 ```bash
-node scripts/validate-repo.mjs
+npm run validate     # version sync across manifests/docs, hook JSON, risk-code consistency
+npm test             # unit tests for the validator helpers
+npm run evals        # eval structural validation
+npm run benchmark    # parser fidelity against the frozen corpus
+
+bash hooks/session-start                        # local branch
+CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # Claude Code platform install path
 ```
 
-This verifies version sync across manifests/docs, hook JSON output, and risk-code consistency in config examples.
+The hook should print a JSON object with an `additionalContext` or `hookSpecificOutput` key.
 
-Verify the session-start hook produces valid JSON:
-
-```bash
-# Local branch
-bash hooks/session-start
-
-# Claude Code platform install path
-CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start
-```
-
-Expected output: a JSON object with an `additionalContext` or `hookSpecificOutput` key.
-
-To test the skill itself, install it into your Claude Code session. Copy the
-*contents* of `skills/` — `cp -r skills/ <dest>` would nest a second `skills/`
-inside an existing destination, and `../_shared/` would stop resolving:
+To test the skill itself, copy the *contents* of `skills/` — `cp -r skills/ <dest>` would nest a
+second `skills/` inside an existing destination and `../_shared/` would stop resolving:
 
 ```bash
 mkdir -p ~/.claude/skills/brooks-lint
 cp -r skills/* ~/.claude/skills/brooks-lint/
 ```
 
-Then open Claude Code and run one of the slash commands:
-
-```
-/brooks-review                  # or /brooks-lint:brooks-review
-/brooks-audit                   # or /brooks-lint:brooks-audit
-/brooks-debt                    # or /brooks-lint:brooks-debt
-/brooks-test                    # or /brooks-lint:brooks-test
-/brooks-health                  # or /brooks-lint:brooks-health
-/brooks-sweep                   # or /brooks-lint:brooks-sweep
-```
+Then run any of `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`,
+`/brooks-health`, `/brooks-sweep` (or their `/brooks-lint:`-prefixed full forms).
 
 ## PR Conventions
 
-- Run `/brooks-review` (or `/brooks-lint:brooks-review`) on your own diff before opening a PR.
-  Paste the Health Score and any Critical findings into your PR description.
-  (Yes, we review our own contributions with the tool we're building.)
-
-- Keep PRs focused. One decay risk improvement or one eval addition per PR
-  is easier to review than a batch of unrelated changes.
-
-- If you're making a judgment call (e.g., changing a severity threshold from
-  🟡 to 🔴), explain the reasoning in the PR description.
+- Run `/brooks-review` on your own diff before opening a PR, and paste the Health Score and any
+  Critical findings into the description. (Yes, we review our own contributions with the tool
+  we're building.)
+- Keep PRs focused — one decay-risk improvement or one eval addition per PR.
+- If you're making a judgment call (e.g. moving a severity threshold from 🟡 to 🔴), explain the
+  reasoning in the PR description.
 
 ## Code of Conduct
 

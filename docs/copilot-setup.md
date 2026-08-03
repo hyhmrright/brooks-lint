@@ -15,13 +15,9 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 ./scripts/install.sh copilot --project  # this repo: ./.github/skills
 ```
 
-Manual equivalent (commit to a repo so the cloud agent and reviewers share it):
-
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p .github/skills
-cp -r /tmp/brooks-lint/skills/* .github/skills/   # flat — brooks-* and _shared/ as siblings
-```
+Prefer a manual copy? Clone the repo and `cp -r skills/* .github/skills/` — the contents, not the
+`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders. Commit it so the
+cloud agent and reviewers share the same skills.
 
 Copilot discovers skills from `.github/skills`, `.claude/skills`, `.agents/skills` (project) and
 `~/.copilot/skills`, `~/.agents/skills` (personal). `./scripts/install.sh agents` (→ `~/.agents/skills`)

@@ -73,35 +73,28 @@
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <平台>
 ```
 
-裝好後直接開口（「審查這個 PR」「稽核架構」）——或執行命令：
+裝好後直接開口（「審查這個 PR」「稽核架構」），或執行六個命令之一——`/brooks-review`、`/brooks-audit`、
+`/brooks-debt`、`/brooks-test`、`/brooks-health`、`/brooks-sweep`（[各自的作用](#斜線命令)）。
 
-| 命令 | 作用 |
-|------|------|
-| `/brooks-review` | 審查一個 PR 或 diff |
-| `/brooks-audit` | 架構稽核（含 Mermaid 相依圖） |
-| `/brooks-debt` | 排好優先順序的技術債路線圖 |
-| `/brooks-test` | 測試套件品質審查 |
-| `/brooks-health` | 跨所有維度的健康儀表板 |
-| `/brooks-sweep` | 全維度掃描並自動修復 |
-
-每條診斷都以 **症狀 → 根源 → 後果 → 對策** 回傳，附書目出處和 0–100 健康分。完整安裝方式（另外 8 個平台）、逐命令用法、CI/CD 設定見[下文](#安裝)。
+每條診斷都以 **症狀 → 根源 → 後果 → 對策** 回傳，附書目出處和 0–100 健康分。完整安裝方式（另外 8 個
+平台）和 CI/CD 設定見[下文](#安裝)。
 
 ## 十二本書
 
 | 書名 | 作者 | 貢獻於 |
 |------|--------|----------------|
-| *The Mythical Man-Month*（人月神話） | Frederick Brooks | R2、R4、R5 |
-| *Code Complete*（程式碼大全） | Steve McConnell | R1、R4 |
-| *Refactoring*（重構） | Martin Fowler | R1、R2、R3、R4、R6 |
-| *Clean Architecture*（無瑕的程式碼：整潔的軟體設計與架構篇） | Robert C. Martin | R2、R5 |
-| *The Pragmatic Programmer*（務實的程式設計師） | Hunt & Thomas | R2、R3、R4、R5、T2、T3 |
-| *Domain-Driven Design*（領域驅動設計） | Eric Evans | R1、R3、R6 |
-| *A Philosophy of Software Design*（軟體設計的哲學） | John Ousterhout | R1、R4 |
-| *Software Engineering at Google*（Google 軟體工程） | Winters, Manshreck & Wright | R2、R5 |
-| *The Art of Unit Testing*（單元測試的藝術） | Roy Osherove | T1、T2、T4、T5 |
-| *How Google Tests Software*（Google 測試之道） | Whittaker, Arbon & Carollo | T5、T6 |
-| *Working Effectively with Legacy Code*（修改軟體的藝術） | Michael Feathers | T4、T5、T6 |
-| *xUnit Test Patterns*（xUnit 測試模式） | Gerard Meszaros | T1、T2、T3、T4 |
+| *The Mythical Man-Month*（人月神話，1975） | Frederick P. Brooks Jr. | R2、R4、R5 |
+| *Code Complete*（程式碼大全，1993，第 2 版 2004） | Steve McConnell | R1、R4 |
+| *Refactoring*（重構，1999，第 2 版 2018） | Martin Fowler | R1、R2、R3、R4、R6 |
+| *Clean Architecture*（無瑕的程式碼：整潔的軟體設計與架構篇，2017） | Robert C. Martin | R2、R5 |
+| *The Pragmatic Programmer*（務實的程式設計師，1999，20 週年版 2019） | Andrew Hunt & David Thomas | R2、R3、R4、R5、T2、T3 |
+| *Domain-Driven Design*（領域驅動設計，2003） | Eric Evans | R1、R3、R6 |
+| *A Philosophy of Software Design*（軟體設計的哲學，2018） | John Ousterhout | R1、R4 |
+| *Software Engineering at Google*（Google 軟體工程，2020） | Winters, Manshreck & Wright | R2、R5 |
+| *The Art of Unit Testing*（單元測試的藝術，2009，第 3 版 2023） | Roy Osherove | T1、T2、T4、T5 |
+| *How Google Tests Software*（Google 測試之道，2012） | Whittaker, Arbon & Carollo | T5、T6 |
+| *Working Effectively with Legacy Code*（修改軟體的藝術，2004） | Michael Feathers | T4、T5、T6 |
+| *xUnit Test Patterns*（xUnit 測試模式，2007） | Gerard Meszaros | T1、T2、T3、T4 |
 
 ## 六類衰退風險
 
@@ -258,59 +251,26 @@ graph TD
 
 ### Claude Code（推薦）
 
-#### 透過外掛市集
 ```bash
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-短命令（`/brooks-review`）會在首次工作階段啟動時自動安裝。手動安裝：
+短命令（`/brooks-review`）會在首次工作階段啟動時自動安裝——也可以自己跑 `bash hooks/session-start`。
+不想走市集：`mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`。
+
+### Gemini CLI · Codex CLI
+
 ```bash
-bash hooks/session-start
+/extensions install https://github.com/hyhmrright/brooks-lint   # Gemini CLI
+```
+```
+Install the brooks-lint skill from hyhmrright/brooks-lint       # 在 Codex 工作階段中直接說
 ```
 
-#### 手動安裝
-```bash
-mkdir -p ~/.claude/skills/brooks-lint
-cp -r skills/* ~/.claude/skills/brooks-lint/
-```
+或使用下面的安裝器：`./scripts/install.sh gemini` / `./scripts/install.sh codex`。
 
-### Gemini CLI
-
-#### 透過擴充功能
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint
-```
-
-#### 手動安裝
-```bash
-mkdir -p ~/.gemini/skills
-cp -r skills/* ~/.gemini/skills/      # 扁平——Gemini 只探索一層深的技能
-```
-> 或直接：`./scripts/install.sh gemini`
-
-### Codex CLI
-
-#### 透過技能安裝器（在 Codex 工作階段中）
-```
-Install the brooks-lint skill from hyhmrright/brooks-lint
-```
-
-#### 命令列
-```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo hyhmrright/brooks-lint --path skills --name brooks-lint
-```
-
-#### 手動安裝
-```bash
-git clone https://github.com/hyhmrright/brooks-lint.git /tmp/brooks-lint
-mkdir -p ~/.codex/skills
-cp -r /tmp/brooks-lint/skills/* ~/.codex/skills/   # 扁平——與技能安裝器佈局一致
-```
-> 或直接：`./scripts/install.sh codex`
-
-### 更多平台——OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### 其他所有平台——OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
 
 brooks-lint 以標準 [Agent Skills](https://agentskills.io) 形式散布。**任何載入 Agent Skills 的 agent
 都能無需任何轉換執行全部六種模式**——一條命令即可安裝：
@@ -323,55 +283,20 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 
 安裝器會把技能**扁平**複製進該平台對應的資料夾，讓共享框架（`../_shared/`）始終正確解析——你不可能裝錯佈局。
 裝好後直接提問（「審查這個 PR」、「稽核架構」），對應技能就會依據 `description` 自動觸發。
-不熟悉 skills、或用的是別的 agent？見 **[docs/getting-started.md](docs/getting-started.md)**。
 
-<details><summary><b>OpenCode</b></summary>
+| 平台 | 安裝到 | 同時讀取 | 指南 |
+|---|---|---|---|
+| OpenCode | `~/.config/opencode/skills` | `~/.claude/skills`、`AGENTS.md` | [設定](docs/opencode-setup.md) |
+| Cursor（2.4+） | `~/.cursor/skills` | `.agents/skills`、`AGENTS.md` | [設定](docs/cursor-setup.md) |
+| Windsurf（Cascade） | `~/.codeium/windsurf/skills` | `AGENTS.md` | [設定](docs/windsurf-setup.md) |
+| Antigravity（Google） | `.agent/skills`（`--project`） | `AGENTS.md`、`GEMINI.md` | [設定](docs/antigravity-setup.md) |
+| pi（earendil-works） | `~/.pi/agent/skills` | — | [設定](docs/pi-setup.md) |
+| GitHub Copilot | `.github/skills`（`--project`） | `.claude/skills`、`AGENTS.md` | [設定](docs/copilot-setup.md) |
+| Kiro（AWS） | `~/.kiro/skills` | `AGENTS.md` | [設定](docs/kiro-setup.md) |
+| Factory Droid | `~/.factory/skills` | `AGENTS.md` | [設定](docs/factory-droid-setup.md) |
 
-`./scripts/install.sh opencode` → `~/.config/opencode/skills`（同時讀取 `~/.claude/skills` 與
-`AGENTS.md`）。完整指南：[docs/opencode-setup.md](docs/opencode-setup.md)。
-</details>
-
-<details><summary><b>Cursor</b>（2.4+）</summary>
-
-`./scripts/install.sh cursor` → `~/.cursor/skills`（也讀 `.agents/skills`；讀取 `AGENTS.md`）。
-完整指南：[docs/cursor-setup.md](docs/cursor-setup.md)。
-</details>
-
-<details><summary><b>Windsurf</b>（Cascade）</summary>
-
-`./scripts/install.sh windsurf` → `~/.codeium/windsurf/skills`（讀取 `AGENTS.md`）。
-完整指南：[docs/windsurf-setup.md](docs/windsurf-setup.md)。
-</details>
-
-<details><summary><b>Antigravity</b>（Google）</summary>
-
-`./scripts/install.sh antigravity --project` → `.agent/skills`（讀取 `AGENTS.md` / `GEMINI.md`）。
-完整指南：[docs/antigravity-setup.md](docs/antigravity-setup.md)。
-</details>
-
-<details><summary><b>pi</b>（earendil-works）</summary>
-
-`./scripts/install.sh pi` → `~/.pi/agent/skills`，或讓 pi 的 `skills` 設定指向一個克隆。
-完整指南：[docs/pi-setup.md](docs/pi-setup.md)。
-</details>
-
-<details><summary><b>GitHub Copilot</b></summary>
-
-`./scripts/install.sh copilot --project` → `.github/skills`（也自動辨識 `.claude/skills`；讀取
-`AGENTS.md`）。完整指南：[docs/copilot-setup.md](docs/copilot-setup.md)。
-</details>
-
-<details><summary><b>Kiro</b>（AWS）</summary>
-
-`./scripts/install.sh kiro` → `~/.kiro/skills`（自動註冊 `/brooks-review`；讀取 `AGENTS.md`）。
-完整指南：[docs/kiro-setup.md](docs/kiro-setup.md)。
-</details>
-
-<details><summary><b>Factory Droid</b></summary>
-
-`./scripts/install.sh droid` → `~/.factory/skills`（註冊 `/brooks-review`；讀取 `AGENTS.md`）。
-完整指南：[docs/factory-droid-setup.md](docs/factory-droid-setup.md)。
-</details>
+Kiro 與 Factory Droid 還會自動註冊 `/brooks-review`。不熟悉 skills、或用的是上面沒列出的 agent？
+見 **[docs/getting-started.md](docs/getting-started.md)**。
 
 > **🧪 驗證狀態。** Claude Code、Gemini CLI、Codex CLI 已由維護者驗證。上面八個平台依據各工具官方技能規範撰寫，
 > 並已在檔案佈局層面驗證（安裝器經過測試），但維護者尚未在每個平台端到端實跑。在某平台試過了——無論成功**還是**失敗？
@@ -380,108 +305,23 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 
 ## 斜線命令
 
-### Claude Code
-| 命令 | 短命令 | 作用 |
-|---------|------------|--------|
-| `/brooks-lint:brooks-review` | `/brooks-review` | PR 級程式碼審查 |
-| `/brooks-lint:brooks-audit` | `/brooks-audit` | 完整架構審查 |
-| `/brooks-lint:brooks-debt` | `/brooks-debt` | 技術債評估 |
-| `/brooks-lint:brooks-test` | `/brooks-test` | 測試套件健康審查 |
-| `/brooks-lint:brooks-health` | `/brooks-health` | 健康儀表板——全部四個維度 |
-| `/brooks-lint:brooks-sweep` | `/brooks-sweep` | 全面掃描——分析所有維度並自動修復 |
-
-> 短命令由 session-start 掛鉤在首次工作階段啟動時自動安裝。
-
-### Gemini CLI
 | 命令 | 作用 |
-|---------|--------|
-| `/brooks-review` | PR 級程式碼審查 |
-| `/brooks-audit` | 完整架構審查 |
-| `/brooks-debt` | 技術債評估 |
-| `/brooks-test` | 測試套件健康審查 |
-| `/brooks-health` | 健康儀表板——全部四個維度 |
-| `/brooks-sweep` | 全面掃描——分析所有維度並自動修復 |
+|---------|--------------|
+| `/brooks-review` | 貼上一段 diff，或讓 AI 指向改動的檔案。以 症狀 → 根源 → 後果 → 對策 的格式逐一診斷六類衰退風險。 |
+| `/brooks-audit` | 梳理模組相依（附 Mermaid 相依圖）、辨識循環相依，並檢查是否符合康威定律。 |
+| `/brooks-debt` | 按六類衰退風險對技術債分類，以 痛感 × 擴散面 打優先級，產出帶 Critical / Scheduled / Monitored 分級的償還路線圖。 |
+| `/brooks-test` | 對照六類測試空間衰退風險審查測試套件——測試晦澀、測試脆弱、測試重複、Mock 濫用、覆蓋率幻覺、架構錯配。 |
+| `/brooks-health` | 對全部四個品質維度做精簡掃描，產出一個加權綜合健康分。適合發版前或新團隊上手時使用。 |
+| `/brooks-sweep` | 一次性掃描 R1–R6、T1–T6 與架構，然後施加修復：安全改動自動套用，跨檔案改動需確認，架構決策標記為人工處理項。輸出修復日誌與健康分變化。 |
 
-### Codex CLI
+**各平台語法。** Claude Code 也接受帶命名空間的完整形式 `/brooks-lint:brooks-review`——短命令由
+session-start 鉤子在首次工作階段啟動時自動安裝。Codex CLI 用 `$brooks-review`。Gemini CLI 直接用上表。
+OpenCode、Cursor、Antigravity、pi 依據每個技能的 `description` 自動呼叫 Agent Skills，直接提問即可
+（「審查這個 PR」、「我們最糟的技術債在哪」）；需要顯式呼叫時用各平台自己的語法（pi 把每個技能註冊為
+`/skill:brooks-review`）。在所有平台上，當你討論程式碼品質、架構或測試健康時，這些技能也會自動觸發。
 
-| 命令 | 作用 |
-|---------|--------|
-| `$brooks-review` | PR 級程式碼審查 |
-| `$brooks-audit` | 完整架構審查 |
-| `$brooks-debt` | 技術債評估 |
-| `$brooks-test` | 測試套件健康審查 |
-| `$brooks-health` | 健康儀表板——全部四個維度 |
-| `$brooks-sweep` | 全面掃描——分析所有維度並自動修復 |
-
-當你討論程式碼品質、架構、可維護性或測試健康時，這些技能也會自動觸發。
-
-### OpenCode · Cursor · Antigravity · pi
-
-這些平台依據每個技能的 `description` 自動呼叫 Agent Skills——直接提問（「審查這個 PR」、「稽核架構」、
-「我們最糟的技術債在哪」）就會執行對應模式。需要顯式呼叫時，使用各平台的技能命令語法（例如 pi 把每個技能註冊為
-`/skill:brooks-review`；Cursor 與 OpenCode 在技能被探索到後暴露 `/brooks-review`）。
-
-## 使用
-
-### PR 審查
-
-```
-/brooks-review                      # Claude Code（短命令）/ Gemini CLI
-/brooks-lint:brooks-review          # Claude Code（完整形式）
-$brooks-review                      # Codex CLI
-```
-
-貼上一段 diff，或讓 AI 指向改動的檔案。它會以 症狀 → 根源 → 後果 → 對策 的格式，逐一診斷六類衰退風險並給出具體診斷。
-
-### 架構審查
-
-```
-/brooks-audit                       # Claude Code（短命令）/ Gemini CLI
-/brooks-lint:brooks-audit           # Claude Code（完整形式）
-$brooks-audit                       # Codex CLI
-```
-
-描述你的專案結構或分享關鍵檔案。它會梳理模組相依、識別循環相依，並檢查是否符合康威定律。
-
-### 技術債評估
-
-```
-/brooks-debt                        # Claude Code（短命令）/ Gemini CLI
-/brooks-lint:brooks-debt            # Claude Code（完整形式）
-$brooks-debt                        # Codex CLI
-```
-
-按六類衰退風險對技術債分類，以 痛感 × 擴散面 為每條診斷打優先順序，產出帶 Critical / Scheduled / Monitored 分級的償還路線圖。
-
-### 測試品質審查
-
-```
-/brooks-test                        # Claude Code（短命令）/ Gemini CLI
-/brooks-lint:brooks-test            # Claude Code（完整形式）
-$brooks-test                        # Codex CLI
-```
-
-對照六類測試空間衰退風險審查你的測試套件——測試晦澀、測試脆弱、測試重複、Mock 濫用、覆蓋率幻覺、架構錯配——出處為 xUnit Test Patterns、The Art of Unit Testing、How Google Tests Software 和 Working Effectively with Legacy Code。PR 審查還會自動包含一個輕量的第 7 步快速測試檢查（對純文件或非生產程式碼 diff 會略過）。
-
-### 健康儀表板
-
-```
-/brooks-health                      # Claude Code（短命令）/ Gemini CLI
-/brooks-lint:brooks-health          # Claude Code（完整形式）
-$brooks-health                      # Codex CLI
-```
-
-對全部四個品質維度做精簡掃描，產出加權綜合健康分（0–100）。適合發版前、新團隊上手時，或任何你想要一份「我們現在怎麼樣？」全局報告的場景。需要某個維度的深度診斷時，請改用對應的專項技能。
-
-### 全面掃描
-
-```
-/brooks-sweep                       # Claude Code（短命令）/ Gemini CLI
-/brooks-lint:brooks-sweep           # Claude Code（完整形式）
-$brooks-sweep                       # Codex CLI
-```
-
-一次性掃描全部生產（R1–R6）與測試（T1–T6）衰退風險以及架構，然後施加修復：安全改動立即自動套用，跨檔案或觸及介面的改動需確認，複雜的架構決策則標記為人工處理項。輸出修復記錄、健康分變化和遺留項清單。
+> PR 審查會自動包含一個輕量的第 7 步快速測試檢查（對純文件 diff 會跳過）。需要完整的測試稽核請用
+> `/brooks-test`；需要某個維度的深度診斷時，請用該維度的專項技能，而不是 `/brooks-health`。
 
 ## 設定
 
@@ -523,56 +363,34 @@ ignore:
 
 ## 為什麼是這些書，為什麼是現在？
 
-在 AI 輔助編程的時代，我們寫程式碼比以往任何時候都更快、更多。但六十年軟體工程沉澱下來的洞見並沒有改變：
-
-> *"軟體的複雜性是本質屬性，而非偶然屬性。"*
+> *「軟體的複雜性是本質屬性，而非偶然屬性。」*
 > —— Frederick Brooks
 
-AI 能幫你更快地寫程式碼，卻無法告訴你正在建造的是大教堂還是焦油坑。**brooks-lint 彌合了這道鴻溝**——它把十二本經典工程著作中得來不易的智慧，帶進你現代的開發工作流程。
-
-這些作者識別出的衰退風險，如今比以往更切題：
-- **接入 AI 助手** 並不能修復認知過載或領域模型失真
-- **產生更多程式碼** 會加劇變更擴散和知識重複
-- **跑得更快** 讓偶發複雜度和相依失序更加危險
+AI 能幫你更快地寫程式，卻無法告訴你正在建造的是大教堂還是焦油坑——而生成越廉價，這些作者辨識出的
+衰退風險就越尖銳。接入 AI 助手並不能修復認知超載或領域模型失真；生成更多程式碼會加劇變更擴散和知識重複；
+跑得更快讓偶發複雜度和相依失序更加危險。
 
 ## 專案結構
 
+每個技能都是一個 `SKILL.md`（觸發條件 + 流程骨架）加上它自己的指南：
+
 ```
 brooks-lint/
-├── .claude-plugin/              # Claude Code 外掛中繼資料
-├── .codex-plugin/               # Codex CLI 外掛中繼資料
+├── .claude-plugin/ · .codex-plugin/  # 各平台外掛中繼資料
 ├── skills/
-│   ├── _shared/                 # 共享框架檔案
-│   │   ├── common.md            # 鐵律、專案設定、報告範本、健康分
-│   │   ├── source-coverage.md   # 12 本書涵蓋矩陣、權衡、誤報防護
-│   │   ├── decay-risks.md       # 六類衰退風險及症狀與書目出處
-│   │   ├── test-decay-risks.md  # 六類測試空間衰退風險及書目出處
-│   │   ├── remedy-guide.md      # --fix 模式：可落地的對策強化規則
-│   │   └── custom-risks-guide.md  # 專案自訂風險碼範本
-│   ├── brooks-review/           # 模式 1：PR 審查
-│   │   ├── SKILL.md
-│   │   └── pr-review-guide.md
-│   ├── brooks-audit/            # 模式 2：架構審查
-│   │   ├── SKILL.md
-│   │   └── architecture-guide.md
-│   ├── brooks-debt/             # 模式 3：技術債評估
-│   │   ├── SKILL.md
-│   │   └── debt-guide.md
-│   ├── brooks-test/             # 模式 4：測試品質審查
-│   │   ├── SKILL.md
-│   │   └── test-guide.md
-│   ├── brooks-health/           # 模式 5：健康儀表板
-│   │   ├── SKILL.md
-│   │   └── health-guide.md
-│   └── brooks-sweep/            # 模式 6：全面掃描與自動修復
-│       ├── SKILL.md
-│       └── sweep-guide.md
-├── hooks/                       # SessionStart 掛鉤
-├── commands/                    # 短命令包裝（由掛鉤自動安裝）
-├── evals/                       # 基準測試案例
-│   └── evals.json
-└── assets/
-    └── logo.svg
+│   ├── _shared/          # common.md（鐵律、設定、報告範本、健康分）
+│   │                     # source-coverage.md · decay-risks.md（R1–R6）
+│   │                     # test-decay-risks.md（T1–T6）· remedy-guide.md · custom-risks-guide.md
+│   ├── brooks-review/    # 模式 1：PR 審查      → pr-review-guide.md
+│   ├── brooks-audit/     # 模式 2：架構稽核     → architecture-guide.md、onboarding-guide.md
+│   ├── brooks-debt/      # 模式 3：技術債       → debt-guide.md
+│   ├── brooks-test/      # 模式 4：測試品質     → test-guide.md
+│   ├── brooks-health/    # 模式 5：健康儀表板   → health-guide.md
+│   └── brooks-sweep/     # 模式 6：全面掃描     → sweep-guide.md
+├── hooks/                # SessionStart 鉤子
+├── commands/             # 短命令包裝（由鉤子自動安裝）
+├── evals/                # 57 情境評測套件 + 凍結的 parser 保真度語料
+└── assets/               # logo、banner、demo
 ```
 
 ## CI/CD 整合
@@ -623,28 +441,22 @@ jobs:
 
 ## 路線圖
 
-> **目前狀態（v1.4）：** 12 本書地基，6 類生產衰退風險（R1–R6）+ 6 類測試衰退風險（T1–T6），6 個技能——PR 審查、架構審查、技術債、測試品質、健康儀表板、全量掃描——外加 CI 品質閘門、面向 GitHub Code Scanning 的 SARIF 輸出、嚴格度預設，以及一個可復現的 parser 保真度基準。下方較早的條目記錄的是歷史里程碑，而非目前功能集。
+**當前狀態（v1.4）：** 12 本書地基，6 類生產衰退風險（R1–R6）+ 6 類測試衰退風險（T1–T6），6 個技能，
+CI 品質閘門、面向 GitHub Code Scanning 的 SARIF 輸出、嚴格度預設，以及一個可復現的 parser 保真度基準。
 
-- [x] **v0.2**：外掛基礎設施（`.claude-plugin/`、掛鉤、斜線命令）
-- [x] **v0.3**：八個 Brooks 維度、文件完整度評分
-- [x] **v0.4**：六本書框架、衰退風險維度、診斷鏈、基準套件
-- [x] **v0.5**：測試品質審查（模式 4）——四本測試書、六類測試衰退風險
-- [x] **v0.6**：架構審查中的 Mermaid 相依圖
-- [x] **v0.7**：`.brooks-lint.yaml` 專案設定、模式 2 主動上下文、擴展到 10 本書
-- [x] **v0.8**：帶命名空間命令的獨立技能架構
-- [x] **v0.9**：步驟校驗、自動 diff 範圍、`/brooks-health` 儀表板、趨勢追蹤、分診模式、`--fix` 對策、上手報告、GitHub Action
-- [x] **v1.0**：評測自動化（`run-evals-live.mjs`）、自訂風險擴充（`Cx` 碼）
-- [x] **v1.1**：全量掃描技能（`brooks-sweep`）——跨維度統一分析 + 自動修復
-- [x] **v1.2**：自主化 sweep 管線、`npm run bump` 版本傳播
-- [x] **v1.3**：Codex 市集中繼資料、多平台一鍵安裝指令碼、雙語 README + 落地頁
-- [x] **v1.4**：SARIF 輸出（GitHub Code Scanning）、CI severity + 回歸閘門、嚴格度預設（strict/balanced/legacy-friendly）、57 情境 eval 套件、可復現的 parser 保真度基準（`npm run benchmark`）
+<details><summary>里程碑 v0.2 → v1.4</summary>
 
-想出一份力？現在最有價值的貢獻是新的評測案例和更好的衰退風險症狀模式。見 [CONTRIBUTING.md](CONTRIBUTING.md)。
+- **v0.2–v0.4**：外掛基礎設施、六本書框架、衰退風險維度、基準套件
+- **v0.5–v0.7**：測試品質審查、Mermaid 相依圖、`.brooks-lint.yaml`、擴展到 10 本書
+- **v0.8–v0.9**：獨立技能架構；步驟驗證、自動 diff 範圍、`/brooks-health`、趨勢追蹤、分診模式、`--fix` 對策、GitHub Action
+- **v1.0–v1.2**：評測自動化、自訂 `Cx` 風險碼、全面掃描技能、`npm run bump` 版本傳播
+- **v1.3**：Codex 市集中繼資料、多平台一鍵安裝腳本、多語 README + 著陸頁
+- **v1.4**：SARIF 輸出、CI severity + 迴歸閘門、嚴格度預設、57 情境 eval 套件、`npm run benchmark`
+</details>
 
 ## 貢獻
 
-如何新增診斷、改進指南或擴充基準套件，見 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
+見 [CONTRIBUTING.md](CONTRIBUTING.md)。現在最有價值的貢獻是新的評測用例和更好的衰退風險症狀模式。
 在你自己的 PR 上跑一遍 `/brooks-review`——我們用正在打造的工具來審查貢獻。
 
 ## 授權條款
@@ -653,25 +465,8 @@ MIT License——詳見 [LICENSE](LICENSE)。
 
 ## 致謝
 
-本專案站在十二位巨人的肩膀上：
-
-**生產程式碼框架**
-- Frederick P. Brooks Jr. — *The Mythical Man-Month*（1975，紀念版 1995）
-- Steve McConnell — *Code Complete*（1993，第 2 版 2004）
-- Martin Fowler — *Refactoring*（1999，第 2 版 2018）
-- Robert C. Martin — *Clean Architecture*（2017）
-- Andrew Hunt & David Thomas — *The Pragmatic Programmer*（1999，20 週年版 2019）
-- Eric Evans — *Domain-Driven Design*（2003）
-- John Ousterhout — *A Philosophy of Software Design*（2018）
-- Titus Winters、Tom Manshreck、Hyrum Wright — *Software Engineering at Google*（2020）
-
-**測試品質框架**
-- Gerard Meszaros — *xUnit Test Patterns*（2007）
-- Roy Osherove — *The Art of Unit Testing*（2009，第 3 版 2023）
-- Google Engineering — *How Google Tests Software*（2012）
-- Michael Feathers — *Working Effectively with Legacy Code*（2004）
-
-本工具中編碼的衰退風險，是我們對他們思想的綜合，並應用於現代程式碼品質評估。
+本專案站在十二位巨人的肩膀上——完整書單與版本見上面的[十二本書](#十二本書)。本工具中編碼的衰退風險，
+是我們對他們思想的綜合，並應用於現代程式碼品質評估。
 
 ---
 
