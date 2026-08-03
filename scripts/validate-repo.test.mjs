@@ -11,7 +11,7 @@
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
@@ -30,6 +30,7 @@ import { parseFindings, countFindings, extractLocation } from "./report-parse.mj
 import { reportToSarif } from "./sarif.mjs";
 import { severityBreached, isRegression } from "./ci-gate.mjs";
 import { summarize } from "./benchmark.mjs";
+import { versionRefs } from "./version-refs.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -824,6 +825,67 @@ test("risk-code extraction has zero false positives / negatives on the corpus", 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────
 
 console.log("\nvalidate-repo integration");
+
+// ── versionRefs ────────────────────────────────────────────────────────────
+
+console.log("\nversionRefs");
+
+/** Build a fake repo root with the given `relative path -> contents` map. */
+function withFakeRepo(files, fn) {
+  withTempDir((dir) => {
+    mkdirSync(path.join(dir, "docs"));
+    for (const [rel, body] of Object.entries(files)) {
+      writeFileSync(path.join(dir, rel), body, "utf8");
+    }
+    fn(dir);
+  });
+}
+
+test("discovers every README translation, not a fixed list", () => {
+  withFakeRepo({ "README.md": "", "README.es.md": "", "README.zh-TW.md": "" }, (dir) => {
+    const found = versionRefs(dir, "9.9.9").map((r) => r.rel);
+    assert.deepEqual(found, ["README.es.md", "README.md", "README.zh-TW.md"]);
+  });
+});
+
+test("renders the badge and JSON-LD text expected at the given version", () => {
+  withFakeRepo({ "README.md": "", "docs/index.html": "" }, (dir) => {
+    const byRel = Object.fromEntries(versionRefs(dir, "9.9.9").map((r) => [r.rel, r]));
+    assert.equal(byRel["README.md"].expected, "version-9.9.9-blue.svg");
+    assert.equal(byRel[path.join("docs", "index.html")].expected, '"softwareVersion": "9.9.9"');
+  });
+});
+
+test("marks README badges required and docs pages optional", () => {
+  // Only the landing page carries JSON-LD; gallery.html and guide.html must not
+  // be reported as missing a version they were never meant to have.
+  withFakeRepo({ "README.md": "", "docs/gallery.html": "" }, (dir) => {
+    const byRel = Object.fromEntries(versionRefs(dir, "9.9.9").map((r) => [r.rel, r]));
+    assert.equal(byRel["README.md"].required, true);
+    assert.equal(byRel[path.join("docs", "gallery.html")].required, false);
+  });
+});
+
+test("ignores non-README markdown at the repo root", () => {
+  withFakeRepo({ "README.md": "", "CHANGELOG.md": "", "CONTRIBUTING.md": "" }, (dir) => {
+    assert.deepEqual(versionRefs(dir, "9.9.9").map((r) => r.rel), ["README.md"]);
+  });
+});
+
+test("patterns match the real badge and JSON-LD shapes", () => {
+  withFakeRepo({
+    "README.md": '<img src="https://img.shields.io/badge/version-1.0.0-blue.svg" alt="Version">',
+    "docs/index.html": '  "softwareVersion": "1.0.0",',
+  }, (dir) => {
+    for (const { rel, pattern, expected } of versionRefs(dir, "9.9.9")) {
+      const text = readFileSync(path.join(dir, rel), "utf8");
+      assert.equal(text.match(pattern).length, 1, `${rel} should contain exactly one version reference`);
+      assert.match(text.replace(pattern, expected), /9\.9\.9/);
+    }
+  });
+});
+
+// ── Integration ────────────────────────────────────────────────────────────
 
 test("validate-repo.mjs exits 0 against the current repository", () => {
   execFileSync("node", [path.join(__dirname, "validate-repo.mjs")], { encoding: "utf8" });

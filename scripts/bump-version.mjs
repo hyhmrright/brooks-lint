@@ -1,9 +1,11 @@
-// Propagates the version from package.json to all other manifests and README.
+// Propagates the version from package.json to every other place that carries
+// it: the plugin manifests, the README badges, and the docs site metadata.
 // Run after manually bumping version in package.json.
 
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { versionRefs } from "./version-refs.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -28,14 +30,16 @@ for (const { rel, update } of manifests) {
   console.log(`  ✓ ${rel}`);
 }
 
-// Discover the localized READMEs instead of hardcoding them: a hardcoded pair
-// silently skipped README.es/ja/ko/zh-TW and let their badges fall behind.
-const readmes = readdirSync(root).filter((f) => f.startsWith("README") && f.endsWith(".md"));
-for (const readmeRel of readmes) {
-  let readme = readFileSync(path.join(root, readmeRel), "utf8");
-  readme = readme.replace(/version-[\d.]+?-blue\.svg/g, `version-${version}-blue.svg`);
-  writeFileSync(path.join(root, readmeRel), readme, "utf8");
-  console.log(`  ✓ ${readmeRel} badge`);
+// README badges and the docs JSON-LD. validate-repo.mjs checks the same list,
+// so neither can drift out of sync with the other.
+for (const { rel, pattern, expected } of versionRefs(root, version)) {
+  const file = path.join(root, rel);
+  const text = readFileSync(file, "utf8");
+  // Candidates are discovered by directory, so some carry no version at all
+  // (docs/gallery.html, docs/guide.html) — skip rather than rewrite untouched.
+  if (!text.match(pattern)) continue;
+  writeFileSync(file, text.replace(pattern, expected), "utf8");
+  console.log(`  ✓ ${rel}`);
 }
 
 console.log(`\nAll manifests updated to ${version}. Run npm run validate to confirm.`);

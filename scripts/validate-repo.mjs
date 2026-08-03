@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
@@ -14,6 +14,7 @@ import {
   TEST_RISK_COUNT,
 } from "./frontmatter.mjs";
 import { GUIDE_BY_MODE } from "./assemble-prompt.mjs";
+import { versionRefs } from "./version-refs.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -94,20 +95,26 @@ function checkChangelog() {
   );
 }
 
+// Version strings embedded in text files (README badges, docs JSON-LD). The
+// list lives in version-refs.mjs so this check and bump-version.mjs can never
+// disagree about what carries a version.
+function checkVersionRefs() {
+  for (const { rel, pattern, expected, required } of versionRefs(root, version)) {
+    const found = readText(rel).match(pattern) ?? [];
+    if (required) {
+      check(found.length > 0, `${rel} is missing its version reference (expected "${expected}")`);
+    }
+    for (const hit of found) {
+      check(hit === expected, `${rel} has stale "${hit}", expected "${expected}" (run npm run bump)`);
+    }
+  }
+}
+
 // Canonical Claude Code install command — must appear in README.md.
 const CANONICAL_INSTALL_CMD = "/plugin marketplace add hyhmrright/brooks-lint";
 
 function checkReadmeIntegrity() {
   const readme = readText("README.md");
-  // Check every localized README, discovered from disk. A hardcoded pair here
-  // mirrored the one in bump-version.mjs and let es/ja/ko/zh-TW badges go stale
-  // unnoticed; deriving the list means a new translation is covered on arrival.
-  for (const readmeRel of readdirSync(root).filter((f) => f.startsWith("README") && f.endsWith(".md"))) {
-    check(
-      readText(readmeRel).includes(`version-${version}-blue.svg`),
-      `${readmeRel} badge does not reference version ${version} (run npm run bump)`,
-    );
-  }
   check(readme.includes(CANONICAL_INSTALL_CMD), `README.md should contain canonical install command`);
   check(
     readme.includes(`grounded in ${sourceWord} classic engineering books`),
@@ -323,6 +330,7 @@ function checkHookOutput() {
 checkVersionConsistency();
 checkDescriptionConsistency();
 checkChangelog();
+checkVersionRefs();
 checkReadmeIntegrity();
 checkConfigExamples();
 checkSourceInventory();
