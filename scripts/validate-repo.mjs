@@ -13,6 +13,7 @@ import {
   PRODUCTION_RISK_COUNT,
   TEST_RISK_COUNT,
 } from "./frontmatter.mjs";
+import { GUIDE_BY_MODE } from "./assemble-prompt.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -43,11 +44,11 @@ const sourceCoverage = readText("skills/_shared/source-coverage.md");
 const books = parseFrontmatterBooks(sourceCoverage);
 const sourceCount = books?.length ?? 0;
 
-const _countWords = [
+const COUNT_WORDS = [
   "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
   "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
 ];
-const sourceWord = _countWords[sourceCount] ?? String(sourceCount);
+const sourceWord = COUNT_WORDS[sourceCount] ?? String(sourceCount);
 const sourceWordCap = sourceWord.charAt(0).toUpperCase() + sourceWord.slice(1);
 
 const evals = readJson("evals/evals.json");
@@ -170,19 +171,12 @@ function checkSharedFramework() {
 
 // ── Step alignment ────────────────────────────────────────────────────────
 
-const SKILL_GUIDES = [
-  ["brooks-review", "pr-review-guide.md"],
-  ["brooks-audit", "architecture-guide.md"],
-  ["brooks-debt", "debt-guide.md"],
-  ["brooks-test", "test-guide.md"],
-  ["brooks-health", "health-guide.md"],
-  ["brooks-sweep", "sweep-guide.md"],
-];
+// Derived from the canonical mode registry so a new skill only has to be
+// declared once (in assemble-prompt.mjs) to be validated here.
+const SKILL_GUIDES = Object.values(GUIDE_BY_MODE);
 
 function checkStepAlignment() {
-  const modeGuides = SKILL_GUIDES;
-
-  for (const [mode, guide] of modeGuides) {
+  for (const [mode, guide] of SKILL_GUIDES) {
     const guideText = readText(`skills/${mode}/${guide}`);
     const guideLabels = extractGuideStepLabels(guideText);
 
@@ -227,8 +221,6 @@ function checkStepAlignment() {
 }
 
 function checkSkillsContent() {
-  const modes = SKILL_GUIDES.map(([mode]) => mode);
-
   // Guard: _shared/ must never contain a SKILL.md — it is a shared library directory,
   // not a skill. If one is added accidentally, Claude Code would register it as a broken skill.
   let sharedHasSkillMd = false;
@@ -238,7 +230,7 @@ function checkSkillsContent() {
   } catch (_) { /* expected — file should not exist */ }
   check(!sharedHasSkillMd, "skills/_shared/SKILL.md must not exist — _shared/ is a library, not a skill");
 
-  for (const mode of modes) {
+  for (const [mode, guide] of SKILL_GUIDES) {
     const skillMd = readText(`skills/${mode}/SKILL.md`);
     check(skillMd.includes("## Setup"), `skills/${mode}/SKILL.md should have a ## Setup section`);
     check(skillMd.includes("## Process"), `skills/${mode}/SKILL.md should have a ## Process section`);
@@ -252,14 +244,9 @@ function checkSkillsContent() {
       frontmatter.includes(`${sourceWord} classic`),
       `skills/${mode}/SKILL.md frontmatter description should reference "${sourceWord} classic engineering books" — update stale book count`,
     );
-  }
 
-  const guides = SKILL_GUIDES;
-
-  for (const [mode, guide] of guides) {
-    const content = readText(`skills/${mode}/${guide}`);
     check(
-      content.includes("Iron Law"),
+      readText(`skills/${mode}/${guide}`).includes("Iron Law"),
       `skills/${mode}/${guide} should reference the Iron Law`,
     );
   }

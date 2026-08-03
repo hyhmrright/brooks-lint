@@ -1,8 +1,21 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+/**
+ * Canonical mode registry: mode → [skill directory, guide filename].
+ * Adding a mode here is the only edit needed — VALID_MODES derives from it.
+ */
+export const GUIDE_BY_MODE = {
+  review: ["brooks-review", "pr-review-guide.md"],
+  audit: ["brooks-audit", "architecture-guide.md"],
+  debt: ["brooks-debt", "debt-guide.md"],
+  test: ["brooks-test", "test-guide.md"],
+  health: ["brooks-health", "health-guide.md"],
+  sweep: ["brooks-sweep", "sweep-guide.md"],
+};
+
 /** Canonical list of valid mode names — import from here to avoid drift. */
-export const VALID_MODES = ["review", "audit", "debt", "test", "health", "sweep"];
+export const VALID_MODES = Object.keys(GUIDE_BY_MODE);
 
 /**
  * Assemble the system prompt for a given brooks-lint mode.
@@ -33,16 +46,9 @@ export function assembleSystemPrompt(mode, skillsDir) {
   }
 
   // Add mode-specific guide
-  const guideMap = {
-    review: ["brooks-review", "pr-review-guide.md"],
-    audit: ["brooks-audit", "architecture-guide.md"],
-    debt: ["brooks-debt", "debt-guide.md"],
-    test: ["brooks-test", "test-guide.md"],
-    health: ["brooks-health", "health-guide.md"],
-    sweep: ["brooks-sweep", "sweep-guide.md"],
-  };
-
-  const [modeDir, guideFile] = guideMap[mode] ?? (() => { throw new Error(`Unknown mode: ${mode}`); })();
+  const guide = GUIDE_BY_MODE[mode];
+  if (!guide) throw new Error(`Unknown mode: ${mode}`);
+  const [modeDir, guideFile] = guide;
   sections.push(read(path.join(skillsDir, modeDir, guideFile)));
 
   return sections.join("\n\n---\n\n");

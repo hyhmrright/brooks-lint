@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import {
+  existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -29,12 +30,8 @@ function installCommands(version) {
   const commandDir = path.join(homeDir, ".claude", "commands");
   const sentinel = path.join(commandDir, `.brooks-lint-v${version}`);
 
-  try {
-    readFileSync(sentinel, "utf8");
-    return;
-  } catch {
-    // Sentinel does not exist yet.
-  }
+  // Already installed for this version — nothing to do.
+  if (existsSync(sentinel)) return;
 
   mkdirSync(commandDir, { recursive: true });
 

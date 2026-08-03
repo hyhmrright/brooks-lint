@@ -55,16 +55,12 @@ try {
 }
 if (!rel) process.exit(0);
 
-const needsValidate = rel.startsWith("skills/") || ROOT_MANIFESTS.has(rel);
+if (!rel.startsWith("skills/") && !ROOT_MANIFESTS.has(rel)) process.exit(0);
 
-if (needsValidate) {
-  try {
-    execFileSync("npm", ["run", "validate"], { cwd: repoRoot, stdio: "pipe" });
-  } catch (err) {
-    const out = `${err.stdout ?? ""}${err.stderr ?? ""}`.trim();
-    process.stderr.write(`brooks-lint validate failed after editing ${rel}:\n${out}\n`);
-    process.exit(2); // surfaces to Claude so it can fix the drift it just introduced
-  }
+try {
+  execFileSync("npm", ["run", "validate"], { cwd: repoRoot, stdio: "pipe" });
+} catch (err) {
+  const out = `${err.stdout ?? ""}${err.stderr ?? ""}`.trim();
+  process.stderr.write(`brooks-lint validate failed after editing ${rel}:\n${out}\n`);
+  process.exit(2); // surfaces to Claude so it can fix the drift it just introduced
 }
-
-process.exit(0);

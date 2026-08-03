@@ -45,11 +45,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error(`Severity gate failed (fail-on=${failOn}): ${JSON.stringify(report.findings)}`);
     failed = true;
   }
-  if (failOnRegression && report.delta == null) {
-    console.log("Regression gate inactive: no prior history (commit .brooks-lint-history.json to enable it).");
-  } else if (failOnRegression && isRegression(report.delta)) {
-    console.error(`Regression gate failed: ${report.previousScore} → ${report.score} (${report.delta})`);
-    failed = true;
+  if (failOnRegression) {
+    if (report.delta == null) {
+      console.log("Regression gate inactive: no prior history (commit .brooks-lint-history.json to enable it).");
+    } else if (isRegression(report.delta)) {
+      console.error(`Regression gate failed: ${report.previousScore} → ${report.score} (${report.delta})`);
+      failed = true;
+    }
   }
 
   if (failed) process.exit(1);
