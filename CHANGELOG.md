@@ -2,10 +2,19 @@
 
 All notable changes to brooks-lint are documented here.
 
-## [Unreleased]
+## [1.4.3] - 2026-08-04
 
 ### Fixed
 
+- **`npm run validate` failed for anyone running it from inside Claude Code**
+  (#23) — `checkHookOutput()` spread the ambient `process.env` into both hook
+  runs and overrode only `HOME`. `hooks/session-start.mjs` branches on
+  `CLAUDE_PLUGIN_ROOT`, which Claude Code exports for every loaded plugin, so
+  the default run returned the plugin-shaped payload and validation died on
+  `hooks/session-start default output must include additional_context` —
+  a failure unrelated to whatever the maintainer had changed. The variable is
+  now stripped before the per-run overrides are layered on, with a regression
+  test that sets it deliberately.
 - **The GitHub Action could never have run** — `action.yml` invoked
   `$GITHUB_ACTION_PATH/scripts/ci-review.mjs` and passed
   `--skills-dir "$GITHUB_ACTION_PATH/skills"`, but `github.action_path` points at
@@ -77,6 +86,15 @@ All notable changes to brooks-lint are documented here.
   binds, so it no longer contradicts brooks-sweep. `sweep.max_iterations` is
   documented instead of only referenced, and the sweep report's Config line
   carries `strictness:` like every other mode.
+- **Duplicated prose cut from every maintained document** — the six READMEs lost
+  ~28% of their length to repeated install blocks and command tables, and the
+  skill markdown lost another 713 words: `Sources` tables in `decay-risks.md` and
+  `test-decay-risks.md` are now grouped by book (34 of 55 rows had restated the
+  symptom verbatim in the principle column), severity tiers that the guides had
+  copied out of the canonical files are now referenced, and the `SKILL.md` Setup
+  boilerplate is one line per file. Every assembled mode prompt shrank 4–5%. No
+  trigger description, risk definition, severity threshold, or "What Not to Flag"
+  guard was touched.
 
 ### Added
 
