@@ -18,15 +18,17 @@ description: >
 
 ## Setup
 
-1. Read `../_shared/common.md` for the Iron Law, Project Config, Report Template, and Health Score rules
-2. Read `../_shared/source-coverage.md` for book-level coverage, exceptions, and tradeoffs
-3. Read `../_shared/test-decay-risks.md` for test-space symptom definitions and source attributions
-4. Read `test-guide.md` in this directory for the test quality review framework
+Read in order:
+
+1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score
+2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs
+3. `../_shared/test-decay-risks.md` — test-space symptom definitions and sources
+4. `test-guide.md` (this directory) — the test quality review framework
 
 ## Process
 
-**If the user has not shared test files or pointed to a test directory:** apply Auto
-Scope Detection from `../_shared/common.md` to determine the review scope before proceeding.
+**Scope:** if the user did not share test files or point to a test directory, apply Auto
+Scope Detection (`../_shared/common.md`) first.
 
 1. Build the test suite map (guide's "Before You Start" section)
 2. Scan for each test decay risk in the order specified (Steps 1–4 of the guide)

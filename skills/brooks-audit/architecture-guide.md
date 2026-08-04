@@ -54,7 +54,6 @@ Before evaluating any risk, map the dependencies as a Mermaid diagram. Use this 
 graph TD
   subgraph UI
     WebApp
-    MobileApp
   end
 
   subgraph Domain
@@ -65,16 +64,12 @@ graph TD
 
   subgraph Infrastructure
     Database
-    MessageQueue
   end
 
   WebApp --> AuthService
   WebApp --> OrderService
-  MobileApp --> AuthService
-  MobileApp --> OrderService
   OrderService --> PaymentService
   OrderService --> Database
-  OrderService --> MessageQueue
   PaymentService --> Database
   AuthService -.->|circular| OrderService
 
@@ -84,14 +79,11 @@ graph TD
 
   class PaymentService critical
   class OrderService warning
-  class Database,MessageQueue,AuthService,WebApp,MobileApp clean
+  class Database,AuthService,WebApp clean
 ````
 
-Draw the graph structure first — nodes, subgraphs, and edges — without any `classDef` or
-`class` lines. You cannot assign colors until you have completed the risk scan in Steps 2–4.
-
-**After completing Step 4**, return to this graph and add the `classDef` and `class` lines
-based on findings. The example above shows the final colored output.
+The example shows the final colored output. Draw nodes, subgraphs, and edges first; the
+`classDef` and `class` lines can only be written after the risk scan (Rule 6 below).
 
 Rules:
 1. **Nodes** — Use top-level directories or services as nodes, not individual files

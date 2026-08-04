@@ -42,7 +42,6 @@ process:
 
 ## Config Validation additions
 
-The following codes are valid in `disable`, `focus`, and `severity`:
-- Standard: `R1`–`R6`, `T1`–`T6`
-- Custom: any `Cx` code defined in `custom_risks`
-- Any other code: skip it and emit `"Config warning: X is not a valid risk code"`
+Extends the Config Validation rules in `common.md`: alongside `R1`–`R6` and `T1`–`T6`,
+any `Cx` code defined in `custom_risks` is a valid target for `disable`, `focus`, and
+`severity`. Anything else is still skipped with a config warning.

@@ -24,12 +24,10 @@ Unclear test intent breeds distrust, missed failures, and duplicates — one ste
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Assertion Roulette | Meszaros — xUnit Test Patterns | Assertion Roulette (p.224) |
-| Mystery Guest | Meszaros — xUnit Test Patterns | Mystery Guest (p.411) |
-| General Fixture | Meszaros — xUnit Test Patterns | General Fixture (p.316) |
-| Test naming | Osherove — The Art of Unit Testing | method_scenario_expected naming convention |
+| Book | Principle / Smell |
+|------|-------------------|
+| Meszaros — xUnit Test Patterns | Assertion Roulette (p.224) · Mystery Guest (p.411) · General Fixture (p.316) |
+| Osherove — The Art of Unit Testing | method_scenario_expected naming convention |
 
 ### Severity Guide
 
@@ -66,12 +64,11 @@ Brittle tests punish refactoring — eventually developers stop refactoring and 
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Eager Test | Meszaros — xUnit Test Patterns | Eager Test (p.228) |
-| Erratic Test | Meszaros — xUnit Test Patterns | Erratic Test |
-| Implementation coupling | Osherove — The Art of Unit Testing | Test isolation principle |
-| Orthogonality violation | Hunt & Thomas — The Pragmatic Programmer | Ch. 2: Orthogonality |
+| Book | Principle / Smell |
+|------|-------------------|
+| Meszaros — xUnit Test Patterns | Eager Test (p.228) · Erratic Test |
+| Osherove — The Art of Unit Testing | Test isolation principle (implementation coupling) |
+| Hunt & Thomas — The Pragmatic Programmer | Ch. 2: Orthogonality |
 
 ### Severity Guide
 
@@ -105,11 +102,10 @@ Duplicated tests must change in multiple places and create false confidence with
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Test Code Duplication | Meszaros — xUnit Test Patterns | Test Code Duplication (p.213) |
-| Lazy Test | Meszaros — xUnit Test Patterns | Lazy Test (p.232) |
-| DRY violation in tests | Hunt & Thomas — The Pragmatic Programmer | DRY: Don't Repeat Yourself |
+| Book | Principle / Smell |
+|------|-------------------|
+| Meszaros — xUnit Test Patterns | Test Code Duplication (p.213) · Lazy Test (p.232) |
+| Hunt & Thomas — The Pragmatic Programmer | DRY: Don't Repeat Yourself |
 
 ### Severity Guide
 
@@ -144,13 +140,11 @@ Mock abuse produces tests that pass while verifying nothing — production code 
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Mock count > 3 | Osherove — The Art of Unit Testing | Mock usage guidelines |
-| Testing mock behavior | Meszaros — xUnit Test Patterns | Behavior Verification (p.544) |
-| Test-only production methods | Feathers — Working Effectively with Legacy Code | Ch. 3: Sensing and Separation |
-| Hard-Coded Test Data | Meszaros — xUnit Test Patterns | Hard-Coded Test Data (p.534) |
-| Incomplete Mock | Osherove — The Art of Unit Testing | Mock completeness requirement |
+| Book | Principle / Smell |
+|------|-------------------|
+| Meszaros — xUnit Test Patterns | Behavior Verification (p.544) · Hard-Coded Test Data (p.534) |
+| Osherove — The Art of Unit Testing | Mock usage guidelines (count > 3) · Mock completeness requirement (Incomplete Mock) |
+| Feathers — Working Effectively with Legacy Code | Ch. 3: Sensing and Separation (test-only production methods) |
 
 ### Severity Guide
 
@@ -185,11 +179,11 @@ Coverage measures execution, not verification. 90% line coverage can still miss 
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Legacy code = no tests | Feathers — Working Effectively with Legacy Code | Ch. 1: "Legacy code is code without tests" |
-| Change coverage vs line coverage | Google — How Google Tests Software | Ch. 11: Testing at Google Scale |
-| Happy-path only | Osherove — The Art of Unit Testing | Test completeness principle |
+| Book | Principle / Smell |
+|------|-------------------|
+| Feathers — Working Effectively with Legacy Code | Ch. 1: "Legacy code is code without tests" |
+| Google — How Google Tests Software | Ch. 11: Testing at Google Scale (change vs line coverage) |
+| Osherove — The Art of Unit Testing | Test completeness principle (happy-path only) |
 
 ### Severity Guide
 
@@ -226,12 +220,11 @@ Wrong suite shape is slow and expensive — not from bad tests, but from using t
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Inverted pyramid | Google — How Google Tests Software | 70:20:10 unit:integration:E2E ratio |
-| No seam points | Feathers — Working Effectively with Legacy Code | Ch. 4: Seam Model |
-| Missing Characterization Tests | Feathers — Working Effectively with Legacy Code | Ch. 13: Characterization Tests |
-| Suite execution time | Meszaros — xUnit Test Patterns | Slow Tests (p. 253) |
+| Book | Principle / Smell |
+|------|-------------------|
+| Google — How Google Tests Software | 70:20:10 unit:integration:E2E ratio (inverted pyramid) |
+| Feathers — Working Effectively with Legacy Code | Ch. 4: Seam Model · Ch. 13: Characterization Tests |
+| Meszaros — xUnit Test Patterns | Slow Tests (p. 253, suite execution time) |
 
 ### Severity Guide
 

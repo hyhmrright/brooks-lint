@@ -30,18 +30,12 @@ Cognitive load beyond working memory causes mistakes, avoidance, and blocks the 
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Long Method | Fowler — Refactoring | Long Method |
-| Long Parameter List | Fowler — Refactoring | Long Parameter List |
-| Message Chains | Fowler — Refactoring | Message Chains |
-| Flag Arguments | Fowler — Refactoring | Flag Arguments |
-| Primitive Obsession | Fowler — Refactoring | Primitive Obsession |
-| Function length and nesting | McConnell — Code Complete | Ch. 7: High-Quality Routines |
-| Variable naming | McConnell — Code Complete | Ch. 11: The Power of Variable Names |
-| Magic numbers | McConnell — Code Complete | Ch. 12: Fundamental Data Types |
-| Domain name mismatch | Evans — Domain-Driven Design | Ubiquitous Language |
-| Shallow Module | Ousterhout — A Philosophy of Software Design | Ch. 4: Modules Should Be Deep |
+| Book | Principle / Smell |
+|------|-------------------|
+| Fowler — Refactoring | Long Method · Long Parameter List · Message Chains · Flag Arguments · Primitive Obsession |
+| McConnell — Code Complete | Ch. 7: High-Quality Routines (length, nesting) · Ch. 11: The Power of Variable Names · Ch. 12: Fundamental Data Types (magic numbers) |
+| Evans — Domain-Driven Design | Ubiquitous Language (domain name mismatch) |
+| Ousterhout — A Philosophy of Software Design | Ch. 4: Modules Should Be Deep (Shallow Module) |
 
 ### Severity Guide
 
@@ -84,17 +78,14 @@ Each change ripples to unrelated modules, slowing velocity and multiplying regre
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Shotgun Surgery | Fowler — Refactoring | Shotgun Surgery |
-| Divergent Change | Fowler — Refactoring | Divergent Change |
-| Feature Envy | Fowler — Refactoring | Feature Envy |
-| Inappropriate Intimacy | Fowler — Refactoring | Inappropriate Intimacy |
-| Orthogonality violation | Hunt & Thomas — The Pragmatic Programmer | Ch. 2: Orthogonality |
-| DIP violation | Martin — Clean Architecture | Dependency Inversion Principle |
-| High change propagation radius | Brooks — The Mythical Man-Month | Ch. 2: Brooks's Law (communication overhead) |
-| Hyrum's Law | Winters et al. — Software Engineering at Google | Ch. 1: Hyrum's Law |
-| Information Leakage | Ousterhout — A Philosophy of Software Design | Ch. 5: Information Hiding and Leakage |
+| Book | Principle / Smell |
+|------|-------------------|
+| Fowler — Refactoring | Shotgun Surgery · Divergent Change · Feature Envy · Inappropriate Intimacy |
+| Hunt & Thomas — The Pragmatic Programmer | Ch. 2: Orthogonality |
+| Martin — Clean Architecture | Dependency Inversion Principle |
+| Brooks — The Mythical Man-Month | Ch. 2: Brooks's Law (communication overhead, propagation radius) |
+| Winters et al. — Software Engineering at Google | Ch. 1: Hyrum's Law |
+| Ousterhout — A Philosophy of Software Design | Ch. 5: Information Hiding and Leakage |
 
 ### Severity Guide
 
@@ -128,13 +119,11 @@ Multiple copies drift apart silently. DRY is about decisions, not code lines.
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Code duplication | Fowler — Refactoring | Duplicate Code |
-| Parallel Inheritance | Fowler — Refactoring | Parallel Inheritance Hierarchies |
-| DRY violation | Hunt & Thomas — The Pragmatic Programmer | DRY: Don't Repeat Yourself |
-| Inconsistent naming | Evans — Domain-Driven Design | Ubiquitous Language |
-| Alternative Classes | Fowler — Refactoring | Alternative Classes with Different Interfaces |
+| Book | Principle / Smell |
+|------|-------------------|
+| Fowler — Refactoring | Duplicate Code · Parallel Inheritance Hierarchies · Alternative Classes with Different Interfaces |
+| Hunt & Thomas — The Pragmatic Programmer | DRY: Don't Repeat Yourself |
+| Evans — Domain-Driven Design | Ubiquitous Language (inconsistent naming) |
 
 ### Severity Guide
 
@@ -172,16 +161,13 @@ Accidental complexity accumulates addition by addition until developers fight sc
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Speculative Generality | Fowler — Refactoring | Speculative Generality |
-| Lazy Class | Fowler — Refactoring | Lazy Class |
-| Middle Man | Fowler — Refactoring | Middle Man |
-| Switch Statements | Fowler — Refactoring | Switch Statements |
-| Second System Effect | Brooks — The Mythical Man-Month | Ch. 5: The Second-System Effect |
-| YAGNI violations | McConnell — Code Complete | Ch. 5: Design in Construction |
-| Over-engineering | Hunt & Thomas — The Pragmatic Programmer | Topic 4: Good-Enough Software |
-| Tactical programming debt | Ousterhout — A Philosophy of Software Design | Ch. 3: Strategic vs. Tactical Programming |
+| Book | Principle / Smell |
+|------|-------------------|
+| Fowler — Refactoring | Speculative Generality · Lazy Class · Middle Man · Switch Statements |
+| Brooks — The Mythical Man-Month | Ch. 5: The Second-System Effect |
+| McConnell — Code Complete | Ch. 5: Design in Construction (YAGNI) |
+| Hunt & Thomas — The Pragmatic Programmer | Topic 4: Good-Enough Software (over-engineering) |
+| Ousterhout — A Philosophy of Software Design | Ch. 3: Strategic vs. Tactical Programming |
 
 ### Severity Guide
 
@@ -222,17 +208,12 @@ When business logic depends on infrastructure, infrastructure changes cascade in
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Dependency cycles | Martin — Clean Architecture | Acyclic Dependencies Principle (ADP) |
-| DIP violation | Martin — Clean Architecture | Dependency Inversion Principle (DIP) |
-| Instability direction | Martin — Clean Architecture | Stable Dependencies Principle (SDP) |
-| Abstraction mismatch | Martin — Clean Architecture | Stable Abstractions Principle (SAP) |
-| ISP violation | Martin — Clean Architecture | Interface Segregation Principle (ISP) |
-| Conceptual integrity | Brooks — The Mythical Man-Month | Ch. 4: Conceptual Integrity |
-| Law of Demeter | Hunt & Thomas — The Pragmatic Programmer | Ch. 5: Decoupling and the Law of Demeter |
-| SOLID violations | Martin — Clean Architecture | Single Responsibility, Open/Closed Principles |
-| Diamond dependency / upgrade blockage | Winters et al. — Software Engineering at Google | Ch. 21: Dependency Management |
+| Book | Principle / Smell |
+|------|-------------------|
+| Martin — Clean Architecture | Acyclic Dependencies (ADP, cycles) · Dependency Inversion (DIP) · Stable Dependencies (SDP, instability direction) · Stable Abstractions (SAP) · Interface Segregation (ISP) · Single Responsibility · Open/Closed |
+| Brooks — The Mythical Man-Month | Ch. 4: Conceptual Integrity |
+| Hunt & Thomas — The Pragmatic Programmer | Ch. 5: Decoupling and the Law of Demeter |
+| Winters et al. — Software Engineering at Google | Ch. 21: Dependency Management (diamond dependency, upgrade blockage) |
 
 ### Severity Guide
 
@@ -271,15 +252,11 @@ Code that mismatches business language forces mental translation. Over time it m
 
 ### Sources
 
-| Symptom | Book | Principle / Smell |
-|---------|------|-------------------|
-| Anemic Domain Model | Evans — Domain-Driven Design | Domain Model pattern |
-| Ubiquitous Language drift | Evans — Domain-Driven Design | Ubiquitous Language |
-| Bounded context violation | Evans — Domain-Driven Design | Bounded Context |
-| Data Class | Fowler — Refactoring | Data Class |
-| Refused Bequest | Fowler — Refactoring | Refused Bequest |
-| Feature Envy | Fowler — Refactoring | Feature Envy |
-| LSP violation | Martin — Clean Architecture | Liskov Substitution Principle (LSP) |
+| Book | Principle / Smell |
+|------|-------------------|
+| Evans — Domain-Driven Design | Domain Model pattern (Anemic Domain Model) · Ubiquitous Language · Bounded Context |
+| Fowler — Refactoring | Data Class · Refused Bequest · Feature Envy |
+| Martin — Clean Architecture | Liskov Substitution Principle (LSP) |
 
 ### Severity Guide
 

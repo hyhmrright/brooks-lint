@@ -62,12 +62,7 @@ Look for:
   to the observable behavior?
 - Are tests coupled to private methods or internal state directly?
 
-Severity (mirrors the T2 Severity Guide in `../_shared/test-decay-risks.md`):
-- 🔴 Critical — systemic: most tests in the file break on a rename, or > 5 tests are
-  coupled to one implementation detail
-- 🟡 Warning — Eager Tests are common across the suite; moderate implementation-detail
-  assertions
-- 🟢 Suggestion — isolated (1–2 brittle tests) in non-critical paths
+Severity: use the T2 Severity Guide in `../_shared/test-decay-risks.md`.
 
 ### Step 2b: Scan for Mock Abuse
 
@@ -101,11 +96,8 @@ Look for:
 - Is the same business scenario covered at unit, integration, and E2E level with no
   difference in what each layer is testing?
 
-Severity (mirrors the T3 Severity Guide in `../_shared/test-decay-risks.md`):
-- 🔴 Critical — a core business scenario fully duplicated across all three test layers
-  with no differentiation, or duplication is systemic (10+ instances)
-- 🟡 Warning — the same setup repeated in 5 or more tests without extraction (3–9 instances)
-- 🟢 Suggestion — minor helper duplication or isolated Lazy Tests (1–2 instances)
+Severity: use the T3 Severity Guide in `../_shared/test-decay-risks.md`, with instance
+counts as the tiebreaker — 🔴 10+ instances, 🟡 3–9, 🟢 1–2.
 
 ### Step 4: Scan for Coverage Illusion and Architecture Mismatch
 

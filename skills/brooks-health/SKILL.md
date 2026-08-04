@@ -18,16 +18,18 @@ description: >
 
 ## Setup
 
-1. Read `../_shared/common.md` for the Iron Law, Project Config, Report Template, and Health Score rules
-2. Read `../_shared/source-coverage.md` for book-level coverage, exceptions, and tradeoffs
-3. Read `../_shared/decay-risks.md` for production risk symptom definitions
-4. Read `../_shared/test-decay-risks.md` for test risk symptom definitions
-5. Read `health-guide.md` in this directory for the dashboard orchestration process
+Read in order:
+
+1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score
+2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs
+3. `../_shared/decay-risks.md` — production risk symptoms
+4. `../_shared/test-decay-risks.md` — test risk symptoms
+5. `health-guide.md` (this directory) — the dashboard orchestration process
 
 ## Process
 
-**If the user has not specified a project or directory:** apply Auto Scope Detection
-from `../_shared/common.md` to determine the review scope before proceeding.
+**Scope:** if the user did not specify a project or directory, apply Auto Scope Detection
+(`../_shared/common.md`) first.
 
 1. Run abbreviated scans across all four dimensions (Step 1 of the guide)
 2. Compute per-dimension and composite Health Scores with weighting (Step 2 of the guide)

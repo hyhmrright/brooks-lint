@@ -116,10 +116,9 @@ When no files or code are specified, detect scope automatically:
 
 ## The Six Decay Risks
 
-Navigation index only — canonical definitions (symptoms, severity guides, sources, "What Not
-to Flag" guards) live in `decay-risks.md`. Do not duplicate or edit diagnostic questions here;
-update `decay-risks.md` directly. Book-level coverage, exceptions, and tradeoffs are in
-`source-coverage.md`.
+Navigation index only. Canonical definitions — symptoms, severity guides, sources, "What Not
+to Flag" guards — live in `decay-risks.md`; edit them there, not here. Book-level coverage,
+exceptions, and tradeoffs are in `source-coverage.md`.
 
 | Code | Risk | Diagnostic Question |
 |------|------|---------------------|
@@ -219,9 +218,7 @@ Base score: 100. Per-finding deductions depend on the `strictness` preset
 | `balanced` (default) | −15 | −5 | −1 |
 | `legacy-friendly` | −8 | −3 | −1 |
 
-Floor: 0 (score cannot go below 0). The preset changes only the score weighting and
-framing — every finding is still reported in full. Under `legacy-friendly`, lead the
-**Summary** with the three highest-leverage fixes so a first run is not a wall of Criticals.
+Floor: 0 (score cannot go below 0).
 
 ## History Tracking
 
