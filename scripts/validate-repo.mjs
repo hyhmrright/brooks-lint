@@ -15,6 +15,7 @@ import {
 } from "./frontmatter.mjs";
 import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
 import { versionRefs } from "./version-refs.mjs";
+import { platformDocs, setupGuides, linkedSetupGuides, parseInstallerPlatforms } from "./platforms.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -325,6 +326,38 @@ function checkAgentsDocs() {
   }
 }
 
+// Every docs/<name>-setup.md must be linked from all six READMEs and the
+// getting-started table. A platform added to one language and forgotten in the
+// others was previously caught only by hand.
+function checkPlatformDocs() {
+  const guides = setupGuides(root);
+  check(guides.length > 0, "docs/ should contain at least one <platform>-setup.md guide");
+
+  for (const file of platformDocs(root)) {
+    const linked = linkedSetupGuides(readText(file));
+    for (const guide of guides) {
+      check(linked.includes(guide), `${file} is missing an install-table link to docs/${guide}`);
+    }
+    for (const link of linked) {
+      check(guides.includes(link), `${file} links to docs/${link}, which does not exist`);
+    }
+  }
+}
+
+function checkInstallerPlatforms() {
+  const { declared, global: globalArms, project } = parseInstallerPlatforms(readText("scripts/install.sh"));
+  check(declared.length > 0, "scripts/install.sh should declare a PLATFORMS list");
+
+  for (const [arms, fn] of [[globalArms, "global_dir"], [project, "project_dir"]]) {
+    for (const platform of declared) {
+      check(arms.includes(platform), `scripts/install.sh ${fn}() has no path for PLATFORMS entry '${platform}'`);
+    }
+    for (const platform of arms) {
+      check(declared.includes(platform), `scripts/install.sh ${fn}() maps '${platform}', which PLATFORMS omits`);
+    }
+  }
+}
+
 function checkSecurity() {
   const security = readText("SECURITY.md");
   check(!security.includes("<!--"), "SECURITY.md still contains placeholder content");
@@ -373,6 +406,8 @@ checkStepAlignment();
 checkEvalSuite();
 checkContributing();
 checkAgentsDocs();
+checkPlatformDocs();
+checkInstallerPlatforms();
 checkSecurity();
 checkHookOutput();
 

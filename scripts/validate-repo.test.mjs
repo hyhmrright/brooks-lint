@@ -31,6 +31,7 @@ import { reportToSarif } from "./sarif.mjs";
 import { severityBreached, isRegression } from "./ci-gate.mjs";
 import { summarize } from "./benchmark.mjs";
 import { versionRefs } from "./version-refs.mjs";
+import { linkedSetupGuides, parseInstallerPlatforms } from "./platforms.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -903,6 +904,70 @@ test("patterns match the real badge and JSON-LD shapes", () => {
       assert.match(text.replace(pattern, expected), /9\.9\.9/);
     }
   });
+});
+
+console.log("\nlinkedSetupGuides");
+
+test("collects guides from README-style and sibling-style links alike", () => {
+  const text = "| Kiro | [setup](docs/kiro-setup.md) |\n| pi | [pi-setup.md](pi-setup.md) |";
+  assert.deepEqual(linkedSetupGuides(text), ["kiro-setup.md", "pi-setup.md"]);
+});
+
+test("de-duplicates a guide linked more than once", () => {
+  const text = "[a](docs/dsh-setup.md) … [b](dsh-setup.md)";
+  assert.deepEqual(linkedSetupGuides(text), ["dsh-setup.md"]);
+});
+
+test("returns an empty array when no guide is linked", () => {
+  assert.deepEqual(linkedSetupGuides("no links here"), []);
+});
+
+console.log("\nparseInstallerPlatforms");
+
+const INSTALLER_FIXTURE = [
+  'PLATFORMS="kiro dsh"',
+  "",
+  "global_dir() {",
+  "  case $1 in",
+  "    kiro)        printf '%s' \"$HOME/.kiro/skills\" ;;",
+  "    # DeepSeek Harness resolves its config root from $DSH_HOME.",
+  "    dsh)         printf '%s' \"${DSH_HOME:-$HOME/.dsh}/skills\" ;;",
+  "    *)           return 1 ;;",
+  "  esac",
+  "}",
+  "",
+  "project_dir() {",
+  "  case $1 in",
+  "    kiro)        printf '%s' \"$PWD/.kiro/skills\" ;;",
+  "    *)           return 1 ;;",
+  "  esac",
+  "}",
+].join("\n");
+
+test("reads the declared list and both directory mappings", () => {
+  const parsed = parseInstallerPlatforms(INSTALLER_FIXTURE);
+  assert.deepEqual(parsed.declared, ["kiro", "dsh"]);
+  assert.deepEqual(parsed.global, ["kiro", "dsh"]);
+});
+
+test("omits a platform whose case arm is missing, so the validator can catch it", () => {
+  // project_dir() in the fixture handles kiro but not dsh — running
+  // `install.sh dsh --project` would die with "unknown platform".
+  assert.deepEqual(parseInstallerPlatforms(INSTALLER_FIXTURE).project, ["kiro"]);
+});
+
+test("skips comments and the catch-all arm", () => {
+  const { global: arms } = parseInstallerPlatforms(INSTALLER_FIXTURE);
+  assert.ok(!arms.includes("*"));
+  assert.equal(arms.length, 2);
+});
+
+test("parses the real installer, proving the patterns still match", () => {
+  const installer = readFileSync(path.join(__dirname, "install.sh"), "utf8");
+  const { declared, global: globalArms, project } = parseInstallerPlatforms(installer);
+  assert.ok(declared.length >= 12, `expected the full platform list, got ${declared.length}`);
+  assert.deepEqual(new Set(globalArms), new Set(declared));
+  assert.deepEqual(new Set(project), new Set(declared));
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────
