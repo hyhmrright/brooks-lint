@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.4.3-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.5.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 `/brooks-health`、`/brooks-sweep`（[それぞれの機能](#スラッシュコマンド)）。
 
 すべての指摘は **症状 → 根源 → 結果 → 対策** の形式で、書籍の出典と 0〜100 の健全性スコアとともに
-返されます。完全なインストール方法（さらに 8 つのプラットフォーム）と CI/CD のセットアップは
+返されます。完全なインストール方法（さらに 9 つのプラットフォーム）と CI/CD のセットアップは
 [以下](#インストール)を参照してください。
 
 ## 十二冊の書籍
@@ -273,7 +273,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # Codex セッ�
 
 または下記のインストーラーを使用：`./scripts/install.sh gemini` / `./scripts/install.sh codex`。
 
-### その他すべてのプラットフォーム — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### その他すべてのプラットフォーム — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
 
 brooks-lint は標準的な [Agent Skills](https://agentskills.io) として配布されています。**Agent
 Skills を読み込むエージェントなら、どれも変換なしで六つすべてのモードを実行できます**——1 つのコマンドでインストールできます：
@@ -281,7 +281,7 @@ Skills を読み込むエージェントなら、どれも変換なしで六つ�
 ```bash
 # プラットフォームを選択；--project はグローバル設定ではなく現在のリポジトリにインストール
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
 ```
 
 インストーラーはスキルをあなたのプラットフォームに適したフォルダへ**フラット**にコピーするため、共有フレームワーク
@@ -299,11 +299,12 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | GitHub Copilot | `.github/skills`（`--project`） | `.claude/skills`、`AGENTS.md` | [設定](docs/copilot-setup.md) |
 | Kiro（AWS） | `~/.kiro/skills` | `AGENTS.md` | [設定](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [設定](docs/factory-droid-setup.md) |
+| DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [設定](docs/dsh-setup.md) |
 
-Kiro と Factory Droid は `/brooks-review` も自動登録します。スキルが初めて、または上記にないエージェントを
-お使いですか？ **[docs/getting-started.md](docs/getting-started.md)** を参照してください。
+Kiro、Factory Droid、DeepSeek Harness は `/brooks-review` も自動登録します。スキルが初めて、または
+上記にないエージェントをお使いですか？ **[docs/getting-started.md](docs/getting-started.md)** を参照してください。
 
-> **🧪 検証状況。** Claude Code、Gemini CLI、Codex CLI はメンテナーによって検証済みです。上記の八つの
+> **🧪 検証状況。** Claude Code、Gemini CLI、Codex CLI はメンテナーによって検証済みです。上記の九つの
 > プラットフォームは各ツールの公式スキル仕様から文書化され、ファイルレイアウトのレベルで検証されています
 > （インストーラーはテスト済み）が、メンテナーがすべてのプラットフォームでエンドツーエンドに実行したわけ
 > ではまだありません。どれかを試した——動いた **または** 壊れた？ プラットフォーム、バージョン、見たこと
@@ -323,10 +324,11 @@ Kiro と Factory Droid は `/brooks-review` も自動登録します。スキル
 
 **プラットフォーム別の構文。** Claude Code は名前空間付きの完全形 `/brooks-lint:brooks-review` も受け付けます
 ——短縮形は session-start フックが最初のセッション開始時に自動インストールします。Codex CLI は
-`$brooks-review`。Gemini CLI は上の表のとおり。OpenCode、Cursor、Antigravity、pi は各スキルの
-`description` から Agent Skills を呼び出すので、話しかけるだけで十分です（「この PR をレビューして」
+`$brooks-review`。Gemini CLI は上の表のとおり。OpenCode、Cursor、Antigravity、pi、DeepSeek Harness は
+各スキルの `description` から Agent Skills を呼び出すので、話しかけるだけで十分です（「この PR をレビューして」
 「最悪の技術的負債はどこ？」）。明示的に呼び出す場合は各プラットフォームの構文を使います（pi は各スキルを
-`/skill:brooks-review` として登録）。どのプラットフォームでも、コード品質・アーキテクチャ・テストの健全性に
+`/skill:brooks-review` として登録。dsh は上の表のとおりで、`/` メニューから選ぶか直接入力）。どの
+プラットフォームでも、コード品質・アーキテクチャ・テストの健全性に
 ついて話すと、スキルは自動的にトリガーされます。
 
 > PR レビューには軽量な Step 7 クイックテストチェックが自動的に含まれます（ドキュメントのみの diff では

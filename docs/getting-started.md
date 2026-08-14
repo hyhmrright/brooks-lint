@@ -33,10 +33,10 @@ layout wrong:
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
 
-`<platform>` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini ·
-codex · claude · agents`. Add `--project` to install into the current repo instead of your global
-config. `agents` targets the vendor-neutral `~/.agents/skills` folder that Cursor, Copilot, pi, Gemini,
-and Codex all read.
+`<platform>` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh ·
+gemini · codex · claude · agents`. Add `--project` to install into the current repo instead of your
+global config. `agents` targets the vendor-neutral `~/.agents/skills` folder that Cursor, Copilot, pi,
+Gemini, Codex, and DeepSeek Harness all read.
 
 ## Per-platform guides
 
@@ -50,6 +50,7 @@ and Codex all read.
 | GitHub Copilot | [copilot-setup.md](copilot-setup.md) | `.github/skills`, `.claude/skills`, `~/.copilot/skills` | ✅ |
 | Kiro | [kiro-setup.md](kiro-setup.md) | `.kiro/skills`, `~/.kiro/skills` | ✅ |
 | Factory Droid | [factory-droid-setup.md](factory-droid-setup.md) | `~/.factory/skills`, `.factory/skills`, `.agent/skills` | ✅ |
+| DeepSeek Harness | [dsh-setup.md](dsh-setup.md) | `.dsh/skills`, `.agents/skills`, `~/.dsh/skills`, `~/.agents/skills` | ✅ |
 
 For Claude Code, Gemini CLI, and Codex CLI, see the [README install section](../README.md#installation).
 `./scripts/install.sh gemini` and `./scripts/install.sh codex` also work and use the flat layout these
@@ -68,7 +69,7 @@ If your agent accepts a skills folder or an instruction file, brooks-lint works:
 ## Verification status
 
 The marketplace-installed platforms (Claude Code, Gemini CLI, Codex CLI) are maintainer-verified. The
-eight Agent-Skills platforms above are documented from each tool's official skill spec and verified at
+nine Agent-Skills platforms above are documented from each tool's official skill spec and verified at
 the file-layout level (the installer is tested), but not yet end-to-end run by the maintainer on every
 platform. **Tried one? Tell us** — [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new)
 with the platform, version, and what you saw, working or broken.

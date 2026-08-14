@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.4.3-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.5.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -78,7 +78,7 @@ Luego solo pide ("revisa este PR", "audita la arquitectura"), o ejecuta uno de l
 ([qué hace cada uno](#comandos-de-barra)).
 
 Cada hallazgo se devuelve como **Síntoma → Origen → Consecuencia → Remedio** con una cita de libro y
-una puntuación de salud de 0 a 100. Las opciones completas de instalación (8 plataformas más) y la
+una puntuación de salud de 0 a 100. Las opciones completas de instalación (9 plataformas más) y la
 configuración de CI/CD están [más abajo](#instalación).
 
 ## Los doce libros
@@ -273,7 +273,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # pídelo dentro
 
 O usa el instalador de abajo: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### Cualquier otra plataforma — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### Cualquier otra plataforma — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
 
 brooks-lint se distribuye como [Agent Skills](https://agentskills.io) estándar. **Cualquier agente que cargue Agent
 Skills ejecuta los seis modos sin conversión alguna** — un solo comando los instala:
@@ -281,7 +281,7 @@ Skills ejecuta los seis modos sin conversión alguna** — un solo comando los i
 ```bash
 # elige tu plataforma; --project instala en el repositorio actual en lugar de en tu configuración global
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
 ```
 
 El instalador copia los skills **de forma plana** en la carpeta correcta, de modo que el framework compartido
@@ -298,11 +298,12 @@ El instalador copia los skills **de forma plana** en la carpeta correcta, de mod
 | GitHub Copilot | `.github/skills` (`--project`) | `.claude/skills`, `AGENTS.md` | [configuración](docs/copilot-setup.md) |
 | Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [configuración](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [configuración](docs/factory-droid-setup.md) |
+| DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [configuración](docs/dsh-setup.md) |
 
-Kiro y Factory Droid también registran `/brooks-review` automáticamente. ¿Nuevo en los skills, o usas un
-agente que no aparece aquí? Consulta **[docs/getting-started.md](docs/getting-started.md)**.
+Kiro, Factory Droid y DeepSeek Harness también registran `/brooks-review` automáticamente. ¿Nuevo en los
+skills, o usas un agente que no aparece aquí? Consulta **[docs/getting-started.md](docs/getting-started.md)**.
 
-> **🧪 Estado de verificación.** Claude Code, Gemini CLI y Codex CLI están verificados por el mantenedor. Las ocho
+> **🧪 Estado de verificación.** Claude Code, Gemini CLI y Codex CLI están verificados por el mantenedor. Las nueve
 > plataformas anteriores están documentadas a partir de la especificación oficial de skills de cada herramienta y verificadas a nivel
 > de diseño de archivos (el instalador está probado), pero el mantenedor aún no las ha ejecutado de extremo a extremo en cada plataforma. ¿Probaste
 > alguna — funciona **o** está rota? [Abre un issue](https://github.com/hyhmrright/brooks-lint/issues/new) con
@@ -322,10 +323,11 @@ agente que no aparece aquí? Consulta **[docs/getting-started.md](docs/getting-s
 
 **Sintaxis por plataforma.** Claude Code también acepta la forma con espacio de nombres
 `/brooks-lint:brooks-review` — las formas cortas las instala el hook session-start al iniciar la primera
-sesión. Codex CLI usa `$brooks-review`. Gemini CLI usa la tabla tal cual. OpenCode, Cursor, Antigravity y pi
-invocan los Agent Skills desde la `description` de cada skill, así que basta con pedirlo ("revisa este PR",
-"¿dónde está nuestra peor deuda técnica?"); para invocarlos explícitamente usa la sintaxis propia de cada
-plataforma (pi registra cada skill como `/skill:brooks-review`). En todas las plataformas los skills también
+sesión. Codex CLI usa `$brooks-review`. Gemini CLI usa la tabla tal cual. OpenCode, Cursor, Antigravity, pi y
+DeepSeek Harness invocan los Agent Skills desde la `description` de cada skill, así que basta con pedirlo
+("revisa este PR", "¿dónde está nuestra peor deuda técnica?"); para invocarlos explícitamente usa la sintaxis
+propia de cada plataforma (pi registra cada skill como `/skill:brooks-review`; dsh usa la tabla tal cual, desde
+su menú `/` o escrito a mano). En todas las plataformas los skills también
 se activan solos cuando hablas de calidad de código, arquitectura o salud de las pruebas.
 
 > Las revisiones de PR incluyen automáticamente una comprobación rápida de pruebas (Step 7, ligera; se omite

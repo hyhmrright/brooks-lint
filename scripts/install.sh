@@ -13,8 +13,9 @@
 #   ./scripts/install.sh <platform> [--project]
 #   curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 #
-# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid gemini codex claude agents
-#   agents = the vendor-neutral ~/.agents/skills folder (read by Cursor, Copilot, pi, Gemini, Codex)
+# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents
+#   agents = the vendor-neutral ~/.agents/skills folder (read by Cursor, Copilot, pi, Gemini,
+#            Codex, and DeepSeek Harness)
 #
 # Flags:
 #   --project   install into the current repo (./.<platform>/skills) instead of the global folder
@@ -24,7 +25,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/hyhmrright/brooks-lint.git"
-PLATFORMS="opencode cursor windsurf antigravity pi kiro copilot droid gemini codex claude agents"
+PLATFORMS="opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents"
 
 err()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; }
 info() { printf '\033[36m›\033[0m %s\n' "$*"; }
@@ -59,6 +60,8 @@ global_dir() {
     kiro)        printf '%s' "$HOME/.kiro/skills" ;;
     copilot)     printf '%s' "$HOME/.copilot/skills" ;;
     droid)       printf '%s' "$HOME/.factory/skills" ;;
+    # DeepSeek Harness resolves its config root from $DSH_HOME, falling back to ~/.dsh.
+    dsh)         printf '%s' "${DSH_HOME:-$HOME/.dsh}/skills" ;;
     gemini)      printf '%s' "$HOME/.gemini/skills" ;;
     codex)       printf '%s' "$HOME/.codex/skills" ;;
     claude)      printf '%s' "$HOME/.claude/skills" ;;
@@ -77,6 +80,7 @@ project_dir() {
     kiro)        printf '%s' "$PWD/.kiro/skills" ;;
     copilot)     printf '%s' "$PWD/.github/skills" ;;
     droid)       printf '%s' "$PWD/.factory/skills" ;;
+    dsh)         printf '%s' "$PWD/.dsh/skills" ;;
     gemini)      printf '%s' "$PWD/.gemini/skills" ;;
     codex)       printf '%s' "$PWD/.codex/skills" ;;
     claude)      printf '%s' "$PWD/.claude/skills" ;;

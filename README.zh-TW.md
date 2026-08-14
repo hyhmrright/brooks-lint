@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.4.3-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.5.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -76,7 +76,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 裝好後直接開口（「審查這個 PR」「稽核架構」），或執行六個命令之一——`/brooks-review`、`/brooks-audit`、
 `/brooks-debt`、`/brooks-test`、`/brooks-health`、`/brooks-sweep`（[各自的作用](#斜線命令)）。
 
-每條診斷都以 **症狀 → 根源 → 後果 → 對策** 回傳，附書目出處和 0–100 健康分。完整安裝方式（另外 8 個
+每條診斷都以 **症狀 → 根源 → 後果 → 對策** 回傳，附書目出處和 0–100 健康分。完整安裝方式（另外 9 個
 平台）和 CI/CD 設定見[下文](#安裝)。
 
 ## 十二本書
@@ -270,7 +270,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # 在 Codex 工�
 
 或使用下面的安裝器：`./scripts/install.sh gemini` / `./scripts/install.sh codex`。
 
-### 其他所有平台——OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### 其他所有平台——OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
 
 brooks-lint 以標準 [Agent Skills](https://agentskills.io) 形式散布。**任何載入 Agent Skills 的 agent
 都能無需任何轉換執行全部六種模式**——一條命令即可安裝：
@@ -278,7 +278,7 @@ brooks-lint 以標準 [Agent Skills](https://agentskills.io) 形式散布。**�
 ```bash
 # 選擇你的平台；加 --project 裝進當前儲存庫而非全域設定
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <平台>
-#   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini · codex · agents
+#   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
 ```
 
 安裝器會把技能**扁平**複製進該平台對應的資料夾，讓共享框架（`../_shared/`）始終正確解析——你不可能裝錯佈局。
@@ -294,11 +294,12 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | GitHub Copilot | `.github/skills`（`--project`） | `.claude/skills`、`AGENTS.md` | [設定](docs/copilot-setup.md) |
 | Kiro（AWS） | `~/.kiro/skills` | `AGENTS.md` | [設定](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [設定](docs/factory-droid-setup.md) |
+| DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [設定](docs/dsh-setup.md) |
 
-Kiro 與 Factory Droid 還會自動註冊 `/brooks-review`。不熟悉 skills、或用的是上面沒列出的 agent？
-見 **[docs/getting-started.md](docs/getting-started.md)**。
+Kiro、Factory Droid 與 DeepSeek Harness 還會自動註冊 `/brooks-review`。不熟悉 skills、或用的是上面
+沒列出的 agent？見 **[docs/getting-started.md](docs/getting-started.md)**。
 
-> **🧪 驗證狀態。** Claude Code、Gemini CLI、Codex CLI 已由維護者驗證。上面八個平台依據各工具官方技能規範撰寫，
+> **🧪 驗證狀態。** Claude Code、Gemini CLI、Codex CLI 已由維護者驗證。上面九個平台依據各工具官方技能規範撰寫，
 > 並已在檔案佈局層面驗證（安裝器經過測試），但維護者尚未在每個平台端到端實跑。在某平台試過了——無論成功**還是**失敗？
 > 請[提一個 issue](https://github.com/hyhmrright/brooks-lint/issues/new)，附上平台、版本和你看到的結果。
 > 用的是其他相容 Agent Skills 的 agent？它幾乎肯定以同樣方式運作——告訴我們，我們會補上。
@@ -316,9 +317,10 @@ Kiro 與 Factory Droid 還會自動註冊 `/brooks-review`。不熟悉 skills、
 
 **各平台語法。** Claude Code 也接受帶命名空間的完整形式 `/brooks-lint:brooks-review`——短命令由
 session-start 鉤子在首次工作階段啟動時自動安裝。Codex CLI 用 `$brooks-review`。Gemini CLI 直接用上表。
-OpenCode、Cursor、Antigravity、pi 依據每個技能的 `description` 自動呼叫 Agent Skills，直接提問即可
-（「審查這個 PR」、「我們最糟的技術債在哪」）；需要顯式呼叫時用各平台自己的語法（pi 把每個技能註冊為
-`/skill:brooks-review`）。在所有平台上，當你討論程式碼品質、架構或測試健康時，這些技能也會自動觸發。
+OpenCode、Cursor、Antigravity、pi、DeepSeek Harness 依據每個技能的 `description` 自動呼叫 Agent
+Skills，直接提問即可（「審查這個 PR」、「我們最糟的技術債在哪」）；需要顯式呼叫時用各平台自己的語法
+（pi 把每個技能註冊為 `/skill:brooks-review`；dsh 直接用上表，可從 `/` 選單挑或手打）。在所有平台上，
+當你討論程式碼品質、架構或測試健康時，這些技能也會自動觸發。
 
 > PR 審查會自動包含一個輕量的第 7 步快速測試檢查（對純文件 diff 會跳過）。需要完整的測試稽核請用
 > `/brooks-test`；需要某個維度的深度診斷時，請用該維度的專項技能，而不是 `/brooks-health`。

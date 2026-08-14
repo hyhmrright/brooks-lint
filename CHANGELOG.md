@@ -2,6 +2,28 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [1.5.0] - 2026-08-14
+
+### Added
+
+- **DeepSeek Harness (`dsh`) support** — DeepSeek AI's open-source agent harness
+  loads standard Agent Skills through `packages/skill/skill-filesystem`, so all
+  six modes run with no conversion. `./scripts/install.sh dsh` installs into
+  `$DSH_HOME/skills` (default `~/.dsh/skills`); `--project` targets
+  `./.dsh/skills`. dsh also scans `~/.agents/skills`, so the existing
+  vendor-neutral `install.sh agents` install already covered it. New guide at
+  [`docs/dsh-setup.md`](docs/dsh-setup.md), with the platform added to the README
+  install table in all six languages and to `docs/getting-started.md`.
+
+  Three details of dsh's loader matter and are documented in the guide: discovery
+  is one level deep (`<root>/<name>/SKILL.md`), which the installer's flat layout
+  already satisfies so `../_shared/` resolves; skill names must be kebab-case,
+  which `brooks-*` already is; and dsh recognises a whitespace-bounded `/name`
+  token anywhere in a message, so `/brooks-review` and the other five work from
+  its `/` menu or typed inline. dsh also reads `AGENTS.md` — `$DSH_HOME/AGENTS.md`
+  plus every file from the project root down to the working directory — so the
+  repo's Iron Law and Health Score rules load the same way they do elsewhere.
+
 ## [1.4.3] - 2026-08-04
 
 ### Fixed

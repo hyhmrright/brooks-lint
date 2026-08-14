@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.4.3-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.5.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -78,7 +78,7 @@ Then just ask ("review this PR", "audit the architecture"), or run one of the si
 ([what each one does](#slash-commands)).
 
 Every finding comes back as **Symptom → Source → Consequence → Remedy** with a book citation and a
-0–100 Health Score. Full install options (8 more platforms) and CI/CD setup are [below](#installation).
+0–100 Health Score. Full install options (9 more platforms) and CI/CD setup are [below](#installation).
 
 ## The Twelve Books
 
@@ -272,7 +272,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # ask inside a C
 
 Or use the installer below: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### Every other platform — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### Every other platform — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
 
 brooks-lint ships as standard [Agent Skills](https://agentskills.io). **Any agent that loads Agent
 Skills runs all six modes with no conversion** — one command installs them:
@@ -280,7 +280,7 @@ Skills runs all six modes with no conversion** — one command installs them:
 ```bash
 # pick your platform; --project installs into the current repo instead of your global config
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
 ```
 
 The installer copies the skills **flat** into the right folder, so the shared framework
@@ -297,12 +297,13 @@ The installer copies the skills **flat** into the right folder, so the shared fr
 | GitHub Copilot | `.github/skills` (`--project`) | `.claude/skills`, `AGENTS.md` | [setup](docs/copilot-setup.md) |
 | Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [setup](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [setup](docs/factory-droid-setup.md) |
+| DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [setup](docs/dsh-setup.md) |
 
-Kiro and Factory Droid also auto-register `/brooks-review`. New to skills, or using an agent not
-listed? See **[docs/getting-started.md](docs/getting-started.md)**.
+Kiro, Factory Droid, and DeepSeek Harness also auto-register `/brooks-review`. New to skills, or
+using an agent not listed? See **[docs/getting-started.md](docs/getting-started.md)**.
 
 > **🧪 Verification status.** Claude Code, Gemini CLI, and Codex CLI are maintainer-verified. The
-> eight platforms above are documented from each tool's official skill spec and verified at the
+> nine platforms above are documented from each tool's official skill spec and verified at the
 > file-layout level (the installer is tested), but not yet run end-to-end by the maintainer on every
 > platform. Tried one — working **or** broken?
 > [Open an issue](https://github.com/hyhmrright/brooks-lint/issues/new) with the platform, version,
@@ -323,9 +324,10 @@ listed? See **[docs/getting-started.md](docs/getting-started.md)**.
 **Syntax by platform.** Claude Code also accepts the namespaced form
 `/brooks-lint:brooks-review` — short forms are auto-installed on first session start by the
 session-start hook. Codex CLI uses `$brooks-review`. Gemini CLI uses the table as written.
-OpenCode, Cursor, Antigravity, and pi invoke Agent Skills from each skill's `description`, so
-just ask ("review this PR", "where's our worst tech debt?"); for explicit invocation use the
-platform's own syntax (pi registers each skill as `/skill:brooks-review`). On every platform the
+OpenCode, Cursor, Antigravity, pi, and DeepSeek Harness invoke Agent Skills from each skill's
+`description`, so just ask ("review this PR", "where's our worst tech debt?"); for explicit
+invocation use the platform's own syntax (pi registers each skill as `/skill:brooks-review`; dsh
+takes the table as written, from its `/` menu or typed inline). On every platform the
 skills also trigger automatically when you discuss code quality, architecture, or test health.
 
 > PR reviews include a lightweight Step 7 Quick Test Check automatically (skipped for docs-only

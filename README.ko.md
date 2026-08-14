@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.4.3-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.5.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 `/brooks-sweep`（[각각 하는 일](#슬래시-명령)）.
 
 모든 진단은 도서 출처와 0–100 건강 점수와 함께 **증상 → 근원 → 결과 → 처방** 형태로 돌아옵니다. 전체
-설치 옵션（추가 8개 플랫폼）과 CI/CD 설정은 [아래](#설치)를 참고하세요.
+설치 옵션（추가 9개 플랫폼）과 CI/CD 설정은 [아래](#설치)를 참고하세요.
 
 ## 열두 권의 책
 
@@ -272,7 +272,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # Codex 세션 �
 
 또는 아래 설치기를 사용하세요: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### 그 밖의 모든 플랫폼 — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid
+### 그 밖의 모든 플랫폼 — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
 
 brooks-lint는 표준 [Agent Skills](https://agentskills.io) 형태로 배포됩니다. **Agent
 Skills를 로드하는 모든 에이전트는 변환 없이 여섯 가지 모드를 모두 실행합니다** — 한 줄의 명령으로 설치됩니다:
@@ -280,7 +280,7 @@ Skills를 로드하는 모든 에이전트는 변환 없이 여섯 가지 모드
 ```bash
 # 플랫폼을 고르세요; --project는 전역 설정 대신 현재 저장소에 설치합니다
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
 ```
 
 설치기는 스킬을 당신의 플랫폼에 맞는 폴더로 **평평하게** 복사하므로, 공유 프레임워크（`../_shared/`）가
@@ -297,12 +297,13 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | GitHub Copilot | `.github/skills`（`--project`） | `.claude/skills`, `AGENTS.md` | [설정](docs/copilot-setup.md) |
 | Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [설정](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [설정](docs/factory-droid-setup.md) |
+| DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [설정](docs/dsh-setup.md) |
 
-Kiro와 Factory Droid는 `/brooks-review`도 자동 등록합니다. 스킬이 처음이거나 위 목록에 없는 에이전트를
-쓰시나요? **[docs/getting-started.md](docs/getting-started.md)**를 참고하세요.
+Kiro, Factory Droid, DeepSeek Harness는 `/brooks-review`도 자동 등록합니다. 스킬이 처음이거나 위
+목록에 없는 에이전트를 쓰시나요? **[docs/getting-started.md](docs/getting-started.md)**를 참고하세요.
 
 > **🧪 검증 상태.** Claude Code, Gemini CLI, Codex CLI는 메인테이너가 검증했습니다. 위
-> 여덟 개 플랫폼은 각 도구의 공식 스킬 명세를 토대로 문서화되었고 파일 레이아웃
+> 아홉 개 플랫폼은 각 도구의 공식 스킬 명세를 토대로 문서화되었고 파일 레이아웃
 > 수준에서 검증되었으나（설치기는 테스트되었음）, 메인테이너가 모든 플랫폼에서 end-to-end로 직접 실행해 보지는
 > 못했습니다. 어떤 것을 시도해 보셨나요 — 잘 되든 **안 되든**? 플랫폼, 버전, 본 결과를 담아
 > [이슈를 열어 주세요](https://github.com/hyhmrright/brooks-lint/issues/new).
@@ -322,9 +323,10 @@ Kiro와 Factory Droid는 `/brooks-review`도 자동 등록합니다. 스킬이 �
 
 **플랫폼별 문법.** Claude Code는 네임스페이스가 붙은 전체 형식 `/brooks-lint:brooks-review`도 받습니다
 — 짧은 형식은 session-start 훅이 첫 세션 시작 시 자동 설치합니다. Codex CLI는 `$brooks-review`를 씁니다.
-Gemini CLI는 위 표 그대로입니다. OpenCode, Cursor, Antigravity, pi는 각 스킬의 `description`에서 Agent
-Skills를 호출하므로 그냥 요청하면 됩니다（"이 PR을 리뷰해줘", "우리 최악의 기술 부채는 어디야?"）. 명시적
-호출이 필요하면 각 플랫폼의 문법을 쓰세요（pi는 각 스킬을 `/skill:brooks-review`로 등록）. 모든
+Gemini CLI는 위 표 그대로입니다. OpenCode, Cursor, Antigravity, pi, DeepSeek Harness는 각 스킬의
+`description`에서 Agent Skills를 호출하므로 그냥 요청하면 됩니다（"이 PR을 리뷰해줘", "우리 최악의 기술
+부채는 어디야?"）. 명시적 호출이 필요하면 각 플랫폼의 문법을 쓰세요（pi는 각 스킬을
+`/skill:brooks-review`로 등록; dsh는 위 표 그대로이며 `/` 메뉴에서 고르거나 직접 입력）. 모든
 플랫폼에서 코드 품질, 아키텍처, 테스트 건강을 이야기하면 스킬이 자동으로 트리거됩니다.
 
 > PR 리뷰에는 가벼운 Step 7 빠른 테스트 점검이 자동으로 포함됩니다（문서만 바뀐 diff에서는 건너뜀）.
