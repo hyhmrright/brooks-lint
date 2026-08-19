@@ -7,8 +7,14 @@ inputs:
     description: "Review mode: review, audit, debt, test, health, sweep"
     default: "review"
   anthropic-api-key:
-    description: "Anthropic API key"
-    required: true
+    description: "Anthropic API key (required unless provider is orcarouter)"
+    default: ""
+  provider:
+    description: "Model provider: anthropic (default) or orcarouter"
+    default: "anthropic"
+  orcarouter-api-key:
+    description: "OrcaRouter API key, sk-orca-... (required when provider is orcarouter)"
+    default: ""
   fail-below:
     description: "Fail the check if Health Score is below this threshold (0 = never fail)"
     default: "0"
@@ -71,10 +77,29 @@ runs:
       shell: bash
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        ORCAROUTER_API_KEY: ${{ inputs.orcarouter-api-key }}
+        PROVIDER: ${{ inputs.provider }}
         SARIF_FILE: ${{ inputs.sarif-file }}
         MODE: ${{ inputs.mode }}
         MODEL: ${{ inputs.model }}
       run: |
+        if [ "$PROVIDER" = "orcarouter" ]; then
+          # OrcaRouter serves an Anthropic-compatible /v1/messages endpoint. The
+          # key lives in orcarouter-api-key (sk-orca-...); bare Anthropic model
+          # ids are not resolvable through the gateway, so the action's default
+          # claude-sonnet-4-6 is remapped to the OrcaRouter-pinned id.
+          if [ -z "$ORCAROUTER_API_KEY" ]; then
+            echo "provider=orcarouter requires orcarouter-api-key (sk-orca-...)" >&2
+            exit 1
+          fi
+          export ANTHROPIC_API_KEY="$ORCAROUTER_API_KEY"
+          if [ "$MODEL" = "claude-sonnet-4-6" ]; then
+            MODEL="anthropic/claude-sonnet-5"
+          fi
+        elif [ -z "$ANTHROPIC_API_KEY" ]; then
+          echo "anthropic-api-key is required unless provider=orcarouter" >&2
+          exit 1
+        fi
         sarif_arg=()
         if [ -n "$SARIF_FILE" ]; then
           sarif_arg=(--sarif-out "$SARIF_FILE")
@@ -82,6 +107,7 @@ runs:
         node "$BROOKS_LINT_ROOT/scripts/ci-review.mjs" \
           --mode "$MODE" \
           --model "$MODEL" \
+          --provider "$PROVIDER" \
           --skills-dir "$BROOKS_LINT_ROOT/skills" \
           --project-dir "$GITHUB_WORKSPACE" \
           "${sarif_arg[@]}" \

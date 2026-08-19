@@ -13,11 +13,13 @@
  *     --model claude-sonnet-4-6 \
  *     --skills-dir ./skills \
  *     --project-dir /path/to/project \
+ *     [--provider anthropic|orcarouter] \
  *     [--format json|sarif] \
  *     [--sarif-out brooks-lint.sarif]
  *
  * Environment:
- *   ANTHROPIC_API_KEY  required
+ *   ANTHROPIC_API_KEY  required (provider=anthropic)
+ *   ORCAROUTER_API_KEY required (provider=orcarouter; sk-orca-...)
  */
 
 import { execFileSync } from "node:child_process";
@@ -35,8 +37,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const args = parseArgs(process.argv.slice(2));
 
+const provider = args.provider ?? "anthropic";
+if (!["anthropic", "orcarouter"].includes(provider)) {
+  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, orcarouter`);
+  process.exit(1);
+}
+
+// OrcaRouter serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic
+// model ids (e.g. claude-sonnet-4-6) are not resolvable through the gateway, so
+// the default is pinned to the OrcaRouter-prefixed id.
+const DEFAULT_MODELS = {
+  anthropic: "claude-sonnet-4-6",
+  orcarouter: "anthropic/claude-sonnet-5",
+};
+
 const mode = args.mode ?? "review";
-const model = args.model ?? "claude-sonnet-4-6";
+const model = args.model ?? DEFAULT_MODELS[provider];
 const format = args.format ?? "json";
 const skillsDir = path.resolve(args["skills-dir"] ?? path.join(__dirname, "..", "skills"));
 const projectDir = path.resolve(args["project-dir"] ?? process.cwd());
@@ -79,7 +95,9 @@ function getGitDiff(projectRoot) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-const client = new Anthropic();
+// OrcaRouter's Anthropic-compatible endpoint — the client appends /v1/messages.
+const ORCAROUTER_BASE_URL = "https://api.orcarouter.ai";
+const client = new Anthropic(provider === "orcarouter" ? { baseURL: ORCAROUTER_BASE_URL } : undefined);
 
 const { diff, scope } = getGitDiff(projectDir);
 const systemPrompt = assembleSystemPrompt(mode, skillsDir);
@@ -95,6 +113,10 @@ try {
     max_tokens: 4096,
     system: systemPrompt,
     messages: [{ role: "user", content: userMessage }],
+    // Reasoning models on OrcaRouter spend the output budget on thinking blocks
+    // by default; the 4096-token budget here assumes direct text output, so the
+    // gateway path disables extended thinking to preserve that contract.
+    ...(provider === "orcarouter" ? { thinking: { type: "disabled" } } : {}),
   });
 } catch (err) {
   console.error(JSON.stringify({ error: err.message, mode, scope }, null, 2));

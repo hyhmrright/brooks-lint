@@ -450,6 +450,18 @@ The action posts the review as a PR comment and optionally fails the check if th
 
 `fail-on-regression` reads `.brooks-lint-history.json`, so commit that file to enforce "no new regressions". Setting `sarif-file` makes findings appear inline on the PR's **Files changed** tab and requires `security-events: write` permission on the job.
 
+**Model provider.** The action defaults to Anthropic (`provider: anthropic`). To route reviews through [OrcaRouter](https://www.orcarouter.ai), an OpenAI-compatible model routing gateway that exposes 150+ models behind a single `https://api.orcarouter.ai/v1` endpoint, set `provider: orcarouter` and pass an `orcarouter-api-key` (keys start with `sk-orca-`). OrcaRouter serves the same Anthropic API the action already uses, so no other inputs change:
+
+```yaml
+        with:
+          mode: review
+          provider: orcarouter
+          orcarouter-api-key: ${{ secrets.ORCAROUTER_API_KEY }}
+          fail-below: 70
+```
+
+When `provider: orcarouter`, the default model is pinned to `anthropic/claude-sonnet-5` so the model id resolves through the gateway.
+
 **Cost:** ~$0.05–0.15 per PR run depending on diff size and model. Recommend running on `pull_request` events only.
 
 ## Roadmap

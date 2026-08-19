@@ -8,6 +8,7 @@
  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --id 5
  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --mode review
  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --model claude-opus-4-6
+ *   ORCAROUTER_API_KEY=... node scripts/run-evals-live.mjs --provider orcarouter
  */
 
 import { readFileSync } from "node:fs";
@@ -22,10 +23,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
 const args = parseArgs(process.argv.slice(2));
+const provider   = args.provider ?? "anthropic";
+if (!["anthropic", "orcarouter"].includes(provider)) {
+  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, orcarouter`);
+  process.exit(1);
+}
+
+// OrcaRouter serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic
+// model ids are not resolvable through the gateway, so the default is pinned to
+// the OrcaRouter-prefixed id.
+const DEFAULT_MODELS = {
+  anthropic: "claude-sonnet-4-6",
+  orcarouter: "anthropic/claude-sonnet-5",
+};
+
 const filterRisk = args.risk ?? null;
 const filterId   = args.id ? parseInt(args.id, 10) : null;
 const filterMode = args.mode ?? null;
-const model      = args.model ?? "claude-sonnet-4-6";
+const model      = args.model ?? DEFAULT_MODELS[provider];
 const skillsDir  = path.join(root, "skills");
 
 if (filterMode && !VALID_MODES.includes(filterMode)) {
@@ -59,7 +74,9 @@ function getSystemPrompt(mode) {
 
 // ── Run scenarios ─────────────────────────────────────────────────────────────
 
-const client = new Anthropic();
+// OrcaRouter's Anthropic-compatible endpoint — the client appends /v1/messages.
+const ORCAROUTER_BASE_URL = "https://api.orcarouter.ai";
+const client = new Anthropic(provider === "orcarouter" ? { baseURL: ORCAROUTER_BASE_URL } : undefined);
 const results = [];
 
 for (const scenario of scenarios) {
@@ -80,6 +97,10 @@ for (const scenario of scenarios) {
       max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
+      // Reasoning models on OrcaRouter spend the output budget on thinking blocks
+      // by default; the 4096-token budget here assumes direct text output, so the
+      // gateway path disables extended thinking to preserve that contract.
+      ...(provider === "orcarouter" ? { thinking: { type: "disabled" } } : {}),
     });
     aiText  = message.content[0]?.text ?? "";
     verdict = classify(scenario, aiText);
