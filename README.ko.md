@@ -486,7 +486,7 @@ MIT License — 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
 
 ## Star 히스토리
 
-[![Star History Chart](https://api.star-history.com/svg?repos=hyhmrright/brooks-lint&type=Date)](https://star-history.com/#hyhmrright/brooks-lint&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=hyhmrright/brooks-lint&type=Date)](https://star-history.dera.page/#hyhmrright/brooks-lint&Date)
 
 ---
 
