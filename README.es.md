@@ -488,7 +488,7 @@ síntesis de sus ideas, aplicada a la evaluación moderna de la calidad del cód
 
 ## Historial de estrellas
 
-[![Star History Chart](https://api.star-history.com/svg?repos=hyhmrright/brooks-lint&type=Date)](https://star-history.com/#hyhmrright/brooks-lint&Date)
+[![Star History](assets/star-history.svg)](https://github.com/hyhmrright/brooks-lint/stargazers)
 
 ---
 

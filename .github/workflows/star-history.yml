@@ -1,0 +1,40 @@
+name: Star history
+
+# GitHub restricted the stargazers API to a repo's own admins and collaborators,
+# so no third-party service can chart this repo any more. GITHUB_TOKEN can read
+# it, so we regenerate the committed SVG here instead.
+on:
+  schedule:
+    - cron: "17 3 * * 1" # Mondays, 03:17 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: star-history
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Set up Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
+        with:
+          node-version: 22
+      - name: Regenerate the chart
+        run: node scripts/gen-star-history.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit when the chart moved
+        run: |
+          if git diff --quiet -- assets/star-history.svg; then
+            echo "No change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: refresh the star history chart" -- assets/star-history.svg
+          git push

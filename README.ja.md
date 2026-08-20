@@ -488,7 +488,7 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 
 ## スター履歴
 
-[![Star History Chart](https://api.star-history.com/svg?repos=hyhmrright/brooks-lint&type=Date)](https://star-history.com/#hyhmrright/brooks-lint&Date)
+[![Star History](assets/star-history.svg)](https://github.com/hyhmrright/brooks-lint/stargazers)
 
 ---
 
