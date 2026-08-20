@@ -6,16 +6,24 @@
 // We own this repo, so we read the star data ourselves and commit the result,
 // keeping the README free of any third-party image host.
 //
-// Run: node scripts/gen-star-history.mjs  → writes assets/star-history.svg
+// The committed dataset, not the drawing, is the source of truth: the SVG is a
+// pure function of assets/star-history.json. That keeps the chart re-renderable
+// with no credentials if the endpoint tightens further, keeps the weekly diff
+// readable (dates, not shifted path coordinates), and lets `npm run validate`
+// prove the two files agree.
+//
+// Run: node scripts/gen-star-history.mjs                → refetch, rewrite both files
+//      node scripts/gen-star-history.mjs --render-only   → redraw the SVG offline
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-// README-only asset, so it lives in assets/ alone — unlike the banners, the
-// GitHub Pages site under docs/ does not render it.
+// README-only assets, so they live in assets/ alone — unlike the banners, the
+// GitHub Pages site under docs/ does not render them.
 const OUT = join(ROOT, "assets", "star-history.svg");
+const DATA = join(ROOT, "assets", "star-history.json");
 
 const REPO = process.env.GITHUB_REPOSITORY ?? "hyhmrright/brooks-lint";
 
@@ -42,6 +50,7 @@ function resolveToken() {
   }
 }
 
+// Returns the raw starred_at strings, oldest first — exactly what we commit.
 async function fetchStarTimestamps(token) {
   const stamps = [];
   for (let page = 1; ; page++) {
@@ -55,19 +64,34 @@ async function fetchStarTimestamps(token) {
         "User-Agent": "brooks-lint-gen-star-history",
       },
     });
+    // Past 400 pages GitHub answers 422 rather than paginating, so a repo above
+    // 40,000 stars can no longer be read in full — the committed dataset is what
+    // preserves the history when that day comes.
     if (!res.ok) {
       throw new Error(`GitHub API ${res.status} on page ${page}: ${(await res.text()).slice(0, 200)}`);
     }
     const batch = await res.json();
     for (const entry of batch) {
-      const ms = Date.parse(entry.starred_at);
       // A missing starred_at means the star+json media type stopped being
       // honoured. Fail loudly rather than plot NaN coordinates.
-      if (Number.isNaN(ms)) throw new Error(`Stargazer without a usable starred_at on page ${page}.`);
-      stamps.push(ms);
+      if (Number.isNaN(Date.parse(entry.starred_at))) {
+        throw new Error(`Stargazer without a usable starred_at on page ${page}.`);
+      }
+      stamps.push(entry.starred_at);
     }
-    if (batch.length < 100) return stamps.sort((a, b) => a - b);
+    if (batch.length < 100) return stamps.sort((a, b) => Date.parse(a) - Date.parse(b));
   }
+}
+
+export function readStamps() {
+  return JSON.parse(readFileSync(DATA, "utf8")).starredAt;
+}
+
+function writeStamps(stamps) {
+  // Deliberately no generated-at field: the file has to stay byte-identical when
+  // no star was added, or the workflow's "commit only when it moved" guard would
+  // fire every single run. Git already records when it last changed.
+  writeFileSync(DATA, `${JSON.stringify({ repo: REPO, starredAt: stamps }, null, 2)}\n`);
 }
 
 // Round the axis maximum up to a 1/2/5 × 10ⁿ step so tick labels stay readable.
@@ -111,10 +135,14 @@ function downsample(points, limit) {
   return kept;
 }
 
-function render(stamps) {
-  const total = stamps.length;
-  const t0 = stamps[0];
-  const t1 = Date.now();
+export function render(stamps) {
+  const times = stamps.map((iso) => Date.parse(iso));
+  const total = times.length;
+  const t0 = times[0];
+  // The axis ends at the newest star rather than at "now". Anchoring it to the
+  // clock would shift every x coordinate on every run, so the workflow could
+  // never tell a real change from a redraw and would commit noise weekly.
+  const t1 = times.at(-1);
   // Stars are whole numbers, so never let a tiny repo produce fractional ticks.
   const step = Math.max(1, niceStep(total, 5));
   const yMax = Math.ceil(total / step) * step;
@@ -123,11 +151,11 @@ function render(stamps) {
   const y = (n) => PAD.top + PLOT_H - (n / yMax) * PLOT_H;
 
   const points = downsample(
-    stamps.map((ms, i) => [ms, i + 1]),
+    times.map((ms, i) => [ms, i + 1]),
     300,
   );
   const line = points.map(([ms, n], i) => `${i === 0 ? "M" : "L"}${x(ms).toFixed(1)} ${y(n).toFixed(1)}`).join("");
-  const area = `${line}L${x(stamps.at(-1)).toFixed(1)} ${y(0).toFixed(1)}L${x(t0).toFixed(1)} ${y(0).toFixed(1)}Z`;
+  const area = `${line}L${x(t1).toFixed(1)} ${y(0).toFixed(1)}L${x(t0).toFixed(1)} ${y(0).toFixed(1)}Z`;
 
   const yTicks = [];
   for (let n = 0; n <= yMax; n += step) yTicks.push(n);
@@ -151,11 +179,10 @@ function render(stamps) {
     )
     .join("\n    ");
 
-  const lastX = x(stamps.at(-1));
+  // Anchoring the axis to the newest star puts the final point exactly on the
+  // right edge, so the callout always hangs back inside the plot.
+  const lastX = PAD.left + PLOT_W;
   const lastY = y(total);
-  // Flip the callout inside the plot when the final point sits near the edge.
-  const labelAnchor = lastX > PAD.left + PLOT_W - 70 ? "end" : "start";
-  const labelX = labelAnchor === "end" ? lastX - 12 : lastX + 12;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Star history for ${esc(REPO)}: ${total} stars">
   <style>
@@ -190,7 +217,7 @@ function render(stamps) {
   <path d="${area}" fill="url(#fade)"/>
   <path d="${line}" fill="none" stroke="${ACCENT}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
   <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="4" fill="${ACCENT}"/>
-  <text x="${labelX.toFixed(1)}" y="${(lastY + 4).toFixed(1)}" class="total" text-anchor="${labelAnchor}">${total.toLocaleString("en-US")}</text>
+  <text x="${(lastX - 12).toFixed(1)}" y="${(lastY + 4).toFixed(1)}" class="total" text-anchor="end">${total.toLocaleString("en-US")}</text>
   <g>
     ${xLabels}
   </g>
@@ -198,7 +225,17 @@ function render(stamps) {
 `;
 }
 
-const stamps = await fetchStarTimestamps(resolveToken());
-if (stamps.length === 0) throw new Error(`No stargazers returned for ${REPO} — refusing to write an empty chart.`);
-writeFileSync(OUT, render(stamps));
-console.log(`Wrote ${OUT} — ${stamps.length} stars through ${new Date(stamps.at(-1)).toISOString().slice(0, 10)}`);
+async function main() {
+  const renderOnly = process.argv.includes("--render-only");
+  const stamps = renderOnly ? readStamps() : await fetchStarTimestamps(resolveToken());
+  // Two points are the minimum a time axis can span; one would divide by zero
+  // and silently write a chart full of NaN coordinates.
+  if (stamps.length < 2) throw new Error(`Only ${stamps.length} stargazer(s) for ${REPO} — refusing to write a chart.`);
+  if (!renderOnly) writeStamps(stamps);
+  writeFileSync(OUT, render(stamps));
+  console.log(`Wrote ${OUT} — ${stamps.length} stars through ${stamps.at(-1).slice(0, 10)}`);
+}
+
+// Importable so `npm run validate` can re-render from the committed data and
+// prove the SVG is in sync; only a direct run touches the network or disk.
+if (process.argv[1] === fileURLToPath(import.meta.url)) await main();

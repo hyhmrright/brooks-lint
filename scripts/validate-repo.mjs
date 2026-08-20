@@ -16,6 +16,7 @@ import {
 import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
 import { versionRefs } from "./version-refs.mjs";
 import { platformDocs, setupGuides, linkedSetupGuides, parseInstallerPlatforms } from "./platforms.mjs";
+import { render as renderStarHistory, readStamps as readStarStamps } from "./gen-star-history.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -358,6 +359,17 @@ function checkInstallerPlatforms() {
   }
 }
 
+// assets/star-history.svg is a pure function of assets/star-history.json, so a
+// mismatch means the chart was hand-edited or the data moved without a redraw.
+// Re-rendering here needs no credentials, which is the point of committing the
+// data rather than the drawing alone.
+function checkStarHistory() {
+  check(
+    renderStarHistory(readStarStamps()) === readText("assets/star-history.svg"),
+    "assets/star-history.svg does not match assets/star-history.json — rerun `node scripts/gen-star-history.mjs --render-only`",
+  );
+}
+
 function checkSecurity() {
   const security = readText("SECURITY.md");
   check(!security.includes("<!--"), "SECURITY.md still contains placeholder content");
@@ -409,6 +421,7 @@ checkAgentsDocs();
 checkPlatformDocs();
 checkInstallerPlatforms();
 checkSecurity();
+checkStarHistory();
 checkHookOutput();
 
 // ── Report ─────────────────────────────────────────────────────────────────
