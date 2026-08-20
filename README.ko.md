@@ -448,6 +448,18 @@ jobs:
 
 `fail-on-regression`은 `.brooks-lint-history.json`을 읽으므로, "새로운 회귀 없음"을 강제하려면 그 파일을 커밋하세요. `sarif-file`을 설정하면 진단이 PR의 **Files changed** 탭에 인라인으로 나타나며, job에 `security-events: write` 권한이 필요합니다.
 
+**사용자 지정 API 엔드포인트.** `api-base-url`을 지정하면 action이 `api.anthropic.com` 대신 Anthropic 호환 `/v1/messages` 엔드포인트(자체 호스팅 프록시, LLM 게이트웨이, 리전 미러)를 호출합니다. 해당 엔드포인트의 키를 `anthropic-api-key`로, 기대하는 모델 id를 `model`로 전달하세요:
+
+```yaml
+        with:
+          mode: review
+          api-base-url: https://your-gateway.example.com
+          anthropic-api-key: ${{ secrets.GATEWAY_API_KEY }}
+          model: gateway-model-id
+```
+
+brooks-lint는 여기에 지정한 호스트로 diff를 전송하므로, 소스 코드를 맡겨도 되는 곳만 지정하세요. `scripts/ci-review.mjs`를 직접 실행할 때는 플래그가 필요 없습니다 — Anthropic SDK가 `ANTHROPIC_BASE_URL`을 직접 읽습니다.
+
 **비용:** PR 실행당 약 $0.05–0.15로, diff 크기와 모델에 따라 다릅니다. `pull_request` 이벤트에서만 실행할 것을 권장합니다.
 
 ## 로드맵

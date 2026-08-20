@@ -450,6 +450,18 @@ jobs:
 
 `fail-on-regression` は `.brooks-lint-history.json` を読み取るため、そのファイルをコミットすれば「新たな回帰なし」を強制できます。`sarif-file` を設定すると、指摘が PR の **Files changed** タブにインラインで表示されるようになり、ジョブに `security-events: write` 権限が必要になります。
 
+**カスタム API エンドポイント。** `api-base-url` を指定すると、action は `api.anthropic.com` ではなく Anthropic 互換の `/v1/messages` エンドポイント（自前のプロキシ、LLM ゲートウェイ、リージョンミラーなど）を呼び出します。そのエンドポイントのキーを `anthropic-api-key` に、期待されるモデル id を `model` に渡してください：
+
+```yaml
+        with:
+          mode: review
+          api-base-url: https://your-gateway.example.com
+          anthropic-api-key: ${{ secrets.GATEWAY_API_KEY }}
+          model: gateway-model-id
+```
+
+brooks-lint はここで指定したホストに diff を送信するため、ソースコードを預けられる相手だけを指定してください。`scripts/ci-review.mjs` を自分で実行する場合はフラグは不要です — Anthropic SDK が `ANTHROPIC_BASE_URL` を直接読み取ります。
+
 **コスト：** PR 実行ごとにおよそ $0.05〜0.15、diff のサイズとモデルによります。`pull_request` イベントのみで実行することを推奨します。
 
 ## ロードマップ

@@ -439,6 +439,18 @@ jobs:
 
 `fail-on-regression` 讀取 `.brooks-lint-history.json`，因此提交該檔案即可強制「無新增回歸」。設定 `sarif-file` 會讓診斷直接顯示在 PR 的 **Files changed** 分頁，並需要 job 具備 `security-events: write` 權限。
 
+**自訂 API 端點。** `api-base-url` 讓 action 改為呼叫任意 Anthropic 相容的 `/v1/messages` 端點 —— 自建代理、LLM 閘道或區域鏡像 —— 而不是 `api.anthropic.com`。把該端點的金鑰作為 `anthropic-api-key` 傳入，把它預期的模型 id 作為 `model` 傳入：
+
+```yaml
+        with:
+          mode: review
+          api-base-url: https://your-gateway.example.com
+          anthropic-api-key: ${{ secrets.GATEWAY_API_KEY }}
+          model: gateway-model-id
+```
+
+brooks-lint 會把你的 diff 傳送到這裡填寫的主機，因此只應指向你信任其接觸原始碼的一方。自己執行 `scripts/ci-review.mjs` 完全不需要參數 —— Anthropic SDK 會直接讀取 `ANTHROPIC_BASE_URL`。
+
 **成本：** 每次 PR 執行約 $0.05–0.15，取決於 diff 大小和模型。建議僅在 `pull_request` 事件上執行。
 
 ## 路線圖

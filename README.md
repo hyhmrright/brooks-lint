@@ -450,6 +450,18 @@ The action posts the review as a PR comment and optionally fails the check if th
 
 `fail-on-regression` reads `.brooks-lint-history.json`, so commit that file to enforce "no new regressions". Setting `sarif-file` makes findings appear inline on the PR's **Files changed** tab and requires `security-events: write` permission on the job.
 
+**Custom API endpoint.** `api-base-url` points the action at any Anthropic-compatible `/v1/messages` endpoint — a self-hosted proxy, an LLM gateway, a regional mirror — instead of `api.anthropic.com`. Pass that endpoint's key as `anthropic-api-key` and the model id it expects as `model`:
+
+```yaml
+        with:
+          mode: review
+          api-base-url: https://your-gateway.example.com
+          anthropic-api-key: ${{ secrets.GATEWAY_API_KEY }}
+          model: gateway-model-id
+```
+
+brooks-lint sends your diff to whatever host you name here, so only point it at one you trust with your source. Running `scripts/ci-review.mjs` yourself needs no flag at all — the Anthropic SDK reads `ANTHROPIC_BASE_URL` directly.
+
 **Cost:** ~$0.05–0.15 per PR run depending on diff size and model. Recommend running on `pull_request` events only.
 
 ## Roadmap

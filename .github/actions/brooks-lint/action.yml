@@ -24,6 +24,9 @@ inputs:
   model:
     description: "Claude model to use"
     default: "claude-sonnet-4-6"
+  api-base-url:
+    description: "Anthropic-compatible /v1/messages endpoint to call instead of api.anthropic.com (empty = Anthropic)"
+    default: ""
 
 outputs:
   score:
@@ -71,10 +74,17 @@ runs:
       shell: bash
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        API_BASE_URL: ${{ inputs.api-base-url }}
         SARIF_FILE: ${{ inputs.sarif-file }}
         MODE: ${{ inputs.mode }}
         MODEL: ${{ inputs.model }}
       run: |
+        # Exported only when the input is set: naming ANTHROPIC_BASE_URL in the
+        # env block above would blank out one inherited from the job env. The
+        # SDK reads the variable itself, so nothing downstream needs a flag.
+        if [ -n "$API_BASE_URL" ]; then
+          export ANTHROPIC_BASE_URL="$API_BASE_URL"
+        fi
         sarif_arg=()
         if [ -n "$SARIF_FILE" ]; then
           sarif_arg=(--sarif-out "$SARIF_FILE")
