@@ -81,7 +81,7 @@ for (const scenario of scenarios) {
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     });
-    aiText  = message.content[0]?.text ?? "";
+    aiText  = message.content.find((block) => block.type === "text")?.text ?? "";
     verdict = classify(scenario, aiText);
   } catch (err) {
     error   = err.message;

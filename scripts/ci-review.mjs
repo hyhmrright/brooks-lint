@@ -101,7 +101,9 @@ try {
   process.exit(1);
 }
 
-const report = message.content[0]?.text ?? "";
+// The first block is not always the text one — an endpoint that returns a
+// thinking block first would otherwise yield undefined.
+const report = message.content.find((block) => block.type === "text")?.text ?? "";
 
 const scoreMatch = report.match(/Health\s+Score[:\s]+(\d+)/i);
 const score = scoreMatch ? parseInt(scoreMatch[1], 10) : null;
