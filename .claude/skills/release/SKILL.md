@@ -36,8 +36,9 @@ CHANGELOG entry are manual; the script only fans the version out to manifests + 
    last release tag (`git log <last-tag>..HEAD --oneline`). The heading MUST be
    `## [<version>] - YYYY-MM-DD` — `npm run validate` parses that exact shape and
    fails on a bare `## <version>`.
-4. **Validate.** `npm run validate` — fails if any manifest, the README badge, or
-   the CHANGELOG entry is out of sync. Fix and re-run until clean. Then `npm test`.
+4. **Validate.** `npm run validate` — fails if any manifest, any version-bearing
+   text file, or the CHANGELOG entry is out of sync. Fix and re-run until clean.
+   Then `npm test`.
 5. **Commit & push.** Stage the changed manifests, README, and CHANGELOG; commit
    with a conventional message (`chore(release): bump version to <version>`); push
    to `main` (direct-to-main repo — no PR).
