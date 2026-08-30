@@ -29,7 +29,9 @@ the Skill tool with the target version, or follow these steps directly):
 3. **Write the changelog.** Add a `## <version>` section at the top of CHANGELOG.md
    with Added / Fixed / Changed notes summarizing `git log <last-tag>..HEAD --oneline`.
 4. **Re-validate.** `npm run validate` then `npm test`. Fix and re-run until clean.
-5. **Commit & push.** Stage the changed manifests, README, CHANGELOG; commit
+5. **Commit & push.** Stage everything `npm run bump` rewrote plus CHANGELOG — read
+   `git status` rather than naming files, since the version-bearing set is discovered
+   from disk and is more than one README; commit
    `chore(release): bump version to <version>`; push to `main` (direct-to-main repo,
    no PR).
 6. **Tag & publish.** `gh release create v<version> --title "v<version>"

@@ -20,7 +20,8 @@ for the semver bump before doing anything.
 
 Execute these steps in order. `bump-version.mjs` reads the version FROM
 `package.json` and does NOT touch the changelog — so the version edit and the
-CHANGELOG entry are manual; the script only fans the version out to manifests + badge.
+CHANGELOG entry are manual; the script only fans the version out to the manifests
+and every version-bearing text file.
 
 1. **Set the source of truth.** `npm version <version> --no-git-tag-version`
    (the `--no-git-tag-version` flag is required — plain `npm version` would create
@@ -39,7 +40,9 @@ CHANGELOG entry are manual; the script only fans the version out to manifests + 
 4. **Validate.** `npm run validate` — fails if any manifest, any version-bearing
    text file, or the CHANGELOG entry is out of sync. Fix and re-run until clean.
    Then `npm test`.
-5. **Commit & push.** Stage the changed manifests, README, and CHANGELOG; commit
+5. **Commit & push.** Stage everything `npm run bump` rewrote plus `CHANGELOG.md` —
+   read `git status` rather than naming files, because the version-bearing set is
+   discovered from disk and is more than one README; commit
    with a conventional message (`chore(release): bump version to <version>`); push
    to `main` (direct-to-main repo — no PR).
 6. **Tag & publish.** Create the GitHub release:
