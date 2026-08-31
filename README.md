@@ -69,7 +69,7 @@ For the full source-to-skill mapping, including exceptions and false-positive gu
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 
-# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · …
+# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · Bob…
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
 
@@ -298,6 +298,7 @@ The installer copies the skills **flat** into the right folder, so the shared fr
 | Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [setup](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [setup](docs/factory-droid-setup.md) |
 | DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [setup](docs/dsh-setup.md) |
+| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [setup](docs/bob-setup.md) |
 
 Kiro, Factory Droid, and DeepSeek Harness also auto-register `/brooks-review`. New to skills, or
 using an agent not listed? See **[docs/getting-started.md](docs/getting-started.md)**.

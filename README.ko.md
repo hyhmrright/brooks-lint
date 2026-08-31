@@ -69,7 +69,7 @@
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 
-# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · …
+# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · Bob …
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
 
@@ -298,6 +298,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [설정](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [설정](docs/factory-droid-setup.md) |
 | DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [설정](docs/dsh-setup.md) |
+| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [setup](docs/bob-setup.md) |
 
 Kiro, Factory Droid, DeepSeek Harness는 `/brooks-review`도 자동 등록합니다. 스킬이 처음이거나 위
 목록에 없는 에이전트를 쓰시나요? **[docs/getting-started.md](docs/getting-started.md)**를 참고하세요.
