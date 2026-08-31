@@ -69,7 +69,7 @@ For the full source-to-skill mapping, including exceptions and false-positive gu
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 
-# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · Bob…
+# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · Bob …
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
 
@@ -78,7 +78,7 @@ Then just ask ("review this PR", "audit the architecture"), or run one of the si
 ([what each one does](#slash-commands)).
 
 Every finding comes back as **Symptom → Source → Consequence → Remedy** with a book citation and a
-0–100 Health Score. Full install options (9 more platforms) and CI/CD setup are [below](#installation).
+0–100 Health Score. Full install options (10 more platforms) and CI/CD setup are [below](#installation).
 
 ## The Twelve Books
 
@@ -280,7 +280,7 @@ Skills runs all six modes with no conversion** — one command installs them:
 ```bash
 # pick your platform; --project installs into the current repo instead of your global config
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · bob · agents
 ```
 
 The installer copies the skills **flat** into the right folder, so the shared framework
@@ -304,7 +304,7 @@ Kiro, Factory Droid, and DeepSeek Harness also auto-register `/brooks-review`. N
 using an agent not listed? See **[docs/getting-started.md](docs/getting-started.md)**.
 
 > **🧪 Verification status.** Claude Code, Gemini CLI, and Codex CLI are maintainer-verified. The
-> nine platforms above are documented from each tool's official skill spec and verified at the
+> ten platforms above are documented from each tool's official skill spec and verified at the
 > file-layout level (the installer is tested), but not yet run end-to-end by the maintainer on every
 > platform. Tried one — working **or** broken?
 > [Open an issue](https://github.com/hyhmrright/brooks-lint/issues/new) with the platform, version,

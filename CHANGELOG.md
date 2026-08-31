@@ -2,19 +2,6 @@
 
 All notable changes to brooks-lint are documented here.
 
-## [1.6.0] - 2026-08-15
-
-### Added
-
-- **IBM Bob support** — brooks-lint skills now load natively in IBM Bob's Agent
-  Skills runtime. All six modes (`brooks-review`, `brooks-audit`, `brooks-debt`,
-  `brooks-test`, `brooks-health`, `brooks-sweep`) are available via skill
-  invocation. `./scripts/install.sh bob` installs into `~/.bob/skills` (default);
-  `--project` targets `./.bob/skills`. A new setup guide at
-  [`docs/bob-setup.md`](docs/bob-setup.md) covers installation, invocation, and
-  Bob-specific behaviour. The platform has been added to the README install table
-  in all six languages and to `docs/getting-started.md`.
-
 ## [1.5.0] - 2026-08-14
 
 ### Added

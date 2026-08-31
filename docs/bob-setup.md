@@ -28,7 +28,7 @@ up automatically:
 | `$BOB_HOME/skills` (default `~/.bob/skills`) | what the global install writes |
 
 The project root is the nearest ancestor containing `.git`; without one, Bob uses the current
-directory. When the same skill name appears in two roots, the higher one wins.
+directory. When the same skill name appears in two roots, the project-level skill takes precedence.
 
 ## Invoke
 
@@ -40,8 +40,7 @@ Just ask — Bob routes to a skill from its `description`:
 
 For explicit invocation, type `/` followed by the skill token in the chat prompt, or type it by
 hand: `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`,
-`/brooks-sweep`. Bob recognises a whitespace-bounded `$name` anywhere in a message and injects that
-skill's body deterministically. The repo's `AGENTS.md` carries the Iron Law (Symptom → Source →
+`/brooks-sweep`. The repo's `AGENTS.md` carries the Iron Law (Symptom → Source →
 Consequence → Remedy) and the Health Score rules; Bob also loads `$BOB_HOME/AGENTS.md` plus every
 `AGENTS.md` from the project root down to your working directory.
 
