@@ -13,7 +13,7 @@
 #   ./scripts/install.sh <platform> [--project]
 #   curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 #
-# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents
+# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob
 #   agents = the vendor-neutral ~/.agents/skills folder (read by Cursor, Copilot, pi, Gemini,
 #            Codex, and DeepSeek Harness)
 #
@@ -25,7 +25,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/hyhmrright/brooks-lint.git"
-PLATFORMS="opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents"
+PLATFORMS="opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob"
 
 err()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; }
 info() { printf '\033[36m›\033[0m %s\n' "$*"; }
@@ -66,6 +66,7 @@ global_dir() {
     codex)       printf '%s' "$HOME/.codex/skills" ;;
     claude)      printf '%s' "$HOME/.claude/skills" ;;
     agents)      printf '%s' "$HOME/.agents/skills" ;;
+    bob)         printf '%s' "$HOME/.bob/skills" ;;
     *)           return 1 ;;
   esac
 }
@@ -85,6 +86,7 @@ project_dir() {
     codex)       printf '%s' "$PWD/.codex/skills" ;;
     claude)      printf '%s' "$PWD/.claude/skills" ;;
     agents)      printf '%s' "$PWD/.agents/skills" ;;
+    bob)         printf '%s' "$PWD/.bob/skills" ;;
     *)           return 1 ;;
   esac
 }
