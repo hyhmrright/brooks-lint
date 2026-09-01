@@ -272,7 +272,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # ask inside a C
 
 Or use the installer below: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### Every other platform — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
+### Every other platform — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
 
 brooks-lint ships as standard [Agent Skills](https://agentskills.io). **Any agent that loads Agent
 Skills runs all six modes with no conversion** — one command installs them:

@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 `/brooks-sweep`（[각각 하는 일](#슬래시-명령)）.
 
 모든 진단은 도서 출처와 0–100 건강 점수와 함께 **증상 → 근원 → 결과 → 처방** 형태로 돌아옵니다. 전체
-설치 옵션（추가 9개 플랫폼）과 CI/CD 설정은 [아래](#설치)를 참고하세요.
+설치 옵션（추가 10개 플랫폼）과 CI/CD 설정은 [아래](#설치)를 참고하세요.
 
 ## 열두 권의 책
 
@@ -272,7 +272,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # Codex 세션 �
 
 또는 아래 설치기를 사용하세요: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### 그 밖의 모든 플랫폼 — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
+### 그 밖의 모든 플랫폼 — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
 
 brooks-lint는 표준 [Agent Skills](https://agentskills.io) 형태로 배포됩니다. **Agent
 Skills를 로드하는 모든 에이전트는 변환 없이 여섯 가지 모드를 모두 실행합니다** — 한 줄의 명령으로 설치됩니다:
@@ -280,7 +280,7 @@ Skills를 로드하는 모든 에이전트는 변환 없이 여섯 가지 모드
 ```bash
 # 플랫폼을 고르세요; --project는 전역 설정 대신 현재 저장소에 설치합니다
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · bob · agents
 ```
 
 설치기는 스킬을 당신의 플랫폼에 맞는 폴더로 **평평하게** 복사하므로, 공유 프레임워크（`../_shared/`）가
@@ -298,13 +298,13 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [설정](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [설정](docs/factory-droid-setup.md) |
 | DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [설정](docs/dsh-setup.md) |
-| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [setup](docs/bob-setup.md) |
+| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [설정](docs/bob-setup.md) |
 
 Kiro, Factory Droid, DeepSeek Harness는 `/brooks-review`도 자동 등록합니다. 스킬이 처음이거나 위
 목록에 없는 에이전트를 쓰시나요? **[docs/getting-started.md](docs/getting-started.md)**를 참고하세요.
 
 > **🧪 검증 상태.** Claude Code, Gemini CLI, Codex CLI는 메인테이너가 검증했습니다. 위
-> 아홉 개 플랫폼은 각 도구의 공식 스킬 명세를 토대로 문서화되었고 파일 레이아웃
+> 열 개 플랫폼은 각 도구의 공식 스킬 명세를 토대로 문서화되었고 파일 레이아웃
 > 수준에서 검증되었으나（설치기는 테스트되었음）, 메인테이너가 모든 플랫폼에서 end-to-end로 직접 실행해 보지는
 > 못했습니다. 어떤 것을 시도해 보셨나요 — 잘 되든 **안 되든**? 플랫폼, 버전, 본 결과를 담아
 > [이슈를 열어 주세요](https://github.com/hyhmrright/brooks-lint/issues/new).

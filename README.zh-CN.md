@@ -76,7 +76,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 装好后直接开口（"审查这个 PR""审计架构"），或运行六个命令之一——`/brooks-review`、`/brooks-audit`、
 `/brooks-debt`、`/brooks-test`、`/brooks-health`、`/brooks-sweep`（[各自的作用](#斜杠命令)）。
 
-每条诊断都以 **症状 → 根源 → 后果 → 对策** 返回，附书目出处和 0–100 健康分。完整安装方式（另外 9 个
+每条诊断都以 **症状 → 根源 → 后果 → 对策** 返回，附书目出处和 0–100 健康分。完整安装方式（另外 10 个
 平台）和 CI/CD 配置见[下文](#安装)。
 
 ## 十二本书
@@ -270,7 +270,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # 在 Codex 会�
 
 或使用下面的安装器：`./scripts/install.sh gemini` / `./scripts/install.sh codex`。
 
-### 其它所有平台——OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
+### 其它所有平台——OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
 
 brooks-lint 以标准 [Agent Skills](https://agentskills.io) 形式分发。**任何加载 Agent Skills 的 agent
 都能无需任何转换运行全部六种模式**——一条命令即可安装：
@@ -278,7 +278,7 @@ brooks-lint 以标准 [Agent Skills](https://agentskills.io) 形式分发。**�
 ```bash
 # 选择你的平台；加 --project 装进当前仓库而非全局配置
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <平台>
-#   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
+#   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · bob · agents
 ```
 
 安装器会把技能**扁平**拷进该平台对应的文件夹，让共享框架（`../_shared/`）始终正确解析——你不可能装错布局。
@@ -295,12 +295,12 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | Kiro（AWS） | `~/.kiro/skills` | `AGENTS.md` | [配置](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [配置](docs/factory-droid-setup.md) |
 | DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [配置](docs/dsh-setup.md) |
-| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [setup](docs/bob-setup.md) |
+| IBM Bob（`bob`） | `~/.bob/skills` | `AGENTS.md` | [配置](docs/bob-setup.md) |
 
 Kiro、Factory Droid 与 DeepSeek Harness 还会自动注册 `/brooks-review`。不熟悉 skills、或用的是上面
 没列出的 agent？见 **[docs/getting-started.md](docs/getting-started.md)**。
 
-> **🧪 验证状态。** Claude Code、Gemini CLI、Codex CLI 已由维护者验证。上面九个平台依据各工具官方技能规范编写，
+> **🧪 验证状态。** Claude Code、Gemini CLI、Codex CLI 已由维护者验证。上面十个平台依据各工具官方技能规范编写，
 > 并已在文件布局层面验证（安装器经过测试），但维护者尚未在每个平台端到端实跑。在某平台试过了——无论成功**还是**失败？
 > 请[提一个 issue](https://github.com/hyhmrright/brooks-lint/issues/new)，附上平台、版本和你看到的结果。
 > 用的是其它兼容 Agent Skills 的 agent？它几乎肯定以同样方式工作——告诉我们，我们会补上。

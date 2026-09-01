@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 `/brooks-health`、`/brooks-sweep`（[それぞれの機能](#スラッシュコマンド)）。
 
 すべての指摘は **症状 → 根源 → 結果 → 対策** の形式で、書籍の出典と 0〜100 の健全性スコアとともに
-返されます。完全なインストール方法（さらに 9 つのプラットフォーム）と CI/CD のセットアップは
+返されます。完全なインストール方法（さらに 10 のプラットフォーム）と CI/CD のセットアップは
 [以下](#インストール)を参照してください。
 
 ## 十二冊の書籍
@@ -273,7 +273,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # Codex セッ�
 
 または下記のインストーラーを使用：`./scripts/install.sh gemini` / `./scripts/install.sh codex`。
 
-### その他すべてのプラットフォーム — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
+### その他すべてのプラットフォーム — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
 
 brooks-lint は標準的な [Agent Skills](https://agentskills.io) として配布されています。**Agent
 Skills を読み込むエージェントなら、どれも変換なしで六つすべてのモードを実行できます**——1 つのコマンドでインストールできます：
@@ -281,7 +281,7 @@ Skills を読み込むエージェントなら、どれも変換なしで六つ�
 ```bash
 # プラットフォームを選択；--project はグローバル設定ではなく現在のリポジトリにインストール
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · bob · agents
 ```
 
 インストーラーはスキルをあなたのプラットフォームに適したフォルダへ**フラット**にコピーするため、共有フレームワーク
@@ -300,12 +300,12 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | Kiro（AWS） | `~/.kiro/skills` | `AGENTS.md` | [設定](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [設定](docs/factory-droid-setup.md) |
 | DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [設定](docs/dsh-setup.md) |
-| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [setup](docs/bob-setup.md) |
+| IBM Bob（`bob`） | `~/.bob/skills` | `AGENTS.md` | [設定](docs/bob-setup.md) |
 
 Kiro、Factory Droid、DeepSeek Harness は `/brooks-review` も自動登録します。スキルが初めて、または
 上記にないエージェントをお使いですか？ **[docs/getting-started.md](docs/getting-started.md)** を参照してください。
 
-> **🧪 検証状況。** Claude Code、Gemini CLI、Codex CLI はメンテナーによって検証済みです。上記の九つの
+> **🧪 検証状況。** Claude Code、Gemini CLI、Codex CLI はメンテナーによって検証済みです。上記の十の
 > プラットフォームは各ツールの公式スキル仕様から文書化され、ファイルレイアウトのレベルで検証されています
 > （インストーラーはテスト済み）が、メンテナーがすべてのプラットフォームでエンドツーエンドに実行したわけ
 > ではまだありません。どれかを試した——動いた **または** 壊れた？ プラットフォーム、バージョン、見たこと

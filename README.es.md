@@ -78,7 +78,7 @@ Luego solo pide ("revisa este PR", "audita la arquitectura"), o ejecuta uno de l
 ([qué hace cada uno](#comandos-de-barra)).
 
 Cada hallazgo se devuelve como **Síntoma → Origen → Consecuencia → Remedio** con una cita de libro y
-una puntuación de salud de 0 a 100. Las opciones completas de instalación (9 plataformas más) y la
+una puntuación de salud de 0 a 100. Las opciones completas de instalación (10 plataformas más) y la
 configuración de CI/CD están [más abajo](#instalación).
 
 ## Los doce libros
@@ -273,7 +273,7 @@ Install the brooks-lint skill from hyhmrright/brooks-lint       # pídelo dentro
 
 O usa el instalador de abajo: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
 
-### Cualquier otra plataforma — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness
+### Cualquier otra plataforma — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
 
 brooks-lint se distribuye como [Agent Skills](https://agentskills.io) estándar. **Cualquier agente que cargue Agent
 Skills ejecuta los seis modos sin conversión alguna** — un solo comando los instala:
@@ -281,7 +281,7 @@ Skills ejecuta los seis modos sin conversión alguna** — un solo comando los i
 ```bash
 # elige tu plataforma; --project instala en el repositorio actual en lugar de en tu configuración global
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · bob · agents
 ```
 
 El instalador copia los skills **de forma plana** en la carpeta correcta, de modo que el framework compartido
@@ -299,12 +299,12 @@ El instalador copia los skills **de forma plana** en la carpeta correcta, de mod
 | Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [configuración](docs/kiro-setup.md) |
 | Factory Droid | `~/.factory/skills` | `AGENTS.md` | [configuración](docs/factory-droid-setup.md) |
 | DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [configuración](docs/dsh-setup.md) |
-| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [setup](docs/bob-setup.md) |
+| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [configuración](docs/bob-setup.md) |
 
 Kiro, Factory Droid y DeepSeek Harness también registran `/brooks-review` automáticamente. ¿Nuevo en los
 skills, o usas un agente que no aparece aquí? Consulta **[docs/getting-started.md](docs/getting-started.md)**.
 
-> **🧪 Estado de verificación.** Claude Code, Gemini CLI y Codex CLI están verificados por el mantenedor. Los diez
+> **🧪 Estado de verificación.** Claude Code, Gemini CLI y Codex CLI están verificados por el mantenedor. Las diez
 > plataformas anteriores están documentadas a partir de la especificación oficial de skills de cada herramienta y verificadas a nivel
 > de diseño de archivos (el instalador está probado), pero el mantenedor aún no las ha ejecutado de extremo a extremo en cada plataforma. ¿Probaste
 > alguna — funciona **o** está rota? [Abre un issue](https://github.com/hyhmrright/brooks-lint/issues/new) con

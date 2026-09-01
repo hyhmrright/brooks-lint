@@ -12,7 +12,7 @@ no conversion.
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- bob
 
 # from a clone
-./scripts/install.sh bob            # global: ~/.bob/skills (or $BOB_HOME/skills)
+./scripts/install.sh bob            # global: ~/.bob/skills
 ./scripts/install.sh bob --project  # this repo: ./.bob/skills
 ```
 
@@ -25,7 +25,7 @@ up automatically:
 | Root | Notes |
 |---|---|
 | `<projectRoot>/.bob/skills` | what `--project` writes |
-| `<bob_home>/skills` (default `~/.bob/skills`) | what the global install writes |
+| `~/.bob/skills` | what the global install writes |
 
 When the same skill name appears in two roots, the project-level skill takes precedence.
 
@@ -40,12 +40,14 @@ Just ask — Bob routes to a skill from its `description`:
 For explicit invocation, type `/` followed by the skill token in the chat prompt, or type it by
 hand: `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`,
 `/brooks-sweep`. The repo's `AGENTS.md` carries the Iron Law (Symptom → Source →
-Consequence → Remedy) and the Health Score rules; Bob also loads `$BOB_HOME/AGENTS.md` plus every
+Consequence → Remedy) and the Health Score rules; Bob also loads `~/.bob/AGENTS.md` plus every
 `AGENTS.md` from the project root down to your working directory.
 
 ## Notes
 
 - IBM Bob is available at [bob.ibm.com](https://bob.ibm.com); download and sign-in instructions
   are on that page.
-- 🧪 Documented per the Agent Skills subsystem contract; community end-to-end verification welcome —
+- 🧪 Documented per IBM's [Skills](https://bob.ibm.com/docs/ide/features/skills) and
+  [Configuring](https://bob.ibm.com/docs/shell/configuration/configuring) pages; community
+  end-to-end verification welcome —
   [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new).
