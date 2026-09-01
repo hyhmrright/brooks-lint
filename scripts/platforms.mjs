@@ -43,6 +43,29 @@ export function linkedSetupGuides(text) {
 }
 
 /**
+ * The `<platform> = …` line that tells a reader what `install.sh` accepts, plus
+ * the line after it, since the getting-started copy wraps mid-list. Returns ""
+ * when the document has no such line.
+ *
+ * This is the one place a platform has to be spelled out; a mere mention
+ * anywhere in the document is worthless as a check, because most platforms are
+ * named by their own install path (`~/.bob/skills` contains "bob") in a table
+ * row that checkPlatformDocs already requires.
+ */
+export function platformEnumeration(text) {
+  return text.match(/^.*<(?:platform|平台)>.*?[=∈].*(?:\n.*)?/m)?.[0] ?? "";
+}
+
+/**
+ * Whether some text names a platform as a whole token rather than a substring,
+ * so `pi` does not match "piper" and `bob` does not match "bob-setup.md". Splits
+ * rather than building a regex out of PLATFORMS, which is unvalidated text.
+ */
+export function namesPlatform(text, platform) {
+  return text.split(/[^a-z0-9-]+/).includes(platform);
+}
+
+/**
  * The installer's platform list plus the platforms each directory-mapping
  * function actually handles. A platform in PLATFORMS with no case arm fails
  * `install.sh <platform>` with "unknown platform"; a case arm missing from

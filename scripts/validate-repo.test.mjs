@@ -31,7 +31,12 @@ import { reportToSarif } from "./sarif.mjs";
 import { severityBreached, isRegression } from "./ci-gate.mjs";
 import { summarize } from "./benchmark.mjs";
 import { versionRefs } from "./version-refs.mjs";
-import { linkedSetupGuides, parseInstallerPlatforms } from "./platforms.mjs";
+import {
+  linkedSetupGuides,
+  parseInstallerPlatforms,
+  platformEnumeration,
+  namesPlatform,
+} from "./platforms.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -920,6 +925,40 @@ test("de-duplicates a guide linked more than once", () => {
 
 test("returns an empty array when no guide is linked", () => {
   assert.deepEqual(linkedSetupGuides("no links here"), []);
+});
+
+console.log("\nplatformEnumeration");
+
+test("picks the enumeration line, not the earlier <platform> placeholder", () => {
+  const text = "bash -s -- <platform>\n#   <platform> = opencode · kiro\n```";
+  assert.equal(platformEnumeration(text), "#   <platform> = opencode · kiro\n```");
+});
+
+test("keeps the continuation line, since getting-started wraps mid-list", () => {
+  const text = "`<platform>` ∈ `opencode · dsh ·\ngemini · agents`. Add `--project` to …";
+  assert.ok(platformEnumeration(text).includes("agents"));
+});
+
+test("matches the localized <平台> form", () => {
+  assert.ok(platformEnumeration("#   <平台> = opencode · kiro").includes("kiro"));
+});
+
+test("returns an empty string when the document has no enumeration", () => {
+  assert.equal(platformEnumeration("bash -s -- <platform>\n"), "");
+});
+
+console.log("\nnamesPlatform");
+
+test("matches a platform delimited by list separators", () => {
+  assert.ok(namesPlatform("opencode · bob · agents", "bob"));
+});
+
+test("does not match a platform buried in a hyphenated filename", () => {
+  assert.equal(namesPlatform("[setup](docs/bob-setup.md)", "bob"), false);
+});
+
+test("does not match a platform that is only a substring", () => {
+  assert.equal(namesPlatform("opencode · piper", "pi"), false);
 });
 
 console.log("\nparseInstallerPlatforms");

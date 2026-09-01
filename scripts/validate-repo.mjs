@@ -15,7 +15,14 @@ import {
 } from "./frontmatter.mjs";
 import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
 import { versionRefs } from "./version-refs.mjs";
-import { platformDocs, setupGuides, linkedSetupGuides, parseInstallerPlatforms } from "./platforms.mjs";
+import {
+  platformDocs,
+  setupGuides,
+  linkedSetupGuides,
+  parseInstallerPlatforms,
+  platformEnumeration,
+  namesPlatform,
+} from "./platforms.mjs";
 import { render as renderStarHistory, readStamps as readStarStamps } from "./gen-star-history.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -328,19 +335,34 @@ function checkAgentsDocs() {
 }
 
 // Every docs/<name>-setup.md must be linked from all six READMEs and the
-// getting-started table. A platform added to one language and forgotten in the
-// others was previously caught only by hand.
+// getting-started table, and every platform the installer accepts must appear in
+// each document's `<platform> = …` list. Linking alone was not enough: IBM Bob
+// arrived with its setup guide linked everywhere and its name missing from every
+// enumeration but the English one.
 function checkPlatformDocs() {
   const guides = setupGuides(root);
+  const { declared } = parseInstallerPlatforms(readText("scripts/install.sh"));
   check(guides.length > 0, "docs/ should contain at least one <platform>-setup.md guide");
 
   for (const file of platformDocs(root)) {
-    const linked = linkedSetupGuides(readText(file));
+    const text = readText(file);
+    const linked = linkedSetupGuides(text);
     for (const guide of guides) {
       check(linked.includes(guide), `${file} is missing an install-table link to docs/${guide}`);
     }
     for (const link of linked) {
       check(guides.includes(link), `${file} links to docs/${link}, which does not exist`);
+    }
+    const enumeration = platformEnumeration(text);
+    if (enumeration === "") {
+      check(false, `${file} has no '<platform> = …' list of the installer's platforms`);
+      continue;
+    }
+    for (const platform of declared) {
+      check(
+        namesPlatform(enumeration, platform),
+        `${file} omits '${platform}' from its '<platform> = …' list, which scripts/install.sh accepts`,
+      );
     }
   }
 }

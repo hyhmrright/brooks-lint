@@ -281,7 +281,7 @@ Skills ejecuta los seis modos sin conversión alguna** — un solo comando los i
 ```bash
 # elige tu plataforma; --project instala en el repositorio actual en lugar de en tu configuración global
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · bob · agents
+#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
 El instalador copia los skills **de forma plana** en la carpeta correcta, de modo que el framework compartido
