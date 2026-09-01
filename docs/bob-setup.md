@@ -25,10 +25,9 @@ up automatically:
 | Root | Notes |
 |---|---|
 | `<projectRoot>/.bob/skills` | what `--project` writes |
-| `$BOB_HOME/skills` (default `~/.bob/skills`) | what the global install writes |
+| `<bob_home>/skills` (default `~/.bob/skills`) | what the global install writes |
 
-The project root is the nearest ancestor containing `.git`; without one, Bob uses the current
-directory. When the same skill name appears in two roots, the project-level skill takes precedence.
+When the same skill name appears in two roots, the project-level skill takes precedence.
 
 ## Invoke
 
@@ -46,10 +45,6 @@ Consequence → Remedy) and the Health Score rules; Bob also loads `$BOB_HOME/AG
 
 ## Notes
 
-- **Flat layout** is mandatory (the installer guarantees it): discovery is one level deep
-  (`<root>/<name>/SKILL.md`), never recursive, and the skills read `../_shared/`, which only resolves
-  when `_shared/` sits beside the `brooks-*` folders. `_shared/` itself has no `SKILL.md`, so Bob
-  ignores it as a skill and the modes read it as ordinary files.
 - IBM Bob is available at [bob.ibm.com](https://bob.ibm.com); download and sign-in instructions
   are on that page.
 - 🧪 Documented per the Agent Skills subsystem contract; community end-to-end verification welcome —
