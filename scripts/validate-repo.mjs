@@ -22,6 +22,8 @@ import {
   parseInstallerPlatforms,
   platformEnumeration,
   namesPlatform,
+  opencodeCommandWrappers,
+  parseInstallerCommandDirs,
 } from "./platforms.mjs";
 import { render as renderStarHistory, readStamps as readStarStamps } from "./gen-star-history.mjs";
 
@@ -381,6 +383,52 @@ function checkInstallerPlatforms() {
   }
 }
 
+// OpenCode is the one platform whose slash-command wrappers install.sh ships.
+// The wrapper set is derived from the mode registry, so adding or renaming a
+// skill fails here instead of silently leaving a dead /brooks-* command behind.
+function checkOpencodeCommands() {
+  const wrappers = opencodeCommandWrappers(root);
+  const expected = SKILL_GUIDES.map(([dir]) => `${dir}.md`);
+
+  for (const file of expected) {
+    check(
+      wrappers.includes(file),
+      `commands/opencode/${file} is missing — every skill needs an OpenCode slash-command wrapper`,
+    );
+  }
+
+  for (const file of wrappers) {
+    check(
+      expected.includes(file),
+      `commands/opencode/${file} has no matching skill — remove the wrapper or register the skill`,
+    );
+
+    const text = readText(`commands/opencode/${file}`);
+    const frontmatter = text.match(/^---\n([\s\S]*?)\n---/);
+    check(
+      frontmatter !== null && /^description:\s*\S/m.test(frontmatter[1]),
+      `commands/opencode/${file} should declare a description: in its frontmatter`,
+    );
+    const skill = file.replace(/\.md$/, "");
+    check(
+      text.includes(skill),
+      `commands/opencode/${file} should point at the '${skill}' skill`,
+    );
+    check(
+      !text.includes("CLAUDE_PLUGIN_ROOT"),
+      `commands/opencode/${file} must be OpenCode-native — ${"${CLAUDE_PLUGIN_ROOT}"} only expands in Claude Code`,
+    );
+  }
+
+  if (wrappers.length > 0) {
+    const installer = readText("scripts/install.sh");
+    const { global: globalDirs, project: projectDirs } = parseInstallerCommandDirs(installer);
+    check(globalDirs.includes("opencode"), "scripts/install.sh global_command_dir() should map opencode");
+    check(projectDirs.includes("opencode"), "scripts/install.sh project_command_dir() should map opencode");
+    check(installer.includes("commands/opencode"), "scripts/install.sh should copy the commands/opencode wrappers");
+  }
+}
+
 // assets/star-history.svg is a pure function of assets/star-history.json, so a
 // mismatch means the chart was hand-edited or the data moved without a redraw.
 // Re-rendering here needs no credentials, which is the point of committing the
@@ -442,6 +490,7 @@ checkContributing();
 checkAgentsDocs();
 checkPlatformDocs();
 checkInstallerPlatforms();
+checkOpencodeCommands();
 checkSecurity();
 checkStarHistory();
 checkHookOutput();

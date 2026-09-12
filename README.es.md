@@ -301,7 +301,7 @@ El instalador copia los skills **de forma plana** en la carpeta correcta, de mod
 | DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [configuración](docs/dsh-setup.md) |
 | IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [configuración](docs/bob-setup.md) |
 
-Kiro, Factory Droid y DeepSeek Harness también registran `/brooks-review` automáticamente. ¿Nuevo en los
+OpenCode, Kiro, Factory Droid y DeepSeek Harness también registran `/brooks-review` automáticamente. ¿Nuevo en los
 skills, o usas un agente que no aparece aquí? Consulta **[docs/getting-started.md](docs/getting-started.md)**.
 
 > **🧪 Estado de verificación.** Claude Code, Gemini CLI y Codex CLI están verificados por el mantenedor. Las diez
@@ -324,12 +324,14 @@ skills, o usas un agente que no aparece aquí? Consulta **[docs/getting-started.
 
 **Sintaxis por plataforma.** Claude Code también acepta la forma con espacio de nombres
 `/brooks-lint:brooks-review` — las formas cortas las instala el hook session-start al iniciar la primera
-sesión. Codex CLI usa `$brooks-review`. Gemini CLI usa la tabla tal cual. OpenCode, Cursor, Antigravity, pi y
-DeepSeek Harness invocan los Agent Skills desde la `description` de cada skill, así que basta con pedirlo
-("revisa este PR", "¿dónde está nuestra peor deuda técnica?"); para invocarlos explícitamente usa la sintaxis
-propia de cada plataforma (pi registra cada skill como `/skill:brooks-review`; dsh usa la tabla tal cual, desde
-su menú `/` o escrito a mano). En todas las plataformas los skills también
-se activan solos cuando hablas de calidad de código, arquitectura o salud de las pruebas.
+sesión. Codex CLI usa `$brooks-review`. Gemini CLI usa la tabla tal cual. OpenCode usa la tabla tal cual
+una vez que el instalador coloca sus envoltorios de comando (`~/.config/opencode/command/`, o
+`.opencode/command/` con `--project`). Cursor, Antigravity, pi y DeepSeek Harness invocan los Agent Skills
+desde la `description` de cada skill, así que basta con pedirlo ("revisa este PR", "¿dónde está nuestra
+peor deuda técnica?"); para invocarlos explícitamente usa la sintaxis propia de cada plataforma (pi
+registra cada skill como `/skill:brooks-review`; dsh usa la tabla tal cual, desde su menú `/` o escrito a
+mano). En todas las plataformas los skills también se activan solos cuando hablas de calidad de código,
+arquitectura o salud de las pruebas.
 
 > Las revisiones de PR incluyen automáticamente una comprobación rápida de pruebas (Step 7, ligera; se omite
 > en diffs solo de documentación). Para una auditoría completa de pruebas usa `/brooks-test`; para profundizar
@@ -402,7 +404,7 @@ brooks-lint/
 │   ├── brooks-health/    # Modo 5: Panel de salud        → health-guide.md
 │   └── brooks-sweep/     # Modo 6: Barrido completo      → sweep-guide.md
 ├── hooks/                # hook SessionStart
-├── commands/             # envoltorios de comandos cortos (los instala el hook)
+├── commands/             # envoltorios cortos (hook de Claude + instalador de OpenCode)
 ├── evals/                # suite de 57 escenarios + corpus congelado de fidelidad del parser
 └── assets/               # logo, banner, demo
 ```
