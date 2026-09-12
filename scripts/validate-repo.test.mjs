@@ -36,6 +36,8 @@ import {
   parseInstallerPlatforms,
   platformEnumeration,
   namesPlatform,
+  opencodeCommandWrappers,
+  parseInstallerCommandDirs,
 } from "./platforms.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -1007,6 +1009,48 @@ test("parses the real installer, proving the patterns still match", () => {
   assert.ok(declared.length >= 12, `expected the full platform list, got ${declared.length}`);
   assert.deepEqual(new Set(globalArms), new Set(declared));
   assert.deepEqual(new Set(project), new Set(declared));
+});
+
+console.log("\nparseInstallerCommandDirs");
+
+const COMMAND_FIXTURE = [
+  "global_command_dir() {",
+  "  case $1 in",
+  "    opencode) printf '%s' \"$HOME/.config/opencode/command\" ;;",
+  "    *)        return 1 ;;",
+  "  esac",
+  "}",
+  "",
+  "project_command_dir() {",
+  "  case $1 in",
+  "    opencode) printf '%s' \"$PWD/.opencode/command\" ;;",
+  "    *)        return 1 ;;",
+  "  esac",
+  "}",
+].join("\n");
+
+test("reads the opencode command folder for both scopes", () => {
+  const parsed = parseInstallerCommandDirs(COMMAND_FIXTURE);
+  assert.deepEqual(parsed.global, ["opencode"]);
+  assert.deepEqual(parsed.project, ["opencode"]);
+});
+
+test("returns empty arrays when the installer has no command mappings", () => {
+  assert.deepEqual(parseInstallerCommandDirs("#!/usr/bin/env bash"), { global: [], project: [] });
+});
+
+test("parses the real installer's command mappings", () => {
+  const installer = readFileSync(path.join(__dirname, "install.sh"), "utf8");
+  const { global: globalDirs, project } = parseInstallerCommandDirs(installer);
+  assert.ok(globalDirs.includes("opencode"), "global_command_dir() should map opencode");
+  assert.ok(project.includes("opencode"), "project_command_dir() should map opencode");
+});
+
+console.log("\nopencodeCommandWrappers");
+
+test("ships exactly one OpenCode wrapper per mode", () => {
+  const wrappers = opencodeCommandWrappers(path.resolve(__dirname, ".."));
+  assert.deepEqual(wrappers, VALID_MODES.map((mode) => `brooks-${mode}.md`).sort());
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────

@@ -10,7 +10,7 @@
  * (see version-refs.mjs).
  */
 
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -84,4 +84,29 @@ export function parseInstallerPlatforms(text) {
 function caseArms(text, fnName) {
   const body = text.match(new RegExp(`^${fnName}\\(\\) \\{$([\\s\\S]*?)^\\}$`, "m"))?.[1] ?? "";
   return [...body.matchAll(/^\s+([a-z][a-z0-9-]*)\)/gm)].map((match) => match[1]);
+}
+
+/**
+ * OpenCode slash-command wrappers shipped in the repo, as bare filenames.
+ * install.sh copies these flat into OpenCode's command folder; the wrapper set
+ * has to track the skill registry or a renamed skill leaves a dead /brooks-*.
+ */
+export function opencodeCommandWrappers(root) {
+  const dir = path.join(root, "commands", "opencode");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((file) => file.endsWith(".md"))
+    .sort();
+}
+
+/**
+ * The slash-command directory mappings install.sh declares, per scope. Unlike
+ * the skills mappings, only platforms that ship wrappers appear — a platform
+ * missing here is legal, which is exactly what the OpenCode command check needs.
+ */
+export function parseInstallerCommandDirs(text) {
+  return {
+    global: caseArms(text, "global_command_dir"),
+    project: caseArms(text, "project_command_dir"),
+  };
 }

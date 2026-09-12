@@ -300,7 +300,7 @@ The installer copies the skills **flat** into the right folder, so the shared fr
 | DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [setup](docs/dsh-setup.md) |
 | IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [setup](docs/bob-setup.md) |
 
-Kiro, Factory Droid, and DeepSeek Harness also auto-register `/brooks-review`. New to skills, or
+OpenCode, Kiro, Factory Droid, and DeepSeek Harness also auto-register `/brooks-review`. New to skills, or
 using an agent not listed? See **[docs/getting-started.md](docs/getting-started.md)**.
 
 > **🧪 Verification status.** Claude Code, Gemini CLI, and Codex CLI are maintainer-verified. The
@@ -325,11 +325,13 @@ using an agent not listed? See **[docs/getting-started.md](docs/getting-started.
 **Syntax by platform.** Claude Code also accepts the namespaced form
 `/brooks-lint:brooks-review` — short forms are auto-installed on first session start by the
 session-start hook. Codex CLI uses `$brooks-review`. Gemini CLI uses the table as written.
-OpenCode, Cursor, Antigravity, pi, and DeepSeek Harness invoke Agent Skills from each skill's
-`description`, so just ask ("review this PR", "where's our worst tech debt?"); for explicit
-invocation use the platform's own syntax (pi registers each skill as `/skill:brooks-review`; dsh
-takes the table as written, from its `/` menu or typed inline). On every platform the
-skills also trigger automatically when you discuss code quality, architecture, or test health.
+OpenCode uses the table as written once the installer has dropped its command wrappers
+(`~/.config/opencode/command/`, or `.opencode/command/` with `--project`). Cursor, Antigravity,
+pi, and DeepSeek Harness invoke Agent Skills from each skill's `description`, so just ask
+("review this PR", "where's our worst tech debt?"); for explicit invocation use the platform's
+own syntax (pi registers each skill as `/skill:brooks-review`; dsh takes the table as written,
+from its `/` menu or typed inline). On every platform the skills also trigger automatically when
+you discuss code quality, architecture, or test health.
 
 > PR reviews include a lightweight Step 7 Quick Test Check automatically (skipped for docs-only
 > diffs). For a full test audit, run `/brooks-test`; for a deep dive on any single dimension,
@@ -402,7 +404,7 @@ brooks-lint/
 │   ├── brooks-health/    # Mode 5: Health Dashboard   → health-guide.md
 │   └── brooks-sweep/     # Mode 6: Full Sweep         → sweep-guide.md
 ├── hooks/                # SessionStart hook
-├── commands/             # short-form command wrappers (auto-installed by the hook)
+├── commands/             # short-form wrappers (Claude hook + OpenCode installer)
 ├── evals/                # 57-scenario eval suite + frozen parser-fidelity corpus
 └── assets/               # logo, banner, demo
 ```

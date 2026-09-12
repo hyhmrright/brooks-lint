@@ -28,8 +28,18 @@ Just ask — OpenCode auto-selects skills from each `description`:
 - "audit the architecture" → `brooks-audit`
 - "where's our worst tech debt?" → `brooks-debt`
 
-For explicit invocation, `/brooks-review` etc. are available once the skill is discovered. The repo's
-`AGENTS.md` carries the Iron Law (Symptom → Source → Consequence → Remedy) and the Health Score rules.
+For explicit invocation, the installer also drops one thin slash-command wrapper per mode:
+
+```
+/brooks-review  /brooks-audit  /brooks-debt  /brooks-test  /brooks-health  /brooks-sweep
+```
+
+Global installs put them in `~/.config/opencode/command/`; `--project` uses `.opencode/command/`. Each
+wrapper just loads the matching skill, so there is no logic to drift out of sync. Installing by hand?
+Copy `commands/opencode/*.md` into that folder after the skills.
+
+The repo's `AGENTS.md` carries the Iron Law (Symptom → Source → Consequence → Remedy) and the Health
+Score rules.
 
 ## Notes
 

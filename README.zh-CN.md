@@ -297,7 +297,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [配置](docs/dsh-setup.md) |
 | IBM Bob（`bob`） | `~/.bob/skills` | `AGENTS.md` | [配置](docs/bob-setup.md) |
 
-Kiro、Factory Droid 与 DeepSeek Harness 还会自动注册 `/brooks-review`。不熟悉 skills、或用的是上面
+OpenCode、Kiro、Factory Droid 与 DeepSeek Harness 还会自动注册 `/brooks-review`。不熟悉 skills、或用的是上面
 没列出的 agent？见 **[docs/getting-started.md](docs/getting-started.md)**。
 
 > **🧪 验证状态。** Claude Code、Gemini CLI、Codex CLI 已由维护者验证。上面十个平台依据各工具官方技能规范编写，
@@ -318,8 +318,9 @@ Kiro、Factory Droid 与 DeepSeek Harness 还会自动注册 `/brooks-review`。
 
 **各平台语法。** Claude Code 也接受带命名空间的完整形式 `/brooks-lint:brooks-review`——短命令由
 session-start 钩子在首次会话启动时自动安装。Codex CLI 用 `$brooks-review`。Gemini CLI 直接用上表。
-OpenCode、Cursor、Antigravity、pi、DeepSeek Harness 依据每个技能的 `description` 自动调用 Agent
-Skills，直接提问即可（"审查这个 PR"、"我们最糟的技术债在哪"）；需要显式调用时用各平台自己的语法
+OpenCode 在安装器放入命令包装后同样直接用上表（`~/.config/opencode/command/`，加 `--project` 则为
+`.opencode/command/`）。Cursor、Antigravity、pi、DeepSeek Harness 依据每个技能的 `description` 自动调用
+Agent Skills，直接提问即可（"审查这个 PR"、"我们最糟的技术债在哪"）；需要显式调用时用各平台自己的语法
 （pi 把每个技能注册为 `/skill:brooks-review`；dsh 直接用上表，可从 `/` 菜单选或手打）。在所有平台上，
 当你讨论代码质量、架构或测试健康时，这些技能也会自动触发。
 
@@ -391,7 +392,7 @@ brooks-lint/
 │   ├── brooks-health/    # 模式 5：健康仪表盘   → health-guide.md
 │   └── brooks-sweep/     # 模式 6：全面扫描     → sweep-guide.md
 ├── hooks/                # SessionStart 钩子
-├── commands/             # 短命令包装（由钩子自动安装）
+├── commands/             # 短命令包装（Claude 钩子 + OpenCode 安装器）
 ├── evals/                # 57 场景评测套件 + 冻结的 parser 保真度语料
 └── assets/               # logo、banner、demo
 ```
