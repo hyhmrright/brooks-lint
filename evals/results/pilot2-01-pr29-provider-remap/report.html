@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — brooks-lint v1.5.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>brooks-lint v1.5.0</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-pos">↑ +71.4 pts</span> vs baseline — improved 1 · flat 0 · regressed 0 of 1 case.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.270</span>
+<span class="num">2026-09-14 13:02 UTC</span>
+<span class="num">2m 46s</span>
+<span class="num">$1.01</span>
+<span class="num">2 runs</span>
+<span class="num">2 in flight</span>
+
+
+<span>judge opus</span>
+<span class="num">threshold 100%</span>
+<span>filtered: --case 01-pr29-provider-remap</span>
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">100%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-pos">↑ +71.4</span><span class="sub">score points vs baseline, 1 of 1 case</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">28.6%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">1</span><span class="sub">1 of 1 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">100%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>01-pr29-provider-remap</h2>
+<span class="muted mono">evals/01-pr29-provider-remap</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +71.4 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">14 turns · $0.60 · 13:02:21 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">finds-magic-string-remap</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** PR diff only — no local checkout available, so this is diff-based (3 files: `.github/actions/brooks-lint/action.yml`, `scripts/ci-review.mjs`, `scripts/run-evals-live.mjs`)
+**Health Score:** 85/100
+
+Solid, minimal-footprint feature addition with one real duplication debt — but there are three correctness/operational risks below that I&apos;d resolve before merging regardless of the decay score.
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Knowledge Duplication — provider dispatch logic copy-pasted across two scripts**
+Symptom: `EXAMPLEGW_BASE_URL`, the `DEFAULT_MODELS` map, the `provider` validation block, and the `thinking: {type: &quot;disabled&quot;}` conditional spread are byte-for-byte identical in `scripts/ci-review.mjs` and `scripts/run-evals-live.mjs`.
+Source: Hunt &amp; Thomas — *The Pragmatic Programmer*, DRY / Fowler — *Refactoring*, Duplicate Code
+Consequence: the two copies will drift the first time either needs a fix (e.g. gateway URL change, a new provider, or a correction to the thinking-disable behavior) — this PR is itself evidence of the pattern, since it introduced the duplicate rather than a shared helper.
+Remedy: extract a small shared module (e.g. `scripts/lib/provider.mjs`) exporting something like `resolveProvider(providerName, requestedModel) -&gt; { model, client, requestOverrides }`, imported by both scripts.
+
+**Knowledge Duplication — &quot;default Anthropic model&quot; decision encoded in three unsynchronized places**
+Symptom: `action.yml`&apos;s `model` input default, `ci-review.mjs`&apos;s `DEFAULT_MODELS.anthropic`, and the bash literal `if [ &quot;$MODEL&quot; = &quot;claude-sonnet-4-6&quot; ]` in `action.yml` all separately encode &quot;the default model is claude-sonnet-4-6.&quot;
+Source: Winters et al. — *Software Engineering at Google*, Ch. 1 (implicit contracts via observable coupling)
+Consequence: bumping the default model in one place silently breaks the ExampleGW remap — the gateway then receives a bare, unresolvable model id and fails per-call with a gateway-side error rather than an obvious config error.
+Remedy: have the bash remap consult the same table `ci-review.mjs` owns (or move the remap decision entirely into `ci-review.mjs`, since it&apos;s already the source of truth for `DEFAULT_MODELS`) instead of re-deriving it as a shell string comparison.
+
+**Coverage Illusion — new provider-branching logic has no test coverage**
+Symptom: the diff adds several new decision points (unknown-provider exit, missing-`examplegw-api-key` exit, model remap, thinking-disable branch) with no accompanying test changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1
+Consequence: this logic runs unattended in CI gating merges — a regression here surfaces as a confusing pipeline failure on someone else&apos;s unrelated PR, not as a caught test failure.
+Remedy: add scenario coverage (via `run-evals-live.mjs`&apos;s own harness or a lightweight script test) for: valid `examplegw` config, missing `examplegw-api-key`, and an unknown `--provider` value.
+
+---
+
+## Summary
+
+Health Score reflects the decay-risk view (mostly one duplication smell, addressed by a shared helper). Recommended fix order: extract the shared provider module first — it resolves both duplication findings at once — then add the missing scenario tests.
+
+---
+
+## Beyond Brooks-Lint: correctness risks worth resolving before merge
+
+These aren&apos;t decay/maintainability findings, but they&apos;d block me from approving as-is:
+
+1. **`https://api.examplegw.example` uses a reserved, non-routable TLD.** `.example` is carved out by RFC 2606 specifically so it never resolves on the public internet — if that&apos;s literally the string in the source (not a stand-in you substituted for pasting this diff to me), every ExampleGW request will fail DNS resolution. Worth a final grep before merge to confirm it&apos;s the real hostname.
+2. **Unverified auth header.** The code authenticates to ExampleGW by setting `ANTHROPIC_API_KEY` and constructing a bare `new Anthropic({ baseURL })`. The Anthropic SDK sends that credential via the `x-api-key` header, not `Authorization: Bearer`. Given ExampleGW issues differently-prefixed keys (`sk-gw-...`), confirm it actually reads `x-api-key` — a mismatch fails as a runtime auth error, not at review time.
+3. **Disabling thinking to fit the fixed `max_tokens: 4096` budget is a known footgun, not a safe workaround.** On current Claude models, `thinking: {type: &quot;disabled&quot;}` can cause the model to write a tool call or reasoning tags directly into visible text instead of a structured block, with no error raised — which would flow straight into this action&apos;s SARIF/JSON output. If ExampleGW proxies real Claude models, prefer leaving thinking on and controlling spend via `output_config: {effort: &quot;low&quot;}` (or raising `max_tokens`) instead of disabling it outright.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">finds-multiple-sources-of-truth</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** PR diff only — no local checkout available, so this is diff-based (3 files: `.github/actions/brooks-lint/action.yml`, `scripts/ci-review.mjs`, `scripts/run-evals-live.mjs`)
+**Health Score:** 85/100
+
+Solid, minimal-footprint feature addition with one real duplication debt — but there are three correctness/operational risks below that I&apos;d resolve before merging regardless of the decay score.
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Knowledge Duplication — provider dispatch logic copy-pasted across two scripts**
+Symptom: `EXAMPLEGW_BASE_URL`, the `DEFAULT_MODELS` map, the `provider` validation block, and the `thinking: {type: &quot;disabled&quot;}` conditional spread are byte-for-byte identical in `scripts/ci-review.mjs` and `scripts/run-evals-live.mjs`.
+Source: Hunt &amp; Thomas — *The Pragmatic Programmer*, DRY / Fowler — *Refactoring*, Duplicate Code
+Consequence: the two copies will drift the first time either needs a fix (e.g. gateway URL change, a new provider, or a correction to the thinking-disable behavior) — this PR is itself evidence of the pattern, since it introduced the duplicate rather than a shared helper.
+Remedy: extract a small shared module (e.g. `scripts/lib/provider.mjs`) exporting something like `resolveProvider(providerName, requestedModel) -&gt; { model, client, requestOverrides }`, imported by both scripts.
+
+**Knowledge Duplication — &quot;default Anthropic model&quot; decision encoded in three unsynchronized places**
+Symptom: `action.yml`&apos;s `model` input default, `ci-review.mjs`&apos;s `DEFAULT_MODELS.anthropic`, and the bash literal `if [ &quot;$MODEL&quot; = &quot;claude-sonnet-4-6&quot; ]` in `action.yml` all separately encode &quot;the default model is claude-sonnet-4-6.&quot;
+Source: Winters et al. — *Software Engineering at Google*, Ch. 1 (implicit contracts via observable coupling)
+Consequence: bumping the default model in one place silently breaks the ExampleGW remap — the gateway then receives a bare, unresolvable model id and fails per-call with a gateway-side error rather than an obvious config error.
+Remedy: have the bash remap consult the same table `ci-review.mjs` owns (or move the remap decision entirely into `ci-review.mjs`, since it&apos;s already the source of truth for `DEFAULT_MODELS`) instead of re-deriving it as a shell string comparison.
+
+**Coverage Illusion — new provider-branching logic has no test coverage**
+Symptom: the diff adds several new decision points (unknown-provider exit, missing-`examplegw-api-key` exit, model remap, thinking-disable branch) with no accompanying test changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1
+Consequence: this logic runs unattended in CI gating merges — a regression here surfaces as a confusing pipeline failure on someone else&apos;s unrelated PR, not as a caught test failure.
+Remedy: add scenario coverage (via `run-evals-live.mjs`&apos;s own harness or a lightweight script test) for: valid `examplegw` config, missing `examplegw-api-key`, and an unknown `--provider` value.
+
+---
+
+## Summary
+
+Health Score reflects the decay-risk view (mostly one duplication smell, addressed by a shared helper). Recommended fix order: extract the shared provider module first — it resolves both duplication findings at once — then add the missing scenario tests.
+
+---
+
+## Beyond Brooks-Lint: correctness risks worth resolving before merge
+
+These aren&apos;t decay/maintainability findings, but they&apos;d block me from approving as-is:
+
+1. **`https://api.examplegw.example` uses a reserved, non-routable TLD.** `.example` is carved out by RFC 2606 specifically so it never resolves on the public internet — if that&apos;s literally the string in the source (not a stand-in you substituted for pasting this diff to me), every ExampleGW request will fail DNS resolution. Worth a final grep before merge to confirm it&apos;s the real hostname.
+2. **Unverified auth header.** The code authenticates to ExampleGW by setting `ANTHROPIC_API_KEY` and constructing a bare `new Anthropic({ baseURL })`. The Anthropic SDK sends that credential via the `x-api-key` header, not `Authorization: Bearer`. Given ExampleGW issues differently-prefixed keys (`sk-gw-...`), confirm it actually reads `x-api-key` — a mismatch fails as a runtime auth error, not at review time.
+3. **Disabling thinking to fit the fixed `max_tokens: 4096` budget is a known footgun, not a safe workaround.** On current Claude models, `thinking: {type: &quot;disabled&quot;}` can cause the model to write a tool call or reasoning tags directly into visible text instead of a structured block, with no error raised — which would flow straight into this action&apos;s SARIF/JSON output. If ExampleGW proxies real Claude models, prefer leaving thinking on and controlling spend via `output_config: {effort: &quot;low&quot;}` (or raising `max_tokens`) instead of disabling it outright.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched Health Score\W*\d{1,3}\s*/\s*100</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-factual-misreads</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** PR diff only — no local checkout available, so this is diff-based (3 files: `.github/actions/brooks-lint/action.yml`, `scripts/ci-review.mjs`, `scripts/run-evals-live.mjs`)
+**Health Score:** 85/100
+
+Solid, minimal-footprint feature addition with one real duplication debt — but there are three correctness/operational risks below that I&apos;d resolve before merging regardless of the decay score.
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Knowledge Duplication — provider dispatch logic copy-pasted across two scripts**
+Symptom: `EXAMPLEGW_BASE_URL`, the `DEFAULT_MODELS` map, the `provider` validation block, and the `thinking: {type: &quot;disabled&quot;}` conditional spread are byte-for-byte identical in `scripts/ci-review.mjs` and `scripts/run-evals-live.mjs`.
+Source: Hunt &amp; Thomas — *The Pragmatic Programmer*, DRY / Fowler — *Refactoring*, Duplicate Code
+Consequence: the two copies will drift the first time either needs a fix (e.g. gateway URL change, a new provider, or a correction to the thinking-disable behavior) — this PR is itself evidence of the pattern, since it introduced the duplicate rather than a shared helper.
+Remedy: extract a small shared module (e.g. `scripts/lib/provider.mjs`) exporting something like `resolveProvider(providerName, requestedModel) -&gt; { model, client, requestOverrides }`, imported by both scripts.
+
+**Knowledge Duplication — &quot;default Anthropic model&quot; decision encoded in three unsynchronized places**
+Symptom: `action.yml`&apos;s `model` input default, `ci-review.mjs`&apos;s `DEFAULT_MODELS.anthropic`, and the bash literal `if [ &quot;$MODEL&quot; = &quot;claude-sonnet-4-6&quot; ]` in `action.yml` all separately encode &quot;the default model is claude-sonnet-4-6.&quot;
+Source: Winters et al. — *Software Engineering at Google*, Ch. 1 (implicit contracts via observable coupling)
+Consequence: bumping the default model in one place silently breaks the ExampleGW remap — the gateway then receives a bare, unresolvable model id and fails per-call with a gateway-side error rather than an obvious config error.
+Remedy: have the bash remap consult the same table `ci-review.mjs` owns (or move the remap decision entirely into `ci-review.mjs`, since it&apos;s already the source of truth for `DEFAULT_MODELS`) instead of re-deriving it as a shell string comparison.
+
+**Coverage Illusion — new provider-branching logic has no test coverage**
+Symptom: the diff adds several new decision points (unknown-provider exit, missing-`examplegw-api-key` exit, model remap, thinking-disable branch) with no accompanying test changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1
+Consequence: this logic runs unattended in CI gating merges — a regression here surfaces as a confusing pipeline failure on someone else&apos;s unrelated PR, not as a caught test failure.
+Remedy: add scenario coverage (via `run-evals-live.mjs`&apos;s own harness or a lightweight script test) for: valid `examplegw` config, missing `examplegw-api-key`, and an unknown `--provider` value.
+
+---
+
+## Summary
+
+Health Score reflects the decay-risk view (mostly one duplication smell, addressed by a shared helper). Recommended fix order: extract the shared provider module first — it resolves both duplication findings at once — then add the missing scenario tests.
+
+---
+
+## Beyond Brooks-Lint: correctness risks worth resolving before merge
+
+These aren&apos;t decay/maintainability findings, but they&apos;d block me from approving as-is:
+
+1. **`https://api.examplegw.example` uses a reserved, non-routable TLD.** `.example` is carved out by RFC 2606 specifically so it never resolves on the public internet — if that&apos;s literally the string in the source (not a stand-in you substituted for pasting this diff to me), every ExampleGW request will fail DNS resolution. Worth a final grep before merge to confirm it&apos;s the real hostname.
+2. **Unverified auth header.** The code authenticates to ExampleGW by setting `ANTHROPIC_API_KEY` and constructing a bare `new Anthropic({ baseURL })`. The Anthropic SDK sends that credential via the `x-api-key` header, not `Authorization: Bearer`. Given ExampleGW issues differently-prefixed keys (`sk-gw-...`), confirm it actually reads `x-api-key` — a mismatch fails as a runtime auth error, not at review time.
+3. **Disabling thinking to fit the fixed `max_tokens: 4096` budget is a known footgun, not a safe workaround.** On current Claude models, `thinking: {type: &quot;disabled&quot;}` can cause the model to write a tool call or reasoning tags directly into visible text instead of a structured block, with no error raised — which would flow straight into this action&apos;s SARIF/JSON output. If ExampleGW proxies real Claude models, prefer leaving thinking on and controlling spend via `output_config: {effort: &quot;low&quot;}` (or raising `max_tokens`) instead of disabling it outright.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:28.6%"></span></span>
+<span class="num">28.6%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:28.6%"></span></span>
+<span class="num">28.6%</span>
+<span class="muted num">5 turns · $0.41 · 13:02:21 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">finds-magic-string-remap</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The repo isn&apos;t checked out locally, so this review is based on the diff alone (confirmed `EXAMPLEGW_API_KEY` appears nowhere outside the diff hunks shown — there&apos;s no hidden wiring elsewhere).
+
+## Real bug (likely breaks the feature, and is a credential-leak risk)
+
+**`scripts/run-evals-live.mjs` never reads `EXAMPLEGW_API_KEY`.** The added header comment documents:
+```
+EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw
+```
+but nothing in the diff sets `process.env.ANTHROPIC_API_KEY = process.env.EXAMPLEGW_API_KEY` (or passes an explicit `apiKey` to the `Anthropic` constructor). The client is built as:
+```js
+const client = new Anthropic(provider === &quot;examplegw&quot; ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);
+```
+Since the SDK falls back to `ANTHROPIC_API_KEY` from the environment when no `apiKey` is passed, this means:
+- If the dev&apos;s shell has no `ANTHROPIC_API_KEY` set, the call just fails auth — annoying but safe.
+- If the dev&apos;s shell *does* have `ANTHROPIC_API_KEY` set (common for local dev), running with `--provider examplegw` will silently send their **real Anthropic key** to `api.examplegw.example` instead of the intended `EXAMPLEGW_API_KEY`. That&apos;s a credential leak to a third-party endpoint, not just a functional bug.
+
+Compare with `.github/actions/brooks-lint/action.yml`, which does this swap correctly at the bash level (`export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;`) before invoking `ci-review.mjs`. `run-evals-live.mjs` has no equivalent wrapper, so it needs the same swap done in-script, e.g.:
+```js
+const apiKey = provider === &quot;examplegw&quot; ? process.env.EXAMPLEGW_API_KEY : process.env.ANTHROPIC_API_KEY;
+const client = new Anthropic(provider === &quot;examplegw&quot; ? { apiKey, baseURL: EXAMPLEGW_BASE_URL } : undefined);
+```
+This should block merge — it&apos;s the one path in the PR that&apos;s directly user-invoked (not wrapped by the composite action), and it does the wrong thing silently.
+
+## Secondary issues worth a look
+
+- **Model remap is too narrow.** Both the action&apos;s bash script and `ci-review.mjs`/`run-evals-live.mjs` only remap the model when it&apos;s exactly the literal default `claude-sonnet-4-6`. Any caller who explicitly passes `--model` (or overrides the `model` input) with a bare Anthropic ID when `provider=examplegw` will bypass remapping and hit ExampleGW with an unresolvable model ID — per your own comment, &quot;bare Anthropic model ids are not resolvable through the gateway.&quot; Worth either validating/prefixing more generally for `examplegw`, or at minimum failing loudly instead of passing through unmapped IDs.
+- **No upfront validation of `$PROVIDER` in the bash script.** `ci-review.mjs`/`run-evals-live.mjs` both explicitly reject unknown providers, but `action.yml`&apos;s bash only branches on `= &quot;examplegw&quot;` vs. else-anthropic. A typo like `provider: ExampleGW` silently falls into the anthropic branch and produces a confusing &quot;anthropic-api-key is required&quot; error instead of &quot;unknown provider.&quot;
+- **Minor:** `examplegw-api-key` is documented as `sk-gw-...` but nothing checks the prefix — low severity, just noting since it&apos;s called out in the description text.
+
+The Sonnet 5 + `thinking: {type: &quot;disabled&quot;}` combination used for the ExampleGW path is valid (Sonnet 5 accepts disabled thinking), so that part is fine as-is.
+
+**Bottom line:** fix the `run-evals-live.mjs` API-key wiring before merging — as written it can silently exfiltrate a real Anthropic key to the gateway endpoint. The model-remap narrowness and provider-typo handling are worth a follow-up but aren&apos;t blockers.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">finds-multiple-sources-of-truth</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The repo isn&apos;t checked out locally, so this review is based on the diff alone (confirmed `EXAMPLEGW_API_KEY` appears nowhere outside the diff hunks shown — there&apos;s no hidden wiring elsewhere).
+
+## Real bug (likely breaks the feature, and is a credential-leak risk)
+
+**`scripts/run-evals-live.mjs` never reads `EXAMPLEGW_API_KEY`.** The added header comment documents:
+```
+EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw
+```
+but nothing in the diff sets `process.env.ANTHROPIC_API_KEY = process.env.EXAMPLEGW_API_KEY` (or passes an explicit `apiKey` to the `Anthropic` constructor). The client is built as:
+```js
+const client = new Anthropic(provider === &quot;examplegw&quot; ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);
+```
+Since the SDK falls back to `ANTHROPIC_API_KEY` from the environment when no `apiKey` is passed, this means:
+- If the dev&apos;s shell has no `ANTHROPIC_API_KEY` set, the call just fails auth — annoying but safe.
+- If the dev&apos;s shell *does* have `ANTHROPIC_API_KEY` set (common for local dev), running with `--provider examplegw` will silently send their **real Anthropic key** to `api.examplegw.example` instead of the intended `EXAMPLEGW_API_KEY`. That&apos;s a credential leak to a third-party endpoint, not just a functional bug.
+
+Compare with `.github/actions/brooks-lint/action.yml`, which does this swap correctly at the bash level (`export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;`) before invoking `ci-review.mjs`. `run-evals-live.mjs` has no equivalent wrapper, so it needs the same swap done in-script, e.g.:
+```js
+const apiKey = provider === &quot;examplegw&quot; ? process.env.EXAMPLEGW_API_KEY : process.env.ANTHROPIC_API_KEY;
+const client = new Anthropic(provider === &quot;examplegw&quot; ? { apiKey, baseURL: EXAMPLEGW_BASE_URL } : undefined);
+```
+This should block merge — it&apos;s the one path in the PR that&apos;s directly user-invoked (not wrapped by the composite action), and it does the wrong thing silently.
+
+## Secondary issues worth a look
+
+- **Model remap is too narrow.** Both the action&apos;s bash script and `ci-review.mjs`/`run-evals-live.mjs` only remap the model when it&apos;s exactly the literal default `claude-sonnet-4-6`. Any caller who explicitly passes `--model` (or overrides the `model` input) with a bare Anthropic ID when `provider=examplegw` will bypass remapping and hit ExampleGW with an unresolvable model ID — per your own comment, &quot;bare Anthropic model ids are not resolvable through the gateway.&quot; Worth either validating/prefixing more generally for `examplegw`, or at minimum failing loudly instead of passing through unmapped IDs.
+- **No upfront validation of `$PROVIDER` in the bash script.** `ci-review.mjs`/`run-evals-live.mjs` both explicitly reject unknown providers, but `action.yml`&apos;s bash only branches on `= &quot;examplegw&quot;` vs. else-anthropic. A typo like `provider: ExampleGW` silently falls into the anthropic branch and produces a confusing &quot;anthropic-api-key is required&quot; error instead of &quot;unknown provider.&quot;
+- **Minor:** `examplegw-api-key` is documented as `sk-gw-...` but nothing checks the prefix — low severity, just noting since it&apos;s called out in the description text.
+
+The Sonnet 5 + `thinking: {type: &quot;disabled&quot;}` combination used for the ExampleGW path is valid (Sonnet 5 accepts disabled thinking), so that part is fine as-is.
+
+**Bottom line:** fix the `run-evals-live.mjs` API-key wiring before merging — as written it can silently exfiltrate a real Anthropic key to the gateway endpoint. The model-remap narrowness and provider-typo handling are worth a follow-up but aren&apos;t blockers.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-factual-misreads</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL PASS FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✓ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The repo isn&apos;t checked out locally, so this review is based on the diff alone (confirmed `EXAMPLEGW_API_KEY` appears nowhere outside the diff hunks shown — there&apos;s no hidden wiring elsewhere).
+
+## Real bug (likely breaks the feature, and is a credential-leak risk)
+
+**`scripts/run-evals-live.mjs` never reads `EXAMPLEGW_API_KEY`.** The added header comment documents:
+```
+EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw
+```
+but nothing in the diff sets `process.env.ANTHROPIC_API_KEY = process.env.EXAMPLEGW_API_KEY` (or passes an explicit `apiKey` to the `Anthropic` constructor). The client is built as:
+```js
+const client = new Anthropic(provider === &quot;examplegw&quot; ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);
+```
+Since the SDK falls back to `ANTHROPIC_API_KEY` from the environment when no `apiKey` is passed, this means:
+- If the dev&apos;s shell has no `ANTHROPIC_API_KEY` set, the call just fails auth — annoying but safe.
+- If the dev&apos;s shell *does* have `ANTHROPIC_API_KEY` set (common for local dev), running with `--provider examplegw` will silently send their **real Anthropic key** to `api.examplegw.example` instead of the intended `EXAMPLEGW_API_KEY`. That&apos;s a credential leak to a third-party endpoint, not just a functional bug.
+
+Compare with `.github/actions/brooks-lint/action.yml`, which does this swap correctly at the bash level (`export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;`) before invoking `ci-review.mjs`. `run-evals-live.mjs` has no equivalent wrapper, so it needs the same swap done in-script, e.g.:
+```js
+const apiKey = provider === &quot;examplegw&quot; ? process.env.EXAMPLEGW_API_KEY : process.env.ANTHROPIC_API_KEY;
+const client = new Anthropic(provider === &quot;examplegw&quot; ? { apiKey, baseURL: EXAMPLEGW_BASE_URL } : undefined);
+```
+This should block merge — it&apos;s the one path in the PR that&apos;s directly user-invoked (not wrapped by the composite action), and it does the wrong thing silently.
+
+## Secondary issues worth a look
+
+- **Model remap is too narrow.** Both the action&apos;s bash script and `ci-review.mjs`/`run-evals-live.mjs` only remap the model when it&apos;s exactly the literal default `claude-sonnet-4-6`. Any caller who explicitly passes `--model` (or overrides the `model` input) with a bare Anthropic ID when `provider=examplegw` will bypass remapping and hit ExampleGW with an unresolvable model ID — per your own comment, &quot;bare Anthropic model ids are not resolvable through the gateway.&quot; Worth either validating/prefixing more generally for `examplegw`, or at minimum failing loudly instead of passing through unmapped IDs.
+- **No upfront validation of `$PROVIDER` in the bash script.** `ci-review.mjs`/`run-evals-live.mjs` both explicitly reject unknown providers, but `action.yml`&apos;s bash only branches on `= &quot;examplegw&quot;` vs. else-anthropic. A typo like `provider: ExampleGW` silently falls into the anthropic branch and produces a confusing &quot;anthropic-api-key is required&quot; error instead of &quot;unknown provider.&quot;
+- **Minor:** `examplegw-api-key` is documented as `sk-gw-...` but nothing checks the prefix — low severity, just noting since it&apos;s called out in the description text.
+
+The Sonnet 5 + `thinking: {type: &quot;disabled&quot;}` combination used for the ExampleGW path is valid (Sonnet 5 accepts disabled thinking), so that part is fine as-is.
+
+**Bottom line:** fix the `run-evals-live.mjs` API-key wiring before merging — as written it can silently exfiltrate a real Anthropic key to the gateway endpoint. The model-remap narrowness and provider-typo handling are worth a follow-up but aren&apos;t blockers.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Can you review this PR before I merge it? It lets our CI review action route requests through ExampleGW, an Anthropic-compatible model gateway, instead of calling Anthropic directly. Only the code files from the PR are included below.</p>
+<pre><code class="language-diff">diff --git a/.github/actions/brooks-lint/action.yml b/.github/actions/brooks-lint/action.yml
+index 73977da..3f2e0b2 100644
+--- a/.github/actions/brooks-lint/action.yml
++++ b/.github/actions/brooks-lint/action.yml
+@@ -7,8 +7,14 @@ inputs:
+     description: &quot;Review mode: review, audit, debt, test, health, sweep&quot;
+     default: &quot;review&quot;
+   anthropic-api-key:
+-    description: &quot;Anthropic API key&quot;
+-    required: true
++    description: &quot;Anthropic API key (required unless provider is examplegw)&quot;
++    default: &quot;&quot;
++  provider:
++    description: &quot;Model provider: anthropic (default) or examplegw&quot;
++    default: &quot;anthropic&quot;
++  examplegw-api-key:
++    description: &quot;ExampleGW API key, sk-gw-... (required when provider is examplegw)&quot;
++    default: &quot;&quot;
+   fail-below:
+     description: &quot;Fail the check if Health Score is below this threshold (0 = never fail)&quot;
+     default: &quot;0&quot;
+@@ -71,10 +77,29 @@ runs:
+       shell: bash
+       env:
+         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
++        EXAMPLEGW_API_KEY: ${{ inputs.examplegw-api-key }}
++        PROVIDER: ${{ inputs.provider }}
+         SARIF_FILE: ${{ inputs.sarif-file }}
+         MODE: ${{ inputs.mode }}
+         MODEL: ${{ inputs.model }}
+       run: |
++        if [ &quot;$PROVIDER&quot; = &quot;examplegw&quot; ]; then
++          # ExampleGW serves an Anthropic-compatible /v1/messages endpoint. The
++          # key lives in examplegw-api-key (sk-gw-...); bare Anthropic model
++          # ids are not resolvable through the gateway, so the action&#39;s default
++          # claude-sonnet-4-6 is remapped to the ExampleGW-pinned id.
++          if [ -z &quot;$EXAMPLEGW_API_KEY&quot; ]; then
++            echo &quot;provider=examplegw requires examplegw-api-key (sk-gw-...)&quot; &gt;&amp;2
++            exit 1
++          fi
++          export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;
++          if [ &quot;$MODEL&quot; = &quot;claude-sonnet-4-6&quot; ]; then
++            MODEL=&quot;anthropic/claude-sonnet-5&quot;
++          fi
++        elif [ -z &quot;$ANTHROPIC_API_KEY&quot; ]; then
++          echo &quot;anthropic-api-key is required unless provider=examplegw&quot; &gt;&amp;2
++          exit 1
++        fi
+         sarif_arg=()
+         if [ -n &quot;$SARIF_FILE&quot; ]; then
+           sarif_arg=(--sarif-out &quot;$SARIF_FILE&quot;)
+@@ -82,6 +107,7 @@ runs:
+         node &quot;$BROOKS_LINT_ROOT/scripts/ci-review.mjs&quot; \
+           --mode &quot;$MODE&quot; \
+           --model &quot;$MODEL&quot; \
++          --provider &quot;$PROVIDER&quot; \
+           --skills-dir &quot;$BROOKS_LINT_ROOT/skills&quot; \
+           --project-dir &quot;$GITHUB_WORKSPACE&quot; \
+           &quot;${sarif_arg[@]}&quot; \
+diff --git a/scripts/ci-review.mjs b/scripts/ci-review.mjs
+index 61d67a7..91b31b6 100644
+--- a/scripts/ci-review.mjs
++++ b/scripts/ci-review.mjs
+@@ -13,11 +13,13 @@
+  *     --model claude-sonnet-4-6 \
+  *     --skills-dir ./skills \
+  *     --project-dir /path/to/project \
++ *     [--provider anthropic|examplegw] \
+  *     [--format json|sarif] \
+  *     [--sarif-out brooks-lint.sarif]
+  *
+  * Environment:
+- *   ANTHROPIC_API_KEY  required
++ *   ANTHROPIC_API_KEY  required (provider=anthropic)
++ *   EXAMPLEGW_API_KEY required (provider=examplegw; sk-gw-...)
+  */
+ 
+ import { execFileSync } from &quot;node:child_process&quot;;
+@@ -35,8 +37,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+ 
+ const args = parseArgs(process.argv.slice(2));
+ 
++const provider = args.provider ?? &quot;anthropic&quot;;
++if (![&quot;anthropic&quot;, &quot;examplegw&quot;].includes(provider)) {
++  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, examplegw`);
++  process.exit(1);
++}
++
++// ExampleGW serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic
++// model ids (e.g. claude-sonnet-4-6) are not resolvable through the gateway, so
++// the default is pinned to the ExampleGW-prefixed id.
++const DEFAULT_MODELS = {
++  anthropic: &quot;claude-sonnet-4-6&quot;,
++  examplegw: &quot;anthropic/claude-sonnet-5&quot;,
++};
++
+ const mode = args.mode ?? &quot;review&quot;;
+-const model = args.model ?? &quot;claude-sonnet-4-6&quot;;
++const model = args.model ?? DEFAULT_MODELS[provider];
+ const format = args.format ?? &quot;json&quot;;
+ const skillsDir = path.resolve(args[&quot;skills-dir&quot;] ?? path.join(__dirname, &quot;..&quot;, &quot;skills&quot;));
+ const projectDir = path.resolve(args[&quot;project-dir&quot;] ?? process.cwd());
+@@ -79,7 +95,9 @@ function getGitDiff(projectRoot) {
+ 
+ // ── Main ──────────────────────────────────────────────────────────────────────
+ 
+-const client = new Anthropic();
++// ExampleGW&#39;s Anthropic-compatible endpoint — the client appends /v1/messages.
++const EXAMPLEGW_BASE_URL = &quot;https://api.examplegw.example&quot;;
++const client = new Anthropic(provider === &quot;examplegw&quot; ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);
+ 
+ const { diff, scope } = getGitDiff(projectDir);
+ const systemPrompt = assembleSystemPrompt(mode, skillsDir);
+@@ -95,6 +113,10 @@ try {
+     max_tokens: 4096,
+     system: systemPrompt,
+     messages: [{ role: &quot;user&quot;, content: userMessage }],
++    // Reasoning models on ExampleGW spend the output budget on thinking blocks
++    // by default; the 4096-token budget here assumes direct text output, so the
++    // gateway path disables extended thinking to preserve that contract.
++    ...(provider === &quot;examplegw&quot; ? { thinking: { type: &quot;disabled&quot; } } : {}),
+   });
+ } catch (err) {
+   console.error(JSON.stringify({ error: err.message, mode, scope }, null, 2));
+diff --git a/scripts/run-evals-live.mjs b/scripts/run-evals-live.mjs
+index cfdda01..bb64406 100644
+--- a/scripts/run-evals-live.mjs
++++ b/scripts/run-evals-live.mjs
+@@ -8,6 +8,7 @@
+  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --id 5
+  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --mode review
+  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --model claude-opus-4-6
++ *   EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw
+  */
+ 
+ import { readFileSync } from &quot;node:fs&quot;;
+@@ -22,10 +23,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+ const root = path.resolve(__dirname, &quot;..&quot;);
+ 
+ const args = parseArgs(process.argv.slice(2));
++const provider   = args.provider ?? &quot;anthropic&quot;;
++if (![&quot;anthropic&quot;, &quot;examplegw&quot;].includes(provider)) {
++  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, examplegw`);
++  process.exit(1);
++}
++
++// ExampleGW serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic
++// model ids are not resolvable through the gateway, so the default is pinned to
++// the ExampleGW-prefixed id.
++const DEFAULT_MODELS = {
++  anthropic: &quot;claude-sonnet-4-6&quot;,
++  examplegw: &quot;anthropic/claude-sonnet-5&quot;,
++};
++
+ const filterRisk = args.risk ?? null;
+ const filterId   = args.id ? parseInt(args.id, 10) : null;
+ const filterMode = args.mode ?? null;
+-const model      = args.model ?? &quot;claude-sonnet-4-6&quot;;
++const model      = args.model ?? DEFAULT_MODELS[provider];
+ const skillsDir  = path.join(root, &quot;skills&quot;);
+ 
+ if (filterMode &amp;&amp; !VALID_MODES.includes(filterMode)) {
+@@ -59,7 +74,9 @@ function getSystemPrompt(mode) {
+ 
+ // ── Run scenarios ─────────────────────────────────────────────────────────────
+ 
+-const client = new Anthropic();
++// ExampleGW&#39;s Anthropic-compatible endpoint — the client appends /v1/messages.
++const EXAMPLEGW_BASE_URL = &quot;https://api.examplegw.example&quot;;
++const client = new Anthropic(provider === &quot;examplegw&quot; ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);
+ const results = [];
+ 
+ for (const scenario of scenarios) {
+@@ -80,6 +97,10 @@ for (const scenario of scenarios) {
+       max_tokens: 4096,
+       system: systemPrompt,
+       messages: [{ role: &quot;user&quot;, content: userMessage }],
++      // Reasoning models on ExampleGW spend the output budget on thinking blocks
++      // by default; the 4096-token budget here assumes direct text output, so the
++      // gateway path disables extended thinking to preserve that contract.
++      ...(provider === &quot;examplegw&quot; ? { thinking: { type: &quot;disabled&quot; } } : {}),
+     });
+     aiText  = message.content[0]?.text ?? &quot;&quot;;
+     verdict = classify(scenario, aiText);
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">finds-magic-string-remap</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the diff under review (use them to check the answer; do not grade the facts themselves):</p>
+<ul>
+<li>In <code>.github/actions/brooks-lint/action.yml</code>, when <code>PROVIDER</code> is <code>examplegw</code> the script runs
+<code>if [ &quot;$MODEL&quot; = &quot;claude-sonnet-4-6&quot; ]; then MODEL=&quot;anthropic/claude-sonnet-5&quot;; fi</code>.</li>
+<li><code>claude-sonnet-4-6</code> is the action's current default value for its <code>model</code> input.</li>
+</ul>
+<p>PASS only if the answer does BOTH:</p>
+<ol>
+<li>Identifies this equality check / model rewrite in <code>action.yml</code> (quoting it, or clearly describing "the action rewrites the model only when it equals the current default id").</li>
+<li>States at least one concrete consequence of tying the rewrite to that literal id:
+(a) when the action's default model is bumped, the check silently stops matching and the gateway receives an id it cannot resolve; or
+(b) a user who explicitly sets <code>model: claude-sonnet-4-6</code> is silently switched to a different model; or
+(c) any other bare model id a user passes is not mapped for the gateway at all.</li>
+</ol>
+<p>FAIL if the rewrite is not mentioned, or is only described neutrally (e.g. "remaps the default model") without explaining why the literal comparison is fragile.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">finds-multiple-sources-of-truth</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the diff under review:</p>
+<ul>
+<li>The gateway's default model is encoded in more than one place: <code>action.yml</code> hard-codes the rewrite <code>claude-sonnet-4-6 → anthropic/claude-sonnet-5</code>, while <code>scripts/ci-review.mjs</code> and <code>scripts/run-evals-live.mjs</code> each define their own <code>DEFAULT_MODELS = { anthropic: &quot;claude-sonnet-4-6&quot;, examplegw: &quot;anthropic/claude-sonnet-5&quot; }</code>.</li>
+<li><code>action.yml</code> always passes <code>--model &quot;$MODEL&quot;</code> to <code>ci-review.mjs</code>, and the script does <code>args.model ?? DEFAULT_MODELS[provider]</code>, so on the action path <code>DEFAULT_MODELS</code> never takes effect.</li>
+</ul>
+<p>PASS if the answer makes at least one of these points AND names at least two of the locations involved (file names or clearly identified code sites):
+A. The provider → default-model mapping lives in two or more places (the <code>action.yml</code> rewrite vs <code>DEFAULT_MODELS</code>, or <code>DEFAULT_MODELS</code> copied into both scripts), so the copies can drift apart.
+B. <code>DEFAULT_MODELS</code> in <code>ci-review.mjs</code> is dead / never used when invoked from the action, because the action always passes <code>--model</code>.</p>
+<p>FAIL if neither A nor B is made. Pointing out that the provider-handling block is duplicated across the two scripts counts as A only if the answer makes clear the default-model mapping is part of what is duplicated.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-factual-misreads</span><span class="badge">llm</span></div>
+<div class="md"><p>Check the review for factual misreadings of the diff. Ground truth about what the diff does:</p>
+<ol>
+<li><code>action.yml</code>: when <code>PROVIDER</code> is <code>examplegw</code> it exits 1 if <code>EXAMPLEGW_API_KEY</code> is empty, otherwise exports it as <code>ANTHROPIC_API_KEY</code>. For any other provider value it still exits 1 when <code>ANTHROPIC_API_KEY</code> is empty — the Anthropic path keeps a missing-key check (moved from <code>required: true</code> to a runtime check).</li>
+<li><code>action.yml</code> passes <code>--provider &quot;$PROVIDER&quot;</code> to <code>ci-review.mjs</code>. The action itself does not reject unknown provider values; both scripts do, exiting 1 with "Unknown provider".</li>
+<li>Both scripts construct <code>new Anthropic({ baseURL: &quot;https://api.examplegw.example&quot; })</code> only when provider is <code>examplegw</code>; otherwise <code>new Anthropic(undefined)</code>, which uses the SDK defaults (valid, does not throw).</li>
+<li><code>thinking: { type: &quot;disabled&quot; }</code> is added to the request only when provider is <code>examplegw</code>.</li>
+<li>No API key value is printed or logged; the error messages only name the missing input.</li>
+<li>An explicit <code>--model</code> always wins; <code>DEFAULT_MODELS[provider]</code> is only the fallback when <code>--model</code> is absent.</li>
+</ol>
+<p>FAIL if the answer states as fact anything that contradicts items 1–6 — for example: the Anthropic path no longer validates its key; the base URL is applied to both providers or never applied; thinking is disabled for every provider; a key is leaked to logs; <code>new Anthropic(undefined)</code> throws; an unknown provider silently falls back to anthropic inside the scripts; <code>DEFAULT_MODELS</code> overrides an explicit <code>--model</code>.</p>
+<p>Do NOT fail for: hedged remarks about behaviour outside the diff (e.g. whether the gateway accepts the <code>thinking</code> field), design opinions, or observations consistent with the ground truth (e.g. "action.yml does not validate the provider itself, so a typo only fails later in the script").</p>
+<p>PASS if no contradicting claim is present.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

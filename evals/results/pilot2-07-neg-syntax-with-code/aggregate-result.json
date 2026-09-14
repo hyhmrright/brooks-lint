@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.270",
+  "startedAt": "2026-09-14T13:02:30.375Z",
+  "durationSeconds": 29,
+  "costUsd": 0.1354646,
+  "partial": false,
+  "suite": {
+    "root": "/Users/hyh/code/brooks-lint",
+    "ablation": "with-without",
+    "judgeModel": "opus",
+    "caseFilter": "07-neg-syntax-with-code",
+    "threshold": 1,
+    "concurrency": 2,
+    "plugins": [
+      {
+        "name": "brooks-lint",
+        "version": "1.5.0",
+        "path": "/Users/hyh/code/brooks-lint"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "07-neg-syntax-with-code",
+      "dir": "evals/07-neg-syntax-with-code",
+      "source": "prose",
+      "promptMarkdown": "Quick TypeScript question about this bit of our router config:\n\n```ts\ntype Route = { path: string; auth: boolean };\n\nconst routes = {\n  home: { path: \"/\", auth: false },\n  settings: { path: \"/settings\", auth: true },\n} satisfies Record<string, Route>;\n\nconst legacyRoutes: Record<string, Route> = {\n  home: { path: \"/\", auth: false },\n  settings: { path: \"/settings\" } as Route,\n};\n```\n\nIf I delete `auth: true` from `routes.settings` I get a compile error, but `legacyRoutes.settings` compiles fine without `auth`. What's the actual difference between `satisfies` and `as` here?",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "explains-satisfies-vs-as",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS only if the answer covers all three points:\n1. `satisfies` checks that the value conforms to the type — so a missing `auth` is reported — without changing the variable's inferred type (e.g. `routes` keeps its specific shape with keys `home` / `settings`, rather than becoming `Record<string, Route>`).\n2. `as` is a type assertion: it tells the compiler to treat the value as that type and does not perform a full conformance check — it only rejects conversions between unrelated / non-overlapping types — so `{ path: \"/settings\" }` is accepted as `Route` even though `auth` is missing.\n3. It ties this back to the snippet: explains why deleting `auth` breaks `routes` but `legacyRoutes.settings` still compiles (mentioning that `auth` is then `undefined` at runtime is welcome but not required).\n\nFAIL if any point is missing, or if the explanation is wrong — for example claiming `as` converts or validates the value at runtime, or that `satisfies` changes the variable's type to `Record<string, Route>`.",
+          "config": {
+            "criteria": "PASS only if the answer covers all three points:\n1. `satisfies` checks that the value conforms to the type — so a missing `auth` is reported — without changing the variable's inferred type (e.g. `routes` keeps its specific shape with keys `home` / `settings`, rather than becoming `Record<string, Route>`).\n2. `as` is a type assertion: it tells the compiler to treat the value as that type and does not perform a full conformance check — it only rejects conversions between unrelated / non-overlapping types — so `{ path: \"/settings\" }` is accepted as `Route` even though `auth` is missing.\n3. It ties this back to the snippet: explains why deleting `auth` breaks `routes` but `legacyRoutes.settings` still compiles (mentioning that `auth` is then `undefined` at runtime is welcome but not required).\n\nFAIL if any point is missing, or if the explanation is wrong — for example claiming `as` converts or validates the value at runtime, or that `satisfies` changes the variable's type to `Record<string, Route>`.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-review-report",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score|Symptom\\W*:|Consequence\\W*:",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "skill-not-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review",
+            "min": 0,
+            "max": 0
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0611498,
+            "judgeCostUsd": 0.016005,
+            "durationSeconds": 13,
+            "startedAt": "2026-09-14T13:02:30.398Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-toNzYQ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "explains-satisfies-vs-as",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The difference comes down to what type each construct assigns to the expression, and whether that type is checked against or replaced.\n\n**`satisfies`** checks that the expression is *assignable to* `Record<string, Route>`, but then keeps the original, narrower inferred type for `routes`. It's a validation step, not a type change. So `routes.settings` is still typed as `{ path: string; auth: boolean }` — TypeScript knows precisely which properties exist because it inferred the type from the object literal itself. Since the literal is missing `auth`, it fails the `satisfies` check immediately (object literals get excess/missing property checking against the target type).\n\n**`as Route`** is a type assertion — you're telling the compiler \"trust me, treat this expression as a `Route`,\" overriding its own inference. TypeScript does some sanity checking (the asserted type must overlap with the inferred type), but it does *not* verify that all of `Route`'s required properties are actually present. `{ path: \"/settings\" } as Route` is really just `{ path: \"/settings\" }` forcibly relabeled as `Route`, missing property and all. The compiler stops checking structural completeness because you've asserted the type rather than let it be inferred/verified.\n\nSo:\n- `satisfies` = \"verify this literal fits the shape, then let me keep using its precise inferred type.\" Catches missing/extra properties.\n- `as` = \"stop checking, just call it this type.\" Can silently hide missing required fields — which is exactly the bug you found in `legacyRoutes.settings`.\n\nIn this case, `legacyRoutes.settings.auth` will be `undefined` at runtime despite TypeScript saying it's `boolean`. That's a real unsoundness hole, not just style — worth flagging as a bug if this pattern shows up elsewhere in the router config."
+              },
+              {
+                "name": "no-review-report",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-not-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0743148,
+            "judgeCostUsd": 0.01614,
+            "durationSeconds": 29,
+            "startedAt": "2026-09-14T13:02:30.398Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-CKJZJF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "explains-satisfies-vs-as",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The difference is that `satisfies` type-checks the expression, while `as` overrides the type checker.\n\n**`satisfies`** validates the object against `Route` *before* inferring its type. Since `Route` requires `auth: boolean`, omitting it is a real type error — same as if you'd written `const x: Route = { path: \"/settings\" }`. It just also happens to preserve the narrower literal type (`{ path: \"/\", auth: false }` instead of widening everything to `Route`), which is why you still get autocomplete on `routes.home.path` as `\"/\"` rather than `string`.\n\n**`as Route`** is a type assertion — it doesn't ask \"does this satisfy `Route`,\" it asks \"is `{ path: string }` comparable to `Route`\" (i.e., is one assignable to the other in *either* direction). Since `Route` (which has `path` and `auth`) is assignable to `{ path: string }` (drop the extra field, that's fine structurally), the assertion is allowed — even though the reverse assignment (which is what actually matters at runtime) is not valid. `as` doesn't check for missing required properties the way a normal assignment or `satisfies` does; it just checks rough structural overlap and then trusts you.\n\nThe practical consequence: `legacyRoutes.settings.auth` is typed as `boolean`, but at runtime it's `undefined`. That's a real unsoundness hole — `as` let you lie to the compiler. `satisfies` can't produce that hole because it never skips the check; it just avoids widening the resulting type.\n\nRule of thumb: reach for `satisfies` when you want validation *and* to keep the precise inferred type. Reach for `as` only when you know something the compiler can't (e.g., narrowing `unknown` from a JSON parse) — not as a way to silence a \"missing property\" error."
+              },
+              {
+                "name": "no-review-report",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.5,
+        "passRateWithout": 0,
+        "delta": 0.5
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1,
+    "meanDelta": 0.5
+  }
+}

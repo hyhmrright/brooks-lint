@@ -1,0 +1,2568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — brooks-lint v1.5.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>brooks-lint v1.5.0</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-pos">↑ +18.2 pts</span> vs baseline — improved 5 · flat 2 · regressed 0 of 7 cases.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.270</span>
+<span class="num">2026-09-14 12:51 UTC</span>
+<span class="num">4m 59s</span>
+<span class="num">$3.05</span>
+<span class="num">14 runs</span>
+<span class="num">4 in flight</span>
+
+
+<span>judge opus</span>
+<span class="num">threshold 100%</span>
+
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">82%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-pos">↑ +18.2</span><span class="sub">score points vs baseline, 7 of 7 cases</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">63.9%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">7</span><span class="sub">3 of 7 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">42.9%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>01-pr29-provider-remap</h2>
+<span class="muted mono">evals/01-pr29-provider-remap</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +28.6 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:57.1%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">57.1%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:57.1%"></span></span>
+<span class="num">57.1%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:57.1%"></span></span>
+<span class="num">57.1%</span>
+<span class="muted num">12 turns · $0.54 · 12:51:55 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">finds-magic-string-remap</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I pulled in Anthropic&apos;s own API guidance to check the Anthropic-specific parts of this diff (I wasn&apos;t able to reach the `brooks-review` skill&apos;s file outside the sandboxed working directory, so this is a manual review rather than the templated one — happy to retry if you can point me at the file). Here&apos;s what I found:
+
+## Blocking / should-fix before merge
+
+**1. `anthropic/claude-sonnet-5` is an unverified model-ID format.**
+Anthropic&apos;s own model IDs are bare strings (`claude-sonnet-5`, `claude-opus-5` — no provider prefix, no date suffix). The `anthropic/…` slash-prefix convention shown here looks like an OpenRouter-style routing convention, not something Anthropic itself uses (compare: Bedrock uses a dot, `anthropic.claude-opus-5`; Vertex/Foundry use no prefix at all). Nothing in the diff or its comments cites ExampleGW&apos;s own docs confirming this is the id it expects. If it&apos;s wrong, every ExampleGW-routed CI review call fails at request time — and this string is hardcoded independently in both `ci-review.mjs` and `run-evals-live.mjs`, so it can drift. Confirm the exact id against ExampleGW&apos;s model catalog before merging, and consider defining it once (see #2).
+
+**2. Provider logic is duplicated three times.** The `provider` validation, the `DEFAULT_MODELS` map, the `EXAMPLEGW_BASE_URL` constant, and the &quot;disable thinking&quot; block are copy-pasted verbatim across `action.yml`&apos;s bash, `ci-review.mjs`, and `run-evals-live.mjs`. A future change to the gateway URL or the pinned model id means updating three places and risking them going out of sync. Worth factoring into one small shared module the two `.mjs` scripts import.
+
+**3. Disabling thinking outright is riskier than the docs recommend, and the risk lands directly on this pipeline&apos;s output parsing.** Per current Anthropic guidance, forcing `thinking: {type: &quot;disabled&quot;}` on newer models can cause the model to write content (including stray `&lt;thinking&gt;`-style tags, or even a tool call) into the *visible text* instead of behaving as expected — silently, no error raised. `ci-review.mjs` takes `message.content[0]?.text` and feeds it straight into JSON/SARIF parsing for the CI gate, so a leaked tag would corrupt that output without anyone noticing until a build behaves strangely. The documented safer alternative is `output_config: { effort: &quot;low&quot; }` (works on Sonnet 5), which gets the same token-budget economy without disabling thinking wholesale. Given the whole point of this change is trustworthy CI output, I&apos;d swap to effort tuning, or at minimum add the &quot;don&apos;t emit internal tags&quot; instruction the docs suggest as a mitigation, and test it against the real gateway model before relying on it.
+
+## Worth a look, not blocking
+
+**4.** The thinking-disable block is gated on `provider === &quot;examplegw&quot;` for *any* model, but the code comment justifies it as a fix for &quot;reasoning models.&quot; If a non-reasoning model ever gets routed through ExampleGW, it&apos;ll have thinking force-disabled for no reason. Consider gating on the resolved model name instead of the whole provider.
+
+**5.** `EXAMPLEGW_BASE_URL` is a hardcoded literal in two files rather than an action input/env override. Given `action.yml` already exposes `examplegw-api-key` and `provider` as configurable inputs, a fixed URL is the odd one out if ExampleGW ever needs a per-tenant or self-hosted endpoint.
+
+**6.** If a caller overrides `--model` explicitly while using `provider: examplegw`, there&apos;s no translation — they must already know to type the `anthropic/…` prefix themselves. Worth a line in `action.yml`&apos;s `model` input description saying so.
+
+**7.** I only have the diff hunks, not the full file — worth double-checking what happens after the `catch` block in `ci-review.mjs` on a gateway auth/model-id failure. This change adds two new failure modes (bad provider value, bad model id) that didn&apos;t exist before; confirm they still fail the CI check loudly rather than being swallowed.
+
+## Looks right
+
+- `claude-sonnet-4-6` and `claude-opus-4-6` (the pre-existing, unchanged model ids) are current, valid Anthropic model ids.
+- Constructing the SDK client with a custom `baseURL` for a generic Anthropic-compatible third-party endpoint is the correct pattern — Anthropic&apos;s own guidance only steers you away from `baseURL` overrides for the three specifically-supported partner platforms (Bedrock/Vertex/Foundry), which have dedicated client classes. ExampleGW isn&apos;t one of those, so this is fine.
+- Moving `anthropic-api-key` from `required: true` to a runtime-validated default is the right call, since GitHub Actions inputs can&apos;t express &quot;required unless X.&quot;
+
+**Bottom line:** the shape of the change is reasonable, but I&apos;d confirm the `anthropic/claude-sonnet-5` id against ExampleGW&apos;s actual docs and reconsider the blanket `thinking: disabled` before merging — both are the kind of thing that fails silently in exactly the pipeline that&apos;s supposed to catch silent failures.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">finds-multiple-sources-of-truth</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I pulled in Anthropic&apos;s own API guidance to check the Anthropic-specific parts of this diff (I wasn&apos;t able to reach the `brooks-review` skill&apos;s file outside the sandboxed working directory, so this is a manual review rather than the templated one — happy to retry if you can point me at the file). Here&apos;s what I found:
+
+## Blocking / should-fix before merge
+
+**1. `anthropic/claude-sonnet-5` is an unverified model-ID format.**
+Anthropic&apos;s own model IDs are bare strings (`claude-sonnet-5`, `claude-opus-5` — no provider prefix, no date suffix). The `anthropic/…` slash-prefix convention shown here looks like an OpenRouter-style routing convention, not something Anthropic itself uses (compare: Bedrock uses a dot, `anthropic.claude-opus-5`; Vertex/Foundry use no prefix at all). Nothing in the diff or its comments cites ExampleGW&apos;s own docs confirming this is the id it expects. If it&apos;s wrong, every ExampleGW-routed CI review call fails at request time — and this string is hardcoded independently in both `ci-review.mjs` and `run-evals-live.mjs`, so it can drift. Confirm the exact id against ExampleGW&apos;s model catalog before merging, and consider defining it once (see #2).
+
+**2. Provider logic is duplicated three times.** The `provider` validation, the `DEFAULT_MODELS` map, the `EXAMPLEGW_BASE_URL` constant, and the &quot;disable thinking&quot; block are copy-pasted verbatim across `action.yml`&apos;s bash, `ci-review.mjs`, and `run-evals-live.mjs`. A future change to the gateway URL or the pinned model id means updating three places and risking them going out of sync. Worth factoring into one small shared module the two `.mjs` scripts import.
+
+**3. Disabling thinking outright is riskier than the docs recommend, and the risk lands directly on this pipeline&apos;s output parsing.** Per current Anthropic guidance, forcing `thinking: {type: &quot;disabled&quot;}` on newer models can cause the model to write content (including stray `&lt;thinking&gt;`-style tags, or even a tool call) into the *visible text* instead of behaving as expected — silently, no error raised. `ci-review.mjs` takes `message.content[0]?.text` and feeds it straight into JSON/SARIF parsing for the CI gate, so a leaked tag would corrupt that output without anyone noticing until a build behaves strangely. The documented safer alternative is `output_config: { effort: &quot;low&quot; }` (works on Sonnet 5), which gets the same token-budget economy without disabling thinking wholesale. Given the whole point of this change is trustworthy CI output, I&apos;d swap to effort tuning, or at minimum add the &quot;don&apos;t emit internal tags&quot; instruction the docs suggest as a mitigation, and test it against the real gateway model before relying on it.
+
+## Worth a look, not blocking
+
+**4.** The thinking-disable block is gated on `provider === &quot;examplegw&quot;` for *any* model, but the code comment justifies it as a fix for &quot;reasoning models.&quot; If a non-reasoning model ever gets routed through ExampleGW, it&apos;ll have thinking force-disabled for no reason. Consider gating on the resolved model name instead of the whole provider.
+
+**5.** `EXAMPLEGW_BASE_URL` is a hardcoded literal in two files rather than an action input/env override. Given `action.yml` already exposes `examplegw-api-key` and `provider` as configurable inputs, a fixed URL is the odd one out if ExampleGW ever needs a per-tenant or self-hosted endpoint.
+
+**6.** If a caller overrides `--model` explicitly while using `provider: examplegw`, there&apos;s no translation — they must already know to type the `anthropic/…` prefix themselves. Worth a line in `action.yml`&apos;s `model` input description saying so.
+
+**7.** I only have the diff hunks, not the full file — worth double-checking what happens after the `catch` block in `ci-review.mjs` on a gateway auth/model-id failure. This change adds two new failure modes (bad provider value, bad model id) that didn&apos;t exist before; confirm they still fail the CI check loudly rather than being swallowed.
+
+## Looks right
+
+- `claude-sonnet-4-6` and `claude-opus-4-6` (the pre-existing, unchanged model ids) are current, valid Anthropic model ids.
+- Constructing the SDK client with a custom `baseURL` for a generic Anthropic-compatible third-party endpoint is the correct pattern — Anthropic&apos;s own guidance only steers you away from `baseURL` overrides for the three specifically-supported partner platforms (Bedrock/Vertex/Foundry), which have dedicated client classes. ExampleGW isn&apos;t one of those, so this is fine.
+- Moving `anthropic-api-key` from `required: true` to a runtime-validated default is the right call, since GitHub Actions inputs can&apos;t express &quot;required unless X.&quot;
+
+**Bottom line:** the shape of the change is reasonable, but I&apos;d confirm the `anthropic/claude-sonnet-5` id against ExampleGW&apos;s actual docs and reconsider the blanket `thinking: disabled` before merging — both are the kind of thing that fails silently in exactly the pipeline that&apos;s supposed to catch silent failures.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-factual-misreads</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I pulled in Anthropic&apos;s own API guidance to check the Anthropic-specific parts of this diff (I wasn&apos;t able to reach the `brooks-review` skill&apos;s file outside the sandboxed working directory, so this is a manual review rather than the templated one — happy to retry if you can point me at the file). Here&apos;s what I found:
+
+## Blocking / should-fix before merge
+
+**1. `anthropic/claude-sonnet-5` is an unverified model-ID format.**
+Anthropic&apos;s own model IDs are bare strings (`claude-sonnet-5`, `claude-opus-5` — no provider prefix, no date suffix). The `anthropic/…` slash-prefix convention shown here looks like an OpenRouter-style routing convention, not something Anthropic itself uses (compare: Bedrock uses a dot, `anthropic.claude-opus-5`; Vertex/Foundry use no prefix at all). Nothing in the diff or its comments cites ExampleGW&apos;s own docs confirming this is the id it expects. If it&apos;s wrong, every ExampleGW-routed CI review call fails at request time — and this string is hardcoded independently in both `ci-review.mjs` and `run-evals-live.mjs`, so it can drift. Confirm the exact id against ExampleGW&apos;s model catalog before merging, and consider defining it once (see #2).
+
+**2. Provider logic is duplicated three times.** The `provider` validation, the `DEFAULT_MODELS` map, the `EXAMPLEGW_BASE_URL` constant, and the &quot;disable thinking&quot; block are copy-pasted verbatim across `action.yml`&apos;s bash, `ci-review.mjs`, and `run-evals-live.mjs`. A future change to the gateway URL or the pinned model id means updating three places and risking them going out of sync. Worth factoring into one small shared module the two `.mjs` scripts import.
+
+**3. Disabling thinking outright is riskier than the docs recommend, and the risk lands directly on this pipeline&apos;s output parsing.** Per current Anthropic guidance, forcing `thinking: {type: &quot;disabled&quot;}` on newer models can cause the model to write content (including stray `&lt;thinking&gt;`-style tags, or even a tool call) into the *visible text* instead of behaving as expected — silently, no error raised. `ci-review.mjs` takes `message.content[0]?.text` and feeds it straight into JSON/SARIF parsing for the CI gate, so a leaked tag would corrupt that output without anyone noticing until a build behaves strangely. The documented safer alternative is `output_config: { effort: &quot;low&quot; }` (works on Sonnet 5), which gets the same token-budget economy without disabling thinking wholesale. Given the whole point of this change is trustworthy CI output, I&apos;d swap to effort tuning, or at minimum add the &quot;don&apos;t emit internal tags&quot; instruction the docs suggest as a mitigation, and test it against the real gateway model before relying on it.
+
+## Worth a look, not blocking
+
+**4.** The thinking-disable block is gated on `provider === &quot;examplegw&quot;` for *any* model, but the code comment justifies it as a fix for &quot;reasoning models.&quot; If a non-reasoning model ever gets routed through ExampleGW, it&apos;ll have thinking force-disabled for no reason. Consider gating on the resolved model name instead of the whole provider.
+
+**5.** `EXAMPLEGW_BASE_URL` is a hardcoded literal in two files rather than an action input/env override. Given `action.yml` already exposes `examplegw-api-key` and `provider` as configurable inputs, a fixed URL is the odd one out if ExampleGW ever needs a per-tenant or self-hosted endpoint.
+
+**6.** If a caller overrides `--model` explicitly while using `provider: examplegw`, there&apos;s no translation — they must already know to type the `anthropic/…` prefix themselves. Worth a line in `action.yml`&apos;s `model` input description saying so.
+
+**7.** I only have the diff hunks, not the full file — worth double-checking what happens after the `catch` block in `ci-review.mjs` on a gateway auth/model-id failure. This change adds two new failure modes (bad provider value, bad model id) that didn&apos;t exist before; confirm they still fail the CI check loudly rather than being swallowed.
+
+## Looks right
+
+- `claude-sonnet-4-6` and `claude-opus-4-6` (the pre-existing, unchanged model ids) are current, valid Anthropic model ids.
+- Constructing the SDK client with a custom `baseURL` for a generic Anthropic-compatible third-party endpoint is the correct pattern — Anthropic&apos;s own guidance only steers you away from `baseURL` overrides for the three specifically-supported partner platforms (Bedrock/Vertex/Foundry), which have dedicated client classes. ExampleGW isn&apos;t one of those, so this is fine.
+- Moving `anthropic-api-key` from `required: true` to a runtime-validated default is the right call, since GitHub Actions inputs can&apos;t express &quot;required unless X.&quot;
+
+**Bottom line:** the shape of the change is reasonable, but I&apos;d confirm the `anthropic/claude-sonnet-5` id against ExampleGW&apos;s actual docs and reconsider the blanket `thinking: disabled` before merging — both are the kind of thing that fails silently in exactly the pipeline that&apos;s supposed to catch silent failures.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:28.6%"></span></span>
+<span class="num">28.6%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:28.6%"></span></span>
+<span class="num">28.6%</span>
+<span class="muted num">6 turns · $0.45 · 12:51:55 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">finds-magic-string-remap</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Reviewed the diff against current Anthropic API/SDK behavior. One finding is a real bug worth fixing before merge; the rest are smaller things to double check.
+
+## Bug: `run-evals-live.mjs` never authenticates to ExampleGW
+
+In `ci-review.mjs`, the `examplegw` credential flow works because **`action.yml`** does the heavy lifting first:
+
+```bash
+export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;
+```
+
+before invoking the script — so by the time `new Anthropic({ baseURL: ... })` runs, `ANTHROPIC_API_KEY` is already the gateway key.
+
+`run-evals-live.mjs` has no such wrapper. It&apos;s invoked directly (per its own updated header comment: `EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw`), but the script:
+
+- never reads `process.env.EXAMPLEGW_API_KEY`
+- never passes `apiKey` to the `Anthropic` constructor
+- only sets `baseURL` when `provider === &quot;examplegw&quot;`
+
+The Anthropic SDK&apos;s credential resolution falls through `ANTHROPIC_API_KEY` → `ANTHROPIC_AUTH_TOKEN` → active OAuth profile → WIF → default profile-on-disk if the key isn&apos;t explicitly passed. So on a machine with a local `ant auth login` profile or `ANTHROPIC_API_KEY` already exported for other work, this script will silently authenticate with **real Anthropic credentials against ExampleGW&apos;s `baseURL`** — sending Anthropic secrets to a third-party host — rather than failing loudly or using the gateway key. That&apos;s a credential-leakage risk, not just a broken feature.
+
+Fix: in both scripts, when `provider === &quot;examplegw&quot;`, explicitly construct the client with the gateway key rather than relying on ambient env state:
+
+```js
+new Anthropic(
+  provider === &quot;examplegw&quot;
+    ? { baseURL: EXAMPLEGW_BASE_URL, apiKey: process.env.EXAMPLEGW_API_KEY }
+    : undefined
+)
+```
+
+This also removes `ci-review.mjs`&apos;s implicit dependency on the bash wrapper — right now that script silently does the wrong thing if anyone runs it directly (e.g. local testing) without replicating the `action.yml` export line.
+
+## Verified as correct
+
+- **`baseURL` constructor option** — correct key for the TS/JS SDK (confirmed against the SDK reference; Python&apos;s equivalent is `base_url`).
+- **`thinking: { type: &quot;disabled&quot; }`** — this is a real, valid shape, and it&apos;s accepted for Sonnet 5 (which `anthropic/claude-sonnet-5` presumably resolves to on the gateway). No hallucinated parameter here.
+
+## Worth a second look, not blocking
+
+- **`&quot;anthropic/claude-sonnet-5&quot;` model ID format** — Anthropic&apos;s own model IDs are never provider-prefixed like this; that&apos;s an OpenRouter/aggregator-style convention. It&apos;s plausible this is exactly how ExampleGW namespaces models internally, but it&apos;s worth explicitly confirming against ExampleGW&apos;s model catalog before merge — a wrong/stale ID here only surfaces as a runtime error, not a type error.
+- **Disabling thinking outright vs. lowering effort** — general guidance for Sonnet-5/Opus-5-tier models is to prefer `output_config.effort: &quot;low&quot;|&quot;medium&quot;` over fully disabling thinking, partly because disabled thinking can occasionally leak stray `&lt;thinking&gt;`-tag text into the visible response. These scripts don&apos;t declare `tools`, so the &quot;tool call written as text&quot; failure mode doesn&apos;t apply, but if the leaked-tags issue shows up it would land inside the JSON/SARIF-bound output these scripts parse. Might be worth a quick eval run against `run-evals-live.mjs --provider examplegw` to confirm output stays clean before relying on it in CI.
+- **Default model for `provider=anthropic`** stays `claude-sonnet-4-6` (previous-gen) — unrelated to this PR&apos;s purpose, so not a blocker, just flagging in case you want to align defaults while you&apos;re in this code.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">finds-multiple-sources-of-truth</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Reviewed the diff against current Anthropic API/SDK behavior. One finding is a real bug worth fixing before merge; the rest are smaller things to double check.
+
+## Bug: `run-evals-live.mjs` never authenticates to ExampleGW
+
+In `ci-review.mjs`, the `examplegw` credential flow works because **`action.yml`** does the heavy lifting first:
+
+```bash
+export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;
+```
+
+before invoking the script — so by the time `new Anthropic({ baseURL: ... })` runs, `ANTHROPIC_API_KEY` is already the gateway key.
+
+`run-evals-live.mjs` has no such wrapper. It&apos;s invoked directly (per its own updated header comment: `EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw`), but the script:
+
+- never reads `process.env.EXAMPLEGW_API_KEY`
+- never passes `apiKey` to the `Anthropic` constructor
+- only sets `baseURL` when `provider === &quot;examplegw&quot;`
+
+The Anthropic SDK&apos;s credential resolution falls through `ANTHROPIC_API_KEY` → `ANTHROPIC_AUTH_TOKEN` → active OAuth profile → WIF → default profile-on-disk if the key isn&apos;t explicitly passed. So on a machine with a local `ant auth login` profile or `ANTHROPIC_API_KEY` already exported for other work, this script will silently authenticate with **real Anthropic credentials against ExampleGW&apos;s `baseURL`** — sending Anthropic secrets to a third-party host — rather than failing loudly or using the gateway key. That&apos;s a credential-leakage risk, not just a broken feature.
+
+Fix: in both scripts, when `provider === &quot;examplegw&quot;`, explicitly construct the client with the gateway key rather than relying on ambient env state:
+
+```js
+new Anthropic(
+  provider === &quot;examplegw&quot;
+    ? { baseURL: EXAMPLEGW_BASE_URL, apiKey: process.env.EXAMPLEGW_API_KEY }
+    : undefined
+)
+```
+
+This also removes `ci-review.mjs`&apos;s implicit dependency on the bash wrapper — right now that script silently does the wrong thing if anyone runs it directly (e.g. local testing) without replicating the `action.yml` export line.
+
+## Verified as correct
+
+- **`baseURL` constructor option** — correct key for the TS/JS SDK (confirmed against the SDK reference; Python&apos;s equivalent is `base_url`).
+- **`thinking: { type: &quot;disabled&quot; }`** — this is a real, valid shape, and it&apos;s accepted for Sonnet 5 (which `anthropic/claude-sonnet-5` presumably resolves to on the gateway). No hallucinated parameter here.
+
+## Worth a second look, not blocking
+
+- **`&quot;anthropic/claude-sonnet-5&quot;` model ID format** — Anthropic&apos;s own model IDs are never provider-prefixed like this; that&apos;s an OpenRouter/aggregator-style convention. It&apos;s plausible this is exactly how ExampleGW namespaces models internally, but it&apos;s worth explicitly confirming against ExampleGW&apos;s model catalog before merge — a wrong/stale ID here only surfaces as a runtime error, not a type error.
+- **Disabling thinking outright vs. lowering effort** — general guidance for Sonnet-5/Opus-5-tier models is to prefer `output_config.effort: &quot;low&quot;|&quot;medium&quot;` over fully disabling thinking, partly because disabled thinking can occasionally leak stray `&lt;thinking&gt;`-tag text into the visible response. These scripts don&apos;t declare `tools`, so the &quot;tool call written as text&quot; failure mode doesn&apos;t apply, but if the leaked-tags issue shows up it would land inside the JSON/SARIF-bound output these scripts parse. Might be worth a quick eval run against `run-evals-live.mjs --provider examplegw` to confirm output stays clean before relying on it in CI.
+- **Default model for `provider=anthropic`** stays `claude-sonnet-4-6` (previous-gen) — unrelated to this PR&apos;s purpose, so not a blocker, just flagging in case you want to align defaults while you&apos;re in this code.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-factual-misreads</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Reviewed the diff against current Anthropic API/SDK behavior. One finding is a real bug worth fixing before merge; the rest are smaller things to double check.
+
+## Bug: `run-evals-live.mjs` never authenticates to ExampleGW
+
+In `ci-review.mjs`, the `examplegw` credential flow works because **`action.yml`** does the heavy lifting first:
+
+```bash
+export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;
+```
+
+before invoking the script — so by the time `new Anthropic({ baseURL: ... })` runs, `ANTHROPIC_API_KEY` is already the gateway key.
+
+`run-evals-live.mjs` has no such wrapper. It&apos;s invoked directly (per its own updated header comment: `EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw`), but the script:
+
+- never reads `process.env.EXAMPLEGW_API_KEY`
+- never passes `apiKey` to the `Anthropic` constructor
+- only sets `baseURL` when `provider === &quot;examplegw&quot;`
+
+The Anthropic SDK&apos;s credential resolution falls through `ANTHROPIC_API_KEY` → `ANTHROPIC_AUTH_TOKEN` → active OAuth profile → WIF → default profile-on-disk if the key isn&apos;t explicitly passed. So on a machine with a local `ant auth login` profile or `ANTHROPIC_API_KEY` already exported for other work, this script will silently authenticate with **real Anthropic credentials against ExampleGW&apos;s `baseURL`** — sending Anthropic secrets to a third-party host — rather than failing loudly or using the gateway key. That&apos;s a credential-leakage risk, not just a broken feature.
+
+Fix: in both scripts, when `provider === &quot;examplegw&quot;`, explicitly construct the client with the gateway key rather than relying on ambient env state:
+
+```js
+new Anthropic(
+  provider === &quot;examplegw&quot;
+    ? { baseURL: EXAMPLEGW_BASE_URL, apiKey: process.env.EXAMPLEGW_API_KEY }
+    : undefined
+)
+```
+
+This also removes `ci-review.mjs`&apos;s implicit dependency on the bash wrapper — right now that script silently does the wrong thing if anyone runs it directly (e.g. local testing) without replicating the `action.yml` export line.
+
+## Verified as correct
+
+- **`baseURL` constructor option** — correct key for the TS/JS SDK (confirmed against the SDK reference; Python&apos;s equivalent is `base_url`).
+- **`thinking: { type: &quot;disabled&quot; }`** — this is a real, valid shape, and it&apos;s accepted for Sonnet 5 (which `anthropic/claude-sonnet-5` presumably resolves to on the gateway). No hallucinated parameter here.
+
+## Worth a second look, not blocking
+
+- **`&quot;anthropic/claude-sonnet-5&quot;` model ID format** — Anthropic&apos;s own model IDs are never provider-prefixed like this; that&apos;s an OpenRouter/aggregator-style convention. It&apos;s plausible this is exactly how ExampleGW namespaces models internally, but it&apos;s worth explicitly confirming against ExampleGW&apos;s model catalog before merge — a wrong/stale ID here only surfaces as a runtime error, not a type error.
+- **Disabling thinking outright vs. lowering effort** — general guidance for Sonnet-5/Opus-5-tier models is to prefer `output_config.effort: &quot;low&quot;|&quot;medium&quot;` over fully disabling thinking, partly because disabled thinking can occasionally leak stray `&lt;thinking&gt;`-tag text into the visible response. These scripts don&apos;t declare `tools`, so the &quot;tool call written as text&quot; failure mode doesn&apos;t apply, but if the leaked-tags issue shows up it would land inside the JSON/SARIF-bound output these scripts parse. Might be worth a quick eval run against `run-evals-live.mjs --provider examplegw` to confirm output stays clean before relying on it in CI.
+- **Default model for `provider=anthropic`** stays `claude-sonnet-4-6` (previous-gen) — unrelated to this PR&apos;s purpose, so not a blocker, just flagging in case you want to align defaults while you&apos;re in this code.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Can you review this PR before I merge it? It lets our CI review action route requests through ExampleGW, an Anthropic-compatible model gateway, instead of calling Anthropic directly. Only the code files from the PR are included below.</p>
+<pre><code class="language-diff">diff --git a/.github/actions/brooks-lint/action.yml b/.github/actions/brooks-lint/action.yml
+index 73977da..3f2e0b2 100644
+--- a/.github/actions/brooks-lint/action.yml
++++ b/.github/actions/brooks-lint/action.yml
+@@ -7,8 +7,14 @@ inputs:
+     description: &quot;Review mode: review, audit, debt, test, health, sweep&quot;
+     default: &quot;review&quot;
+   anthropic-api-key:
+-    description: &quot;Anthropic API key&quot;
+-    required: true
++    description: &quot;Anthropic API key (required unless provider is examplegw)&quot;
++    default: &quot;&quot;
++  provider:
++    description: &quot;Model provider: anthropic (default) or examplegw&quot;
++    default: &quot;anthropic&quot;
++  examplegw-api-key:
++    description: &quot;ExampleGW API key, sk-gw-... (required when provider is examplegw)&quot;
++    default: &quot;&quot;
+   fail-below:
+     description: &quot;Fail the check if Health Score is below this threshold (0 = never fail)&quot;
+     default: &quot;0&quot;
+@@ -71,10 +77,29 @@ runs:
+       shell: bash
+       env:
+         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
++        EXAMPLEGW_API_KEY: ${{ inputs.examplegw-api-key }}
++        PROVIDER: ${{ inputs.provider }}
+         SARIF_FILE: ${{ inputs.sarif-file }}
+         MODE: ${{ inputs.mode }}
+         MODEL: ${{ inputs.model }}
+       run: |
++        if [ &quot;$PROVIDER&quot; = &quot;examplegw&quot; ]; then
++          # ExampleGW serves an Anthropic-compatible /v1/messages endpoint. The
++          # key lives in examplegw-api-key (sk-gw-...); bare Anthropic model
++          # ids are not resolvable through the gateway, so the action&#39;s default
++          # claude-sonnet-4-6 is remapped to the ExampleGW-pinned id.
++          if [ -z &quot;$EXAMPLEGW_API_KEY&quot; ]; then
++            echo &quot;provider=examplegw requires examplegw-api-key (sk-gw-...)&quot; &gt;&amp;2
++            exit 1
++          fi
++          export ANTHROPIC_API_KEY=&quot;$EXAMPLEGW_API_KEY&quot;
++          if [ &quot;$MODEL&quot; = &quot;claude-sonnet-4-6&quot; ]; then
++            MODEL=&quot;anthropic/claude-sonnet-5&quot;
++          fi
++        elif [ -z &quot;$ANTHROPIC_API_KEY&quot; ]; then
++          echo &quot;anthropic-api-key is required unless provider=examplegw&quot; &gt;&amp;2
++          exit 1
++        fi
+         sarif_arg=()
+         if [ -n &quot;$SARIF_FILE&quot; ]; then
+           sarif_arg=(--sarif-out &quot;$SARIF_FILE&quot;)
+@@ -82,6 +107,7 @@ runs:
+         node &quot;$BROOKS_LINT_ROOT/scripts/ci-review.mjs&quot; \
+           --mode &quot;$MODE&quot; \
+           --model &quot;$MODEL&quot; \
++          --provider &quot;$PROVIDER&quot; \
+           --skills-dir &quot;$BROOKS_LINT_ROOT/skills&quot; \
+           --project-dir &quot;$GITHUB_WORKSPACE&quot; \
+           &quot;${sarif_arg[@]}&quot; \
+diff --git a/scripts/ci-review.mjs b/scripts/ci-review.mjs
+index 61d67a7..91b31b6 100644
+--- a/scripts/ci-review.mjs
++++ b/scripts/ci-review.mjs
+@@ -13,11 +13,13 @@
+  *     --model claude-sonnet-4-6 \
+  *     --skills-dir ./skills \
+  *     --project-dir /path/to/project \
++ *     [--provider anthropic|examplegw] \
+  *     [--format json|sarif] \
+  *     [--sarif-out brooks-lint.sarif]
+  *
+  * Environment:
+- *   ANTHROPIC_API_KEY  required
++ *   ANTHROPIC_API_KEY  required (provider=anthropic)
++ *   EXAMPLEGW_API_KEY required (provider=examplegw; sk-gw-...)
+  */
+ 
+ import { execFileSync } from &quot;node:child_process&quot;;
+@@ -35,8 +37,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+ 
+ const args = parseArgs(process.argv.slice(2));
+ 
++const provider = args.provider ?? &quot;anthropic&quot;;
++if (![&quot;anthropic&quot;, &quot;examplegw&quot;].includes(provider)) {
++  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, examplegw`);
++  process.exit(1);
++}
++
++// ExampleGW serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic
++// model ids (e.g. claude-sonnet-4-6) are not resolvable through the gateway, so
++// the default is pinned to the ExampleGW-prefixed id.
++const DEFAULT_MODELS = {
++  anthropic: &quot;claude-sonnet-4-6&quot;,
++  examplegw: &quot;anthropic/claude-sonnet-5&quot;,
++};
++
+ const mode = args.mode ?? &quot;review&quot;;
+-const model = args.model ?? &quot;claude-sonnet-4-6&quot;;
++const model = args.model ?? DEFAULT_MODELS[provider];
+ const format = args.format ?? &quot;json&quot;;
+ const skillsDir = path.resolve(args[&quot;skills-dir&quot;] ?? path.join(__dirname, &quot;..&quot;, &quot;skills&quot;));
+ const projectDir = path.resolve(args[&quot;project-dir&quot;] ?? process.cwd());
+@@ -79,7 +95,9 @@ function getGitDiff(projectRoot) {
+ 
+ // ── Main ──────────────────────────────────────────────────────────────────────
+ 
+-const client = new Anthropic();
++// ExampleGW&#39;s Anthropic-compatible endpoint — the client appends /v1/messages.
++const EXAMPLEGW_BASE_URL = &quot;https://api.examplegw.example&quot;;
++const client = new Anthropic(provider === &quot;examplegw&quot; ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);
+ 
+ const { diff, scope } = getGitDiff(projectDir);
+ const systemPrompt = assembleSystemPrompt(mode, skillsDir);
+@@ -95,6 +113,10 @@ try {
+     max_tokens: 4096,
+     system: systemPrompt,
+     messages: [{ role: &quot;user&quot;, content: userMessage }],
++    // Reasoning models on ExampleGW spend the output budget on thinking blocks
++    // by default; the 4096-token budget here assumes direct text output, so the
++    // gateway path disables extended thinking to preserve that contract.
++    ...(provider === &quot;examplegw&quot; ? { thinking: { type: &quot;disabled&quot; } } : {}),
+   });
+ } catch (err) {
+   console.error(JSON.stringify({ error: err.message, mode, scope }, null, 2));
+diff --git a/scripts/run-evals-live.mjs b/scripts/run-evals-live.mjs
+index cfdda01..bb64406 100644
+--- a/scripts/run-evals-live.mjs
++++ b/scripts/run-evals-live.mjs
+@@ -8,6 +8,7 @@
+  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --id 5
+  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --mode review
+  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --model claude-opus-4-6
++ *   EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw
+  */
+ 
+ import { readFileSync } from &quot;node:fs&quot;;
+@@ -22,10 +23,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
+ const root = path.resolve(__dirname, &quot;..&quot;);
+ 
+ const args = parseArgs(process.argv.slice(2));
++const provider   = args.provider ?? &quot;anthropic&quot;;
++if (![&quot;anthropic&quot;, &quot;examplegw&quot;].includes(provider)) {
++  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, examplegw`);
++  process.exit(1);
++}
++
++// ExampleGW serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic
++// model ids are not resolvable through the gateway, so the default is pinned to
++// the ExampleGW-prefixed id.
++const DEFAULT_MODELS = {
++  anthropic: &quot;claude-sonnet-4-6&quot;,
++  examplegw: &quot;anthropic/claude-sonnet-5&quot;,
++};
++
+ const filterRisk = args.risk ?? null;
+ const filterId   = args.id ? parseInt(args.id, 10) : null;
+ const filterMode = args.mode ?? null;
+-const model      = args.model ?? &quot;claude-sonnet-4-6&quot;;
++const model      = args.model ?? DEFAULT_MODELS[provider];
+ const skillsDir  = path.join(root, &quot;skills&quot;);
+ 
+ if (filterMode &amp;&amp; !VALID_MODES.includes(filterMode)) {
+@@ -59,7 +74,9 @@ function getSystemPrompt(mode) {
+ 
+ // ── Run scenarios ─────────────────────────────────────────────────────────────
+ 
+-const client = new Anthropic();
++// ExampleGW&#39;s Anthropic-compatible endpoint — the client appends /v1/messages.
++const EXAMPLEGW_BASE_URL = &quot;https://api.examplegw.example&quot;;
++const client = new Anthropic(provider === &quot;examplegw&quot; ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);
+ const results = [];
+ 
+ for (const scenario of scenarios) {
+@@ -80,6 +97,10 @@ for (const scenario of scenarios) {
+       max_tokens: 4096,
+       system: systemPrompt,
+       messages: [{ role: &quot;user&quot;, content: userMessage }],
++      // Reasoning models on ExampleGW spend the output budget on thinking blocks
++      // by default; the 4096-token budget here assumes direct text output, so the
++      // gateway path disables extended thinking to preserve that contract.
++      ...(provider === &quot;examplegw&quot; ? { thinking: { type: &quot;disabled&quot; } } : {}),
+     });
+     aiText  = message.content[0]?.text ?? &quot;&quot;;
+     verdict = classify(scenario, aiText);
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">finds-magic-string-remap</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the diff under review (use them to check the answer; do not grade the facts themselves):</p>
+<ul>
+<li>In <code>.github/actions/brooks-lint/action.yml</code>, when <code>PROVIDER</code> is <code>examplegw</code> the script runs
+<code>if [ &quot;$MODEL&quot; = &quot;claude-sonnet-4-6&quot; ]; then MODEL=&quot;anthropic/claude-sonnet-5&quot;; fi</code>.</li>
+<li><code>claude-sonnet-4-6</code> is the action's current default value for its <code>model</code> input.</li>
+</ul>
+<p>PASS only if the answer does BOTH:</p>
+<ol>
+<li>Identifies this equality check / model rewrite in <code>action.yml</code> (quoting it, or clearly describing "the action rewrites the model only when it equals the current default id").</li>
+<li>States at least one concrete consequence of tying the rewrite to that literal id:
+(a) when the action's default model is bumped, the check silently stops matching and the gateway receives an id it cannot resolve; or
+(b) a user who explicitly sets <code>model: claude-sonnet-4-6</code> is silently switched to a different model; or
+(c) any other bare model id a user passes is not mapped for the gateway at all.</li>
+</ol>
+<p>FAIL if the rewrite is not mentioned, or is only described neutrally (e.g. "remaps the default model") without explaining why the literal comparison is fragile.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">finds-multiple-sources-of-truth</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the diff under review:</p>
+<ul>
+<li>The gateway's default model is encoded in more than one place: <code>action.yml</code> hard-codes the rewrite <code>claude-sonnet-4-6 → anthropic/claude-sonnet-5</code>, while <code>scripts/ci-review.mjs</code> and <code>scripts/run-evals-live.mjs</code> each define their own <code>DEFAULT_MODELS = { anthropic: &quot;claude-sonnet-4-6&quot;, examplegw: &quot;anthropic/claude-sonnet-5&quot; }</code>.</li>
+<li><code>action.yml</code> always passes <code>--model &quot;$MODEL&quot;</code> to <code>ci-review.mjs</code>, and the script does <code>args.model ?? DEFAULT_MODELS[provider]</code>, so on the action path <code>DEFAULT_MODELS</code> never takes effect.</li>
+</ul>
+<p>PASS if the answer makes at least one of these points AND names at least two of the locations involved (file names or clearly identified code sites):
+A. The provider → default-model mapping lives in two or more places (the <code>action.yml</code> rewrite vs <code>DEFAULT_MODELS</code>, or <code>DEFAULT_MODELS</code> copied into both scripts), so the copies can drift apart.
+B. <code>DEFAULT_MODELS</code> in <code>ci-review.mjs</code> is dead / never used when invoked from the action, because the action always passes <code>--model</code>.</p>
+<p>FAIL if neither A nor B is made. Pointing out that the provider-handling block is duplicated across the two scripts counts as A only if the answer makes clear the default-model mapping is part of what is duplicated.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-factual-misreads</span><span class="badge">llm</span></div>
+<div class="md"><p>Check the review for factual misreadings of the diff. Ground truth about what the diff does:</p>
+<ol>
+<li><code>action.yml</code>: when <code>PROVIDER</code> is <code>examplegw</code> it exits 1 if <code>EXAMPLEGW_API_KEY</code> is empty, otherwise exports it as <code>ANTHROPIC_API_KEY</code>. For any other provider value it still exits 1 when <code>ANTHROPIC_API_KEY</code> is empty — the Anthropic path keeps a missing-key check (moved from <code>required: true</code> to a runtime check).</li>
+<li><code>action.yml</code> passes <code>--provider &quot;$PROVIDER&quot;</code> to <code>ci-review.mjs</code>. The action itself does not reject unknown provider values; both scripts do, exiting 1 with "Unknown provider".</li>
+<li>Both scripts construct <code>new Anthropic({ baseURL: &quot;https://api.examplegw.example&quot; })</code> only when provider is <code>examplegw</code>; otherwise <code>new Anthropic(undefined)</code>, which uses the SDK defaults (valid, does not throw).</li>
+<li><code>thinking: { type: &quot;disabled&quot; }</code> is added to the request only when provider is <code>examplegw</code>.</li>
+<li>No API key value is printed or logged; the error messages only name the missing input.</li>
+<li>An explicit <code>--model</code> always wins; <code>DEFAULT_MODELS[provider]</code> is only the fallback when <code>--model</code> is absent.</li>
+</ol>
+<p>FAIL if the answer states as fact anything that contradicts items 1–6 — for example: the Anthropic path no longer validates its key; the base URL is applied to both providers or never applied; thinking is disabled for every provider; a key is leaked to logs; <code>new Anthropic(undefined)</code> throws; an unknown provider silently falls back to anthropic inside the scripts; <code>DEFAULT_MODELS</code> overrides an explicit <code>--model</code>.</p>
+<p>Do NOT fail for: hedged remarks about behaviour outside the diff (e.g. whether the gateway accepts the <code>thinking</code> field), design opinions, or observations consistent with the ground truth (e.g. "action.yml does not validate the provider itself, so a typo only fails later in the script").</p>
+<p>PASS if no contradicting claim is present.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-2">
+<div class="case-head">
+<h2>02-pr33-bob-installer</h2>
+<span class="muted mono">evals/02-pr33-bob-installer</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +14.3 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">13 turns · $0.37 · 12:51:55 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">finds-bob-home-mismatch</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">我读取了 brooks-review 的完整评审框架（Iron Law + 六大腐化风险 + PR review 步骤），并对这份 diff 做了逐项扫描。核对了脚本里的实际逻辑和文档里的描述是否一致，发现了一处真实的文档-代码不一致问题。以下是完整报告：
+
+---
+
+# Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** `scripts/install.sh`, `docs/getting-started.md`, `docs/bob-setup.md`（新文件）— 共 3 个文件，未包含省略的 README 多语言同步改动
+**Health Score:** 94/100
+
+这个 PR 结构上很干净、遵循了现有平台接入的既定模式，但文档对 `$BOB_HOME` 环境变量的描述与脚本实际行为不符，需要修正后再合并。
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Knowledge Duplication — `docs/bob-setup.md` 声称支持 `$BOB_HOME`，但 `install.sh` 并未实现**
+Symptom: `docs/bob-setup.md` 中写道 `./scripts/install.sh bob # global: ~/.bob/skills (or $BOB_HOME/skills)`，表格里也明确写 `&lt;bob_home&gt;/skills (default ~/.bob/skills)` 是&quot;the global install writes&quot;的位置。但 `scripts/install.sh` 里新增的 `global_dir()` 分支是硬编码的：
+```bash
+bob)         printf &apos;%s&apos; &quot;$HOME/.bob/skills&quot; ;;
+```
+完全没有读取 `$BOB_HOME` 环境变量做 fallback（对比同一函数里其他平台，也都没有类似的环境变量覆盖机制，说明这是贡献者凭空加上的文档承诺，不是照抄已有约定）。
+Source: Fowler — *Refactoring*, Duplicate Code（同一决策——安装目录的选择——在文档和代码中各自表达了一遍，且已经产生分歧）
+Consequence: 任何设置了 `$BOB_HOME`（比如把 Bob 的配置目录放在非默认位置）的用户，会以为全局安装的技能会装到 `$BOB_HOME/skills`，但实际上会被静默装到 `~/.bob/skills`。脚本不会报错，只是装错地方——用户后续会看到&quot;Bob 里搜不到 brooks-* 技能&quot;这种难以定位根因的问题。
+Remedy: 二选一——(a) 在 `global_dir()` 里把 bob 分支改成 `printf &apos;%s&apos; &quot;${BOB_HOME:-$HOME/.bob}/skills&quot;`，让代码匹配文档承诺；或 (b) 如果 IBM Bob 实际上没有这个环境变量约定，就把 `bob-setup.md` 和 getting-started 注释里所有 `$BOB_HOME` 的提法删掉，只保留 `~/.bob/skills`。在没有验证真实 Bob 行为（PR 本身也标注&quot;community end-to-end verification welcome”）的情况下，建议先按 (b) 处理更安全。
+
+### 🟢 Suggestion
+
+**Knowledge Duplication — 平台列表在 `install.sh` 和 `getting-started.md` 中顺序不一致**
+Symptom: `install.sh` 里 `bob` 是追加在列表最末尾（`... claude agents bob`，两处：顶部注释和 `PLATFORMS` 变量），而 `docs/getting-started.md` 里 `bob` 被插入到 `dsh` 和 `gemini` 之间（`... dsh · bob ·\ngemini · codex · claude · agents`）。
+Source: Hunt &amp; Thomas — *The Pragmatic Programmer*, DRY（同一份枚举顺序被两处独立维护，已经产生漂移）
+Consequence: 功能上无影响（case 语句不依赖顺序），但下次有人对照文档核对脚本、或者再加新平台时，容易被这个不一致误导，或者继续在错误的位置插入。
+Remedy: 把其中一处的顺序改成和另一处一致——建议把 `bob` 在 doc 中也挪到末尾（`agents` 之后），和 `install.sh` 保持字面一致。
+
+---
+
+## Summary
+
+唯一需要在合并前解决的是 `$BOB_HOME` 的文档/代码不一致——这是一个会让用户静默装错目录的真实问题，不是吹毛求疵。顺序不一致是顺手可修的小事。其余部分（`global_dir`/`project_dir` 两处 case 分支都正确补齐、平台计数从 9 改到 10、表格列的顺序和其他平台一致）贡献者做得很仔细，跟已有模式高度吻合，不需要额外重构。</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched Health Score\W*\d{1,3}\s*/\s*100</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-false-alarms-on-installer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">我读取了 brooks-review 的完整评审框架（Iron Law + 六大腐化风险 + PR review 步骤），并对这份 diff 做了逐项扫描。核对了脚本里的实际逻辑和文档里的描述是否一致，发现了一处真实的文档-代码不一致问题。以下是完整报告：
+
+---
+
+# Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** `scripts/install.sh`, `docs/getting-started.md`, `docs/bob-setup.md`（新文件）— 共 3 个文件，未包含省略的 README 多语言同步改动
+**Health Score:** 94/100
+
+这个 PR 结构上很干净、遵循了现有平台接入的既定模式，但文档对 `$BOB_HOME` 环境变量的描述与脚本实际行为不符，需要修正后再合并。
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Knowledge Duplication — `docs/bob-setup.md` 声称支持 `$BOB_HOME`，但 `install.sh` 并未实现**
+Symptom: `docs/bob-setup.md` 中写道 `./scripts/install.sh bob # global: ~/.bob/skills (or $BOB_HOME/skills)`，表格里也明确写 `&lt;bob_home&gt;/skills (default ~/.bob/skills)` 是&quot;the global install writes&quot;的位置。但 `scripts/install.sh` 里新增的 `global_dir()` 分支是硬编码的：
+```bash
+bob)         printf &apos;%s&apos; &quot;$HOME/.bob/skills&quot; ;;
+```
+完全没有读取 `$BOB_HOME` 环境变量做 fallback（对比同一函数里其他平台，也都没有类似的环境变量覆盖机制，说明这是贡献者凭空加上的文档承诺，不是照抄已有约定）。
+Source: Fowler — *Refactoring*, Duplicate Code（同一决策——安装目录的选择——在文档和代码中各自表达了一遍，且已经产生分歧）
+Consequence: 任何设置了 `$BOB_HOME`（比如把 Bob 的配置目录放在非默认位置）的用户，会以为全局安装的技能会装到 `$BOB_HOME/skills`，但实际上会被静默装到 `~/.bob/skills`。脚本不会报错，只是装错地方——用户后续会看到&quot;Bob 里搜不到 brooks-* 技能&quot;这种难以定位根因的问题。
+Remedy: 二选一——(a) 在 `global_dir()` 里把 bob 分支改成 `printf &apos;%s&apos; &quot;${BOB_HOME:-$HOME/.bob}/skills&quot;`，让代码匹配文档承诺；或 (b) 如果 IBM Bob 实际上没有这个环境变量约定，就把 `bob-setup.md` 和 getting-started 注释里所有 `$BOB_HOME` 的提法删掉，只保留 `~/.bob/skills`。在没有验证真实 Bob 行为（PR 本身也标注&quot;community end-to-end verification welcome”）的情况下，建议先按 (b) 处理更安全。
+
+### 🟢 Suggestion
+
+**Knowledge Duplication — 平台列表在 `install.sh` 和 `getting-started.md` 中顺序不一致**
+Symptom: `install.sh` 里 `bob` 是追加在列表最末尾（`... claude agents bob`，两处：顶部注释和 `PLATFORMS` 变量），而 `docs/getting-started.md` 里 `bob` 被插入到 `dsh` 和 `gemini` 之间（`... dsh · bob ·\ngemini · codex · claude · agents`）。
+Source: Hunt &amp; Thomas — *The Pragmatic Programmer*, DRY（同一份枚举顺序被两处独立维护，已经产生漂移）
+Consequence: 功能上无影响（case 语句不依赖顺序），但下次有人对照文档核对脚本、或者再加新平台时，容易被这个不一致误导，或者继续在错误的位置插入。
+Remedy: 把其中一处的顺序改成和另一处一致——建议把 `bob` 在 doc 中也挪到末尾（`agents` 之后），和 `install.sh` 保持字面一致。
+
+---
+
+## Summary
+
+唯一需要在合并前解决的是 `$BOB_HOME` 的文档/代码不一致——这是一个会让用户静默装错目录的真实问题，不是吹毛求疵。顺序不一致是顺手可修的小事。其余部分（`global_dir`/`project_dir` 两处 case 分支都正确补齐、平台计数从 9 改到 10、表格列的顺序和其他平台一致）贡献者做得很仔细，跟已有模式高度吻合，不需要额外重构。</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">report-in-chinese</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched [一-鿿]{8}</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">4 turns · $0.15 · 12:51:55 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">finds-bob-home-mismatch</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">看完这个 diff,机制上的改动(PLATFORMS 列表、`global_dir`/`project_dir` 分支、getting-started.md 的表格和计数)都跟着现有模式改的,格式一致,没有语法问题。但有两个问题建议在合并前处理:
+
+**1. &quot;IBM Bob&quot; 这个平台本身存疑**
+我(以及我目前没有联网核实的能力)并不知道 IBM 有一个叫 &quot;Bob&quot; 的 AI 开发者 agent 产品,`bob.ibm.com` 这个域名、&quot;everything is a skill&quot; 架构、原生读取 `AGENTS.md` 等描述都无法验证。考虑到:
+- `install.sh` 是通过 `curl | bash` 直接执行的脚本,对新增平台的真实性要求应该更高;
+- 文档里写的&quot;🧪 未端到端验证,欢迎社区验证&quot;这种免责声明,恰恰说明贡献者自己也没有实际用过这个工具去验证。
+
+在合并前,强烈建议维护者自行确认 IBM Bob 是否真实存在、行为是否如文档所述,而不是仅凭 PR 描述采信。如果这是一个不存在或被虚构出来的平台,合并进去会让用户以为有真实集成,属于误导性文档。
+
+**2. 文档和脚本对不上(即使 Bob 是真的,这也是个 bug)**
+`bob-setup.md` 里写:
+&gt; `&lt;bob_home&gt;`(默认 `~/.bob/skills`,可通过 `$BOB_HOME/skills` 覆盖)
+&gt; Bob also loads `$BOB_HOME/AGENTS.md`
+
+但 `install.sh` 的 `global_dir()` 里 bob 分支是硬编码的:
+```bash
+bob) printf &apos;%s&apos; &quot;$HOME/.bob/skills&quot; ;;
+```
+完全没有读取 `$BOB_HOME` 环境变量。要么脚本要加上对 `BOB_HOME` 的支持,要么文档里关于 `$BOB_HOME` 覆盖的描述要删掉,两者现在互相矛盾。
+
+**结论**:先别合。第 1 点是内容真实性问题,第 2 点是明确的代码/文档不一致,都应该在合并前让贡献者澄清或修正。其余部分(PLATFORMS 列表、表格、verified 计数)没有问题。</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-false-alarms-on-installer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">看完这个 diff,机制上的改动(PLATFORMS 列表、`global_dir`/`project_dir` 分支、getting-started.md 的表格和计数)都跟着现有模式改的,格式一致,没有语法问题。但有两个问题建议在合并前处理:
+
+**1. &quot;IBM Bob&quot; 这个平台本身存疑**
+我(以及我目前没有联网核实的能力)并不知道 IBM 有一个叫 &quot;Bob&quot; 的 AI 开发者 agent 产品,`bob.ibm.com` 这个域名、&quot;everything is a skill&quot; 架构、原生读取 `AGENTS.md` 等描述都无法验证。考虑到:
+- `install.sh` 是通过 `curl | bash` 直接执行的脚本,对新增平台的真实性要求应该更高;
+- 文档里写的&quot;🧪 未端到端验证,欢迎社区验证&quot;这种免责声明,恰恰说明贡献者自己也没有实际用过这个工具去验证。
+
+在合并前,强烈建议维护者自行确认 IBM Bob 是否真实存在、行为是否如文档所述,而不是仅凭 PR 描述采信。如果这是一个不存在或被虚构出来的平台,合并进去会让用户以为有真实集成,属于误导性文档。
+
+**2. 文档和脚本对不上(即使 Bob 是真的,这也是个 bug)**
+`bob-setup.md` 里写:
+&gt; `&lt;bob_home&gt;`(默认 `~/.bob/skills`,可通过 `$BOB_HOME/skills` 覆盖)
+&gt; Bob also loads `$BOB_HOME/AGENTS.md`
+
+但 `install.sh` 的 `global_dir()` 里 bob 分支是硬编码的:
+```bash
+bob) printf &apos;%s&apos; &quot;$HOME/.bob/skills&quot; ;;
+```
+完全没有读取 `$BOB_HOME` 环境变量。要么脚本要加上对 `BOB_HOME` 的支持,要么文档里关于 `$BOB_HOME` 覆盖的描述要删掉,两者现在互相矛盾。
+
+**结论**:先别合。第 1 点是内容真实性问题,第 2 点是明确的代码/文档不一致,都应该在合并前让贡献者澄清或修正。其余部分(PLATFORMS 列表、表格、verified 计数)没有问题。</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">report-in-chinese</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched [一-鿿]{8}</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>帮我看看这个 PR 能不能合？贡献者给安装脚本加了 IBM Bob 平台支持，下面是安装脚本和文档部分的 diff（README 的多语言同步改动省略了）。</p>
+<pre><code class="language-diff">diff --git a/docs/bob-setup.md b/docs/bob-setup.md
+new file mode 100644
+index 0000000..bc7683b
+--- /dev/null
++++ b/docs/bob-setup.md
+@@ -0,0 +1,51 @@
++# IBM Bob Setup
++
++[IBM Bob](https://bob.ibm.com) (`bob`) is IBM&#39;s AI-powered developer agent — an &quot;everything is a
++skill&quot; architecture with a chat interface and IDE integrations. It natively loads
++[Agent Skills](https://agentskills.io) and reads `AGENTS.md`, so all six brooks-lint modes run with
++no conversion.
++
++## Install
++
++```bash
++# simplest — one command (global)
++curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- bob
++
++# from a clone
++./scripts/install.sh bob            # global: ~/.bob/skills (or $BOB_HOME/skills)
++./scripts/install.sh bob --project  # this repo: ./.bob/skills
++```
++
++Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.bob/skills/` — the contents, not the
++`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
++
++Bob scans these skill roots, highest priority first, so an existing vendor-neutral install is picked
++up automatically:
++
++| Root | Notes |
++|---|---|
++| `&lt;projectRoot&gt;/.bob/skills` | what `--project` writes |
++| `&lt;bob_home&gt;/skills` (default `~/.bob/skills`) | what the global install writes |
++
++When the same skill name appears in two roots, the project-level skill takes precedence.
++
++## Invoke
++
++Just ask — Bob routes to a skill from its `description`:
++
++- &quot;review this PR&quot; → `brooks-review`
++- &quot;audit the architecture&quot; → `brooks-audit`
++- &quot;where&#39;s our worst tech debt?&quot; → `brooks-debt`
++
++For explicit invocation, type `/` followed by the skill token in the chat prompt, or type it by
++hand: `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`,
++`/brooks-sweep`. The repo&#39;s `AGENTS.md` carries the Iron Law (Symptom → Source →
++Consequence → Remedy) and the Health Score rules; Bob also loads `$BOB_HOME/AGENTS.md` plus every
++`AGENTS.md` from the project root down to your working directory.
++
++## Notes
++
++- IBM Bob is available at [bob.ibm.com](https://bob.ibm.com); download and sign-in instructions
++  are on that page.
++- 🧪 Documented per the Agent Skills subsystem contract; community end-to-end verification welcome —
++  [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new).
+diff --git a/docs/getting-started.md b/docs/getting-started.md
+index 665f91f..8a91817 100644
+--- a/docs/getting-started.md
++++ b/docs/getting-started.md
+@@ -33,7 +33,7 @@ layout wrong:
+ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- &lt;platform&gt;
+ ```
+ 
+-`&lt;platform&gt;` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh ·
++`&lt;platform&gt;` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · bob ·
+ gemini · codex · claude · agents`. Add `--project` to install into the current repo instead of your
+ global config. `agents` targets the vendor-neutral `~/.agents/skills` folder that Cursor, Copilot, pi,
+ Gemini, Codex, and DeepSeek Harness all read.
+@@ -51,6 +51,7 @@ Gemini, Codex, and DeepSeek Harness all read.
+ | Kiro | [kiro-setup.md](kiro-setup.md) | `.kiro/skills`, `~/.kiro/skills` | ✅ |
+ | Factory Droid | [factory-droid-setup.md](factory-droid-setup.md) | `~/.factory/skills`, `.factory/skills`, `.agent/skills` | ✅ |
+ | DeepSeek Harness | [dsh-setup.md](dsh-setup.md) | `.dsh/skills`, `.agents/skills`, `~/.dsh/skills`, `~/.agents/skills` | ✅ |
++| IBM Bob | [bob-setup.md](bob-setup.md) | `.bob/skills`, `~/.bob/skills` | ✅ |
+ 
+ For Claude Code, Gemini CLI, and Codex CLI, see the [README install section](../README.md#installation).
+ `./scripts/install.sh gemini` and `./scripts/install.sh codex` also work and use the flat layout these
+@@ -69,7 +70,7 @@ If your agent accepts a skills folder or an instruction file, brooks-lint works:
+ ## Verification status
+ 
+ The marketplace-installed platforms (Claude Code, Gemini CLI, Codex CLI) are maintainer-verified. The
+-nine Agent-Skills platforms above are documented from each tool&#39;s official skill spec and verified at
++ten Agent-Skills platforms above are documented from each tool&#39;s official skill spec and verified at
+ the file-layout level (the installer is tested), but not yet end-to-end run by the maintainer on every
+ platform. **Tried one? Tell us** — [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new)
+ with the platform, version, and what you saw, working or broken.
+diff --git a/scripts/install.sh b/scripts/install.sh
+index 90270ef..0391864 100755
+--- a/scripts/install.sh
++++ b/scripts/install.sh
+@@ -13,7 +13,7 @@
+ #   ./scripts/install.sh &lt;platform&gt; [--project]
+ #   curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- &lt;platform&gt;
+ #
+-# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents
++# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob
+ #   agents = the vendor-neutral ~/.agents/skills folder (read by Cursor, Copilot, pi, Gemini,
+ #            Codex, and DeepSeek Harness)
+ #
+@@ -25,7 +25,7 @@
+ set -euo pipefail
+ 
+ REPO_URL=&quot;https://github.com/hyhmrright/brooks-lint.git&quot;
+-PLATFORMS=&quot;opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents&quot;
++PLATFORMS=&quot;opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob&quot;
+ 
+ err()  { printf &#39;\033[31merror:\033[0m %s\n&#39; &quot;$*&quot; &gt;&amp;2; }
+ info() { printf &#39;\033[36m›\033[0m %s\n&#39; &quot;$*&quot;; }
+@@ -66,6 +66,7 @@ global_dir() {
+     codex)       printf &#39;%s&#39; &quot;$HOME/.codex/skills&quot; ;;
+     claude)      printf &#39;%s&#39; &quot;$HOME/.claude/skills&quot; ;;
+     agents)      printf &#39;%s&#39; &quot;$HOME/.agents/skills&quot; ;;
++    bob)         printf &#39;%s&#39; &quot;$HOME/.bob/skills&quot; ;;
+     *)           return 1 ;;
+   esac
+ }
+@@ -85,6 +86,7 @@ project_dir() {
+     codex)       printf &#39;%s&#39; &quot;$PWD/.codex/skills&quot; ;;
+     claude)      printf &#39;%s&#39; &quot;$PWD/.claude/skills&quot; ;;
+     agents)      printf &#39;%s&#39; &quot;$PWD/.agents/skills&quot; ;;
++    bob)         printf &#39;%s&#39; &quot;$PWD/.bob/skills&quot; ;;
+     *)           return 1 ;;
+   esac
+ }
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">finds-bob-home-mismatch</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the diff under review (the answer is expected to be written in Chinese; judge its content):</p>
+<ul>
+<li><code>docs/bob-setup.md</code> says <code>./scripts/install.sh bob</code> installs to "<code>~/.bob/skills</code> (or <code>$BOB_HOME/skills</code>)", lists a skill root "<code>&lt;bob_home&gt;/skills</code> (default <code>~/.bob/skills</code>)", and says Bob loads <code>$BOB_HOME/AGENTS.md</code>.</li>
+<li><code>scripts/install.sh</code> <code>global_dir()</code> hard-codes <code>bob) printf &#39;%s&#39; &quot;$HOME/.bob/skills&quot;</code>; nothing in the installer reads <code>BOB_HOME</code>.</li>
+</ul>
+<p>PASS only if the answer identifies that the documentation promises <code>$BOB_HOME</code> support (a configurable Bob home) that the installer does not implement — i.e. a user who sets <code>BOB_HOME</code> still gets the skills installed under <code>$HOME/.bob/skills</code> — and names both sides (the setup doc and <code>install.sh</code> / <code>global_dir</code>).</p>
+<p>FAIL if <code>BOB_HOME</code> is not discussed, or is mentioned only as a documentation detail without noting that the installer ignores it.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-false-alarms-on-installer</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the diff under review (the answer is expected to be written in Chinese; judge its content):</p>
+<ul>
+<li><code>bob</code> is appended to both the <code># Platforms:</code> comment and the <code>PLATFORMS</code> variable in <code>scripts/install.sh</code>.</li>
+<li><code>global_dir()</code> gains <code>bob) → $HOME/.bob/skills</code>; <code>project_dir()</code> gains <code>bob) → $PWD/.bob/skills</code>, following exactly the pattern every other platform uses.</li>
+<li><code>docs/getting-started.md</code> adds <code>bob</code> to the <code>&lt;platform&gt;</code> enumeration and a table row listing <code>.bob/skills</code>, <code>~/.bob/skills</code>, which match those two installer paths.</li>
+</ul>
+<p>FAIL if the answer asserts any of the following as a problem:</p>
+<ol>
+<li><code>bob</code> is missing from <code>PLATFORMS</code>, from <code>global_dir()</code>, or from <code>project_dir()</code>.</li>
+<li>The paths <code>~/.bob/skills</code> / <code>./.bob/skills</code> in <code>install.sh</code> disagree with the getting-started table, or with the non-<code>BOB_HOME</code> paths in <code>bob-setup.md</code>.</li>
+<li>The added <code>bob</code> lines in <code>install.sh</code> are themselves wrong (bad syntax, wrong path, would break other platforms) and are rated critical / 🔴 / blocking.</li>
+</ol>
+<p>NOT a false alarm (do not fail for these): saying the installer should also honour <code>BOB_HOME</code> or the doc should drop it; wording or ordering nits; doubts about Bob's own behaviour that the diff cannot show.</p>
+<p>PASS if none of 1–3 occurs.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">report-in-chinese</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;[一-鿿]{8}&quot;</code></div><div class="kv"><span>flags</span><code>&quot;&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-3">
+<div class="case-head">
+<h2>03-two-files-rule-drift</h2>
+<span class="muted mono">evals/03-two-files-rule-drift</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:85.7%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">85.7%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">1 turns · $0.12 · 12:52:55 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">drift-ranked-first</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Yes — two real issues, both stemming from `cart_banner.py` reimplementing pricing logic instead of using `pricing.quote()`:
+
+**1. Free-shipping boundary is inconsistent (off-by-one on the threshold).**
+- `pricing.py`: `shipping = 0.00 if subtotal &gt;= FREE_SHIPPING_MIN else FLAT_SHIPPING` → **inclusive** of $100.00.
+- `cart_banner.py`: `if total &gt; 100:` → **exclusive** of $100.00.
+
+At exactly a $100.00 cart, the customer is actually charged $0 shipping, but the banner still says &quot;Add $0.00 more to get free shipping&quot; instead of the celebratory free-shipping message. Minor cosmetic case, but it&apos;s user-facing and wrong.
+
+**2. Duplicated money math using `float` instead of `Decimal`, which can silently disagree with the real quote.**
+`cart_total()` recomputes the subtotal with `float(i.unit_price) * i.quantity` and sums with plain floats, then rounds with Python&apos;s `round()` (banker&apos;s rounding) — while `pricing.py` computes the same subtotal with `Decimal` and `ROUND_HALF_UP`. For most prices these agree, but float binary representation can produce a value like `99.999999999999` or `100.00000000001` for a cart that should be exactly `100.00`, and the two roundings modes can disagree on `.xx5` cases. That means the banner can say &quot;free shipping!&quot; while checkout actually charges shipping, or vice versa — exactly the kind of bug that&apos;s hard to reproduce because it only shows up for certain penny totals.
+
+The fix is straightforward: have `cart_banner.py` call `pricing.quote(items)` and derive both the item count and the free-shipping message from the resulting `Quote` (compare `quote.subtotal &gt;= FREE_SHIPPING_MIN` and `quote.shipping`), rather than re-deriving subtotal/threshold logic with different types and different rounding rules. That also removes the hardcoded `100` in `cart_banner.py`, which would otherwise drift if `FREE_SHIPPING_MIN` ever changes in `pricing.py`.
+
+Want me to make that change?</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">explains-boundary-divergence</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Yes — two real issues, both stemming from `cart_banner.py` reimplementing pricing logic instead of using `pricing.quote()`:
+
+**1. Free-shipping boundary is inconsistent (off-by-one on the threshold).**
+- `pricing.py`: `shipping = 0.00 if subtotal &gt;= FREE_SHIPPING_MIN else FLAT_SHIPPING` → **inclusive** of $100.00.
+- `cart_banner.py`: `if total &gt; 100:` → **exclusive** of $100.00.
+
+At exactly a $100.00 cart, the customer is actually charged $0 shipping, but the banner still says &quot;Add $0.00 more to get free shipping&quot; instead of the celebratory free-shipping message. Minor cosmetic case, but it&apos;s user-facing and wrong.
+
+**2. Duplicated money math using `float` instead of `Decimal`, which can silently disagree with the real quote.**
+`cart_total()` recomputes the subtotal with `float(i.unit_price) * i.quantity` and sums with plain floats, then rounds with Python&apos;s `round()` (banker&apos;s rounding) — while `pricing.py` computes the same subtotal with `Decimal` and `ROUND_HALF_UP`. For most prices these agree, but float binary representation can produce a value like `99.999999999999` or `100.00000000001` for a cart that should be exactly `100.00`, and the two roundings modes can disagree on `.xx5` cases. That means the banner can say &quot;free shipping!&quot; while checkout actually charges shipping, or vice versa — exactly the kind of bug that&apos;s hard to reproduce because it only shows up for certain penny totals.
+
+The fix is straightforward: have `cart_banner.py` call `pricing.quote(items)` and derive both the item count and the free-shipping message from the resulting `Quote` (compare `quote.subtotal &gt;= FREE_SHIPPING_MIN` and `quote.shipping`), rather than re-deriving subtotal/threshold logic with different types and different rounding rules. That also removes the hardcoded `100` in `cart_banner.py`, which would otherwise drift if `FREE_SHIPPING_MIN` ever changes in `pricing.py`.
+
+Want me to make that change?</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">names-both-threshold-copies</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Yes — two real issues, both stemming from `cart_banner.py` reimplementing pricing logic instead of using `pricing.quote()`:
+
+**1. Free-shipping boundary is inconsistent (off-by-one on the threshold).**
+- `pricing.py`: `shipping = 0.00 if subtotal &gt;= FREE_SHIPPING_MIN else FLAT_SHIPPING` → **inclusive** of $100.00.
+- `cart_banner.py`: `if total &gt; 100:` → **exclusive** of $100.00.
+
+At exactly a $100.00 cart, the customer is actually charged $0 shipping, but the banner still says &quot;Add $0.00 more to get free shipping&quot; instead of the celebratory free-shipping message. Minor cosmetic case, but it&apos;s user-facing and wrong.
+
+**2. Duplicated money math using `float` instead of `Decimal`, which can silently disagree with the real quote.**
+`cart_total()` recomputes the subtotal with `float(i.unit_price) * i.quantity` and sums with plain floats, then rounds with Python&apos;s `round()` (banker&apos;s rounding) — while `pricing.py` computes the same subtotal with `Decimal` and `ROUND_HALF_UP`. For most prices these agree, but float binary representation can produce a value like `99.999999999999` or `100.00000000001` for a cart that should be exactly `100.00`, and the two roundings modes can disagree on `.xx5` cases. That means the banner can say &quot;free shipping!&quot; while checkout actually charges shipping, or vice versa — exactly the kind of bug that&apos;s hard to reproduce because it only shows up for certain penny totals.
+
+The fix is straightforward: have `cart_banner.py` call `pricing.quote(items)` and derive both the item count and the free-shipping message from the resulting `Quote` (compare `quote.subtotal &gt;= FREE_SHIPPING_MIN` and `quote.shipping`), rather than re-deriving subtotal/threshold logic with different types and different rounding rules. That also removes the hardcoded `100` in `cart_banner.py`, which would otherwise drift if `FREE_SHIPPING_MIN` ever changes in `pricing.py`.
+
+Want me to make that change?</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">1 turns · $0.14 · 12:53:37 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">drift-ranked-first</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Yes, a few real issues, mostly in `cart_banner.py`:
+
+**1. Boundary mismatch between the two modules (the real bug).** `pricing.py` grants free shipping when `subtotal &gt;= FREE_SHIPPING_MIN` (`&gt;=`), but `cart_banner.py`&apos;s `shipping_banner` checks `total &gt; 100` (strict `&gt;`). At exactly $100.00, `quote()` charges $0 shipping, while the banner still says &quot;Add $0.00 more to get free shipping&quot; instead of the celebratory message. Since `FREE_SHIPPING_MIN` isn&apos;t imported/reused, the two thresholds can drift independently.
+
+**2. Money computed in `float` instead of `Decimal`.** `cart_total` does `float(i.unit_price) * i.quantity` and sums floats, whereas `pricing.py` deliberately uses `Decimal` for currency. Binary float arithmetic can produce results like `99.99999999999999` or `100.00000000000001` for inputs that are exact in `Decimal`, which — combined with issue #1&apos;s strict `&gt;` — can push a customer who actually qualifies for free shipping (per `quote()`) into the &quot;not quite&quot; branch, or vice versa. `round(total, 2)` masks this most of the time but not at/near the threshold, which is exactly where it matters.
+
+**3. Duplicated business logic.** The $100 free-shipping threshold is hardcoded in `cart_banner.py` rather than importing `FREE_SHIPPING_MIN` from `pricing.py`. Functionally redundant with #1, but worth flagging separately: any future change to the threshold (or a tiered/promo threshold) only updates checkout pricing, not the banner customers see while shopping.
+
+**Suggested fix direction:** have `cart_banner.py` call `pricing.quote(items)` (or at least reuse `FREE_SHIPPING_MIN` and Decimal subtotal math) instead of recomputing totals in float — that eliminates both the precision risk and the drift risk in one move.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">explains-boundary-divergence</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Yes, a few real issues, mostly in `cart_banner.py`:
+
+**1. Boundary mismatch between the two modules (the real bug).** `pricing.py` grants free shipping when `subtotal &gt;= FREE_SHIPPING_MIN` (`&gt;=`), but `cart_banner.py`&apos;s `shipping_banner` checks `total &gt; 100` (strict `&gt;`). At exactly $100.00, `quote()` charges $0 shipping, while the banner still says &quot;Add $0.00 more to get free shipping&quot; instead of the celebratory message. Since `FREE_SHIPPING_MIN` isn&apos;t imported/reused, the two thresholds can drift independently.
+
+**2. Money computed in `float` instead of `Decimal`.** `cart_total` does `float(i.unit_price) * i.quantity` and sums floats, whereas `pricing.py` deliberately uses `Decimal` for currency. Binary float arithmetic can produce results like `99.99999999999999` or `100.00000000000001` for inputs that are exact in `Decimal`, which — combined with issue #1&apos;s strict `&gt;` — can push a customer who actually qualifies for free shipping (per `quote()`) into the &quot;not quite&quot; branch, or vice versa. `round(total, 2)` masks this most of the time but not at/near the threshold, which is exactly where it matters.
+
+**3. Duplicated business logic.** The $100 free-shipping threshold is hardcoded in `cart_banner.py` rather than importing `FREE_SHIPPING_MIN` from `pricing.py`. Functionally redundant with #1, but worth flagging separately: any future change to the threshold (or a tiered/promo threshold) only updates checkout pricing, not the banner customers see while shopping.
+
+**Suggested fix direction:** have `cart_banner.py` call `pricing.quote(items)` (or at least reuse `FREE_SHIPPING_MIN` and Decimal subtotal math) instead of recomputing totals in float — that eliminates both the precision risk and the drift risk in one move.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">names-both-threshold-copies</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Yes, a few real issues, mostly in `cart_banner.py`:
+
+**1. Boundary mismatch between the two modules (the real bug).** `pricing.py` grants free shipping when `subtotal &gt;= FREE_SHIPPING_MIN` (`&gt;=`), but `cart_banner.py`&apos;s `shipping_banner` checks `total &gt; 100` (strict `&gt;`). At exactly $100.00, `quote()` charges $0 shipping, while the banner still says &quot;Add $0.00 more to get free shipping&quot; instead of the celebratory message. Since `FREE_SHIPPING_MIN` isn&apos;t imported/reused, the two thresholds can drift independently.
+
+**2. Money computed in `float` instead of `Decimal`.** `cart_total` does `float(i.unit_price) * i.quantity` and sums floats, whereas `pricing.py` deliberately uses `Decimal` for currency. Binary float arithmetic can produce results like `99.99999999999999` or `100.00000000000001` for inputs that are exact in `Decimal`, which — combined with issue #1&apos;s strict `&gt;` — can push a customer who actually qualifies for free shipping (per `quote()`) into the &quot;not quite&quot; branch, or vice versa. `round(total, 2)` masks this most of the time but not at/near the threshold, which is exactly where it matters.
+
+**3. Duplicated business logic.** The $100 free-shipping threshold is hardcoded in `cart_banner.py` rather than importing `FREE_SHIPPING_MIN` from `pricing.py`. Functionally redundant with #1, but worth flagging separately: any future change to the threshold (or a tiered/promo threshold) only updates checkout pricing, not the banner customers see while shopping.
+
+**Suggested fix direction:** have `cart_banner.py` call `pricing.quote(items)` (or at least reuse `FREE_SHIPPING_MIN` and Decimal subtotal math) instead of recomputing totals in float — that eliminates both the precision risk and the drift risk in one move.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Any issues here? These two modules are from our checkout service — <code>pricing.py</code> builds the order quote and <code>cart_banner.py</code> renders the header on the cart page.</p>
+<p><code>pricing.py</code></p>
+<pre><code class="language-python">from dataclasses import dataclass
+from decimal import Decimal, ROUND_HALF_UP
+
+FREE_SHIPPING_MIN = Decimal(&quot;100.00&quot;)
+FLAT_SHIPPING = Decimal(&quot;7.95&quot;)
+TAX_RATE = Decimal(&quot;0.0825&quot;)
+
+
+@dataclass
+class LineItem:
+    sku: str
+    unit_price: Decimal
+    quantity: int
+
+
+@dataclass
+class Quote:
+    subtotal: Decimal
+    shipping: Decimal
+    tax: Decimal
+
+    @property
+    def total(self) -&gt; Decimal:
+        return self.subtotal + self.shipping + self.tax
+
+
+def _money(value: Decimal) -&gt; Decimal:
+    return value.quantize(Decimal(&quot;0.01&quot;), rounding=ROUND_HALF_UP)
+
+
+def quote(items: list[LineItem]) -&gt; Quote:
+    subtotal = _money(sum((i.unit_price * i.quantity for i in items), Decimal(&quot;0&quot;)))
+    shipping = Decimal(&quot;0.00&quot;) if subtotal &gt;= FREE_SHIPPING_MIN else FLAT_SHIPPING
+    tax = _money(subtotal * TAX_RATE)
+    return Quote(subtotal=subtotal, shipping=shipping, tax=tax)
+</code></pre>
+<p><code>cart_banner.py</code></p>
+<pre><code class="language-python">from pricing import LineItem
+
+
+def cart_total(items: list[LineItem]) -&gt; float:
+    return sum(float(i.unit_price) * i.quantity for i in items)
+
+
+def shipping_banner(items):
+    total = round(cart_total(items), 2)
+    if total &gt; 100:
+        return &quot;🎉 Your order ships free!&quot;
+    remaining = 100 - total
+    return f&quot;Add ${remaining:.2f} more to get free shipping&quot;
+
+
+def render_cart_header(user_name, items):
+    count = sum(i.quantity for i in items)
+    return f&quot;Hi {user_name}, you have {count} item(s) in your cart. {shipping_banner(items)}&quot;
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">drift-ranked-first</span><span class="badge">llm</span></div>
+<div class="md"><p>First locate the finding(s) about the duplicated, diverging free-shipping logic between <code>pricing.py</code> and <code>cart_banner.py</code>. Any of these belongs to that cluster: the threshold defined twice, <code>&gt;=</code> vs <code>&gt;</code>, or <code>cart_banner</code> re-computing the cart total on its own (including with <code>float</code> instead of <code>Decimal</code>).</p>
+<p>PASS only if that cluster is presented as the most important issue: it sits at the highest severity level the answer uses, and every finding listed before it also belongs to the same cluster.</p>
+<p>FAIL if the cluster is missing, or if any finding outside it (naming, missing type hints, unused or circular import, emoji in strings, string formatting, docstrings, dataclass style, etc.) is listed before it or given a higher severity.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">explains-boundary-divergence</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the code under review:</p>
+<ul>
+<li><code>pricing.quote()</code> charges no shipping when <code>subtotal &gt;= FREE_SHIPPING_MIN</code> (100.00).</li>
+<li><code>cart_banner.shipping_banner()</code> says the order ships free only when <code>total &gt; 100</code>; otherwise it shows "Add ${100 - total:.2f} more to get free shipping".</li>
+<li>So for a cart of exactly 100.00, the quote charges no shipping while the banner tells the customer to "Add $0.00 more to get free shipping".</li>
+</ul>
+<p>PASS only if the answer BOTH:</p>
+<ol>
+<li>Points out that the two comparisons disagree (<code>&gt;=</code> in <code>pricing.py</code> vs <code>&gt;</code> in <code>cart_banner.py</code>), and</li>
+<li>States the concrete consequence at the boundary: at exactly 100 the two modules give contradictory answers (e.g. free shipping in the quote, but the banner asks for $0.00 more / says it does not ship free).</li>
+</ol>
+<p>FAIL if only the duplicated number is noted without the <code>&gt;=</code> / <code>&gt;</code> disagreement, or if the direction of the disagreement is stated wrongly.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">names-both-threshold-copies</span><span class="badge">llm</span></div>
+<div class="md"><p>Facts about the code under review:</p>
+<ul>
+<li><code>pricing.py</code> defines <code>FREE_SHIPPING_MIN = Decimal(&quot;100.00&quot;)</code> and uses it in <code>quote()</code>.</li>
+<li><code>cart_banner.py</code> independently hard-codes the literal <code>100</code> in <code>shipping_banner()</code>.</li>
+</ul>
+<p>PASS only if the answer identifies that the free-shipping threshold is defined independently in both files and names both locations (file names, <code>FREE_SHIPPING_MIN</code> / <code>quote</code>, and <code>shipping_banner</code> / the literal <code>100</code>), presenting it as a problem — the rule can be changed in one place and not the other.</p>
+<p>FAIL if the duplication is not raised, if only one location is named, or if it is merely described without being treated as an issue.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-4">
+<div class="case-head">
+<h2>04-tradeoff-composition-root</h2>
+<span class="muted mono">evals/04-tradeoff-composition-root</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +20.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:60.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">60%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:60.0%"></span></span>
+<span class="num">60%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:60.0%"></span></span>
+<span class="num">60%</span>
+<span class="muted num">9 turns · $0.34 · 12:54:01 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched Health Score\W*\d{1,3}\s*/\s*100</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-composition-root-false-positive</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** 3 files as shared — `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters and `http/server` excluded per your note)
+**Health Score:** 79/100
+
+Clean ports-and-adapters wiring overall, but the payment idempotency guarantee doesn&apos;t actually hold against the retry scenario it&apos;s meant to cover — fix that before this ships.
+
+---
+
+## Findings
+
+### 🔴 Critical
+
+**Domain Model Distortion — Idempotency key doesn&apos;t protect against the retry it&apos;s meant for**
+Symptom: `PlaceOrder.execute` generates a fresh `randomUUID()` every call and uses it as `payments.charge`&apos;s idempotency key (`placeOrder.ts:19-25`). The comment claims this protects against &quot;a crash mid-charge,&quot; but any retry initiated *above* this method — an HTTP client that timed out and resubmits, a load-balancer replay, a mobile app&apos;s automatic retry-on-timeout — calls `execute()` again, gets a brand-new UUID, and produces a second order with a different idempotency key.
+Source: Evans — Domain-Driven Design (the code asserts an invariant — &quot;idempotent placement&quot; — that its own comment names, but the implementation doesn&apos;t hold that invariant for the failure mode that actually matters to the business).
+Consequence: The customer is charged twice for what they experience as one submission — the single most common real-world failure mode for a payment endpoint. Because the guarantee is only asserted in a comment, the gap stays invisible until it produces a double charge and a support/chargeback incident.
+Remedy: Accept the idempotency key as an input to `execute()` (a client-supplied request ID, or a key derived from stable caller-provided fields) instead of minting it from `randomUUID()` internally. `Order.id` can stay server-generated — only the Stripe idempotency key needs to survive across retries of the same logical request.
+
+### 🟡 Warning
+
+**Coverage Illusion — no tests for the new order-placement path**
+Symptom: `PlaceOrder.execute` is new public behavior (create → charge → status transition), and `main.ts` is the composition root for the whole service — neither has accompanying tests in what&apos;s shown.
+Source: Feathers — Working Effectively with Legacy Code, Ch. 1.
+Consequence: The two-phase persist-then-charge sequence, and specifically the failure branch (`result.ok === false` → `status: &quot;failed&quot;`), has no regression protection. The next change to this method has no safety net proving pending/paid/failed handling still works.
+Remedy: Add unit tests for `PlaceOrder.execute` covering the charge-success path and the charge-failure path. Also worth a test that pins down current retry behavior (two calls with the same logical intent → two separate orders) so the fix for the Critical finding above is provably correct once made.
+
+### 🟢 Suggestion
+
+**Cognitive Overload — Money as two disconnected primitives (Primitive Obsession)**
+Symptom: `amountCents` and `currency` travel together everywhere (`Order`, `PaymentGateway.charge`) as separate primitive fields/params rather than a single value type.
+Source: Fowler — Refactoring, Primitive Obsession; Evans — DDD, Value Object.
+Consequence: Nothing enforces that the two stay paired or get validated together — a caller could mix `amountCents` from one context with `currency` from another with no type-level error. Small risk now, grows as more call sites appear.
+Remedy: Introduce a small immutable `Money { amountCents, currency }` value type and use it in `Order` and in `PaymentGateway.charge`&apos;s signature. Cheap to do while the surface area is still this small.
+
+---
+
+## Summary
+
+The dependency shape is the strongest part of this PR: `PlaceOrder` only knows about the `OrderRepository`/`PaymentGateway`/`Clock` interfaces in `orders/ports.ts`, and `main.ts` is the only place that touches `pg`/`Stripe` concretes directly — that&apos;s dependency inversion done correctly, not just claimed. The idempotency-key gap is a correctness issue, not a style one, and worth blocking merge on given this is a payments path; the other two findings are fine to pick up as the module grows.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">overall-healthy</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** 3 files as shared — `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters and `http/server` excluded per your note)
+**Health Score:** 79/100
+
+Clean ports-and-adapters wiring overall, but the payment idempotency guarantee doesn&apos;t actually hold against the retry scenario it&apos;s meant to cover — fix that before this ships.
+
+---
+
+## Findings
+
+### 🔴 Critical
+
+**Domain Model Distortion — Idempotency key doesn&apos;t protect against the retry it&apos;s meant for**
+Symptom: `PlaceOrder.execute` generates a fresh `randomUUID()` every call and uses it as `payments.charge`&apos;s idempotency key (`placeOrder.ts:19-25`). The comment claims this protects against &quot;a crash mid-charge,&quot; but any retry initiated *above* this method — an HTTP client that timed out and resubmits, a load-balancer replay, a mobile app&apos;s automatic retry-on-timeout — calls `execute()` again, gets a brand-new UUID, and produces a second order with a different idempotency key.
+Source: Evans — Domain-Driven Design (the code asserts an invariant — &quot;idempotent placement&quot; — that its own comment names, but the implementation doesn&apos;t hold that invariant for the failure mode that actually matters to the business).
+Consequence: The customer is charged twice for what they experience as one submission — the single most common real-world failure mode for a payment endpoint. Because the guarantee is only asserted in a comment, the gap stays invisible until it produces a double charge and a support/chargeback incident.
+Remedy: Accept the idempotency key as an input to `execute()` (a client-supplied request ID, or a key derived from stable caller-provided fields) instead of minting it from `randomUUID()` internally. `Order.id` can stay server-generated — only the Stripe idempotency key needs to survive across retries of the same logical request.
+
+### 🟡 Warning
+
+**Coverage Illusion — no tests for the new order-placement path**
+Symptom: `PlaceOrder.execute` is new public behavior (create → charge → status transition), and `main.ts` is the composition root for the whole service — neither has accompanying tests in what&apos;s shown.
+Source: Feathers — Working Effectively with Legacy Code, Ch. 1.
+Consequence: The two-phase persist-then-charge sequence, and specifically the failure branch (`result.ok === false` → `status: &quot;failed&quot;`), has no regression protection. The next change to this method has no safety net proving pending/paid/failed handling still works.
+Remedy: Add unit tests for `PlaceOrder.execute` covering the charge-success path and the charge-failure path. Also worth a test that pins down current retry behavior (two calls with the same logical intent → two separate orders) so the fix for the Critical finding above is provably correct once made.
+
+### 🟢 Suggestion
+
+**Cognitive Overload — Money as two disconnected primitives (Primitive Obsession)**
+Symptom: `amountCents` and `currency` travel together everywhere (`Order`, `PaymentGateway.charge`) as separate primitive fields/params rather than a single value type.
+Source: Fowler — Refactoring, Primitive Obsession; Evans — DDD, Value Object.
+Consequence: Nothing enforces that the two stay paired or get validated together — a caller could mix `amountCents` from one context with `currency` from another with no type-level error. Small risk now, grows as more call sites appear.
+Remedy: Introduce a small immutable `Money { amountCents, currency }` value type and use it in `Order` and in `PaymentGateway.charge`&apos;s signature. Cheap to do while the surface area is still this small.
+
+---
+
+## Summary
+
+The dependency shape is the strongest part of this PR: `PlaceOrder` only knows about the `OrderRepository`/`PaymentGateway`/`Clock` interfaces in `orders/ports.ts`, and `main.ts` is the only place that touches `pg`/`Stripe` concretes directly — that&apos;s dependency inversion done correctly, not just claimed. The idempotency-key gap is a correctness issue, not a style one, and worth blocking merge on given this is a payments path; the other two findings are fine to pick up as the module grows.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:40.0%"></span></span>
+<span class="num">40%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:40.0%"></span></span>
+<span class="num">40%</span>
+<span class="muted num">1 turns · $0.15 · 12:54:17 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-composition-root-false-positive</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I reviewed all three files. The overall shape (ports/adapters, explicit two-phase persist-then-charge) is sound, but there&apos;s one correctness bug that matters for a payments path, plus a few things worth confirming before this ships.
+
+**Critical — idempotency key is generated per-attempt, not per-request**
+
+`placeOrder.ts`: `order.id` is a fresh `randomUUID()` on every `execute()` call, and that same id is used as the Stripe idempotency key. That only protects against retries *inside* a single `execute()` call — it does nothing for the case that actually happens in production: the charge succeeds, then the second `orders.save(settled)` fails (DB blip, pool exhausted, pod killed) before it returns. `execute()` throws, the HTTP layer returns an error, the client (reasonably) retries the &quot;place order&quot; request, and `PlaceOrder` mints a brand-new order id → brand-new idempotency key → Stripe charges the customer again.
+
+The idempotency key needs to come from the caller (e.g., an `Idempotency-Key` header the HTTP layer threads through, or a client-supplied order reference), not be generated inside the use case. Otherwise the safety the code comment is aiming for (&quot;crash mid-charge leaves a record the reconciliation job can retry&quot;) only covers the DB-record side, not the double-charge side.
+
+**Worth confirming — reconciliation job and &quot;pending&quot; ambiguity**
+
+The pending→charge→settle pattern is the right shape, but it depends on a reconciliation job (not shown) that queries Stripe by idempotency key for stuck `&quot;pending&quot;` orders. Two things to check there:
+- `Order.status` can&apos;t distinguish &quot;never attempted a charge&quot; from &quot;charge attempted, outcome unknown because we crashed/threw before the second save.&quot; Both look like `&quot;pending&quot;`. That&apos;s probably fine since reconciliation checks Stripe regardless, but confirm it handles &quot;no charge found for this key&quot; (safe to retry) vs &quot;charge found&quot; (mark paid) correctly.
+- If `payments.charge` throws instead of resolving to `{ok: false}` (e.g. network timeout to Stripe — the ambiguous &quot;did it go through?&quot; case), that exception propagates out of `execute()` and the order is left at `&quot;pending&quot;` with no `&quot;failed&quot;` write. That&apos;s likely intentional given the reconciliation design, but confirm `StripePaymentGateway` never lets a genuine Stripe error bubble as `{ok:false}` when it should instead be left unresolved for reconciliation — conflating the two would let reconciliation retry a charge that actually already succeeded.
+
+**Worth confirming — repository adapter**
+
+`orders.save()` is called twice for the same `id` (insert-as-pending, then update-to-settled). Since `PostgresOrderRepository` isn&apos;t included, worth double-checking it&apos;s an upsert (`ON CONFLICT ... DO UPDATE`) and not a plain `INSERT`, or the second save will fail on a duplicate key and you&apos;ll lose the settle write entirely after a successful charge.
+
+**Minor — main.ts shutdown**
+
+- `server.close()` isn&apos;t awaited/promisified, so `shutdown()` calls `pool.end()` without waiting for in-flight requests (and their DB queries) to finish — a request mid-query can lose its connection out from under it.
+- No timeout on shutdown: if a client never releases back to the pool, `pool.end()` (and thus process exit) can hang indefinitely. Consider a forced `process.exit()` after a grace period.
+- `shutdown` is async but the `SIGTERM`/`SIGINT` handlers don&apos;t catch rejections — if `pool.end()` throws, that&apos;s an unhandled rejection.
+- No guard against a second SIGTERM/SIGINT firing `shutdown()` concurrently.
+
+**Minor — input validation**
+
+`placeOrder.ts` validates `amountCents` but not `currency` (no ISO-4217 shape/case check) or `customerId` (non-empty). Not a correctness bug given Stripe will reject garbage, but it means invalid input reaches the network call instead of failing fast, and a bad currency case (Stripe wants lowercase) could produce a confusing Stripe-side error rather than a clear validation error.
+
+**Nice-to-have**
+
+- Pin `apiVersion` on the `Stripe` client in `main.ts` rather than relying on the account default — avoids behavior changing out from under you when the account default rolls forward.
+
+Nothing here blocks the shape of the design — the persist-pending → charge → persist-settled pattern with a reconciliation job is a reasonable way to handle the lack of a distributed transaction between Postgres and Stripe. The idempotency-key-per-request issue is the one I&apos;d fix before this goes live; the rest are worth a quick confirm.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">overall-healthy</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I reviewed all three files. The overall shape (ports/adapters, explicit two-phase persist-then-charge) is sound, but there&apos;s one correctness bug that matters for a payments path, plus a few things worth confirming before this ships.
+
+**Critical — idempotency key is generated per-attempt, not per-request**
+
+`placeOrder.ts`: `order.id` is a fresh `randomUUID()` on every `execute()` call, and that same id is used as the Stripe idempotency key. That only protects against retries *inside* a single `execute()` call — it does nothing for the case that actually happens in production: the charge succeeds, then the second `orders.save(settled)` fails (DB blip, pool exhausted, pod killed) before it returns. `execute()` throws, the HTTP layer returns an error, the client (reasonably) retries the &quot;place order&quot; request, and `PlaceOrder` mints a brand-new order id → brand-new idempotency key → Stripe charges the customer again.
+
+The idempotency key needs to come from the caller (e.g., an `Idempotency-Key` header the HTTP layer threads through, or a client-supplied order reference), not be generated inside the use case. Otherwise the safety the code comment is aiming for (&quot;crash mid-charge leaves a record the reconciliation job can retry&quot;) only covers the DB-record side, not the double-charge side.
+
+**Worth confirming — reconciliation job and &quot;pending&quot; ambiguity**
+
+The pending→charge→settle pattern is the right shape, but it depends on a reconciliation job (not shown) that queries Stripe by idempotency key for stuck `&quot;pending&quot;` orders. Two things to check there:
+- `Order.status` can&apos;t distinguish &quot;never attempted a charge&quot; from &quot;charge attempted, outcome unknown because we crashed/threw before the second save.&quot; Both look like `&quot;pending&quot;`. That&apos;s probably fine since reconciliation checks Stripe regardless, but confirm it handles &quot;no charge found for this key&quot; (safe to retry) vs &quot;charge found&quot; (mark paid) correctly.
+- If `payments.charge` throws instead of resolving to `{ok: false}` (e.g. network timeout to Stripe — the ambiguous &quot;did it go through?&quot; case), that exception propagates out of `execute()` and the order is left at `&quot;pending&quot;` with no `&quot;failed&quot;` write. That&apos;s likely intentional given the reconciliation design, but confirm `StripePaymentGateway` never lets a genuine Stripe error bubble as `{ok:false}` when it should instead be left unresolved for reconciliation — conflating the two would let reconciliation retry a charge that actually already succeeded.
+
+**Worth confirming — repository adapter**
+
+`orders.save()` is called twice for the same `id` (insert-as-pending, then update-to-settled). Since `PostgresOrderRepository` isn&apos;t included, worth double-checking it&apos;s an upsert (`ON CONFLICT ... DO UPDATE`) and not a plain `INSERT`, or the second save will fail on a duplicate key and you&apos;ll lose the settle write entirely after a successful charge.
+
+**Minor — main.ts shutdown**
+
+- `server.close()` isn&apos;t awaited/promisified, so `shutdown()` calls `pool.end()` without waiting for in-flight requests (and their DB queries) to finish — a request mid-query can lose its connection out from under it.
+- No timeout on shutdown: if a client never releases back to the pool, `pool.end()` (and thus process exit) can hang indefinitely. Consider a forced `process.exit()` after a grace period.
+- `shutdown` is async but the `SIGTERM`/`SIGINT` handlers don&apos;t catch rejections — if `pool.end()` throws, that&apos;s an unhandled rejection.
+- No guard against a second SIGTERM/SIGINT firing `shutdown()` concurrently.
+
+**Minor — input validation**
+
+`placeOrder.ts` validates `amountCents` but not `currency` (no ISO-4217 shape/case check) or `customerId` (non-empty). Not a correctness bug given Stripe will reject garbage, but it means invalid input reaches the network call instead of failing fast, and a bad currency case (Stripe wants lowercase) could produce a confusing Stripe-side error rather than a clear validation error.
+
+**Nice-to-have**
+
+- Pin `apiVersion` on the `Stripe` client in `main.ts` rather than relying on the account default — avoids behavior changing out from under you when the account default rolls forward.
+
+Nothing here blocks the shape of the design — the persist-pending → charge → persist-settled pattern with a reconciliation job is a reasonable way to handle the lack of a distributed transaction between Postgres and Stripe. The idempotency-key-per-request issue is the one I&apos;d fix before this goes live; the rest are worth a quick confirm.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Can you review this? It's the startup wiring and the first use case for our new orders service. The adapters under <code>src/adapters/</code> are thin wrappers around <code>pg</code> and the Stripe SDK and aren't included.</p>
+<p><code>src/main.ts</code></p>
+<pre><code class="language-ts">import { Pool } from &quot;pg&quot;;
+import Stripe from &quot;stripe&quot;;
+import { loadConfig } from &quot;./config&quot;;
+import { createServer } from &quot;./http/server&quot;;
+import { PostgresOrderRepository } from &quot;./adapters/postgresOrderRepository&quot;;
+import { StripePaymentGateway } from &quot;./adapters/stripePaymentGateway&quot;;
+import { PlaceOrder } from &quot;./orders/placeOrder&quot;;
+
+async function main(): Promise&lt;void&gt; {
+  const config = loadConfig(process.env);
+
+  const pool = new Pool({ connectionString: config.databaseUrl, max: config.dbPoolSize });
+  const stripe = new Stripe(config.stripeSecretKey);
+
+  const orders = new PostgresOrderRepository(pool);
+  const payments = new StripePaymentGateway(stripe);
+  const clock = { now: () =&gt; new Date() };
+
+  const placeOrder = new PlaceOrder(orders, payments, clock);
+
+  const server = createServer({ placeOrder });
+  server.listen(config.port, () =&gt; console.log(`listening on :${config.port}`));
+
+  const shutdown = async () =&gt; {
+    server.close();
+    await pool.end();
+  };
+  process.on(&quot;SIGTERM&quot;, shutdown);
+  process.on(&quot;SIGINT&quot;, shutdown);
+}
+
+main().catch((err) =&gt; {
+  console.error(err);
+  process.exit(1);
+});
+</code></pre>
+<p><code>src/orders/ports.ts</code></p>
+<pre><code class="language-ts">export interface Order {
+  id: string;
+  customerId: string;
+  amountCents: number;
+  currency: string;
+  status: &quot;pending&quot; | &quot;paid&quot; | &quot;failed&quot;;
+  createdAt: Date;
+}
+
+export interface OrderRepository {
+  save(order: Order): Promise&lt;void&gt;;
+}
+
+export interface PaymentGateway {
+  charge(
+    customerId: string,
+    amountCents: number,
+    currency: string,
+    idempotencyKey: string,
+  ): Promise&lt;{ ok: true } | { ok: false; reason: string }&gt;;
+}
+
+export interface Clock {
+  now(): Date;
+}
+</code></pre>
+<p><code>src/orders/placeOrder.ts</code></p>
+<pre><code class="language-ts">import { randomUUID } from &quot;node:crypto&quot;;
+import type { Clock, Order, OrderRepository, PaymentGateway } from &quot;./ports&quot;;
+
+export class PlaceOrder {
+  constructor(
+    private readonly orders: OrderRepository,
+    private readonly payments: PaymentGateway,
+    private readonly clock: Clock,
+  ) {}
+
+  async execute(customerId: string, amountCents: number, currency: string): Promise&lt;Order&gt; {
+    if (!Number.isInteger(amountCents) || amountCents &lt;= 0) {
+      throw new RangeError(&quot;amountCents must be a positive integer&quot;);
+    }
+
+    const order: Order = {
+      id: randomUUID(),
+      customerId,
+      amountCents,
+      currency,
+      status: &quot;pending&quot;,
+      createdAt: this.clock.now(),
+    };
+    // Persist as pending first so a crash mid-charge leaves a record the
+    // reconciliation job can retry (the idempotency key is the order id).
+    await this.orders.save(order);
+
+    const result = await this.payments.charge(customerId, amountCents, currency, order.id);
+    const settled: Order = { ...order, status: result.ok ? &quot;paid&quot; : &quot;failed&quot; };
+    await this.orders.save(settled);
+    return settled;
+  }
+}
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-composition-root-false-positive</span><span class="badge">llm</span></div>
+<div class="md"><p>Context: <code>src/main.ts</code> is the application's entry point. It is the only file that imports <code>pg</code> and <code>stripe</code>; it constructs the concrete adapters (<code>new Pool</code>, <code>new Stripe</code>, <code>new PostgresOrderRepository(pool)</code>, <code>new StripePaymentGateway(stripe)</code>) and passes them into <code>PlaceOrder</code>, which depends only on the <code>OrderRepository</code>, <code>PaymentGateway</code> and <code>Clock</code> interfaces from <code>ports.ts</code>. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.</p>
+<p>FAIL if the answer does any of the following:</p>
+<ol>
+<li>Presents <code>main.ts</code> importing <code>pg</code> / <code>stripe</code> or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, "Dependency Disorder", or hard-to-test wiring.</li>
+<li>Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.</li>
+<li>Suggests <code>PlaceOrder</code> or <code>ports.ts</code> should know about or depend on the concrete adapters.</li>
+</ol>
+<p>PASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of <code>main.ts</code> (shutdown ordering, config validation, logging) do not affect this grader.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">overall-healthy</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS only if all of the following hold:</p>
+<ol>
+<li>No issue is labelled Critical, 🔴, High severity, Blocker, or "must fix before merge". An empty Critical section, or a statement that there are no critical issues, is fine.</li>
+<li>If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.</li>
+<li>The overall verdict does not say the code needs significant rework or redesign before it can ship.</li>
+</ol>
+<p>FAIL if any of 1–3 is violated.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-5">
+<div class="case-head">
+<h2>05-diff-protocol-switch-no-tests</h2>
+<span class="muted mono">evals/05-diff-protocol-switch-no-tests</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +14.3 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:71.4%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">71.4%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:71.4%"></span></span>
+<span class="num">71.4%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:71.4%"></span></span>
+<span class="num">71.4%</span>
+<span class="muted num">13 turns · $0.40 · 12:54:21 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">flags-missing-decode-tests</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** pasted diff — `client.go` (modified), `resp/decode.go` (new, 102 lines). `resp/value.go` not shown; treated as unchanged per your description.
+**Health Score:** 80/100
+
+Solid, well-scoped protocol fix — one real gap (unbounded recursion depth) should be closed before merge, and the new decoder path has no tests.
+
+---
+
+## Findings
+
+### 🔴 Critical
+
+**Defensive Programming — unbounded recursion depth on nested arrays**
+Symptom: `Decode` bounds bulk-string length (`maxBulkLen`) and per-level array length (`maxArrayLen`) explicitly &quot;so a corrupt or hostile peer cannot make us allocate unbounded memory&quot; — but the `Array` case recurses into `Decode(r)` for each element with no depth counter. A peer sending `*1\r\n*1\r\n*1\r\n...` (deeply nested single-element arrays) costs 4 bytes per nesting level and drives the call stack arbitrarily deep, independent of `maxArrayLen`.
+Source: McConnell — *Code Complete*, defensive programming / boundary-condition discipline (explicitly named in this project&apos;s own threat model comment).
+Consequence: A malicious or buggy peer (compromised server, proxying layer, or protocol-confusion bug) can crash the client process via stack exhaustion — the exact class of attack the length limits were added to prevent, just via a different vector. This is a client library other code will depend on, so the gap ships to every caller.
+Remedy: Thread a depth counter (or explicit stack-based iterative decode) through `Decode`, cap it (e.g. 32–64, matching Redis&apos;s own `PROTO_MAX_DEPTH`-style limits), and return an `ErrProtocol`-wrapped error when exceeded.
+
+### 🟡 Warning
+
+**Coverage Illusion — new decoder has no tests**
+Symptom: The diff adds a full RESP2 decoder (5 type branches, null handling, length validation, recursion) and changes `Do`&apos;s error/return semantics, but includes no `*_test.go` changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1.
+Consequence: This is the code that parses untrusted network input — exactly where regressions (off-by-one CRLF checks, null vs. empty confusion, integer overflow on `ParseInt`) are both easy to introduce and expensive to catch later. Right now correctness rests entirely on manual review.
+Remedy: Add table-driven tests per type (`+OK\r\n`, `-ERR x\r\n`, `:123\r\n`, `$-1\r\n`, `$5\r\nhello\r\n`, `*-1\r\n`, nested arrays) plus malformed-input cases (bad length, missing CRLF, truncated stream) asserting `errors.Is(err, resp.ErrProtocol)` where appropriate.
+
+---
+
+## Summary
+
+Merge-blocking issue is the recursion depth gap — it undercuts the exact hostile-peer protection the length limits were written for, so it&apos;s worth a small fix before this lands. Add basic decoder tests alongside it; a from-scratch parser for untrusted network data with zero test coverage is the kind of thing that&apos;s cheap to test now and expensive to debug in production later. Everything else in the diff — the `Do` rewrite, error wrapping, CRLF strictness — is a clean, well-scoped improvement over the old single-line parser.
+
+Would you like to triage these findings? (accept / dismiss / defer / skip)</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched Health Score\W*\d{1,3}\s*/\s*100</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-critical-findings</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** pasted diff — `client.go` (modified), `resp/decode.go` (new, 102 lines). `resp/value.go` not shown; treated as unchanged per your description.
+**Health Score:** 80/100
+
+Solid, well-scoped protocol fix — one real gap (unbounded recursion depth) should be closed before merge, and the new decoder path has no tests.
+
+---
+
+## Findings
+
+### 🔴 Critical
+
+**Defensive Programming — unbounded recursion depth on nested arrays**
+Symptom: `Decode` bounds bulk-string length (`maxBulkLen`) and per-level array length (`maxArrayLen`) explicitly &quot;so a corrupt or hostile peer cannot make us allocate unbounded memory&quot; — but the `Array` case recurses into `Decode(r)` for each element with no depth counter. A peer sending `*1\r\n*1\r\n*1\r\n...` (deeply nested single-element arrays) costs 4 bytes per nesting level and drives the call stack arbitrarily deep, independent of `maxArrayLen`.
+Source: McConnell — *Code Complete*, defensive programming / boundary-condition discipline (explicitly named in this project&apos;s own threat model comment).
+Consequence: A malicious or buggy peer (compromised server, proxying layer, or protocol-confusion bug) can crash the client process via stack exhaustion — the exact class of attack the length limits were added to prevent, just via a different vector. This is a client library other code will depend on, so the gap ships to every caller.
+Remedy: Thread a depth counter (or explicit stack-based iterative decode) through `Decode`, cap it (e.g. 32–64, matching Redis&apos;s own `PROTO_MAX_DEPTH`-style limits), and return an `ErrProtocol`-wrapped error when exceeded.
+
+### 🟡 Warning
+
+**Coverage Illusion — new decoder has no tests**
+Symptom: The diff adds a full RESP2 decoder (5 type branches, null handling, length validation, recursion) and changes `Do`&apos;s error/return semantics, but includes no `*_test.go` changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1.
+Consequence: This is the code that parses untrusted network input — exactly where regressions (off-by-one CRLF checks, null vs. empty confusion, integer overflow on `ParseInt`) are both easy to introduce and expensive to catch later. Right now correctness rests entirely on manual review.
+Remedy: Add table-driven tests per type (`+OK\r\n`, `-ERR x\r\n`, `:123\r\n`, `$-1\r\n`, `$5\r\nhello\r\n`, `*-1\r\n`, nested arrays) plus malformed-input cases (bad length, missing CRLF, truncated stream) asserting `errors.Is(err, resp.ErrProtocol)` where appropriate.
+
+---
+
+## Summary
+
+Merge-blocking issue is the recursion depth gap — it undercuts the exact hostile-peer protection the length limits were written for, so it&apos;s worth a small fix before this lands. Add basic decoder tests alongside it; a from-scratch parser for untrusted network data with zero test coverage is the kind of thing that&apos;s cheap to test now and expensive to debug in production later. Everything else in the diff — the `Do` rewrite, error wrapping, CRLF strictness — is a clean, well-scoped improvement over the old single-line parser.
+
+Would you like to triage these findings? (accept / dismiss / defer / skip)</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-polymorphism-suggestion</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** pasted diff — `client.go` (modified), `resp/decode.go` (new, 102 lines). `resp/value.go` not shown; treated as unchanged per your description.
+**Health Score:** 80/100
+
+Solid, well-scoped protocol fix — one real gap (unbounded recursion depth) should be closed before merge, and the new decoder path has no tests.
+
+---
+
+## Findings
+
+### 🔴 Critical
+
+**Defensive Programming — unbounded recursion depth on nested arrays**
+Symptom: `Decode` bounds bulk-string length (`maxBulkLen`) and per-level array length (`maxArrayLen`) explicitly &quot;so a corrupt or hostile peer cannot make us allocate unbounded memory&quot; — but the `Array` case recurses into `Decode(r)` for each element with no depth counter. A peer sending `*1\r\n*1\r\n*1\r\n...` (deeply nested single-element arrays) costs 4 bytes per nesting level and drives the call stack arbitrarily deep, independent of `maxArrayLen`.
+Source: McConnell — *Code Complete*, defensive programming / boundary-condition discipline (explicitly named in this project&apos;s own threat model comment).
+Consequence: A malicious or buggy peer (compromised server, proxying layer, or protocol-confusion bug) can crash the client process via stack exhaustion — the exact class of attack the length limits were added to prevent, just via a different vector. This is a client library other code will depend on, so the gap ships to every caller.
+Remedy: Thread a depth counter (or explicit stack-based iterative decode) through `Decode`, cap it (e.g. 32–64, matching Redis&apos;s own `PROTO_MAX_DEPTH`-style limits), and return an `ErrProtocol`-wrapped error when exceeded.
+
+### 🟡 Warning
+
+**Coverage Illusion — new decoder has no tests**
+Symptom: The diff adds a full RESP2 decoder (5 type branches, null handling, length validation, recursion) and changes `Do`&apos;s error/return semantics, but includes no `*_test.go` changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1.
+Consequence: This is the code that parses untrusted network input — exactly where regressions (off-by-one CRLF checks, null vs. empty confusion, integer overflow on `ParseInt`) are both easy to introduce and expensive to catch later. Right now correctness rests entirely on manual review.
+Remedy: Add table-driven tests per type (`+OK\r\n`, `-ERR x\r\n`, `:123\r\n`, `$-1\r\n`, `$5\r\nhello\r\n`, `*-1\r\n`, nested arrays) plus malformed-input cases (bad length, missing CRLF, truncated stream) asserting `errors.Is(err, resp.ErrProtocol)` where appropriate.
+
+---
+
+## Summary
+
+Merge-blocking issue is the recursion depth gap — it undercuts the exact hostile-peer protection the length limits were written for, so it&apos;s worth a small fix before this lands. Add basic decoder tests alongside it; a from-scratch parser for untrusted network data with zero test coverage is the kind of thing that&apos;s cheap to test now and expensive to debug in production later. Everything else in the diff — the `Do` rewrite, error wrapping, CRLF strictness — is a clean, well-scoped improvement over the old single-line parser.
+
+Would you like to triage these findings? (accept / dismiss / defer / skip)</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:57.1%"></span></span>
+<span class="num">57.1%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:57.1%"></span></span>
+<span class="num">57.1%</span>
+<span class="muted num">4 turns · $0.18 · 12:54:54 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">flags-missing-decode-tests</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I couldn&apos;t cross-check this against your actual `resp/value.go` — this working directory has no Go files in it at all, so I reviewed the diff as presented. A few things I&apos;d fix before merging:
+
+**Real bugs / gaps**
+
+1. **Unbounded recursion on nested arrays** (`decode.go:64-77`, the `Array` case). Each element is decoded via a recursive `Decode(r)` call with no depth limit. A peer sending deeply nested arrays (`*1\r\n*1\r\n*1\r\n...`) can exhaust the goroutine stack. You already bound `maxArrayLen` and `maxBulkLen` against a &quot;corrupt or hostile peer&quot; — nesting depth is the same threat model and it&apos;s uncovered.
+
+2. **Unbounded line length for `SimpleString`/`Error`/`Integer`** (`readLine`, using `bufio.Reader.ReadString(&apos;\n&apos;)`). Unlike bulk strings and arrays, these types have no length prefix, so `ReadString` will keep growing its internal buffer until it finds `\n` (or EOF). A peer that sends `+` followed by gigabytes of non-newline bytes forces unbounded memory growth — the exact class of problem `maxBulkLen`/`maxArrayLen` were added to prevent, just left open on the other code path.
+
+**Missing from the PR**
+
+3. No tests. Given this is protocol-parsing code with several edge cases you clearly thought about (nulls, CRLF validation, length limits), it&apos;s worth locking those in with unit tests — especially nested arrays, null bulk/array, and the new CRLF-strictness behavior (which is a behavior change from the old `TrimSpace`-based parsing, and works in your favor, but should be pinned down).
+
+**Not a bug, just noting**
+
+- `Do`&apos;s `ctx` still isn&apos;t wired into the read (no deadline enforcement) — pre-existing, not something this PR introduced.
+
+The core logic (type dispatch, bulk/array framing, error propagation into `Do`) looks correct and is a real improvement over the old single-line-only parsing. I&apos;d hold off on merge until the two robustness gaps above are addressed, since they undercut the hostile-input protection the PR is explicitly going for — otherwise this looks solid.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-critical-findings</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I couldn&apos;t cross-check this against your actual `resp/value.go` — this working directory has no Go files in it at all, so I reviewed the diff as presented. A few things I&apos;d fix before merging:
+
+**Real bugs / gaps**
+
+1. **Unbounded recursion on nested arrays** (`decode.go:64-77`, the `Array` case). Each element is decoded via a recursive `Decode(r)` call with no depth limit. A peer sending deeply nested arrays (`*1\r\n*1\r\n*1\r\n...`) can exhaust the goroutine stack. You already bound `maxArrayLen` and `maxBulkLen` against a &quot;corrupt or hostile peer&quot; — nesting depth is the same threat model and it&apos;s uncovered.
+
+2. **Unbounded line length for `SimpleString`/`Error`/`Integer`** (`readLine`, using `bufio.Reader.ReadString(&apos;\n&apos;)`). Unlike bulk strings and arrays, these types have no length prefix, so `ReadString` will keep growing its internal buffer until it finds `\n` (or EOF). A peer that sends `+` followed by gigabytes of non-newline bytes forces unbounded memory growth — the exact class of problem `maxBulkLen`/`maxArrayLen` were added to prevent, just left open on the other code path.
+
+**Missing from the PR**
+
+3. No tests. Given this is protocol-parsing code with several edge cases you clearly thought about (nulls, CRLF validation, length limits), it&apos;s worth locking those in with unit tests — especially nested arrays, null bulk/array, and the new CRLF-strictness behavior (which is a behavior change from the old `TrimSpace`-based parsing, and works in your favor, but should be pinned down).
+
+**Not a bug, just noting**
+
+- `Do`&apos;s `ctx` still isn&apos;t wired into the read (no deadline enforcement) — pre-existing, not something this PR introduced.
+
+The core logic (type dispatch, bulk/array framing, error propagation into `Do`) looks correct and is a real improvement over the old single-line-only parsing. I&apos;d hold off on merge until the two robustness gaps above are addressed, since they undercut the hostile-input protection the PR is explicitly going for — otherwise this looks solid.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-polymorphism-suggestion</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I couldn&apos;t cross-check this against your actual `resp/value.go` — this working directory has no Go files in it at all, so I reviewed the diff as presented. A few things I&apos;d fix before merging:
+
+**Real bugs / gaps**
+
+1. **Unbounded recursion on nested arrays** (`decode.go:64-77`, the `Array` case). Each element is decoded via a recursive `Decode(r)` call with no depth limit. A peer sending deeply nested arrays (`*1\r\n*1\r\n*1\r\n...`) can exhaust the goroutine stack. You already bound `maxArrayLen` and `maxBulkLen` against a &quot;corrupt or hostile peer&quot; — nesting depth is the same threat model and it&apos;s uncovered.
+
+2. **Unbounded line length for `SimpleString`/`Error`/`Integer`** (`readLine`, using `bufio.Reader.ReadString(&apos;\n&apos;)`). Unlike bulk strings and arrays, these types have no length prefix, so `ReadString` will keep growing its internal buffer until it finds `\n` (or EOF). A peer that sends `+` followed by gigabytes of non-newline bytes forces unbounded memory growth — the exact class of problem `maxBulkLen`/`maxArrayLen` were added to prevent, just left open on the other code path.
+
+**Missing from the PR**
+
+3. No tests. Given this is protocol-parsing code with several edge cases you clearly thought about (nulls, CRLF validation, length limits), it&apos;s worth locking those in with unit tests — especially nested arrays, null bulk/array, and the new CRLF-strictness behavior (which is a behavior change from the old `TrimSpace`-based parsing, and works in your favor, but should be pinned down).
+
+**Not a bug, just noting**
+
+- `Do`&apos;s `ctx` still isn&apos;t wired into the read (no deadline enforcement) — pre-existing, not something this PR introduced.
+
+The core logic (type dispatch, bulk/array framing, error propagation into `Do`) looks correct and is a real improvement over the old single-line-only parsing. I&apos;d hold off on merge until the two robustness gaps above are addressed, since they undercut the hostile-input protection the PR is explicitly going for — otherwise this looks solid.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Here's my PR for our little Go Redis client: it adds a proper RESP2 decoder and switches <code>Client.Do</code> over to it (before, <code>Do</code> only understood single-line replies). <code>Value</code> and the <code>Kind</code> constants already live in <code>resp/value.go</code>, which is unchanged. Ready to merge?</p>
+<pre><code class="language-diff">diff --git a/client.go b/client.go
+index 2af07d3..d80edcc 100644
+--- a/client.go
++++ b/client.go
+@@ -6,7 +6,6 @@ import (
+ 	&quot;errors&quot;
+ 	&quot;fmt&quot;
+ 	&quot;net&quot;
+-	&quot;strings&quot;
+ 	&quot;time&quot;
+ 
+ 	&quot;example.com/redisx/resp&quot;
+@@ -38,14 +37,14 @@ func (c *Client) Do(ctx context.Context, args ...string) (resp.Value, error) {
+ 	if err := c.writeCommand(args); err != nil {
+ 		return resp.Value{}, err
+ 	}
+-	line, err := c.rd.ReadString(&#39;\n&#39;)
++	v, err := resp.Decode(c.rd)
+ 	if err != nil {
+ 		return resp.Value{}, err
+ 	}
+-	if strings.HasPrefix(line, &quot;-&quot;) {
+-		return resp.Value{}, errors.New(strings.TrimSpace(line[1:]))
++	if v.Kind == resp.Error {
++		return resp.Value{}, errors.New(v.Str)
+ 	}
+-	return resp.Value{Kind: resp.SimpleString, Str: strings.TrimSpace(line[1:])}, nil
++	return v, nil
+ }
+ 
+ func (c *Client) writeCommand(args []string) error {
+diff --git a/resp/decode.go b/resp/decode.go
+new file mode 100644
+index 0000000..059840e
+--- /dev/null
++++ b/resp/decode.go
+@@ -0,0 +1,102 @@
++package resp
++
++import (
++	&quot;bufio&quot;
++	&quot;errors&quot;
++	&quot;fmt&quot;
++	&quot;io&quot;
++	&quot;strconv&quot;
++	&quot;strings&quot;
++)
++
++// ErrProtocol is wrapped by every error caused by malformed input.
++var ErrProtocol = errors.New(&quot;resp: protocol error&quot;)
++
++// Limits mirror Redis&#39;s defaults (proto-max-bulk-len) so a corrupt or hostile
++// peer cannot make us allocate unbounded memory.
++const (
++	maxBulkLen  = 512 &lt;&lt; 20
++	maxArrayLen = 1 &lt;&lt; 20
++)
++
++// Decode reads exactly one RESP2 value from r.
++func Decode(r *bufio.Reader) (Value, error) {
++	prefix, err := r.ReadByte()
++	if err != nil {
++		return Value{}, err
++	}
++	line, err := readLine(r)
++	if err != nil {
++		return Value{}, err
++	}
++
++	switch Kind(prefix) {
++	case SimpleString, Error:
++		return Value{Kind: Kind(prefix), Str: line}, nil
++
++	case Integer:
++		n, err := strconv.ParseInt(line, 10, 64)
++		if err != nil {
++			return Value{}, fmt.Errorf(&quot;%w: bad integer %q&quot;, ErrProtocol, line)
++		}
++		return Value{Kind: Integer, Int: n}, nil
++
++	case BulkString:
++		n, err := parseLen(line, maxBulkLen)
++		if err != nil {
++			return Value{}, err
++		}
++		if n == -1 {
++			return Value{Kind: BulkString, Null: true}, nil
++		}
++		buf := make([]byte, n+2)
++		if _, err := io.ReadFull(r, buf); err != nil {
++			return Value{}, err
++		}
++		if buf[n] != &#39;\r&#39; || buf[n+1] != &#39;\n&#39; {
++			return Value{}, fmt.Errorf(&quot;%w: bulk string not CRLF-terminated&quot;, ErrProtocol)
++		}
++		return Value{Kind: BulkString, Str: string(buf[:n])}, nil
++
++	case Array:
++		n, err := parseLen(line, maxArrayLen)
++		if err != nil {
++			return Value{}, err
++		}
++		if n == -1 {
++			return Value{Kind: Array, Null: true}, nil
++		}
++		items := make([]Value, 0, n)
++		for i := 0; i &lt; n; i++ {
++			v, err := Decode(r)
++			if err != nil {
++				return Value{}, err
++			}
++			items = append(items, v)
++		}
++		return Value{Kind: Array, Array: items}, nil
++
++	default:
++		return Value{}, fmt.Errorf(&quot;%w: unknown type byte %q&quot;, ErrProtocol, prefix)
++	}
++}
++
++// parseLen parses a bulk-string or array length header: -1 (null) or 0..limit.
++func parseLen(line string, limit int) (int, error) {
++	n, err := strconv.Atoi(line)
++	if err != nil || n &lt; -1 || n &gt; limit {
++		return 0, fmt.Errorf(&quot;%w: bad length %q&quot;, ErrProtocol, line)
++	}
++	return n, nil
++}
++
++func readLine(r *bufio.Reader) (string, error) {
++	line, err := r.ReadString(&#39;\n&#39;)
++	if err != nil {
++		return &quot;&quot;, err
++	}
++	if !strings.HasSuffix(line, &quot;\r\n&quot;) {
++		return &quot;&quot;, fmt.Errorf(&quot;%w: line not CRLF-terminated&quot;, ErrProtocol)
++	}
++	return line[:len(line)-2], nil
++}
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">flags-missing-decode-tests</span><span class="badge">llm</span></div>
+<div class="md"><p>Context: the PR adds a new exported function <code>resp.Decode</code> in a new file <code>resp/decode.go</code> and switches <code>Client.Do</code> to use it. The diff contains no test file and no test changes.</p>
+<p>PASS only if the answer points out that this new decoding behaviour ships without tests in the PR — e.g. "no tests for <code>Decode</code>", or "add a <code>decode_test.go</code> covering null bulk strings / nested arrays / malformed input" — framed as a gap in this change.</p>
+<p>FAIL if tests are not mentioned, or are mentioned only in a generic line not tied to <code>Decode</code> / the decoder (e.g. "make sure CI passes").</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-critical-findings</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS only if both hold:</p>
+<ol>
+<li>No issue is labelled Critical, 🔴, High severity, Blocker, or "must fix before merge" — with one exception: asking for tests for the new <code>Decode</code> function before merging is acceptable at any severity. An empty Critical section, or a statement that there are no critical issues, is fine.</li>
+<li>If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.</li>
+</ol>
+<p>FAIL if either is violated.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-polymorphism-suggestion</span><span class="badge">llm</span></div>
+<div class="md"><p>Context: the new <code>resp/decode.go</code> implements <code>Decode</code> as a single <code>switch</code> over the five RESP2 type bytes (<code>+ - : $ *</code>) plus a default error case. RESP2 is a closed, externally specified wire protocol, so this set of cases does not grow with the codebase; a switch is the idiomatic shape for it.</p>
+<p>FAIL if the answer recommends, or flags as a design problem, any of:</p>
+<ol>
+<li>Replacing the switch with polymorphism — a <code>Decoder</code> / <code>Parser</code> interface with one implementation per type byte, or per-type structs with methods.</li>
+<li>A handler / decoder registry, <code>map[byte]func(...)</code>, strategy table, or plugin mechanism for type bytes.</li>
+<li>Claiming the switch violates the Open/Closed Principle, is a "switch statement" smell, or must be restructured because new types would require editing it.</li>
+</ol>
+<p>Allowed — do not fail for these: extracting a case body into a helper (e.g. <code>decodeBulk</code>, <code>decodeArray</code>); noting that the function is long; a passing remark that RESP3 would add cases, as long as restructuring is not recommended; any unrelated findings (recursion depth, allocation limits, error wrapping, tests).</p>
+<p>PASS if none of 1–3 occurs, including when the answer explicitly says the switch is appropriate.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-6">
+<div class="case-head">
+<h2>06-neg-write-from-scratch</h2>
+<span class="muted mono">evals/06-neg-write-from-scratch</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.04 · 12:55:24 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">gives-implementation</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched def \w+\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-review-report</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-not-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.04 · 12:55:30 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">gives-implementation</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched def \w+\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-review-report</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>用 Python 写一个线程安全、带 TTL 的 LRU cache：支持 get / put，容量满时淘汰最久未使用的条目，过期条目在访问时惰性清除。直接把代码贴给我就行。</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">gives-implementation</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;def \\w+\\(&quot;</code></div><div class="kv"><span>flags</span><code>&quot;&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-review-report</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score|Symptom\\W*:|Consequence\\W*:&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-not-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div><div class="kv"><span>min</span><code>0</code></div><div class="kv"><span>max</span><code>0</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-7">
+<div class="case-head">
+<h2>07-neg-syntax-with-code</h2>
+<span class="muted mono">evals/07-neg-syntax-with-code</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +50.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.07 · 12:55:37 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">explains-satisfies-vs-as</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The difference is what type each expression is checked *against* and what type it ends up *with*.
+
+**`satisfies`**
+
+```ts
+const routes = {
+  home: { path: &quot;/&quot;, auth: false },
+  settings: { path: &quot;/settings&quot;, auth: true },
+} satisfies Record&lt;string, Route&gt;;
+```
+
+`satisfies` checks that the literal you wrote is assignable to `Record&lt;string, Route&gt;`, but then keeps the *original, narrower inferred type* for `routes` — not `Record&lt;string, Route&gt;`. Each property of the object literal still has to individually be a valid `Route`, so `settings` must have both `path` and `auth`. Delete `auth`, and `{ path: &quot;/settings&quot; }` is no longer assignable to `Route` (missing required property), so it fails at the site of the literal. That&apos;s the whole point of `satisfies`: full structural checking of the literal, while preserving literal types (e.g. `routes.home.path` is `&quot;/&quot;`, not just `string`).
+
+**`as`**
+
+```ts
+settings: { path: &quot;/settings&quot; } as Route,
+```
+
+`as` is a type assertion — you&apos;re telling the compiler &quot;trust me, treat this as a `Route`,&quot; and TypeScript only does a compatibility sanity check (do the types overlap enough that this isn&apos;t obviously nonsense), not a full structural check. Since `{ path: &quot;/settings&quot; }` and `Route` overlap (they share `path`), the assertion is allowed even though the object is actually missing `auth`. It compiles, but you&apos;ve just lied to the compiler — at runtime `legacyRoutes.settings.auth` is `undefined`, not `boolean`, and nothing will catch that.
+
+Also worth noting: the outer annotation `Record&lt;string, Route&gt;` on `legacyRoutes` doesn&apos;t save you here, because the `as Route` assertion on the individual property already forced that value to type-check as `Route` before the outer check even applies — the assertion overrides inference locally.
+
+**Bottom line:** `satisfies` validates structurally and infers precisely; `as` overrides the checker and can hide missing/wrong fields exactly like this. Prefer `satisfies` whenever you want the safety and still want literal-type inference — reserve `as` for cases where you genuinely know more than the compiler (e.g., narrowing after a runtime check), not as a way to silence a legitimate type error.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-review-report</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-not-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">1 turns · $0.06 · 12:55:51 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">explains-satisfies-vs-as</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The core difference: `satisfies` checks the value against the type but keeps the value&apos;s own inferred type, while `as` overrides the type checker&apos;s inference entirely with a type assertion.
+
+**`satisfies`:**
+```ts
+const routes = {
+  home: { path: &quot;/&quot;, auth: false },
+  settings: { path: &quot;/settings&quot;, auth: true },
+} satisfies Record&lt;string, Route&gt;;
+```
+Here, `routes` still has its *inferred literal type* — TypeScript knows `routes.settings` is `{ path: string; auth: boolean }` — but every value in the object literal is checked against `Record&lt;string, Route&gt;` at the point of assignment. Each property of the literal must actually conform to `Route`. If you delete `auth: true`, the object `{ path: &quot;/settings&quot; }` no longer satisfies `Route` (which requires `auth: boolean`), so TypeScript flags it immediately at that property.
+
+**`as`:**
+```ts
+const legacyRoutes: Record&lt;string, Route&gt; = {
+  home: { path: &quot;/&quot;, auth: false },
+  settings: { path: &quot;/settings&quot; } as Route,
+};
+```
+`as Route` is a type assertion — you&apos;re telling the compiler &quot;trust me, treat this value as a `Route`,&quot; and it does no structural verification beyond a loose compatibility check (roughly: are these types not obviously unrelated). It doesn&apos;t check that the object literal actually has all of `Route`&apos;s properties; it just forces the type. So `{ path: &quot;/settings&quot; }` gets stamped as `Route` even though `auth` is missing — the compiler doesn&apos;t complain because you&apos;ve overridden its inference for that expression.
+
+**In short:**
+- `satisfies` = &quot;verify this conforms to the type, but keep inferring the real type&quot; → structural excess/missing-property checks still apply.
+- `as` = &quot;I know better than you, just treat it as this type&quot; → bypasses property checking (it only errors if the types are wildly incompatible, e.g. `&quot;str&quot; as Route` would fail, but a subset-missing-property object mostly won&apos;t).
+
+That&apos;s why deleting `auth` breaks the `satisfies` version but not the `as` version — `satisfies` still validates, `as` just silences the checker.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-review-report</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Quick TypeScript question about this bit of our router config:</p>
+<pre><code class="language-ts">type Route = { path: string; auth: boolean };
+
+const routes = {
+  home: { path: &quot;/&quot;, auth: false },
+  settings: { path: &quot;/settings&quot;, auth: true },
+} satisfies Record&lt;string, Route&gt;;
+
+const legacyRoutes: Record&lt;string, Route&gt; = {
+  home: { path: &quot;/&quot;, auth: false },
+  settings: { path: &quot;/settings&quot; } as Route,
+};
+</code></pre>
+<p>If I delete <code>auth: true</code> from <code>routes.settings</code> I get a compile error, but <code>legacyRoutes.settings</code> compiles fine without <code>auth</code>. What's the actual difference between <code>satisfies</code> and <code>as</code> here?</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">explains-satisfies-vs-as</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS only if the answer covers all three points:</p>
+<ol>
+<li><code>satisfies</code> checks that the value conforms to the type — so a missing <code>auth</code> is reported — without changing the variable's inferred type (e.g. <code>routes</code> keeps its specific shape with keys <code>home</code> / <code>settings</code>, rather than becoming <code>Record&lt;string, Route&gt;</code>).</li>
+<li><code>as</code> is a type assertion: it tells the compiler to treat the value as that type and does not perform a full conformance check — it only rejects conversions between unrelated / non-overlapping types — so <code>{ path: &quot;/settings&quot; }</code> is accepted as <code>Route</code> even though <code>auth</code> is missing.</li>
+<li>It ties this back to the snippet: <code>legacyRoutes.settings.auth</code> is typed <code>boolean</code> but is <code>undefined</code> at runtime (or equivalently, the assertion hides a real bug).</li>
+</ol>
+<p>FAIL if any point is missing, or if the explanation is wrong — for example claiming <code>as</code> converts or validates the value at runtime, or that <code>satisfies</code> changes the variable's type to <code>Record&lt;string, Route&gt;</code>.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-review-report</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score|Symptom\\W*:|Consequence\\W*:&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-not-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div><div class="kv"><span>min</span><code>0</code></div><div class="kv"><span>max</span><code>0</code></div></div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

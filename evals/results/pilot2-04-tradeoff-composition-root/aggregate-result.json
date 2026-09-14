@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.270",
+  "startedAt": "2026-09-14T13:02:24.402Z",
+  "durationSeconds": 190,
+  "costUsd": 0.5276890000000001,
+  "partial": false,
+  "suite": {
+    "root": "/Users/hyh/code/brooks-lint",
+    "ablation": "with-without",
+    "judgeModel": "opus",
+    "caseFilter": "04-tradeoff-composition-root",
+    "threshold": 1,
+    "concurrency": 2,
+    "plugins": [
+      {
+        "name": "brooks-lint",
+        "version": "1.5.0",
+        "path": "/Users/hyh/code/brooks-lint"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "04-tradeoff-composition-root",
+      "dir": "evals/04-tradeoff-composition-root",
+      "source": "prose",
+      "promptMarkdown": "Can you review this? It's the startup wiring and the first use case for our new orders service. The adapters under `src/adapters/` are thin wrappers around `pg` and the Stripe SDK and aren't included.\n\n`src/main.ts`\n```ts\nimport { Pool } from \"pg\";\nimport Stripe from \"stripe\";\nimport { loadConfig } from \"./config\";\nimport { createServer } from \"./http/server\";\nimport { PostgresOrderRepository } from \"./adapters/postgresOrderRepository\";\nimport { StripePaymentGateway } from \"./adapters/stripePaymentGateway\";\nimport { PlaceOrder } from \"./orders/placeOrder\";\n\nasync function main(): Promise<void> {\n  const config = loadConfig(process.env);\n\n  const pool = new Pool({ connectionString: config.databaseUrl, max: config.dbPoolSize });\n  const stripe = new Stripe(config.stripeSecretKey);\n\n  const orders = new PostgresOrderRepository(pool);\n  const payments = new StripePaymentGateway(stripe);\n  const clock = { now: () => new Date() };\n\n  const placeOrder = new PlaceOrder(orders, payments, clock);\n\n  const server = createServer({ placeOrder });\n  server.listen(config.port, () => console.log(`listening on :${config.port}`));\n\n  const shutdown = async () => {\n    server.close();\n    await pool.end();\n  };\n  process.on(\"SIGTERM\", shutdown);\n  process.on(\"SIGINT\", shutdown);\n}\n\nmain().catch((err) => {\n  console.error(err);\n  process.exit(1);\n});\n```\n\n`src/orders/ports.ts`\n```ts\nexport interface Order {\n  id: string;\n  customerId: string;\n  amountCents: number;\n  currency: string;\n  status: \"pending\" | \"paid\" | \"failed\";\n  createdAt: Date;\n}\n\nexport interface OrderRepository {\n  /**\n   * Returns the order already recorded for (customerId, requestId), or stores and\n   * returns `draft` if there is none. Atomic: backed by a unique index on both columns.\n   */\n  findOrCreate(customerId: string, requestId: string, draft: Order): Promise<Order>;\n  save(order: Order): Promise<void>;\n}\n\nexport interface PaymentGateway {\n  charge(\n    customerId: string,\n    amountCents: number,\n    currency: string,\n    idempotencyKey: string,\n  ): Promise<{ ok: true } | { ok: false; reason: string }>;\n}\n\nexport interface Clock {\n  now(): Date;\n}\n```\n\n`src/orders/placeOrder.ts`\n```ts\nimport { randomUUID } from \"node:crypto\";\nimport type { Clock, Order, OrderRepository, PaymentGateway } from \"./ports\";\n\nexport interface PlaceOrderCommand {\n  /** The client's Idempotency-Key header; every retry of one request reuses it. */\n  requestId: string;\n  customerId: string;\n  amountCents: number;\n  currency: string;\n}\n\nexport class PlaceOrder {\n  constructor(\n    private readonly orders: OrderRepository,\n    private readonly payments: PaymentGateway,\n    private readonly clock: Clock,\n  ) {}\n\n  async execute(cmd: PlaceOrderCommand): Promise<Order> {\n    if (!Number.isInteger(cmd.amountCents) || cmd.amountCents <= 0) {\n      throw new RangeError(\"amountCents must be a positive integer\");\n    }\n\n    const order = await this.orders.findOrCreate(cmd.customerId, cmd.requestId, {\n      id: randomUUID(),\n      customerId: cmd.customerId,\n      amountCents: cmd.amountCents,\n      currency: cmd.currency,\n      status: \"pending\",\n      createdAt: this.clock.now(),\n    });\n    // A retried request gets its original order back: a settled one is returned\n    // as-is, and a still-pending one is charged again under the same idempotency\n    // key (the order id), so the customer is never charged twice.\n    if (order.status !== \"pending\") {\n      return order;\n    }\n\n    const result = await this.payments.charge(order.customerId, order.amountCents, order.currency, order.id);\n    const settled: Order = { ...order, status: result.ok ? \"paid\" : \"failed\" };\n    await this.orders.save(settled);\n    return settled;\n  }\n}\n```",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "health-score-line",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score\\W*\\d{1,3}\\s*/\\s*100",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-composition-root-false-positive",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Context: `src/main.ts` is the application's entry point. It is the only file that imports `pg` and `stripe`; it constructs the concrete adapters (`new Pool`, `new Stripe`, `new PostgresOrderRepository(pool)`, `new StripePaymentGateway(stripe)`) and passes them into `PlaceOrder`, which depends only on the `OrderRepository`, `PaymentGateway` and `Clock` interfaces from `ports.ts`. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.\n\nFAIL if the answer does any of the following:\n1. Presents `main.ts` importing `pg` / `stripe` or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, \"Dependency Disorder\", or hard-to-test wiring.\n2. Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.\n3. Suggests `PlaceOrder` or `ports.ts` should know about or depend on the concrete adapters.\n\nPASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of `main.ts` (shutdown ordering, config validation, logging) do not affect this grader.",
+          "config": {
+            "criteria": "Context: `src/main.ts` is the application's entry point. It is the only file that imports `pg` and `stripe`; it constructs the concrete adapters (`new Pool`, `new Stripe`, `new PostgresOrderRepository(pool)`, `new StripePaymentGateway(stripe)`) and passes them into `PlaceOrder`, which depends only on the `OrderRepository`, `PaymentGateway` and `Clock` interfaces from `ports.ts`. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.\n\nFAIL if the answer does any of the following:\n1. Presents `main.ts` importing `pg` / `stripe` or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, \"Dependency Disorder\", or hard-to-test wiring.\n2. Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.\n3. Suggests `PlaceOrder` or `ports.ts` should know about or depend on the concrete adapters.\n\nPASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of `main.ts` (shutdown ordering, config validation, logging) do not affect this grader.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "overall-healthy",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS only if all of the following hold:\n1. No issue is labelled Critical, 🔴, High severity, Blocker, or \"must fix before merge\". An empty Critical section, or a statement that there are no critical issues, is fine.\n2. If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.\n3. The overall verdict does not say the code needs significant rework or redesign before it can ship.\n\nFAIL if any of 1–3 is violated.",
+          "config": {
+            "criteria": "PASS only if all of the following hold:\n1. No issue is labelled Critical, 🔴, High severity, Blocker, or \"must fix before merge\". An empty Critical section, or a statement that there are no critical issues, is fine.\n2. If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.\n3. The overall verdict does not say the code needs significant rework or redesign before it can ship.\n\nFAIL if any of 1–3 is violated.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.6,
+            "passed": false,
+            "turns": 10,
+            "costUsd": 0.3820078,
+            "judgeCostUsd": 0.077295,
+            "durationSeconds": 190,
+            "startedAt": "2026-09-14T13:02:24.425Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-XCTubi/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "health-score-line",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched Health Score\\W*\\d{1,3}\\s*/\\s*100",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-composition-root-false-positive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Reviewed the three files as the startup wiring + first use case for the orders service.\n\n# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (pasted; `src/adapters/**` excluded per your note)\n**Health Score:** 68/100\n\nSolid hexagonal wiring with a genuinely well-thought-out idempotency story, but one gap turns a rare failure into a real money-without-a-record bug.\n\n---\n\n## Findings\n\n### 🔴 Critical\n\n**Domain Model Distortion — `\"pending\"` hides a charged-but-unrecorded state**\nSymptom: In `PlaceOrder.execute`, `payments.charge(...)` runs, and only afterward is `orders.save(settled)` called. If the process crashes, throws, or the DB call fails between those two lines, Stripe has already moved money but the order row is left at `status: \"pending\"` with no record a charge was even attempted.\nSource: Evans — Domain-Driven Design, Aggregate invariant ownership (the `Order.status` field is meant to be the single source of truth for \"was this charged,\" but the Stripe charge and the DB write aren't updated atomically, so the model can silently disagree with reality).\nConsequence: A customer can be charged with no matching \"paid\" order until (and unless) the exact same `(customerId, requestId)` request is retried by the client. If the client already surfaced an error and gives up, the money is gone and the order is invisible — recovering it requires a Stripe-to-DB reconciliation job, and none exists here.\nRemedy: Persist an intermediate `\"charging\"` status before calling `payments.charge` so a stuck order is distinguishable from one never attempted, or move the charge+save into a retryable/outbox step so save failures self-heal instead of depending entirely on client-side retry.\n\n### 🟡 Warning\n\n**Cognitive Overload — shutdown doesn't wait for the server to actually close**\nSymptom: In `main.ts`, `shutdown` calls `server.close()` with no callback or await, then immediately `await pool.end()`. `server.close()` only stops accepting *new* connections — it doesn't wait for in-flight requests to finish.\nSource: McConnell — Code Complete, Ch. 8 (Defensive Programming / explicit completion paths).\nConsequence: Every deploy or restart risks yanking the Postgres pool out from under requests mid-flight, turning routine rolling restarts into a source of `PlaceOrder` failures that look like payment problems but are actually infra.\nRemedy: `await new Promise<void>((resolve) => server.close(() => resolve()))` before ending the pool.\n\n**Primitive Obsession — payment failure reason is a raw string, and it's discarded**\nSymptom: `PaymentGateway.charge` returns `{ ok: false; reason: string }`; in `placeOrder.ts` that `reason` is read only to compute `status: \"failed\"` — the string itself is never stored or logged.\nSource: Fowler — Refactoring, Primitive Obsession.\nConsequence: A transient failure (network blip, Stripe outage) and a hard decline (insufficient funds, fraud block) become identical `\"failed\"` orders. This blocks any future \"auto-retry transient failures\" logic and forces support to dig through the Stripe dashboard for every failed order.\nRemedy: Model failures as a small discriminated union (e.g., `reason: \"card_declined\" | \"processor_error\" | ...`) and persist or log it instead of dropping it.\n\n**Coverage Illusion — no tests included for the new use case**\nSymptom: `PlaceOrder.execute` is new, non-trivial behavior (idempotent charge orchestration, three-way status transition) with no test file in the diff.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1.\nConsequence: The idempotency guarantee explained in the code comment — the most important property of this class — is untested and easy to silently break in a later edit.\nRemedy: Add tests for: first-time success, first-time failure, retry of a still-pending order (charges again), retry of a settled order (returns as-is, `charge` not called again).\n\n### 🟢 Suggestion\n\n**Cognitive Overload — `currency` has no guard clause**\nSymptom: `execute` validates `amountCents` but passes `cmd.currency` straight through unchecked.\nSource: McConnell — Code Complete, Ch. 8 (Defensive Programming).\nConsequence: A malformed/unsupported currency reaches Stripe as a generic API error, surfacing as an opaque `\"failed\"` order instead of a clear validation error.\nRemedy: Validate `currency` against your supported set (or at least ISO-4217 shape) alongside the existing `amountCents` guard.\n\n**Dependency Disorder — idempotency safety is an unenforced contract with the adapter**\nSymptom: The comment asserts retries are safe because the order id is reused as \"the idempotency key,\" but that only holds if `StripePaymentGateway` actually forwards `idempotencyKey` as Stripe's `Idempotency-Key` option — nothing here enforces or tests that.\nSource: Ousterhout — A Philosophy of Software Design, Ch. 5 (Information Leakage: the \"no double-charge\" invariant is split between the use case and an adapter not visible here).\nConsequence: If the adapter is ever refactored and drops the idempotency option, double-charge protection disappears silently with no compile- or test-time signal.\nRemedy: Add a contract test against the real `StripePaymentGateway` asserting the idempotency key is forwarded, so this invariant is guarded somewhere.\n\n**Recommended fix order:** 1 → 3 (paired findings) → 2 → 4 → 5 → 6.\n\n---\n\n## Summary\n\nThe idempotency design in `PlaceOrder` (`findOrCreate` + reusing the order id as the charge key) is genuinely well thought through, and the comment explaining it is a good sign. The one thing worth fixing before this touches real money is the charge/save atomicity gap (#1); tighten shutdown sequencing and add retry-path tests next. The rest is minor hardening.\n\nWould you like to triage the Warning/Suggestion findings (accept/dismiss/defer/skip)?"
+              },
+              {
+                "name": "overall-healthy",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Reviewed the three files as the startup wiring + first use case for the orders service.\n\n# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (pasted; `src/adapters/**` excluded per your note)\n**Health Score:** 68/100\n\nSolid hexagonal wiring with a genuinely well-thought-out idempotency story, but one gap turns a rare failure into a real money-without-a-record bug.\n\n---\n\n## Findings\n\n### 🔴 Critical\n\n**Domain Model Distortion — `\"pending\"` hides a charged-but-unrecorded state**\nSymptom: In `PlaceOrder.execute`, `payments.charge(...)` runs, and only afterward is `orders.save(settled)` called. If the process crashes, throws, or the DB call fails between those two lines, Stripe has already moved money but the order row is left at `status: \"pending\"` with no record a charge was even attempted.\nSource: Evans — Domain-Driven Design, Aggregate invariant ownership (the `Order.status` field is meant to be the single source of truth for \"was this charged,\" but the Stripe charge and the DB write aren't updated atomically, so the model can silently disagree with reality).\nConsequence: A customer can be charged with no matching \"paid\" order until (and unless) the exact same `(customerId, requestId)` request is retried by the client. If the client already surfaced an error and gives up, the money is gone and the order is invisible — recovering it requires a Stripe-to-DB reconciliation job, and none exists here.\nRemedy: Persist an intermediate `\"charging\"` status before calling `payments.charge` so a stuck order is distinguishable from one never attempted, or move the charge+save into a retryable/outbox step so save failures self-heal instead of depending entirely on client-side retry.\n\n### 🟡 Warning\n\n**Cognitive Overload — shutdown doesn't wait for the server to actually close**\nSymptom: In `main.ts`, `shutdown` calls `server.close()` with no callback or await, then immediately `await pool.end()`. `server.close()` only stops accepting *new* connections — it doesn't wait for in-flight requests to finish.\nSource: McConnell — Code Complete, Ch. 8 (Defensive Programming / explicit completion paths).\nConsequence: Every deploy or restart risks yanking the Postgres pool out from under requests mid-flight, turning routine rolling restarts into a source of `PlaceOrder` failures that look like payment problems but are actually infra.\nRemedy: `await new Promise<void>((resolve) => server.close(() => resolve()))` before ending the pool.\n\n**Primitive Obsession — payment failure reason is a raw string, and it's discarded**\nSymptom: `PaymentGateway.charge` returns `{ ok: false; reason: string }`; in `placeOrder.ts` that `reason` is read only to compute `status: \"failed\"` — the string itself is never stored or logged.\nSource: Fowler — Refactoring, Primitive Obsession.\nConsequence: A transient failure (network blip, Stripe outage) and a hard decline (insufficient funds, fraud block) become identical `\"failed\"` orders. This blocks any future \"auto-retry transient failures\" logic and forces support to dig through the Stripe dashboard for every failed order.\nRemedy: Model failures as a small discriminated union (e.g., `reason: \"card_declined\" | \"processor_error\" | ...`) and persist or log it instead of dropping it.\n\n**Coverage Illusion — no tests included for the new use case**\nSymptom: `PlaceOrder.execute` is new, non-trivial behavior (idempotent charge orchestration, three-way status transition) with no test file in the diff.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1.\nConsequence: The idempotency guarantee explained in the code comment — the most important property of this class — is untested and easy to silently break in a later edit.\nRemedy: Add tests for: first-time success, first-time failure, retry of a still-pending order (charges again), retry of a settled order (returns as-is, `charge` not called again).\n\n### 🟢 Suggestion\n\n**Cognitive Overload — `currency` has no guard clause**\nSymptom: `execute` validates `amountCents` but passes `cmd.currency` straight through unchecked.\nSource: McConnell — Code Complete, Ch. 8 (Defensive Programming).\nConsequence: A malformed/unsupported currency reaches Stripe as a generic API error, surfacing as an opaque `\"failed\"` order instead of a clear validation error.\nRemedy: Validate `currency` against your supported set (or at least ISO-4217 shape) alongside the existing `amountCents` guard.\n\n**Dependency Disorder — idempotency safety is an unenforced contract with the adapter**\nSymptom: The comment asserts retries are safe because the order id is reused as \"the idempotency key,\" but that only holds if `StripePaymentGateway` actually forwards `idempotencyKey` as Stripe's `Idempotency-Key` option — nothing here enforces or tests that.\nSource: Ousterhout — A Philosophy of Software Design, Ch. 5 (Information Leakage: the \"no double-charge\" invariant is split between the use case and an adapter not visible here).\nConsequence: If the adapter is ever refactored and drops the idempotency option, double-charge protection disappears silently with no compile- or test-time signal.\nRemedy: Add a contract test against the real `StripePaymentGateway` asserting the idempotency key is forwarded, so this invariant is guarded somewhere.\n\n**Recommended fix order:** 1 → 3 (paired findings) → 2 → 4 → 5 → 6.\n\n---\n\n## Summary\n\nThe idempotency design in `PlaceOrder` (`findOrCreate` + reusing the order id as the charge key) is genuinely well thought through, and the comment explaining it is a good sign. The one thing worth fixing before this touches real money is the charge/save atomicity gap (#1); tighten shutdown sequencing and add retry-path tests next. The rest is minor hardening.\n\nWould you like to triage the Warning/Suggestion findings (accept/dismiss/defer/skip)?"
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.8,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.1456812,
+            "judgeCostUsd": 0.04299,
+            "durationSeconds": 59,
+            "startedAt": "2026-09-14T13:02:24.425Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-JtTEeD/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-composition-root-false-positive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No files in the repo yet — this is pasted code, so I'll review it directly rather than diff-based.\n\nOverall the idempotency design is solid: reusing the order id as the Stripe idempotency key on retries is the right call, and the atomic `findOrCreate` correctly handles concurrent duplicate requests. A few real issues though:\n\n**`main.ts` — shutdown ordering bug**\n```ts\nconst shutdown = async () => {\n  server.close();\n  await pool.end();\n};\n```\n`server.close()` is not awaited — it's callback-based and only *starts* draining connections; it doesn't block until in-flight requests finish. As written, `pool.end()` runs essentially immediately, so requests still being handled when SIGTERM arrives can have their DB connections yanked mid-query. Wrap it in a promise:\n```ts\nconst shutdown = async () => {\n  await new Promise<void>((resolve, reject) =>\n    server.close((err) => (err ? reject(err) : resolve()))\n  );\n  await pool.end();\n};\n```\nAlso worth a guard against the handler running twice (SIGTERM followed by SIGINT, or a double signal) — `pool.end()` on an already-ended pool will throw — and a forced-exit timeout in case a connection never drains.\n\n**`placeOrder.ts` — retried request with different payload is silently ignored**\n`findOrCreate` keys only on `(customerId, requestId)`. If a retry (or a colliding idempotency key from a client bug) arrives with a different `amountCents`/`currency`, the existing draft wins and the new values are dropped with no error — the caller has no way to know their request wasn't actually honored. Most idempotency-key implementations hash/compare the payload and return a conflict (409) on mismatch rather than silently reusing the old one. Worth confirming this is the intended semantic rather than an oversight.\n\n**`placeOrder.ts` — failed orders are permanently terminal**\nOnce an order settles to `\"failed\"`, any retry with the same `requestId` just returns it as-is — there's no path to retry a payment after a transient failure (e.g., a card network blip) without the client minting a brand-new `requestId`. That may well be intentional (push retry semantics to the client), but it's a product decision worth confirming since it's easy to misread as a bug.\n\n**`placeOrder.ts` — thin input validation**\nOnly `amountCents` is validated. Empty-string `currency`, `customerId`, or `requestId` will sail through to the repository/Stripe. If `requestId` can be empty, every request without an `Idempotency-Key` header collapses onto the same unique-index row for a given customer, which is probably not what you want.\n\nNothing else stood out — `ports.ts` is a clean, minimal set of interfaces, and the `PlaceOrder` control flow is easy to follow. The shutdown-ordering issue is the one I'd fix before shipping; the other three are worth a quick confirm-or-fix pass."
+              },
+              {
+                "name": "overall-healthy",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No files in the repo yet — this is pasted code, so I'll review it directly rather than diff-based.\n\nOverall the idempotency design is solid: reusing the order id as the Stripe idempotency key on retries is the right call, and the atomic `findOrCreate` correctly handles concurrent duplicate requests. A few real issues though:\n\n**`main.ts` — shutdown ordering bug**\n```ts\nconst shutdown = async () => {\n  server.close();\n  await pool.end();\n};\n```\n`server.close()` is not awaited — it's callback-based and only *starts* draining connections; it doesn't block until in-flight requests finish. As written, `pool.end()` runs essentially immediately, so requests still being handled when SIGTERM arrives can have their DB connections yanked mid-query. Wrap it in a promise:\n```ts\nconst shutdown = async () => {\n  await new Promise<void>((resolve, reject) =>\n    server.close((err) => (err ? reject(err) : resolve()))\n  );\n  await pool.end();\n};\n```\nAlso worth a guard against the handler running twice (SIGTERM followed by SIGINT, or a double signal) — `pool.end()` on an already-ended pool will throw — and a forced-exit timeout in case a connection never drains.\n\n**`placeOrder.ts` — retried request with different payload is silently ignored**\n`findOrCreate` keys only on `(customerId, requestId)`. If a retry (or a colliding idempotency key from a client bug) arrives with a different `amountCents`/`currency`, the existing draft wins and the new values are dropped with no error — the caller has no way to know their request wasn't actually honored. Most idempotency-key implementations hash/compare the payload and return a conflict (409) on mismatch rather than silently reusing the old one. Worth confirming this is the intended semantic rather than an oversight.\n\n**`placeOrder.ts` — failed orders are permanently terminal**\nOnce an order settles to `\"failed\"`, any retry with the same `requestId` just returns it as-is — there's no path to retry a payment after a transient failure (e.g., a card network blip) without the client minting a brand-new `requestId`. That may well be intentional (push retry semantics to the client), but it's a product decision worth confirming since it's easy to misread as a bug.\n\n**`placeOrder.ts` — thin input validation**\nOnly `amountCents` is validated. Empty-string `currency`, `customerId`, or `requestId` will sail through to the repository/Stripe. If `requestId` can be empty, every request without an `Idempotency-Key` header collapses onto the same unique-index row for a given customer, which is probably not what you want.\n\nNothing else stood out — `ports.ts` is a clean, minimal set of interfaces, and the `PlaceOrder` control flow is easy to follow. The shutdown-ordering issue is the one I'd fix before shipping; the other three are worth a quick confirm-or-fix pass."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.6,
+        "passRate": 0,
+        "scoreWithout": 0.8,
+        "passRateWithout": 0,
+        "delta": -0.20000000000000007
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.6,
+    "overallPassRate": 0,
+    "meanDelta": -0.20000000000000007
+  }
+}

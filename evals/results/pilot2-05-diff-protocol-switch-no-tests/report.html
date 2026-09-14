@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — brooks-lint v1.5.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>brooks-lint v1.5.0</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-pos">↑ +14.3 pts</span> vs baseline — improved 1 · flat 0 · regressed 0 of 1 case.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.270</span>
+<span class="num">2026-09-14 13:02 UTC</span>
+<span class="num">2m 17s</span>
+<span class="num">$0.56</span>
+<span class="num">2 runs</span>
+<span class="num">2 in flight</span>
+
+
+<span>judge opus</span>
+<span class="num">threshold 100%</span>
+<span>filtered: --case 05-diff-protocol-switch-no-tests</span>
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">100%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-pos">↑ +14.3</span><span class="sub">score points vs baseline, 1 of 1 case</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">85.7%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">1</span><span class="sub">1 of 1 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">100%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>05-diff-protocol-switch-no-tests</h2>
+<span class="muted mono">evals/05-diff-protocol-switch-no-tests</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +14.3 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">11 turns · $0.36 · 13:02:27 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">flags-missing-decode-tests</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** `client.go`, `resp/decode.go` (2 files, ~130 lines net diff)
+**Health Score:** 89/100
+
+Solid protocol fix — the decoder logic itself is correct RESP2 and actually removes duplicated prefix-parsing knowledge that used to live in `client.go` — but it ships with zero tests and a connection-state gap that&apos;s worth closing first.
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Test Coverage — new decoder ships with no tests**
+Symptom: `resp/decode.go` introduces the entire RESP2 parsing surface (five `Kind`s, null bulk/array, three protocol limits, five distinct error branches, recursion) but the diff has no corresponding `_test.go` changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1 (untested code is legacy the moment it lands)
+Consequence: the edge cases most likely to break in production — negative/oversized lengths, truncated bulk bodies, malformed CRLF, `maxDepth` boundary, null array vs. null bulk — have no safety net. A future refactor (or an unusual server reply) could silently break framing with nothing to catch it.
+Remedy: add table-driven tests for `Decode` covering each `Kind`, the two null cases, the three `max*` boundaries (at limit, one over), and one malformed-input case per error branch in `decode`, `parseLen`, and `readLine`.
+
+**Change Propagation — connection is left mid-frame after a decode error**
+Symptom: `Do()` returns whatever error `resp.Decode` produces but never closes or marks `c.rd`/the connection unusable — including on errors that happen *after* partially consuming a value, e.g. `io.ReadFull` failing mid-bulk-string, or a protocol error thrown after an array header was already read off the wire.
+Source: Winters et al. — *Software Engineering at Google*, Ch. 21 (implicit contracts around shared state); the consequence is the same shape as Brooks — *Mythical Man-Month* Ch. 2 change-propagation risk, just at the byte-stream level instead of module level.
+Consequence: `bufio.Reader`&apos;s position is left desynced. The next `Do()` call on the same `*Client` starts reading from the wrong offset in the stream and will misinterpret an unrelated reply — a failure in command A silently corrupts command B with no correlated error message.
+Remedy: on any error from `resp.Decode`, mark the `Client` (or underlying conn) broken so subsequent `Do()` calls fail fast or force a reconnect, instead of continuing to read from a desynced stream.
+
+### 🟢 Suggestion
+
+**Cognitive Overload — `decode()` inlines all five type parsers in one switch**
+Symptom: the ~60-line `decode()` fully implements SimpleString/Error, Integer, BulkString, and Array parsing (each with its own error paths) in one function body.
+Source: McConnell — *Code Complete*, Ch. 7 (routine length); Ousterhout — *A Philosophy of Software Design*, Ch. 4 (deep modules)
+Consequence: minor today — each case is linear, single-purpose, and it&apos;s a dispatch-over-a-wire-format (not a missing-polymorphism smell), so this is closer to a style note than a real risk. But it will keep growing if RESP3 types are ever added, and each case is currently only testable by driving the whole function.
+Remedy: optionally extract `decodeBulkString(r, line)` and `decodeArray(r, line, depth)` as named helpers so each parser is independently unit-testable and `decode` stays a pure dispatch table. Not blocking.
+
+---
+
+## Summary
+
+The parsing logic itself is correct and a real improvement over the old single-line hack — merge-blocking issue is the total lack of tests for a hand-rolled binary protocol parser; add those first. The connection-desync-on-error gap is worth a follow-up (possibly out of scope for this PR if `Client` already has reconnect logic elsewhere you didn&apos;t paste — worth confirming before merge). The function-length note is optional polish, not a blocker.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched Health Score\W*\d{1,3}\s*/\s*100</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-critical-findings</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS FAIL PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✗ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** `client.go`, `resp/decode.go` (2 files, ~130 lines net diff)
+**Health Score:** 89/100
+
+Solid protocol fix — the decoder logic itself is correct RESP2 and actually removes duplicated prefix-parsing knowledge that used to live in `client.go` — but it ships with zero tests and a connection-state gap that&apos;s worth closing first.
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Test Coverage — new decoder ships with no tests**
+Symptom: `resp/decode.go` introduces the entire RESP2 parsing surface (five `Kind`s, null bulk/array, three protocol limits, five distinct error branches, recursion) but the diff has no corresponding `_test.go` changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1 (untested code is legacy the moment it lands)
+Consequence: the edge cases most likely to break in production — negative/oversized lengths, truncated bulk bodies, malformed CRLF, `maxDepth` boundary, null array vs. null bulk — have no safety net. A future refactor (or an unusual server reply) could silently break framing with nothing to catch it.
+Remedy: add table-driven tests for `Decode` covering each `Kind`, the two null cases, the three `max*` boundaries (at limit, one over), and one malformed-input case per error branch in `decode`, `parseLen`, and `readLine`.
+
+**Change Propagation — connection is left mid-frame after a decode error**
+Symptom: `Do()` returns whatever error `resp.Decode` produces but never closes or marks `c.rd`/the connection unusable — including on errors that happen *after* partially consuming a value, e.g. `io.ReadFull` failing mid-bulk-string, or a protocol error thrown after an array header was already read off the wire.
+Source: Winters et al. — *Software Engineering at Google*, Ch. 21 (implicit contracts around shared state); the consequence is the same shape as Brooks — *Mythical Man-Month* Ch. 2 change-propagation risk, just at the byte-stream level instead of module level.
+Consequence: `bufio.Reader`&apos;s position is left desynced. The next `Do()` call on the same `*Client` starts reading from the wrong offset in the stream and will misinterpret an unrelated reply — a failure in command A silently corrupts command B with no correlated error message.
+Remedy: on any error from `resp.Decode`, mark the `Client` (or underlying conn) broken so subsequent `Do()` calls fail fast or force a reconnect, instead of continuing to read from a desynced stream.
+
+### 🟢 Suggestion
+
+**Cognitive Overload — `decode()` inlines all five type parsers in one switch**
+Symptom: the ~60-line `decode()` fully implements SimpleString/Error, Integer, BulkString, and Array parsing (each with its own error paths) in one function body.
+Source: McConnell — *Code Complete*, Ch. 7 (routine length); Ousterhout — *A Philosophy of Software Design*, Ch. 4 (deep modules)
+Consequence: minor today — each case is linear, single-purpose, and it&apos;s a dispatch-over-a-wire-format (not a missing-polymorphism smell), so this is closer to a style note than a real risk. But it will keep growing if RESP3 types are ever added, and each case is currently only testable by driving the whole function.
+Remedy: optionally extract `decodeBulkString(r, line)` and `decodeArray(r, line, depth)` as named helpers so each parser is independently unit-testable and `decode` stays a pure dispatch table. Not blocking.
+
+---
+
+## Summary
+
+The parsing logic itself is correct and a real improvement over the old single-line hack — merge-blocking issue is the total lack of tests for a hand-rolled binary protocol parser; add those first. The connection-desync-on-error gap is worth a follow-up (possibly out of scope for this PR if `Client` already has reconnect logic elsewhere you didn&apos;t paste — worth confirming before merge). The function-length note is optional polish, not a blocker.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-polymorphism-suggestion</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** `client.go`, `resp/decode.go` (2 files, ~130 lines net diff)
+**Health Score:** 89/100
+
+Solid protocol fix — the decoder logic itself is correct RESP2 and actually removes duplicated prefix-parsing knowledge that used to live in `client.go` — but it ships with zero tests and a connection-state gap that&apos;s worth closing first.
+
+---
+
+## Findings
+
+### 🟡 Warning
+
+**Test Coverage — new decoder ships with no tests**
+Symptom: `resp/decode.go` introduces the entire RESP2 parsing surface (five `Kind`s, null bulk/array, three protocol limits, five distinct error branches, recursion) but the diff has no corresponding `_test.go` changes.
+Source: Feathers — *Working Effectively with Legacy Code*, Ch. 1 (untested code is legacy the moment it lands)
+Consequence: the edge cases most likely to break in production — negative/oversized lengths, truncated bulk bodies, malformed CRLF, `maxDepth` boundary, null array vs. null bulk — have no safety net. A future refactor (or an unusual server reply) could silently break framing with nothing to catch it.
+Remedy: add table-driven tests for `Decode` covering each `Kind`, the two null cases, the three `max*` boundaries (at limit, one over), and one malformed-input case per error branch in `decode`, `parseLen`, and `readLine`.
+
+**Change Propagation — connection is left mid-frame after a decode error**
+Symptom: `Do()` returns whatever error `resp.Decode` produces but never closes or marks `c.rd`/the connection unusable — including on errors that happen *after* partially consuming a value, e.g. `io.ReadFull` failing mid-bulk-string, or a protocol error thrown after an array header was already read off the wire.
+Source: Winters et al. — *Software Engineering at Google*, Ch. 21 (implicit contracts around shared state); the consequence is the same shape as Brooks — *Mythical Man-Month* Ch. 2 change-propagation risk, just at the byte-stream level instead of module level.
+Consequence: `bufio.Reader`&apos;s position is left desynced. The next `Do()` call on the same `*Client` starts reading from the wrong offset in the stream and will misinterpret an unrelated reply — a failure in command A silently corrupts command B with no correlated error message.
+Remedy: on any error from `resp.Decode`, mark the `Client` (or underlying conn) broken so subsequent `Do()` calls fail fast or force a reconnect, instead of continuing to read from a desynced stream.
+
+### 🟢 Suggestion
+
+**Cognitive Overload — `decode()` inlines all five type parsers in one switch**
+Symptom: the ~60-line `decode()` fully implements SimpleString/Error, Integer, BulkString, and Array parsing (each with its own error paths) in one function body.
+Source: McConnell — *Code Complete*, Ch. 7 (routine length); Ousterhout — *A Philosophy of Software Design*, Ch. 4 (deep modules)
+Consequence: minor today — each case is linear, single-purpose, and it&apos;s a dispatch-over-a-wire-format (not a missing-polymorphism smell), so this is closer to a style note than a real risk. But it will keep growing if RESP3 types are ever added, and each case is currently only testable by driving the whole function.
+Remedy: optionally extract `decodeBulkString(r, line)` and `decodeArray(r, line, depth)` as named helpers so each parser is independently unit-testable and `decode` stays a pure dispatch table. Not blocking.
+
+---
+
+## Summary
+
+The parsing logic itself is correct and a real improvement over the old single-line hack — merge-blocking issue is the total lack of tests for a hand-rolled binary protocol parser; add those first. The connection-desync-on-error gap is worth a follow-up (possibly out of scope for this PR if `Client` already has reconnect logic elsewhere you didn&apos;t paste — worth confirming before merge). The function-length note is optional polish, not a blocker.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:85.7%"></span></span>
+<span class="num">85.7%</span>
+<span class="muted num">5 turns · $0.20 · 13:02:27 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">flags-missing-decode-tests</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I don&apos;t have the actual repo checked out here (the working directory is empty), so I reviewed this from the diff text alone — I can&apos;t run `go build`/`go vet`/tests to confirm compilation. With that caveat:
+
+**The core logic looks correct and is a real fix, not just an addition.** The old `Do` didn&apos;t actually check the reply&apos;s leading byte — it just stripped the first character off *any* non-`-` line and mislabeled it `SimpleString`, so an integer reply (`:5\r\n`) would come back as `Value{Kind: SimpleString, Str: &quot;5&quot;}`. The new decoder fixes that by properly dispatching on the type byte. Null bulk (`$-1`) and null array (`*-1`) are handled correctly, negative integers work via `ParseInt`, and the depth/length caps (64 levels, 512MB bulk, 1M array elements) mirror real Redis server limits, which is a sensible defensive default for untrusted input.
+
+Three things I&apos;d want resolved before merging:
+
+1. **`min(n, 64)` requires Go 1.21+.** Confirm `go.mod`&apos;s `go` directive is at least 1.21, otherwise this won&apos;t compile.
+2. **Unverified assumption**: `Kind(prefix)` in the `switch` relies on `resp.SimpleString/Error/Integer/BulkString/Array` being defined as the literal RESP bytes (`+ - : $ *`) in `resp/value.go`. You said that file is unchanged, so presumably fine — just worth a final glance since I couldn&apos;t read it here.
+3. **No tests landed with a new protocol parser.** This is exactly the kind of code (untrusted network input, several edge cases) where table-driven tests pay for themselves — at minimum: empty bulk string, null bulk/array, nested arrays, malformed/oversized length header, a line longer than the buffer (`bufio.ErrBufferFull`), and an unknown type byte.
+
+One non-blocking note: the 512MB-per-bulk-string cap has no aggregate limit across an array&apos;s elements, so a large array of near-max bulk strings could still drive big allocations — same tradeoff real Redis makes, so I wouldn&apos;t hold up the PR for it, just flagging it as a known accepted limit rather than an oversight.
+
+Nothing here looks like a correctness bug — I&apos;d call it mergeable once you confirm the Go version and ideally add basic tests for the new decoder.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-critical-findings</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I don&apos;t have the actual repo checked out here (the working directory is empty), so I reviewed this from the diff text alone — I can&apos;t run `go build`/`go vet`/tests to confirm compilation. With that caveat:
+
+**The core logic looks correct and is a real fix, not just an addition.** The old `Do` didn&apos;t actually check the reply&apos;s leading byte — it just stripped the first character off *any* non-`-` line and mislabeled it `SimpleString`, so an integer reply (`:5\r\n`) would come back as `Value{Kind: SimpleString, Str: &quot;5&quot;}`. The new decoder fixes that by properly dispatching on the type byte. Null bulk (`$-1`) and null array (`*-1`) are handled correctly, negative integers work via `ParseInt`, and the depth/length caps (64 levels, 512MB bulk, 1M array elements) mirror real Redis server limits, which is a sensible defensive default for untrusted input.
+
+Three things I&apos;d want resolved before merging:
+
+1. **`min(n, 64)` requires Go 1.21+.** Confirm `go.mod`&apos;s `go` directive is at least 1.21, otherwise this won&apos;t compile.
+2. **Unverified assumption**: `Kind(prefix)` in the `switch` relies on `resp.SimpleString/Error/Integer/BulkString/Array` being defined as the literal RESP bytes (`+ - : $ *`) in `resp/value.go`. You said that file is unchanged, so presumably fine — just worth a final glance since I couldn&apos;t read it here.
+3. **No tests landed with a new protocol parser.** This is exactly the kind of code (untrusted network input, several edge cases) where table-driven tests pay for themselves — at minimum: empty bulk string, null bulk/array, nested arrays, malformed/oversized length header, a line longer than the buffer (`bufio.ErrBufferFull`), and an unknown type byte.
+
+One non-blocking note: the 512MB-per-bulk-string cap has no aggregate limit across an array&apos;s elements, so a large array of near-max bulk strings could still drive big allocations — same tradeoff real Redis makes, so I wouldn&apos;t hold up the PR for it, just flagging it as a known accepted limit rather than an oversight.
+
+Nothing here looks like a correctness bug — I&apos;d call it mergeable once you confirm the Go version and ideally add basic tests for the new decoder.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-polymorphism-suggestion</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I don&apos;t have the actual repo checked out here (the working directory is empty), so I reviewed this from the diff text alone — I can&apos;t run `go build`/`go vet`/tests to confirm compilation. With that caveat:
+
+**The core logic looks correct and is a real fix, not just an addition.** The old `Do` didn&apos;t actually check the reply&apos;s leading byte — it just stripped the first character off *any* non-`-` line and mislabeled it `SimpleString`, so an integer reply (`:5\r\n`) would come back as `Value{Kind: SimpleString, Str: &quot;5&quot;}`. The new decoder fixes that by properly dispatching on the type byte. Null bulk (`$-1`) and null array (`*-1`) are handled correctly, negative integers work via `ParseInt`, and the depth/length caps (64 levels, 512MB bulk, 1M array elements) mirror real Redis server limits, which is a sensible defensive default for untrusted input.
+
+Three things I&apos;d want resolved before merging:
+
+1. **`min(n, 64)` requires Go 1.21+.** Confirm `go.mod`&apos;s `go` directive is at least 1.21, otherwise this won&apos;t compile.
+2. **Unverified assumption**: `Kind(prefix)` in the `switch` relies on `resp.SimpleString/Error/Integer/BulkString/Array` being defined as the literal RESP bytes (`+ - : $ *`) in `resp/value.go`. You said that file is unchanged, so presumably fine — just worth a final glance since I couldn&apos;t read it here.
+3. **No tests landed with a new protocol parser.** This is exactly the kind of code (untrusted network input, several edge cases) where table-driven tests pay for themselves — at minimum: empty bulk string, null bulk/array, nested arrays, malformed/oversized length header, a line longer than the buffer (`bufio.ErrBufferFull`), and an unknown type byte.
+
+One non-blocking note: the 512MB-per-bulk-string cap has no aggregate limit across an array&apos;s elements, so a large array of near-max bulk strings could still drive big allocations — same tradeoff real Redis makes, so I wouldn&apos;t hold up the PR for it, just flagging it as a known accepted limit rather than an oversight.
+
+Nothing here looks like a correctness bug — I&apos;d call it mergeable once you confirm the Go version and ideally add basic tests for the new decoder.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Here's my PR for our little Go Redis client: it adds a proper RESP2 decoder and switches <code>Client.Do</code> over to it (before, <code>Do</code> only understood single-line replies). <code>Value</code> and the <code>Kind</code> constants already live in <code>resp/value.go</code>, which is unchanged. Ready to merge?</p>
+<pre><code class="language-diff">diff --git a/client.go b/client.go
+index 2af07d3..d80edcc 100644
+--- a/client.go
++++ b/client.go
+@@ -6,7 +6,6 @@ import (
+ 	&quot;errors&quot;
+ 	&quot;fmt&quot;
+ 	&quot;net&quot;
+-	&quot;strings&quot;
+ 	&quot;time&quot;
+ 
+ 	&quot;example.com/redisx/resp&quot;
+@@ -38,14 +37,14 @@ func (c *Client) Do(ctx context.Context, args ...string) (resp.Value, error) {
+ 	if err := c.writeCommand(args); err != nil {
+ 		return resp.Value{}, err
+ 	}
+-	line, err := c.rd.ReadString(&#39;\n&#39;)
++	v, err := resp.Decode(c.rd)
+ 	if err != nil {
+ 		return resp.Value{}, err
+ 	}
+-	if strings.HasPrefix(line, &quot;-&quot;) {
+-		return resp.Value{}, errors.New(strings.TrimSpace(line[1:]))
++	if v.Kind == resp.Error {
++		return resp.Value{}, errors.New(v.Str)
+ 	}
+-	return resp.Value{Kind: resp.SimpleString, Str: strings.TrimSpace(line[1:])}, nil
++	return v, nil
+ }
+ 
+ func (c *Client) writeCommand(args []string) error {
+diff --git a/resp/decode.go b/resp/decode.go
+new file mode 100644
+index 0000000..41f7147
+--- /dev/null
++++ b/resp/decode.go
+@@ -0,0 +1,112 @@
++package resp
++
++import (
++	&quot;bufio&quot;
++	&quot;errors&quot;
++	&quot;fmt&quot;
++	&quot;io&quot;
++	&quot;strconv&quot;
++)
++
++// ErrProtocol is wrapped by every error caused by malformed input.
++var ErrProtocol = errors.New(&quot;resp: protocol error&quot;)
++
++// Limits mirror Redis&#39;s own defaults, so a corrupt stream fails fast instead of
++// driving huge allocations or unbounded recursion.
++const (
++	maxBulkLen  = 512 &lt;&lt; 20
++	maxArrayLen = 1 &lt;&lt; 20
++	maxDepth    = 64
++)
++
++// Decode reads exactly one RESP2 value from r.
++func Decode(r *bufio.Reader) (Value, error) {
++	return decode(r, 0)
++}
++
++func decode(r *bufio.Reader, depth int) (Value, error) {
++	prefix, err := r.ReadByte()
++	if err != nil {
++		return Value{}, err
++	}
++	line, err := readLine(r)
++	if err != nil {
++		return Value{}, err
++	}
++
++	switch Kind(prefix) {
++	case SimpleString, Error:
++		return Value{Kind: Kind(prefix), Str: line}, nil
++
++	case Integer:
++		n, err := strconv.ParseInt(line, 10, 64)
++		if err != nil {
++			return Value{}, fmt.Errorf(&quot;%w: bad integer %q&quot;, ErrProtocol, line)
++		}
++		return Value{Kind: Integer, Int: n}, nil
++
++	case BulkString:
++		n, err := parseLen(line, maxBulkLen)
++		if err != nil {
++			return Value{}, err
++		}
++		if n == -1 {
++			return Value{Kind: BulkString, Null: true}, nil
++		}
++		buf := make([]byte, n+2)
++		if _, err := io.ReadFull(r, buf); err != nil {
++			return Value{}, err
++		}
++		if buf[n] != &#39;\r&#39; || buf[n+1] != &#39;\n&#39; {
++			return Value{}, fmt.Errorf(&quot;%w: bulk string not CRLF-terminated&quot;, ErrProtocol)
++		}
++		return Value{Kind: BulkString, Str: string(buf[:n])}, nil
++
++	case Array:
++		n, err := parseLen(line, maxArrayLen)
++		if err != nil {
++			return Value{}, err
++		}
++		if n == -1 {
++			return Value{Kind: Array, Null: true}, nil
++		}
++		if depth == maxDepth {
++			return Value{}, fmt.Errorf(&quot;%w: arrays nested deeper than %d&quot;, ErrProtocol, maxDepth)
++		}
++		// n is untrusted: cap the up-front allocation and let append grow the rest.
++		items := make([]Value, 0, min(n, 64))
++		for i := 0; i &lt; n; i++ {
++			v, err := decode(r, depth+1)
++			if err != nil {
++				return Value{}, err
++			}
++			items = append(items, v)
++		}
++		return Value{Kind: Array, Array: items}, nil
++
++	default:
++		return Value{}, fmt.Errorf(&quot;%w: unknown type byte %q&quot;, ErrProtocol, prefix)
++	}
++}
++
++// parseLen parses a bulk-string or array length header: -1 (null) or 0..limit.
++func parseLen(line string, limit int) (int, error) {
++	n, err := strconv.Atoi(line)
++	if err != nil || n &lt; -1 || n &gt; limit {
++		return 0, fmt.Errorf(&quot;%w: bad length %q&quot;, ErrProtocol, line)
++	}
++	return n, nil
++}
++
++// readLine reads a CRLF-terminated header line. ReadSlice bounds the line by the
++// reader&#39;s buffer size, so overlong input fails with bufio.ErrBufferFull.
++func readLine(r *bufio.Reader) (string, error) {
++	line, err := r.ReadSlice(&#39;\n&#39;)
++	if err != nil {
++		return &quot;&quot;, err
++	}
++	if len(line) &lt; 2 || line[len(line)-2] != &#39;\r&#39; {
++		return &quot;&quot;, fmt.Errorf(&quot;%w: line not CRLF-terminated&quot;, ErrProtocol)
++	}
++	return string(line[:len(line)-2]), nil
++}
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">flags-missing-decode-tests</span><span class="badge">llm</span></div>
+<div class="md"><p>Context: the PR adds a new exported function <code>resp.Decode</code> in a new file <code>resp/decode.go</code> and switches <code>Client.Do</code> to use it. The diff contains no test file and no test changes.</p>
+<p>PASS only if the answer points out that this new decoding behaviour ships without tests in the PR — e.g. "no tests for <code>Decode</code>", or "add a <code>decode_test.go</code> covering null bulk strings / nested arrays / malformed input" — framed as a gap in this change.</p>
+<p>FAIL if tests are not mentioned, or are mentioned only in a generic line not tied to <code>Decode</code> / the decoder (e.g. "make sure CI passes").</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-critical-findings</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS only if both hold:</p>
+<ol>
+<li>No issue is labelled Critical, 🔴, High severity, Blocker, or "must fix before merge" — with one exception: asking for tests for the new <code>Decode</code> function before merging is acceptable at any severity. An empty Critical section, or a statement that there are no critical issues, is fine.</li>
+<li>If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.</li>
+</ol>
+<p>FAIL if either is violated.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-polymorphism-suggestion</span><span class="badge">llm</span></div>
+<div class="md"><p>Context: the new <code>resp/decode.go</code> implements <code>Decode</code> (via the unexported <code>decode</code>) as a single <code>switch</code> over the five RESP2 type bytes (<code>+ - : $ *</code>) plus a default error case. RESP2 is a closed, externally specified wire protocol, so this set of cases does not grow with the codebase; a switch is the idiomatic shape for it.</p>
+<p>FAIL if the answer recommends, or flags as a design problem, any of:</p>
+<ol>
+<li>Replacing the switch with polymorphism — a <code>Decoder</code> / <code>Parser</code> interface with one implementation per type byte, or per-type structs with methods.</li>
+<li>A handler / decoder registry, <code>map[byte]func(...)</code>, strategy table, or plugin mechanism for type bytes.</li>
+<li>Claiming the switch violates the Open/Closed Principle, is a "switch statement" smell, or must be restructured because new types would require editing it.</li>
+</ol>
+<p>Allowed — do not fail for these: extracting a case body into a helper (e.g. <code>decodeBulk</code>, <code>decodeArray</code>); noting that the function is long; a passing remark that RESP3 would add cases, as long as restructuring is not recommended; any unrelated findings (recursion depth, allocation limits, error wrapping, tests).</p>
+<p>PASS if none of 1–3 occurs, including when the answer explicitly says the switch is appropriate.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>
