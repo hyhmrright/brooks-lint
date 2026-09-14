@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — brooks-lint v1.5.0</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>brooks-lint v1.5.0</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-neg">↓ -20.0 pts</span> vs baseline — improved 0 · flat 0 · regressed 1 of 1 case.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.270</span>
+<span class="num">2026-09-14 14:18 UTC</span>
+<span class="num">3m 22s</span>
+<span class="num">$0.49</span>
+<span class="num">2 runs</span>
+
+
+
+<span>judge opus</span>
+<span class="num">threshold 100%</span>
+<span>filtered: --case 04-tradeoff-composition-root</span>
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">60%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-neg">↓ -20.0</span><span class="sub">score points vs baseline, 1 of 1 case</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">80%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">1</span><span class="sub">0 of 1 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">0%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case case-regressed" id="case-1">
+<div class="case-head">
+<h2>04-tradeoff-composition-root</h2>
+<span class="muted mono">evals/04-tradeoff-composition-root</span>
+<span class="spacer"></span>
+
+<span class="delta delta-neg">↓ -20.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:60.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">60%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:60.0%"></span></span>
+<span class="num">60%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:60.0%"></span></span>
+<span class="num">60%</span>
+<span class="muted num">9 turns · $0.33 · 14:18:20 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched Health Score\W*\d{1,3}\s*/\s*100</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-composition-root-false-positive</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters excluded, as noted)
+**Health Score:** 63/100
+
+Solid dependency direction and a genuinely safe-looking idempotency design on paper, undercut by two correctness gaps that would surface in production under normal operating conditions (deploys and legitimate client retries).
+
+---
+
+## Findings
+
+### 🔴 Critical
+
+**Dependency Disorder / Error Handling — Shutdown doesn&apos;t sequence connection drain before closing the pool**
+Symptom: `shutdown()` in `src/main.ts` calls `server.close()` without awaiting completion (no callback, no Promise wrapper) and immediately proceeds to `await pool.end()`. `server.close()` only stops *accepting new* connections — it does not wait for in-flight requests to finish. There is also no `.catch`/try-catch around either call, so a rejection inside `shutdown()` during a `SIGTERM`/`SIGINT` handler becomes an unhandled promise rejection.
+Source: McConnell — Code Complete, defensive programming and error-handling discipline (missing error handling makes the failure mode invisible until it hits production).
+Consequence: On every rolling deploy, requests already in flight (including in-progress `PlaceOrder.execute` calls that may have already charged Stripe) can have their DB pool yanked out from under them mid-query, turning a successful charge into a request that errors out to the client. That forces the client to retry, and while the idempotency key generally protects against a double charge, it does not protect against dropped/confusing responses on every deploy.
+Remedy: Wrap `server.close()` in a Promise and `await` it before ending the pool; add a `try/catch` (or `.catch`) around the whole shutdown sequence with logging, and consider a shutdown timeout to force-exit if connections don&apos;t drain in time.
+
+**Domain Model Distortion — Retried idempotent requests aren&apos;t validated against the original payload**
+Symptom: `orders.findOrCreate(customerId, requestId, draft)` returns the previously stored order whenever `(customerId, requestId)` already exists, regardless of whether `draft.amountCents`/`draft.currency` match what was originally stored. `PlaceOrder.execute` then returns that stored order as-is for any non-`pending` status, silently ignoring the new command&apos;s amount/currency.
+Source: Evans — Domain-Driven Design (aggregate invariant ownership); McConnell — Code Complete (defensive programming / explicit error paths).
+Consequence: A client that reuses an `Idempotency-Key` with a different amount (a bug, a stale retry after a legitimate correction, or a copy-pasted header) gets back a `200`-equivalent response reporting success for the *old* amount, with no signal that the request it actually sent was never processed. This is a silent financial-correctness bug, not just an edge case — idempotency implementations (Stripe&apos;s own API included) generally treat a parameter mismatch on a reused key as an error rather than swallowing it.
+Remedy: When `findOrCreate` returns an existing order, compare the stored `amountCents`/`currency`/`customerId` against the incoming command and throw a distinct &quot;idempotency key reused with different parameters&quot; error if they differ.
+
+### 🟡 Warning
+
+**Coverage Illusion — no tests included for the new use case or wiring**
+Symptom: The shared files add new public behavior (`PlaceOrder.execute`, the `main.ts` composition root) with no accompanying test files.
+Source: Feathers — Working Effectively with Legacy Code, Ch. 1.
+Consequence: The idempotency logic in particular (`findOrCreate` + status branching) is exactly the kind of subtle control flow that regresses silently without characterization tests — the two Critical findings above are the sort of bug a unit test on `PlaceOrder` would likely catch immediately.
+Remedy: Add unit tests for `PlaceOrder.execute` covering: fresh order → charge succeeds/fails; retry of a `pending` order (recharge); retry of a settled order (short-circuit); and, once fixed, retry with mismatched amount.
+
+*(If tests exist but weren&apos;t part of what was shared, disregard this one.)*
+
+### 🟢 Suggestion
+
+**Cognitive Overload — Money and identifiers passed as raw primitives**
+Symptom: `amountCents: number`, `currency: string`, `customerId: string` are all bare primitives with no format validation beyond the `amountCents &gt; 0` integer check (e.g., `currency` isn&apos;t checked against ISO-4217, `customerId` isn&apos;t checked for non-empty).
+Source: Fowler — Refactoring, Primitive Obsession; Evans — DDD, Value Objects.
+Consequence: Nothing stops an empty `customerId` or a garbage `currency` string from reaching the payment adapter; validation failures will surface as opaque Stripe SDK errors instead of a clear domain error at the boundary.
+Remedy: Not urgent at this scale — worth a small `Money`/`CustomerId` value type once a second use case starts repeating the same validation, rather than now.
+
+**Domain Model Distortion — Status transition lives in the use case, not on `Order`**
+Symptom: `Order` (`src/orders/ports.ts`) is a pure data interface; the pending→paid/failed transition is computed inline in `PlaceOrder.execute` (`{ ...order, status: result.ok ? &quot;paid&quot; : &quot;failed&quot; }`) rather than as a method/invariant on the entity.
+Source: Evans — DDD, Anemic Domain Model; Fowler — Data Class.
+Consequence: Fine today with two terminal states and one transition, but if more statuses or invariants are added (e.g., refunds, partial failures), transition logic will likely spread across future use cases.
+Remedy: No action needed now — revisit if a second state-mutating use case appears.
+
+---
+
+## Summary
+
+Fix the two Critical items before merging: the shutdown sequencing bug will cause dropped requests on every deploy, and the idempotency-retry gap can silently return a stale/incorrect amount to a legitimate client. Both are small, targeted fixes (a Promise-wrapped shutdown, and a parameter-equality check in the retry path) that don&apos;t require restructuring anything — the overall dependency direction (domain → ports, composition root wiring concretes) is exactly right and shouldn&apos;t change.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">overall-healthy</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence"># Brooks-Lint Review
+
+**Mode:** PR Review
+**Scope:** `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters excluded, as noted)
+**Health Score:** 63/100
+
+Solid dependency direction and a genuinely safe-looking idempotency design on paper, undercut by two correctness gaps that would surface in production under normal operating conditions (deploys and legitimate client retries).
+
+---
+
+## Findings
+
+### 🔴 Critical
+
+**Dependency Disorder / Error Handling — Shutdown doesn&apos;t sequence connection drain before closing the pool**
+Symptom: `shutdown()` in `src/main.ts` calls `server.close()` without awaiting completion (no callback, no Promise wrapper) and immediately proceeds to `await pool.end()`. `server.close()` only stops *accepting new* connections — it does not wait for in-flight requests to finish. There is also no `.catch`/try-catch around either call, so a rejection inside `shutdown()` during a `SIGTERM`/`SIGINT` handler becomes an unhandled promise rejection.
+Source: McConnell — Code Complete, defensive programming and error-handling discipline (missing error handling makes the failure mode invisible until it hits production).
+Consequence: On every rolling deploy, requests already in flight (including in-progress `PlaceOrder.execute` calls that may have already charged Stripe) can have their DB pool yanked out from under them mid-query, turning a successful charge into a request that errors out to the client. That forces the client to retry, and while the idempotency key generally protects against a double charge, it does not protect against dropped/confusing responses on every deploy.
+Remedy: Wrap `server.close()` in a Promise and `await` it before ending the pool; add a `try/catch` (or `.catch`) around the whole shutdown sequence with logging, and consider a shutdown timeout to force-exit if connections don&apos;t drain in time.
+
+**Domain Model Distortion — Retried idempotent requests aren&apos;t validated against the original payload**
+Symptom: `orders.findOrCreate(customerId, requestId, draft)` returns the previously stored order whenever `(customerId, requestId)` already exists, regardless of whether `draft.amountCents`/`draft.currency` match what was originally stored. `PlaceOrder.execute` then returns that stored order as-is for any non-`pending` status, silently ignoring the new command&apos;s amount/currency.
+Source: Evans — Domain-Driven Design (aggregate invariant ownership); McConnell — Code Complete (defensive programming / explicit error paths).
+Consequence: A client that reuses an `Idempotency-Key` with a different amount (a bug, a stale retry after a legitimate correction, or a copy-pasted header) gets back a `200`-equivalent response reporting success for the *old* amount, with no signal that the request it actually sent was never processed. This is a silent financial-correctness bug, not just an edge case — idempotency implementations (Stripe&apos;s own API included) generally treat a parameter mismatch on a reused key as an error rather than swallowing it.
+Remedy: When `findOrCreate` returns an existing order, compare the stored `amountCents`/`currency`/`customerId` against the incoming command and throw a distinct &quot;idempotency key reused with different parameters&quot; error if they differ.
+
+### 🟡 Warning
+
+**Coverage Illusion — no tests included for the new use case or wiring**
+Symptom: The shared files add new public behavior (`PlaceOrder.execute`, the `main.ts` composition root) with no accompanying test files.
+Source: Feathers — Working Effectively with Legacy Code, Ch. 1.
+Consequence: The idempotency logic in particular (`findOrCreate` + status branching) is exactly the kind of subtle control flow that regresses silently without characterization tests — the two Critical findings above are the sort of bug a unit test on `PlaceOrder` would likely catch immediately.
+Remedy: Add unit tests for `PlaceOrder.execute` covering: fresh order → charge succeeds/fails; retry of a `pending` order (recharge); retry of a settled order (short-circuit); and, once fixed, retry with mismatched amount.
+
+*(If tests exist but weren&apos;t part of what was shared, disregard this one.)*
+
+### 🟢 Suggestion
+
+**Cognitive Overload — Money and identifiers passed as raw primitives**
+Symptom: `amountCents: number`, `currency: string`, `customerId: string` are all bare primitives with no format validation beyond the `amountCents &gt; 0` integer check (e.g., `currency` isn&apos;t checked against ISO-4217, `customerId` isn&apos;t checked for non-empty).
+Source: Fowler — Refactoring, Primitive Obsession; Evans — DDD, Value Objects.
+Consequence: Nothing stops an empty `customerId` or a garbage `currency` string from reaching the payment adapter; validation failures will surface as opaque Stripe SDK errors instead of a clear domain error at the boundary.
+Remedy: Not urgent at this scale — worth a small `Money`/`CustomerId` value type once a second use case starts repeating the same validation, rather than now.
+
+**Domain Model Distortion — Status transition lives in the use case, not on `Order`**
+Symptom: `Order` (`src/orders/ports.ts`) is a pure data interface; the pending→paid/failed transition is computed inline in `PlaceOrder.execute` (`{ ...order, status: result.ok ? &quot;paid&quot; : &quot;failed&quot; }`) rather than as a method/invariant on the entity.
+Source: Evans — DDD, Anemic Domain Model; Fowler — Data Class.
+Consequence: Fine today with two terminal states and one transition, but if more statuses or invariants are added (e.g., refunds, partial failures), transition logic will likely spread across future use cases.
+Remedy: No action needed now — revisit if a second state-mutating use case appears.
+
+---
+
+## Summary
+
+Fix the two Critical items before merging: the shutdown sequencing bug will cause dropped requests on every deploy, and the idempotency-retry gap can silently return a stale/incorrect amount to a legitimate client. Both are small, targeted fixes (a Promise-wrapped shutdown, and a parameter-equality check in the retry path) that don&apos;t require restructuring anything — the overall dependency direction (domain → ports, composition root wiring concretes) is exactly right and shouldn&apos;t change.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">skill-fired</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:80.0%"></span></span>
+<span class="num">80%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:80.0%"></span></span>
+<span class="num">80%</span>
+<span class="muted num">2 turns · $0.16 · 14:20:34 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">health-score-line</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-composition-root-false-positive</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The files aren&apos;t in the repo, so I&apos;ll review the pasted code directly. Two real bugs and a few risks worth flagging.
+
+## Bugs
+
+**1. Double-charge race isn&apos;t actually closed by the idempotency key (`placeOrder.ts`).**
+If a client retries before the first attempt finishes (a real scenario for HTTP retries on timeout), both calls hit `findOrCreate`, both get back the same `pending` order, and both call `payments.charge(...)` concurrently with the *same* idempotency key (`order.id`). Stripe does not serialize concurrent requests sharing an idempotency key — it returns a &quot;request outstanding&quot; / lock error to whichever call arrives second. If `StripePaymentGateway` maps that error into `{ ok: false, reason }` (the natural thing for a thin wrapper to do), you&apos;ll mark the order `&quot;failed&quot;` even though the original charge may well succeed. The comment on line 25-27 (&quot;...so the customer is never charged twice&quot;) is true for *money* but false for *order status* — status can end up wrong.
+
+Worth deciding explicitly: either the repository needs to serialize concurrent settlement of the same order (e.g. a DB-level lock or a `pending → paid/failed` conditional update that only the winner applies), or the adapter needs to treat Stripe&apos;s lock-conflict response as &quot;retry/poll, don&apos;t fail&quot; rather than a decline.
+
+**2. `orders.save(settled)` has no compare-and-swap guard.**
+`OrderRepository.save` just takes an `Order` and presumably does a blind `UPDATE ... WHERE id = ?`. Combined with #1, two concurrent executions racing to settle the same order will last-write-wins each other — the terminal status depends on write ordering, not on what actually happened with Stripe. I&apos;d change the contract to something like `save(order, expectedStatus: &quot;pending&quot;)` that no-ops (or throws) if the row&apos;s current status has already moved on, so a losing writer can&apos;t clobber a winner&apos;s result.
+
+## Wiring risks in `main.ts`
+
+**3. No `pool.on(&quot;error&quot;, ...)` listener.** `pg.Pool` emits `&apos;error&apos;` for idle-client backend errors (e.g. connection dropped by the DB). With no listener, Node treats it as an unhandled error and crashes the process — this is a well-known pg gotcha, worth a one-line handler that logs and lets the pool recover.
+
+**4. Shutdown isn&apos;t idempotent and has no timeout.** If SIGTERM and SIGINT both arrive (common during some deploy sequences), `shutdown()` runs twice: `pool.end()` called a second time throws (`Called end on pool more than once`). Also `server.close()` only stops new connections — it waits indefinitely for keep-alive connections to drain, so a lingering client can hang the process forever on shutdown. Suggest guarding with a `let shuttingDown` flag and adding a hard timeout that forces `process.exit()`.
+
+**5. Stripe client has no pinned `apiVersion`.** Without it, the SDK/account default API version applies, so a Stripe-side account upgrade can silently change response shapes under you. Minor, but worth locking down for a payments path.
+
+## Smaller notes
+
+- `cmd.currency` and `cmd.requestId`/`customerId` aren&apos;t validated for shape (empty string, etc.) the way `amountCents` is — inconsistent given this is the idempotency key material.
+- `server` has no `&apos;error&apos;` listener either (e.g. `EADDRINUSE` on `listen`), same class of issue as #3.
+
+Nice separation of concerns otherwise — ports are clean, the domain logic reads clearly, and the idempotency *design* (dedupe on `(customerId, requestId)`, reuse `order.id` as the Stripe key) is the right shape. The gap is purely in what happens when two attempts for the same pending order overlap in time.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">overall-healthy</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The files aren&apos;t in the repo, so I&apos;ll review the pasted code directly. Two real bugs and a few risks worth flagging.
+
+## Bugs
+
+**1. Double-charge race isn&apos;t actually closed by the idempotency key (`placeOrder.ts`).**
+If a client retries before the first attempt finishes (a real scenario for HTTP retries on timeout), both calls hit `findOrCreate`, both get back the same `pending` order, and both call `payments.charge(...)` concurrently with the *same* idempotency key (`order.id`). Stripe does not serialize concurrent requests sharing an idempotency key — it returns a &quot;request outstanding&quot; / lock error to whichever call arrives second. If `StripePaymentGateway` maps that error into `{ ok: false, reason }` (the natural thing for a thin wrapper to do), you&apos;ll mark the order `&quot;failed&quot;` even though the original charge may well succeed. The comment on line 25-27 (&quot;...so the customer is never charged twice&quot;) is true for *money* but false for *order status* — status can end up wrong.
+
+Worth deciding explicitly: either the repository needs to serialize concurrent settlement of the same order (e.g. a DB-level lock or a `pending → paid/failed` conditional update that only the winner applies), or the adapter needs to treat Stripe&apos;s lock-conflict response as &quot;retry/poll, don&apos;t fail&quot; rather than a decline.
+
+**2. `orders.save(settled)` has no compare-and-swap guard.**
+`OrderRepository.save` just takes an `Order` and presumably does a blind `UPDATE ... WHERE id = ?`. Combined with #1, two concurrent executions racing to settle the same order will last-write-wins each other — the terminal status depends on write ordering, not on what actually happened with Stripe. I&apos;d change the contract to something like `save(order, expectedStatus: &quot;pending&quot;)` that no-ops (or throws) if the row&apos;s current status has already moved on, so a losing writer can&apos;t clobber a winner&apos;s result.
+
+## Wiring risks in `main.ts`
+
+**3. No `pool.on(&quot;error&quot;, ...)` listener.** `pg.Pool` emits `&apos;error&apos;` for idle-client backend errors (e.g. connection dropped by the DB). With no listener, Node treats it as an unhandled error and crashes the process — this is a well-known pg gotcha, worth a one-line handler that logs and lets the pool recover.
+
+**4. Shutdown isn&apos;t idempotent and has no timeout.** If SIGTERM and SIGINT both arrive (common during some deploy sequences), `shutdown()` runs twice: `pool.end()` called a second time throws (`Called end on pool more than once`). Also `server.close()` only stops new connections — it waits indefinitely for keep-alive connections to drain, so a lingering client can hang the process forever on shutdown. Suggest guarding with a `let shuttingDown` flag and adding a hard timeout that forces `process.exit()`.
+
+**5. Stripe client has no pinned `apiVersion`.** Without it, the SDK/account default API version applies, so a Stripe-side account upgrade can silently change response shapes under you. Minor, but worth locking down for a payments path.
+
+## Smaller notes
+
+- `cmd.currency` and `cmd.requestId`/`customerId` aren&apos;t validated for shape (empty string, etc.) the way `amountCents` is — inconsistent given this is the idempotency key material.
+- `server` has no `&apos;error&apos;` listener either (e.g. `EADDRINUSE` on `listen`), same class of issue as #3.
+
+Nice separation of concerns otherwise — ports are clean, the domain logic reads clearly, and the idempotency *design* (dedupe on `(customerId, requestId)`, reuse `order.id` as the Stripe key) is the right shape. The gap is purely in what happens when two attempts for the same pending order overlap in time.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Can you review this? It's the startup wiring and the first use case for our new orders service. The adapters under <code>src/adapters/</code> are thin wrappers around <code>pg</code> and the Stripe SDK and aren't included.</p>
+<p><code>src/main.ts</code></p>
+<pre><code class="language-ts">import { Pool } from &quot;pg&quot;;
+import Stripe from &quot;stripe&quot;;
+import { loadConfig } from &quot;./config&quot;;
+import { createServer } from &quot;./http/server&quot;;
+import { PostgresOrderRepository } from &quot;./adapters/postgresOrderRepository&quot;;
+import { StripePaymentGateway } from &quot;./adapters/stripePaymentGateway&quot;;
+import { PlaceOrder } from &quot;./orders/placeOrder&quot;;
+
+async function main(): Promise&lt;void&gt; {
+  const config = loadConfig(process.env);
+
+  const pool = new Pool({ connectionString: config.databaseUrl, max: config.dbPoolSize });
+  const stripe = new Stripe(config.stripeSecretKey);
+
+  const orders = new PostgresOrderRepository(pool);
+  const payments = new StripePaymentGateway(stripe);
+  const clock = { now: () =&gt; new Date() };
+
+  const placeOrder = new PlaceOrder(orders, payments, clock);
+
+  const server = createServer({ placeOrder });
+  server.listen(config.port, () =&gt; console.log(`listening on :${config.port}`));
+
+  const shutdown = async () =&gt; {
+    server.close();
+    await pool.end();
+  };
+  process.on(&quot;SIGTERM&quot;, shutdown);
+  process.on(&quot;SIGINT&quot;, shutdown);
+}
+
+main().catch((err) =&gt; {
+  console.error(err);
+  process.exit(1);
+});
+</code></pre>
+<p><code>src/orders/ports.ts</code></p>
+<pre><code class="language-ts">export interface Order {
+  id: string;
+  customerId: string;
+  amountCents: number;
+  currency: string;
+  status: &quot;pending&quot; | &quot;paid&quot; | &quot;failed&quot;;
+  createdAt: Date;
+}
+
+export interface OrderRepository {
+  /**
+   * Returns the order already recorded for (customerId, requestId), or stores and
+   * returns `draft` if there is none. Atomic: backed by a unique index on both columns.
+   */
+  findOrCreate(customerId: string, requestId: string, draft: Order): Promise&lt;Order&gt;;
+  save(order: Order): Promise&lt;void&gt;;
+}
+
+export interface PaymentGateway {
+  charge(
+    customerId: string,
+    amountCents: number,
+    currency: string,
+    idempotencyKey: string,
+  ): Promise&lt;{ ok: true } | { ok: false; reason: string }&gt;;
+}
+
+export interface Clock {
+  now(): Date;
+}
+</code></pre>
+<p><code>src/orders/placeOrder.ts</code></p>
+<pre><code class="language-ts">import { randomUUID } from &quot;node:crypto&quot;;
+import type { Clock, Order, OrderRepository, PaymentGateway } from &quot;./ports&quot;;
+
+export interface PlaceOrderCommand {
+  /** The client&#39;s Idempotency-Key header; every retry of one request reuses it. */
+  requestId: string;
+  customerId: string;
+  amountCents: number;
+  currency: string;
+}
+
+export class PlaceOrder {
+  constructor(
+    private readonly orders: OrderRepository,
+    private readonly payments: PaymentGateway,
+    private readonly clock: Clock,
+  ) {}
+
+  async execute(cmd: PlaceOrderCommand): Promise&lt;Order&gt; {
+    if (!Number.isInteger(cmd.amountCents) || cmd.amountCents &lt;= 0) {
+      throw new RangeError(&quot;amountCents must be a positive integer&quot;);
+    }
+
+    const order = await this.orders.findOrCreate(cmd.customerId, cmd.requestId, {
+      id: randomUUID(),
+      customerId: cmd.customerId,
+      amountCents: cmd.amountCents,
+      currency: cmd.currency,
+      status: &quot;pending&quot;,
+      createdAt: this.clock.now(),
+    });
+    // A retried request gets its original order back: a settled one is returned
+    // as-is, and a still-pending one is charged again under the same idempotency
+    // key (the order id), so the customer is never charged twice.
+    if (order.status !== &quot;pending&quot;) {
+      return order;
+    }
+
+    const result = await this.payments.charge(order.customerId, order.amountCents, order.currency, order.id);
+    const settled: Order = { ...order, status: result.ok ? &quot;paid&quot; : &quot;failed&quot; };
+    await this.orders.save(settled);
+    return settled;
+  }
+}
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">health-score-line</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;Health Score\\W*\\d{1,3}\\s*/\\s*100&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-composition-root-false-positive</span><span class="badge">llm</span></div>
+<div class="md"><p>Context: <code>src/main.ts</code> is the application's entry point. It is the only file that imports <code>pg</code> and <code>stripe</code>; it constructs the concrete adapters (<code>new Pool</code>, <code>new Stripe</code>, <code>new PostgresOrderRepository(pool)</code>, <code>new StripePaymentGateway(stripe)</code>) and passes them into <code>PlaceOrder</code>, which depends only on the <code>OrderRepository</code>, <code>PaymentGateway</code> and <code>Clock</code> interfaces from <code>ports.ts</code>. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.</p>
+<p>FAIL if the answer does any of the following:</p>
+<ol>
+<li>Presents <code>main.ts</code> importing <code>pg</code> / <code>stripe</code> or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, "Dependency Disorder", or hard-to-test wiring.</li>
+<li>Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.</li>
+<li>Suggests <code>PlaceOrder</code> or <code>ports.ts</code> should know about or depend on the concrete adapters.</li>
+</ol>
+<p>PASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of <code>main.ts</code> (shutdown ordering, config validation, logging) do not affect this grader.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">overall-healthy</span><span class="badge">llm</span></div>
+<div class="md"><p>PASS only if all of the following hold:</p>
+<ol>
+<li>No issue is labelled Critical, 🔴, High severity, or Blocker, and no issue is declared blocking ("must fix before merge", "blocks merge", "do not merge until"). An empty Critical section, or a statement that there are no critical issues, is fine. Saying some issues are worth addressing before shipping or before production, without calling them critical or blocking, is also fine.</li>
+<li>If the answer gives a numeric Health Score out of 100, it is 70 or higher. (Under brooks-lint's default weights — Critical −15, Warning −5, Suggestion −1 — 70 still leaves room for about six Warnings.)</li>
+<li>The overall verdict does not say the code needs significant rework or redesign before it can ship.</li>
+</ol>
+<p>FAIL if any of 1–3 is violated.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">skill-fired</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brooks-review&quot;</code></div></div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

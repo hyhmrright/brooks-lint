@@ -1,0 +1,1300 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.270",
+  "startedAt": "2026-09-14T13:55:26.117Z",
+  "durationSeconds": 1111,
+  "costUsd": 3.1583721000000002,
+  "partial": false,
+  "suite": {
+    "root": "/Users/hyh/code/brooks-lint",
+    "ablation": "with-without",
+    "judgeModel": "opus",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "brooks-lint",
+        "version": "1.5.0",
+        "path": "/Users/hyh/code/brooks-lint"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "01-pr29-provider-remap",
+      "dir": "evals/01-pr29-provider-remap",
+      "source": "prose",
+      "promptMarkdown": "Can you review this PR before I merge it? It lets our CI review action route requests through ExampleGW, an Anthropic-compatible model gateway, instead of calling Anthropic directly. Only the code files from the PR are included below, and I've anonymized the gateway's name, key prefix and URL in the paste.\n\n````diff\ndiff --git a/.github/actions/brooks-lint/action.yml b/.github/actions/brooks-lint/action.yml\nindex 73977da..3f2e0b2 100644\n--- a/.github/actions/brooks-lint/action.yml\n+++ b/.github/actions/brooks-lint/action.yml\n@@ -7,8 +7,14 @@ inputs:\n     description: \"Review mode: review, audit, debt, test, health, sweep\"\n     default: \"review\"\n   anthropic-api-key:\n-    description: \"Anthropic API key\"\n-    required: true\n+    description: \"Anthropic API key (required unless provider is examplegw)\"\n+    default: \"\"\n+  provider:\n+    description: \"Model provider: anthropic (default) or examplegw\"\n+    default: \"anthropic\"\n+  examplegw-api-key:\n+    description: \"ExampleGW API key, sk-gw-... (required when provider is examplegw)\"\n+    default: \"\"\n   fail-below:\n     description: \"Fail the check if Health Score is below this threshold (0 = never fail)\"\n     default: \"0\"\n@@ -71,10 +77,29 @@ runs:\n       shell: bash\n       env:\n         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}\n+        EXAMPLEGW_API_KEY: ${{ inputs.examplegw-api-key }}\n+        PROVIDER: ${{ inputs.provider }}\n         SARIF_FILE: ${{ inputs.sarif-file }}\n         MODE: ${{ inputs.mode }}\n         MODEL: ${{ inputs.model }}\n       run: |\n+        if [ \"$PROVIDER\" = \"examplegw\" ]; then\n+          # ExampleGW serves an Anthropic-compatible /v1/messages endpoint. The\n+          # key lives in examplegw-api-key (sk-gw-...); bare Anthropic model\n+          # ids are not resolvable through the gateway, so the action's default\n+          # claude-sonnet-4-6 is remapped to the ExampleGW-pinned id.\n+          if [ -z \"$EXAMPLEGW_API_KEY\" ]; then\n+            echo \"provider=examplegw requires examplegw-api-key (sk-gw-...)\" >&2\n+            exit 1\n+          fi\n+          export ANTHROPIC_API_KEY=\"$EXAMPLEGW_API_KEY\"\n+          if [ \"$MODEL\" = \"claude-sonnet-4-6\" ]; then\n+            MODEL=\"anthropic/claude-sonnet-5\"\n+          fi\n+        elif [ -z \"$ANTHROPIC_API_KEY\" ]; then\n+          echo \"anthropic-api-key is required unless provider=examplegw\" >&2\n+          exit 1\n+        fi\n         sarif_arg=()\n         if [ -n \"$SARIF_FILE\" ]; then\n           sarif_arg=(--sarif-out \"$SARIF_FILE\")\n@@ -82,6 +107,7 @@ runs:\n         node \"$BROOKS_LINT_ROOT/scripts/ci-review.mjs\" \\\n           --mode \"$MODE\" \\\n           --model \"$MODEL\" \\\n+          --provider \"$PROVIDER\" \\\n           --skills-dir \"$BROOKS_LINT_ROOT/skills\" \\\n           --project-dir \"$GITHUB_WORKSPACE\" \\\n           \"${sarif_arg[@]}\" \\\ndiff --git a/scripts/ci-review.mjs b/scripts/ci-review.mjs\nindex 61d67a7..91b31b6 100644\n--- a/scripts/ci-review.mjs\n+++ b/scripts/ci-review.mjs\n@@ -13,11 +13,13 @@\n  *     --model claude-sonnet-4-6 \\\n  *     --skills-dir ./skills \\\n  *     --project-dir /path/to/project \\\n+ *     [--provider anthropic|examplegw] \\\n  *     [--format json|sarif] \\\n  *     [--sarif-out brooks-lint.sarif]\n  *\n  * Environment:\n- *   ANTHROPIC_API_KEY  required\n+ *   ANTHROPIC_API_KEY  required (provider=anthropic)\n+ *   EXAMPLEGW_API_KEY required (provider=examplegw; sk-gw-...)\n  */\n \n import { execFileSync } from \"node:child_process\";\n@@ -35,8 +37,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));\n \n const args = parseArgs(process.argv.slice(2));\n \n+const provider = args.provider ?? \"anthropic\";\n+if (![\"anthropic\", \"examplegw\"].includes(provider)) {\n+  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, examplegw`);\n+  process.exit(1);\n+}\n+\n+// ExampleGW serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic\n+// model ids (e.g. claude-sonnet-4-6) are not resolvable through the gateway, so\n+// the default is pinned to the ExampleGW-prefixed id.\n+const DEFAULT_MODELS = {\n+  anthropic: \"claude-sonnet-4-6\",\n+  examplegw: \"anthropic/claude-sonnet-5\",\n+};\n+\n const mode = args.mode ?? \"review\";\n-const model = args.model ?? \"claude-sonnet-4-6\";\n+const model = args.model ?? DEFAULT_MODELS[provider];\n const format = args.format ?? \"json\";\n const skillsDir = path.resolve(args[\"skills-dir\"] ?? path.join(__dirname, \"..\", \"skills\"));\n const projectDir = path.resolve(args[\"project-dir\"] ?? process.cwd());\n@@ -79,7 +95,9 @@ function getGitDiff(projectRoot) {\n \n // ── Main ──────────────────────────────────────────────────────────────────────\n \n-const client = new Anthropic();\n+// ExampleGW's Anthropic-compatible endpoint — the client appends /v1/messages.\n+const EXAMPLEGW_BASE_URL = \"https://api.examplegw.example\";\n+const client = new Anthropic(provider === \"examplegw\" ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);\n \n const { diff, scope } = getGitDiff(projectDir);\n const systemPrompt = assembleSystemPrompt(mode, skillsDir);\n@@ -95,6 +113,10 @@ try {\n     max_tokens: 4096,\n     system: systemPrompt,\n     messages: [{ role: \"user\", content: userMessage }],\n+    // Reasoning models on ExampleGW spend the output budget on thinking blocks\n+    // by default; the 4096-token budget here assumes direct text output, so the\n+    // gateway path disables extended thinking to preserve that contract.\n+    ...(provider === \"examplegw\" ? { thinking: { type: \"disabled\" } } : {}),\n   });\n } catch (err) {\n   console.error(JSON.stringify({ error: err.message, mode, scope }, null, 2));\ndiff --git a/scripts/run-evals-live.mjs b/scripts/run-evals-live.mjs\nindex cfdda01..bb64406 100644\n--- a/scripts/run-evals-live.mjs\n+++ b/scripts/run-evals-live.mjs\n@@ -8,6 +8,7 @@\n  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --id 5\n  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --mode review\n  *   ANTHROPIC_API_KEY=... node scripts/run-evals-live.mjs --model claude-opus-4-6\n+ *   EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw\n  */\n \n import { readFileSync } from \"node:fs\";\n@@ -22,10 +23,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));\n const root = path.resolve(__dirname, \"..\");\n \n const args = parseArgs(process.argv.slice(2));\n+const provider   = args.provider ?? \"anthropic\";\n+if (![\"anthropic\", \"examplegw\"].includes(provider)) {\n+  console.error(`Unknown provider: ${provider}. Valid providers: anthropic, examplegw`);\n+  process.exit(1);\n+}\n+\n+// ExampleGW serves an Anthropic-compatible /v1/messages endpoint. Bare Anthropic\n+// model ids are not resolvable through the gateway, so the default is pinned to\n+// the ExampleGW-prefixed id.\n+const DEFAULT_MODELS = {\n+  anthropic: \"claude-sonnet-4-6\",\n+  examplegw: \"anthropic/claude-sonnet-5\",\n+};\n+\n const filterRisk = args.risk ?? null;\n const filterId   = args.id ? parseInt(args.id, 10) : null;\n const filterMode = args.mode ?? null;\n-const model      = args.model ?? \"claude-sonnet-4-6\";\n+const model      = args.model ?? DEFAULT_MODELS[provider];\n const skillsDir  = path.join(root, \"skills\");\n \n if (filterMode && !VALID_MODES.includes(filterMode)) {\n@@ -59,7 +74,9 @@ function getSystemPrompt(mode) {\n \n // ── Run scenarios ─────────────────────────────────────────────────────────────\n \n-const client = new Anthropic();\n+// ExampleGW's Anthropic-compatible endpoint — the client appends /v1/messages.\n+const EXAMPLEGW_BASE_URL = \"https://api.examplegw.example\";\n+const client = new Anthropic(provider === \"examplegw\" ? { baseURL: EXAMPLEGW_BASE_URL } : undefined);\n const results = [];\n \n for (const scenario of scenarios) {\n@@ -80,6 +97,10 @@ for (const scenario of scenarios) {\n       max_tokens: 4096,\n       system: systemPrompt,\n       messages: [{ role: \"user\", content: userMessage }],\n+      // Reasoning models on ExampleGW spend the output budget on thinking blocks\n+      // by default; the 4096-token budget here assumes direct text output, so the\n+      // gateway path disables extended thinking to preserve that contract.\n+      ...(provider === \"examplegw\" ? { thinking: { type: \"disabled\" } } : {}),\n     });\n     aiText  = message.content[0]?.text ?? \"\";\n     verdict = classify(scenario, aiText);\n````",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "finds-magic-string-remap",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Facts about the diff under review (use them to check the answer; do not grade the facts themselves):\n- In `.github/actions/brooks-lint/action.yml`, when `PROVIDER` is `examplegw` the script runs\n  `if [ \"$MODEL\" = \"claude-sonnet-4-6\" ]; then MODEL=\"anthropic/claude-sonnet-5\"; fi`.\n- `claude-sonnet-4-6` is the action's current default value for its `model` input.\n\nPASS only if the answer does BOTH:\n1. Identifies this equality check / model rewrite in `action.yml` (quoting it, or clearly describing \"the action rewrites the model only when it equals the current default id\").\n2. States at least one concrete consequence of tying the rewrite to that literal id:\n   (a) when the action's default model is bumped, the check silently stops matching and the gateway receives an id it cannot resolve; or\n   (b) a user who explicitly sets `model: claude-sonnet-4-6` is silently switched to a different model; or\n   (c) any other bare model id a user passes is not mapped for the gateway at all.\n\nFAIL if the rewrite is not mentioned, or is only described neutrally (e.g. \"remaps the default model\") without explaining why the literal comparison is fragile.",
+          "config": {
+            "criteria": "Facts about the diff under review (use them to check the answer; do not grade the facts themselves):\n- In `.github/actions/brooks-lint/action.yml`, when `PROVIDER` is `examplegw` the script runs\n  `if [ \"$MODEL\" = \"claude-sonnet-4-6\" ]; then MODEL=\"anthropic/claude-sonnet-5\"; fi`.\n- `claude-sonnet-4-6` is the action's current default value for its `model` input.\n\nPASS only if the answer does BOTH:\n1. Identifies this equality check / model rewrite in `action.yml` (quoting it, or clearly describing \"the action rewrites the model only when it equals the current default id\").\n2. States at least one concrete consequence of tying the rewrite to that literal id:\n   (a) when the action's default model is bumped, the check silently stops matching and the gateway receives an id it cannot resolve; or\n   (b) a user who explicitly sets `model: claude-sonnet-4-6` is silently switched to a different model; or\n   (c) any other bare model id a user passes is not mapped for the gateway at all.\n\nFAIL if the rewrite is not mentioned, or is only described neutrally (e.g. \"remaps the default model\") without explaining why the literal comparison is fragile.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "finds-multiple-sources-of-truth",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Facts about the diff under review:\n- The gateway's default model is encoded in more than one place: `action.yml` hard-codes the rewrite `claude-sonnet-4-6 → anthropic/claude-sonnet-5`, while `scripts/ci-review.mjs` and `scripts/run-evals-live.mjs` each define their own `DEFAULT_MODELS = { anthropic: \"claude-sonnet-4-6\", examplegw: \"anthropic/claude-sonnet-5\" }`.\n- `action.yml` always passes `--model \"$MODEL\"` to `ci-review.mjs`, and the script does `args.model ?? DEFAULT_MODELS[provider]`, so on the action path `DEFAULT_MODELS` never takes effect.\n\nPASS if the answer makes at least one of these points AND names at least two of the locations involved (file names or clearly identified code sites):\nA. The provider → default-model mapping lives in two or more places (the `action.yml` rewrite vs `DEFAULT_MODELS`, or `DEFAULT_MODELS` copied into both scripts), so the copies can drift apart.\nB. `DEFAULT_MODELS` in `ci-review.mjs` is dead / never used when invoked from the action, because the action always passes `--model`.\n\nFAIL if neither A nor B is made. Pointing out that the provider-handling block is duplicated across the two scripts counts as A only if the answer makes clear the default-model mapping is part of what is duplicated.",
+          "config": {
+            "criteria": "Facts about the diff under review:\n- The gateway's default model is encoded in more than one place: `action.yml` hard-codes the rewrite `claude-sonnet-4-6 → anthropic/claude-sonnet-5`, while `scripts/ci-review.mjs` and `scripts/run-evals-live.mjs` each define their own `DEFAULT_MODELS = { anthropic: \"claude-sonnet-4-6\", examplegw: \"anthropic/claude-sonnet-5\" }`.\n- `action.yml` always passes `--model \"$MODEL\"` to `ci-review.mjs`, and the script does `args.model ?? DEFAULT_MODELS[provider]`, so on the action path `DEFAULT_MODELS` never takes effect.\n\nPASS if the answer makes at least one of these points AND names at least two of the locations involved (file names or clearly identified code sites):\nA. The provider → default-model mapping lives in two or more places (the `action.yml` rewrite vs `DEFAULT_MODELS`, or `DEFAULT_MODELS` copied into both scripts), so the copies can drift apart.\nB. `DEFAULT_MODELS` in `ci-review.mjs` is dead / never used when invoked from the action, because the action always passes `--model`.\n\nFAIL if neither A nor B is made. Pointing out that the provider-handling block is duplicated across the two scripts counts as A only if the answer makes clear the default-model mapping is part of what is duplicated.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "health-score-line",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score\\W*\\d{1,3}\\s*/\\s*100",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-factual-misreads",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Check the review for factual misreadings of the diff. Ground truth about what the diff does:\n\n1. `action.yml`: when `PROVIDER` is `examplegw` it exits 1 if `EXAMPLEGW_API_KEY` is empty, otherwise exports it as `ANTHROPIC_API_KEY`. For any other provider value it still exits 1 when `ANTHROPIC_API_KEY` is empty — the Anthropic path keeps a missing-key check (moved from `required: true` to a runtime check).\n2. `action.yml` passes `--provider \"$PROVIDER\"` to `ci-review.mjs`. The action itself does not reject unknown provider values; both scripts do, exiting 1 with \"Unknown provider\".\n3. Both scripts construct `new Anthropic({ baseURL: \"https://api.examplegw.example\" })` only when provider is `examplegw`; otherwise `new Anthropic(undefined)`, which uses the SDK defaults (valid, does not throw).\n4. `thinking: { type: \"disabled\" }` is added to the request only when provider is `examplegw`.\n5. No API key value is printed to logs; the error messages only name the missing input.\n6. An explicit `--model` always wins; `DEFAULT_MODELS[provider]` is only the fallback when `--model` is absent.\n7. Only `action.yml` compares the model against the literal `claude-sonnet-4-6`. Neither script contains such a comparison — they use `args.model ?? DEFAULT_MODELS[provider]`.\n8. Neither script reads `EXAMPLEGW_API_KEY`; the SDK picks up `ANTHROPIC_API_KEY` from the environment. `action.yml` exports the gateway key into `ANTHROPIC_API_KEY` first, but `run-evals-live.mjs` is documented as `EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw` with no such export — so a claim that this path ignores the gateway key, fails auth, or could send a real `ANTHROPIC_API_KEY` to the gateway host is CORRECT, not a misread.\n\nFAIL if the answer states as fact anything that contradicts items 1–8 — for example: the Anthropic path no longer validates its key; the base URL is applied to both providers or never applied; thinking is disabled for every provider; a key is printed to logs; `new Anthropic(undefined)` throws; an unknown provider silently falls back to anthropic inside the scripts; `DEFAULT_MODELS` overrides an explicit `--model`; the scripts themselves remap `claude-sonnet-4-6` by literal comparison.\n\nDo NOT fail for: hedged remarks about behaviour outside the diff (e.g. whether the gateway accepts the `thinking` field), design opinions, or observations consistent with the ground truth (e.g. \"action.yml does not validate the provider itself, so a typo only fails later in the script\", or the credential issue in item 8).\n\nPASS if no contradicting claim is present.",
+          "config": {
+            "criteria": "Check the review for factual misreadings of the diff. Ground truth about what the diff does:\n\n1. `action.yml`: when `PROVIDER` is `examplegw` it exits 1 if `EXAMPLEGW_API_KEY` is empty, otherwise exports it as `ANTHROPIC_API_KEY`. For any other provider value it still exits 1 when `ANTHROPIC_API_KEY` is empty — the Anthropic path keeps a missing-key check (moved from `required: true` to a runtime check).\n2. `action.yml` passes `--provider \"$PROVIDER\"` to `ci-review.mjs`. The action itself does not reject unknown provider values; both scripts do, exiting 1 with \"Unknown provider\".\n3. Both scripts construct `new Anthropic({ baseURL: \"https://api.examplegw.example\" })` only when provider is `examplegw`; otherwise `new Anthropic(undefined)`, which uses the SDK defaults (valid, does not throw).\n4. `thinking: { type: \"disabled\" }` is added to the request only when provider is `examplegw`.\n5. No API key value is printed to logs; the error messages only name the missing input.\n6. An explicit `--model` always wins; `DEFAULT_MODELS[provider]` is only the fallback when `--model` is absent.\n7. Only `action.yml` compares the model against the literal `claude-sonnet-4-6`. Neither script contains such a comparison — they use `args.model ?? DEFAULT_MODELS[provider]`.\n8. Neither script reads `EXAMPLEGW_API_KEY`; the SDK picks up `ANTHROPIC_API_KEY` from the environment. `action.yml` exports the gateway key into `ANTHROPIC_API_KEY` first, but `run-evals-live.mjs` is documented as `EXAMPLEGW_API_KEY=... node scripts/run-evals-live.mjs --provider examplegw` with no such export — so a claim that this path ignores the gateway key, fails auth, or could send a real `ANTHROPIC_API_KEY` to the gateway host is CORRECT, not a misread.\n\nFAIL if the answer states as fact anything that contradicts items 1–8 — for example: the Anthropic path no longer validates its key; the base URL is applied to both providers or never applied; thinking is disabled for every provider; a key is printed to logs; `new Anthropic(undefined)` throws; an unknown provider silently falls back to anthropic inside the scripts; `DEFAULT_MODELS` overrides an explicit `--model`; the scripts themselves remap `claude-sonnet-4-6` by literal comparison.\n\nDo NOT fail for: hedged remarks about behaviour outside the diff (e.g. whether the gateway accepts the `thinking` field), design opinions, or observations consistent with the ground truth (e.g. \"action.yml does not validate the provider itself, so a typo only fails later in the script\", or the credential issue in item 8).\n\nPASS if no contradicting claim is present.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.2857142857142857,
+            "passed": false,
+            "turns": 5,
+            "costUsd": 0.43185619999999997,
+            "judgeCostUsd": 0.09421500000000001,
+            "durationSeconds": 110,
+            "startedAt": "2026-09-14T13:55:26.149Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-2q5nfJ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "finds-magic-string-remap",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I now have the full Anthropic API reference loaded. Here's the technical verification (points 1–5), while the brooks-review agent finishes the broader code-quality pass in the background.\n\n## Technical verification\n\n**1. `new Anthropic({ baseURL: \"...\" })` for a third-party gateway — fine.**\nThe \"use the platform's dedicated client, not `baseURL`\" rule only applies to the three Anthropic-partnered hyperscaler platforms (Bedrock/Foundry/Vertex), which have dedicated SDK classes. For a generic third-party \"Anthropic-compatible\" gateway there's no dedicated client — `baseURL` (equivalently `ANTHROPIC_BASE_URL`) is the documented, supported mechanism. The comment about the SDK appending `/v1/messages` to the base URL is also accurate.\n\n**2. `thinking: { type: \"disabled\" }` — works, but is the wrong fix.**\nFor the model actually in use here (`anthropic/claude-sonnet-5` via the gateway), `disabled` is a legal value — it won't 400. But the documented pitfall (real, not model-specific in practice) is that disabling thinking entirely can cause the model to write a tool call into visible text instead of leaking `<thinking>` tags into the output — silently corrupting the review output text/JSON this script parses. Since the actual complaint here is \"reasoning eats the 4096-token budget,\" the correct fix is `output_config: { effort: \"low\" }` (or `\"medium\"`) with thinking left on `adaptive`, not `disabled`. That gets the token-budget control they want without the leakage risk. Worth raising as a should-fix, not a blocker.\n\n**3. Model ID defaults — real IDs, but inconsistent across providers.**\n`claude-sonnet-4-6` and `claude-opus-4-6` are real (previous-gen) IDs, not fabricated. The actual issue: the PR makes the `anthropic` path default to `claude-sonnet-4-6` (older gen) while the `examplegw` path defaults to `anthropic/claude-sonnet-5` (current gen). Same CI review action, two different model generations depending on which provider flag is set — that's a silent quality/behavior divergence a reviewer running `provider=anthropic` vs `provider=examplegw` wouldn't expect. Pre-existing default aside, this PR is a natural point to also bump the anthropic-path default to `claude-sonnet-5`.\n\n**4 & 5. Reusing `ANTHROPIC_API_KEY` for the gateway key — mechanically works, but rests on an unverified assumption.**\nThe SDK's zero-arg client reads `ANTHROPIC_API_KEY` and sends it via the `x-api-key` header (not `Authorization: Bearer`). So `export ANTHROPIC_API_KEY=\"$EXAMPLEGW_API_KEY\"` will work correctly **only if ExampleGW also authenticates via `x-api-key`**. If ExampleGW instead expects `Authorization: Bearer sk-gw-...` (common for many gateways), every request will 401 and the failure mode is opaque (the action would just fail on the API call, not at the validation step). This should be confirmed against ExampleGW's actual docs before merging, and ideally exercised once in CI against a real (or sandboxed) gateway endpoint rather than assumed from the \"Anthropic-compatible\" label. The `export` is correctly scoped to that one `run:` step (not written to `$GITHUB_ENV`), so there's no cross-step leakage — that part is sound. No beta headers are used (plain `client.messages.create`), so there's nothing beta-specific for the gateway to replicate.\n\nThe brooks-review agent is still running the standard PR-review pass (secret handling, provider-branching correctness, duplication between `ci-review.mjs`/`run-evals-live.mjs`, error handling). I'll report back once it lands."
+              },
+              {
+                "name": "finds-multiple-sources-of-truth",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I now have the full Anthropic API reference loaded. Here's the technical verification (points 1–5), while the brooks-review agent finishes the broader code-quality pass in the background.\n\n## Technical verification\n\n**1. `new Anthropic({ baseURL: \"...\" })` for a third-party gateway — fine.**\nThe \"use the platform's dedicated client, not `baseURL`\" rule only applies to the three Anthropic-partnered hyperscaler platforms (Bedrock/Foundry/Vertex), which have dedicated SDK classes. For a generic third-party \"Anthropic-compatible\" gateway there's no dedicated client — `baseURL` (equivalently `ANTHROPIC_BASE_URL`) is the documented, supported mechanism. The comment about the SDK appending `/v1/messages` to the base URL is also accurate.\n\n**2. `thinking: { type: \"disabled\" }` — works, but is the wrong fix.**\nFor the model actually in use here (`anthropic/claude-sonnet-5` via the gateway), `disabled` is a legal value — it won't 400. But the documented pitfall (real, not model-specific in practice) is that disabling thinking entirely can cause the model to write a tool call into visible text instead of leaking `<thinking>` tags into the output — silently corrupting the review output text/JSON this script parses. Since the actual complaint here is \"reasoning eats the 4096-token budget,\" the correct fix is `output_config: { effort: \"low\" }` (or `\"medium\"`) with thinking left on `adaptive`, not `disabled`. That gets the token-budget control they want without the leakage risk. Worth raising as a should-fix, not a blocker.\n\n**3. Model ID defaults — real IDs, but inconsistent across providers.**\n`claude-sonnet-4-6` and `claude-opus-4-6` are real (previous-gen) IDs, not fabricated. The actual issue: the PR makes the `anthropic` path default to `claude-sonnet-4-6` (older gen) while the `examplegw` path defaults to `anthropic/claude-sonnet-5` (current gen). Same CI review action, two different model generations depending on which provider flag is set — that's a silent quality/behavior divergence a reviewer running `provider=anthropic` vs `provider=examplegw` wouldn't expect. Pre-existing default aside, this PR is a natural point to also bump the anthropic-path default to `claude-sonnet-5`.\n\n**4 & 5. Reusing `ANTHROPIC_API_KEY` for the gateway key — mechanically works, but rests on an unverified assumption.**\nThe SDK's zero-arg client reads `ANTHROPIC_API_KEY` and sends it via the `x-api-key` header (not `Authorization: Bearer`). So `export ANTHROPIC_API_KEY=\"$EXAMPLEGW_API_KEY\"` will work correctly **only if ExampleGW also authenticates via `x-api-key`**. If ExampleGW instead expects `Authorization: Bearer sk-gw-...` (common for many gateways), every request will 401 and the failure mode is opaque (the action would just fail on the API call, not at the validation step). This should be confirmed against ExampleGW's actual docs before merging, and ideally exercised once in CI against a real (or sandboxed) gateway endpoint rather than assumed from the \"Anthropic-compatible\" label. The `export` is correctly scoped to that one `run:` step (not written to `$GITHUB_ENV`), so there's no cross-step leakage — that part is sound. No beta headers are used (plain `client.messages.create`), so there's nothing beta-specific for the gateway to replicate.\n\nThe brooks-review agent is still running the standard PR-review pass (secret handling, provider-branching correctness, duplication between `ci-review.mjs`/`run-evals-live.mjs`, error handling). I'll report back once it lands."
+              },
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-factual-misreads",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I now have the full Anthropic API reference loaded. Here's the technical verification (points 1–5), while the brooks-review agent finishes the broader code-quality pass in the background.\n\n## Technical verification\n\n**1. `new Anthropic({ baseURL: \"...\" })` for a third-party gateway — fine.**\nThe \"use the platform's dedicated client, not `baseURL`\" rule only applies to the three Anthropic-partnered hyperscaler platforms (Bedrock/Foundry/Vertex), which have dedicated SDK classes. For a generic third-party \"Anthropic-compatible\" gateway there's no dedicated client — `baseURL` (equivalently `ANTHROPIC_BASE_URL`) is the documented, supported mechanism. The comment about the SDK appending `/v1/messages` to the base URL is also accurate.\n\n**2. `thinking: { type: \"disabled\" }` — works, but is the wrong fix.**\nFor the model actually in use here (`anthropic/claude-sonnet-5` via the gateway), `disabled` is a legal value — it won't 400. But the documented pitfall (real, not model-specific in practice) is that disabling thinking entirely can cause the model to write a tool call into visible text instead of leaking `<thinking>` tags into the output — silently corrupting the review output text/JSON this script parses. Since the actual complaint here is \"reasoning eats the 4096-token budget,\" the correct fix is `output_config: { effort: \"low\" }` (or `\"medium\"`) with thinking left on `adaptive`, not `disabled`. That gets the token-budget control they want without the leakage risk. Worth raising as a should-fix, not a blocker.\n\n**3. Model ID defaults — real IDs, but inconsistent across providers.**\n`claude-sonnet-4-6` and `claude-opus-4-6` are real (previous-gen) IDs, not fabricated. The actual issue: the PR makes the `anthropic` path default to `claude-sonnet-4-6` (older gen) while the `examplegw` path defaults to `anthropic/claude-sonnet-5` (current gen). Same CI review action, two different model generations depending on which provider flag is set — that's a silent quality/behavior divergence a reviewer running `provider=anthropic` vs `provider=examplegw` wouldn't expect. Pre-existing default aside, this PR is a natural point to also bump the anthropic-path default to `claude-sonnet-5`.\n\n**4 & 5. Reusing `ANTHROPIC_API_KEY` for the gateway key — mechanically works, but rests on an unverified assumption.**\nThe SDK's zero-arg client reads `ANTHROPIC_API_KEY` and sends it via the `x-api-key` header (not `Authorization: Bearer`). So `export ANTHROPIC_API_KEY=\"$EXAMPLEGW_API_KEY\"` will work correctly **only if ExampleGW also authenticates via `x-api-key`**. If ExampleGW instead expects `Authorization: Bearer sk-gw-...` (common for many gateways), every request will 401 and the failure mode is opaque (the action would just fail on the API call, not at the validation step). This should be confirmed against ExampleGW's actual docs before merging, and ideally exercised once in CI against a real (or sandboxed) gateway endpoint rather than assumed from the \"Anthropic-compatible\" label. The `export` is correctly scoped to that one `run:` step (not written to `$GITHUB_ENV`), so there's no cross-step leakage — that part is sound. No beta headers are used (plain `client.messages.create`), so there's nothing beta-specific for the gateway to replicate.\n\nThe brooks-review agent is still running the standard PR-review pass (secret handling, provider-branching correctness, duplication between `ci-review.mjs`/`run-evals-live.mjs`, error handling). I'll report back once it lands."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.8571428571428571,
+            "passed": false,
+            "turns": 5,
+            "costUsd": 0.3780548000000001,
+            "judgeCostUsd": 0.08200500000000004,
+            "durationSeconds": 87,
+            "startedAt": "2026-09-14T13:57:16.526Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-GmcTky/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "finds-magic-string-remap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Reviewed against current Anthropic API behavior. One thing I'd fix before merging, plus a few to verify/tighten.\n\n## Fix before merging\n\n**Disabling thinking outright is the wrong lever, and it's not free.** On Sonnet 5 (and Opus-5-tier models generally), `thinking: {type: \"disabled\"}` is accepted, but with a known failure mode: the model can occasionally write a tool call into its **visible text** instead of a proper block, or leak reasoning-tag artifacts into the output — with no error raised. `ci-review.mjs` takes `message.content[0]?.text` and feeds it straight into the report/SARIF pipeline, so any leaked tags would silently corrupt the CI output rather than fail loudly.\n\nThe token-budget problem this is solving (thinking eating into a fixed `max_tokens: 4096`) is better solved with `output_config: { effort: \"low\" }` (or `\"medium\"`) — this keeps adaptive thinking on (avoiding the leak mode) while still capping how much of the budget goes to reasoning. Sonnet 5 supports `effort` natively. I'd swap the `thinking: {disabled}` block for this in both `ci-review.mjs` and `run-evals-live.mjs`.\n\n## Worth verifying\n\n- **`anthropic/claude-sonnet-5`-style model ID**: provider-prefixed model strings aren't an Anthropic API convention — they're purely a gateway's own routing syntax. Since you've anonymized the real value, I can't check it, but confirm it's copied verbatim from ExampleGW's current docs, not inferred from the bare Anthropic ID by pattern-matching. Gateways change these prefixes without much notice.\n- **Default-model remap is duplicated and fragile.** `ci-review.mjs` computes `DEFAULT_MODELS[provider]` when `--model` is *absent*, but `action.yml` always passes `--model \"$MODEL\"` (from the input's own default), so that mjs fallback is dead code on the action path — only the shell's `if [ \"$MODEL\" = \"claude-sonnet-4-6\" ]` string match actually does the remapping. If the action's `model` input default ever changes, this silently stops firing and the raw Anthropic model ID gets sent to ExampleGW. Simpler fix: default the `model` input to `\"\"` in `action.yml` and let `ci-review.mjs`'s existing `args.model ?? DEFAULT_MODELS[provider]` be the single source of truth.\n\n## Looks right\n\n- Using the bare `Anthropic` client with a `baseURL` override for a third-party gateway is the correct pattern (dedicated provider clients like `AnthropicBedrockMantle`/`AnthropicVertex` only exist for Anthropic's own platform partners — ExampleGW isn't one, so `baseURL` is the intended mechanism here).\n- `EXAMPLEGW_API_KEY` → `ANTHROPIC_API_KEY` handoff and the required-unless-examplegw validation in `action.yml` are sound; the native Anthropic path is unaffected by the new branch."
+              },
+              {
+                "name": "finds-multiple-sources-of-truth",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Reviewed against current Anthropic API behavior. One thing I'd fix before merging, plus a few to verify/tighten.\n\n## Fix before merging\n\n**Disabling thinking outright is the wrong lever, and it's not free.** On Sonnet 5 (and Opus-5-tier models generally), `thinking: {type: \"disabled\"}` is accepted, but with a known failure mode: the model can occasionally write a tool call into its **visible text** instead of a proper block, or leak reasoning-tag artifacts into the output — with no error raised. `ci-review.mjs` takes `message.content[0]?.text` and feeds it straight into the report/SARIF pipeline, so any leaked tags would silently corrupt the CI output rather than fail loudly.\n\nThe token-budget problem this is solving (thinking eating into a fixed `max_tokens: 4096`) is better solved with `output_config: { effort: \"low\" }` (or `\"medium\"`) — this keeps adaptive thinking on (avoiding the leak mode) while still capping how much of the budget goes to reasoning. Sonnet 5 supports `effort` natively. I'd swap the `thinking: {disabled}` block for this in both `ci-review.mjs` and `run-evals-live.mjs`.\n\n## Worth verifying\n\n- **`anthropic/claude-sonnet-5`-style model ID**: provider-prefixed model strings aren't an Anthropic API convention — they're purely a gateway's own routing syntax. Since you've anonymized the real value, I can't check it, but confirm it's copied verbatim from ExampleGW's current docs, not inferred from the bare Anthropic ID by pattern-matching. Gateways change these prefixes without much notice.\n- **Default-model remap is duplicated and fragile.** `ci-review.mjs` computes `DEFAULT_MODELS[provider]` when `--model` is *absent*, but `action.yml` always passes `--model \"$MODEL\"` (from the input's own default), so that mjs fallback is dead code on the action path — only the shell's `if [ \"$MODEL\" = \"claude-sonnet-4-6\" ]` string match actually does the remapping. If the action's `model` input default ever changes, this silently stops firing and the raw Anthropic model ID gets sent to ExampleGW. Simpler fix: default the `model` input to `\"\"` in `action.yml` and let `ci-review.mjs`'s existing `args.model ?? DEFAULT_MODELS[provider]` be the single source of truth.\n\n## Looks right\n\n- Using the bare `Anthropic` client with a `baseURL` override for a third-party gateway is the correct pattern (dedicated provider clients like `AnthropicBedrockMantle`/`AnthropicVertex` only exist for Anthropic's own platform partners — ExampleGW isn't one, so `baseURL` is the intended mechanism here).\n- `EXAMPLEGW_API_KEY` → `ANTHROPIC_API_KEY` handoff and the required-unless-examplegw validation in `action.yml` are sound; the native Anthropic path is unaffected by the new branch."
+              },
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-factual-misreads",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Reviewed against current Anthropic API behavior. One thing I'd fix before merging, plus a few to verify/tighten.\n\n## Fix before merging\n\n**Disabling thinking outright is the wrong lever, and it's not free.** On Sonnet 5 (and Opus-5-tier models generally), `thinking: {type: \"disabled\"}` is accepted, but with a known failure mode: the model can occasionally write a tool call into its **visible text** instead of a proper block, or leak reasoning-tag artifacts into the output — with no error raised. `ci-review.mjs` takes `message.content[0]?.text` and feeds it straight into the report/SARIF pipeline, so any leaked tags would silently corrupt the CI output rather than fail loudly.\n\nThe token-budget problem this is solving (thinking eating into a fixed `max_tokens: 4096`) is better solved with `output_config: { effort: \"low\" }` (or `\"medium\"`) — this keeps adaptive thinking on (avoiding the leak mode) while still capping how much of the budget goes to reasoning. Sonnet 5 supports `effort` natively. I'd swap the `thinking: {disabled}` block for this in both `ci-review.mjs` and `run-evals-live.mjs`.\n\n## Worth verifying\n\n- **`anthropic/claude-sonnet-5`-style model ID**: provider-prefixed model strings aren't an Anthropic API convention — they're purely a gateway's own routing syntax. Since you've anonymized the real value, I can't check it, but confirm it's copied verbatim from ExampleGW's current docs, not inferred from the bare Anthropic ID by pattern-matching. Gateways change these prefixes without much notice.\n- **Default-model remap is duplicated and fragile.** `ci-review.mjs` computes `DEFAULT_MODELS[provider]` when `--model` is *absent*, but `action.yml` always passes `--model \"$MODEL\"` (from the input's own default), so that mjs fallback is dead code on the action path — only the shell's `if [ \"$MODEL\" = \"claude-sonnet-4-6\" ]` string match actually does the remapping. If the action's `model` input default ever changes, this silently stops firing and the raw Anthropic model ID gets sent to ExampleGW. Simpler fix: default the `model` input to `\"\"` in `action.yml` and let `ci-review.mjs`'s existing `args.model ?? DEFAULT_MODELS[provider]` be the single source of truth.\n\n## Looks right\n\n- Using the bare `Anthropic` client with a `baseURL` override for a third-party gateway is the correct pattern (dedicated provider clients like `AnthropicBedrockMantle`/`AnthropicVertex` only exist for Anthropic's own platform partners — ExampleGW isn't one, so `baseURL` is the intended mechanism here).\n- `EXAMPLEGW_API_KEY` → `ANTHROPIC_API_KEY` handoff and the required-unless-examplegw validation in `action.yml` are sound; the native Anthropic path is unaffected by the new branch."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.2857142857142857,
+        "passRate": 0,
+        "scoreWithout": 0.8571428571428571,
+        "passRateWithout": 0,
+        "delta": -0.5714285714285714
+      }
+    },
+    {
+      "name": "02-pr33-bob-installer",
+      "dir": "evals/02-pr33-bob-installer",
+      "source": "prose",
+      "promptMarkdown": "帮我看看这个 PR 能不能合？贡献者给安装脚本加了 IBM Bob 平台支持，下面是安装脚本和文档部分的 diff（README 的多语言同步改动省略了）。\n\n````diff\ndiff --git a/docs/bob-setup.md b/docs/bob-setup.md\nnew file mode 100644\nindex 0000000..bc7683b\n--- /dev/null\n+++ b/docs/bob-setup.md\n@@ -0,0 +1,51 @@\n+# IBM Bob Setup\n+\n+[IBM Bob](https://bob.ibm.com) (`bob`) is IBM's AI-powered developer agent — an \"everything is a\n+skill\" architecture with a chat interface and IDE integrations. It natively loads\n+[Agent Skills](https://agentskills.io) and reads `AGENTS.md`, so all six brooks-lint modes run with\n+no conversion.\n+\n+## Install\n+\n+```bash\n+# simplest — one command (global)\n+curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- bob\n+\n+# from a clone\n+./scripts/install.sh bob            # global: ~/.bob/skills (or $BOB_HOME/skills)\n+./scripts/install.sh bob --project  # this repo: ./.bob/skills\n+```\n+\n+Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.bob/skills/` — the contents, not the\n+`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.\n+\n+Bob scans these skill roots, highest priority first, so an existing vendor-neutral install is picked\n+up automatically:\n+\n+| Root | Notes |\n+|---|---|\n+| `<projectRoot>/.bob/skills` | what `--project` writes |\n+| `<bob_home>/skills` (default `~/.bob/skills`) | what the global install writes |\n+\n+When the same skill name appears in two roots, the project-level skill takes precedence.\n+\n+## Invoke\n+\n+Just ask — Bob routes to a skill from its `description`:\n+\n+- \"review this PR\" → `brooks-review`\n+- \"audit the architecture\" → `brooks-audit`\n+- \"where's our worst tech debt?\" → `brooks-debt`\n+\n+For explicit invocation, type `/` followed by the skill token in the chat prompt, or type it by\n+hand: `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`,\n+`/brooks-sweep`. The repo's `AGENTS.md` carries the Iron Law (Symptom → Source →\n+Consequence → Remedy) and the Health Score rules; Bob also loads `$BOB_HOME/AGENTS.md` plus every\n+`AGENTS.md` from the project root down to your working directory.\n+\n+## Notes\n+\n+- IBM Bob is available at [bob.ibm.com](https://bob.ibm.com); download and sign-in instructions\n+  are on that page.\n+- 🧪 Documented per the Agent Skills subsystem contract; community end-to-end verification welcome —\n+  [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new).\ndiff --git a/docs/getting-started.md b/docs/getting-started.md\nindex 665f91f..8a91817 100644\n--- a/docs/getting-started.md\n+++ b/docs/getting-started.md\n@@ -33,7 +33,7 @@ layout wrong:\n curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>\n ```\n \n-`<platform>` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh ·\n+`<platform>` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · bob ·\n gemini · codex · claude · agents`. Add `--project` to install into the current repo instead of your\n global config. `agents` targets the vendor-neutral `~/.agents/skills` folder that Cursor, Copilot, pi,\n Gemini, Codex, and DeepSeek Harness all read.\n@@ -51,6 +51,7 @@ Gemini, Codex, and DeepSeek Harness all read.\n | Kiro | [kiro-setup.md](kiro-setup.md) | `.kiro/skills`, `~/.kiro/skills` | ✅ |\n | Factory Droid | [factory-droid-setup.md](factory-droid-setup.md) | `~/.factory/skills`, `.factory/skills`, `.agent/skills` | ✅ |\n | DeepSeek Harness | [dsh-setup.md](dsh-setup.md) | `.dsh/skills`, `.agents/skills`, `~/.dsh/skills`, `~/.agents/skills` | ✅ |\n+| IBM Bob | [bob-setup.md](bob-setup.md) | `.bob/skills`, `~/.bob/skills` | ✅ |\n \n For Claude Code, Gemini CLI, and Codex CLI, see the [README install section](../README.md#installation).\n `./scripts/install.sh gemini` and `./scripts/install.sh codex` also work and use the flat layout these\n@@ -69,7 +70,7 @@ If your agent accepts a skills folder or an instruction file, brooks-lint works:\n ## Verification status\n \n The marketplace-installed platforms (Claude Code, Gemini CLI, Codex CLI) are maintainer-verified. The\n-nine Agent-Skills platforms above are documented from each tool's official skill spec and verified at\n+ten Agent-Skills platforms above are documented from each tool's official skill spec and verified at\n the file-layout level (the installer is tested), but not yet end-to-end run by the maintainer on every\n platform. **Tried one? Tell us** — [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new)\n with the platform, version, and what you saw, working or broken.\ndiff --git a/scripts/install.sh b/scripts/install.sh\nindex 90270ef..0391864 100755\n--- a/scripts/install.sh\n+++ b/scripts/install.sh\n@@ -13,7 +13,7 @@\n #   ./scripts/install.sh <platform> [--project]\n #   curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>\n #\n-# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents\n+# Platforms: opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob\n #   agents = the vendor-neutral ~/.agents/skills folder (read by Cursor, Copilot, pi, Gemini,\n #            Codex, and DeepSeek Harness)\n #\n@@ -25,7 +25,7 @@\n set -euo pipefail\n \n REPO_URL=\"https://github.com/hyhmrright/brooks-lint.git\"\n-PLATFORMS=\"opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents\"\n+PLATFORMS=\"opencode cursor windsurf antigravity pi kiro copilot droid dsh gemini codex claude agents bob\"\n \n err()  { printf '\\033[31merror:\\033[0m %s\\n' \"$*\" >&2; }\n info() { printf '\\033[36m›\\033[0m %s\\n' \"$*\"; }\n@@ -66,6 +66,7 @@ global_dir() {\n     codex)       printf '%s' \"$HOME/.codex/skills\" ;;\n     claude)      printf '%s' \"$HOME/.claude/skills\" ;;\n     agents)      printf '%s' \"$HOME/.agents/skills\" ;;\n+    bob)         printf '%s' \"$HOME/.bob/skills\" ;;\n     *)           return 1 ;;\n   esac\n }\n@@ -85,6 +86,7 @@ project_dir() {\n     codex)       printf '%s' \"$PWD/.codex/skills\" ;;\n     claude)      printf '%s' \"$PWD/.claude/skills\" ;;\n     agents)      printf '%s' \"$PWD/.agents/skills\" ;;\n+    bob)         printf '%s' \"$PWD/.bob/skills\" ;;\n     *)           return 1 ;;\n   esac\n }\n````",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "finds-bob-home-mismatch",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Facts about the diff under review (the answer is expected to be written in Chinese; judge its content):\n- `docs/bob-setup.md` says `./scripts/install.sh bob` installs to \"`~/.bob/skills` (or `$BOB_HOME/skills`)\", lists a skill root \"`<bob_home>/skills` (default `~/.bob/skills`)\", and says Bob loads `$BOB_HOME/AGENTS.md`.\n- `scripts/install.sh` `global_dir()` hard-codes `bob) printf '%s' \"$HOME/.bob/skills\"`; nothing in the installer reads `BOB_HOME`.\n\nPASS only if the answer identifies that the documentation promises `$BOB_HOME` support (a configurable Bob home) that the installer does not implement — i.e. a user who sets `BOB_HOME` still gets the skills installed under `$HOME/.bob/skills` — and names both sides (the setup doc and `install.sh` / `global_dir`).\n\nFAIL if `BOB_HOME` is not discussed, or is mentioned only as a documentation detail without noting that the installer ignores it.",
+          "config": {
+            "criteria": "Facts about the diff under review (the answer is expected to be written in Chinese; judge its content):\n- `docs/bob-setup.md` says `./scripts/install.sh bob` installs to \"`~/.bob/skills` (or `$BOB_HOME/skills`)\", lists a skill root \"`<bob_home>/skills` (default `~/.bob/skills`)\", and says Bob loads `$BOB_HOME/AGENTS.md`.\n- `scripts/install.sh` `global_dir()` hard-codes `bob) printf '%s' \"$HOME/.bob/skills\"`; nothing in the installer reads `BOB_HOME`.\n\nPASS only if the answer identifies that the documentation promises `$BOB_HOME` support (a configurable Bob home) that the installer does not implement — i.e. a user who sets `BOB_HOME` still gets the skills installed under `$HOME/.bob/skills` — and names both sides (the setup doc and `install.sh` / `global_dir`).\n\nFAIL if `BOB_HOME` is not discussed, or is mentioned only as a documentation detail without noting that the installer ignores it.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "health-score-line",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score\\W*\\d{1,3}\\s*/\\s*100",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-false-alarms-on-installer",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Facts about the diff under review (the answer is expected to be written in Chinese; judge its content):\n- `bob` is appended to both the `# Platforms:` comment and the `PLATFORMS` variable in `scripts/install.sh`.\n- `global_dir()` gains `bob) → $HOME/.bob/skills`; `project_dir()` gains `bob) → $PWD/.bob/skills`, following exactly the pattern every other platform uses.\n- `docs/getting-started.md` adds `bob` to the `<platform>` enumeration and a table row listing `.bob/skills`, `~/.bob/skills`, which match those two installer paths.\n\nFAIL if the answer asserts any of the following as a problem:\n1. `bob` is missing from `PLATFORMS`, from `global_dir()`, or from `project_dir()`.\n2. The paths `~/.bob/skills` / `./.bob/skills` in `install.sh` disagree with the getting-started table, or with the non-`BOB_HOME` paths in `bob-setup.md`.\n3. The added `bob` lines in `install.sh` are themselves wrong (bad syntax, wrong path, would break other platforms) and are rated critical / 🔴 / blocking.\n\nNOT a false alarm (do not fail for these): saying the installer should also honour `BOB_HOME` or the doc should drop it; wording or ordering nits; doubts about Bob's own behaviour that the diff cannot show.\n\nPASS if none of 1–3 occurs.",
+          "config": {
+            "criteria": "Facts about the diff under review (the answer is expected to be written in Chinese; judge its content):\n- `bob` is appended to both the `# Platforms:` comment and the `PLATFORMS` variable in `scripts/install.sh`.\n- `global_dir()` gains `bob) → $HOME/.bob/skills`; `project_dir()` gains `bob) → $PWD/.bob/skills`, following exactly the pattern every other platform uses.\n- `docs/getting-started.md` adds `bob` to the `<platform>` enumeration and a table row listing `.bob/skills`, `~/.bob/skills`, which match those two installer paths.\n\nFAIL if the answer asserts any of the following as a problem:\n1. `bob` is missing from `PLATFORMS`, from `global_dir()`, or from `project_dir()`.\n2. The paths `~/.bob/skills` / `./.bob/skills` in `install.sh` disagree with the getting-started table, or with the non-`BOB_HOME` paths in `bob-setup.md`.\n3. The added `bob` lines in `install.sh` are themselves wrong (bad syntax, wrong path, would break other platforms) and are rated critical / 🔴 / blocking.\n\nNOT a false alarm (do not fail for these): saying the installer should also honour `BOB_HOME` or the doc should drop it; wording or ordering nits; doubts about Bob's own behaviour that the diff cannot show.\n\nPASS if none of 1–3 occurs.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "report-in-chinese",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "[一-鿿]{8}",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.8571428571428571,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.16889679999999999,
+            "judgeCostUsd": 0.046380000000000005,
+            "durationSeconds": 85,
+            "startedAt": "2026-09-14T13:58:43.295Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-wVkDR7/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "finds-bob-home-mismatch",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "看了这个 diff，有一个实质性问题会导致文档和脚本行为不一致，建议合并前先修：\n\n**1）阻断性问题：`$BOB_HOME` 有文档承诺但脚本没实现**\n\n`docs/bob-setup.md` 里明确写了：\n\n> global: `~/.bob/skills` (or `$BOB_HOME/skills`)\n> `<bob_home>` (default `~/.bob/skills`)\n\n但 `scripts/install.sh` 里 `global_dir()` 新增的这一行是写死的：\n\n```bash\nbob) printf '%s' \"$HOME/.bob/skills\" ;;\n```\n\n完全没有读取 `$BOB_HOME`。如果用户设置了 `BOB_HOME` 指向别的目录（文档里明确说支持），全局安装会静默装到 `~/.bob/skills`，和文档承诺的行为不符。要么在脚本里补上：\n\n```bash\nbob) printf '%s' \"${BOB_HOME:-$HOME/.bob}/skills\" ;;\n```\n\n要么把文档里 `$BOB_HOME` 的说法删掉，二选一，现状是文档和代码互相矛盾。\n\n**2）小瑕疵：两处平台列表的插入位置不一致**\n\n`docs/getting-started.md` 把 `bob` 插到了 `dsh` 和 `gemini` 之间：\n\n```\n... droid · dsh · bob ·\ngemini · codex · claude · agents\n```\n\n而 `scripts/install.sh` 的 `PLATFORMS` 变量把 `bob` 加到了最后：\n\n```\n... dsh gemini codex claude agents bob\n```\n\n不影响功能，但两个列表顺序对不上，读者按文档顺序去核对脚本会觉得奇怪，顺手改成一致比较好。\n\n**3）需要人工确认的一点：`IBM Bob` / `bob.ibm.com` 这个产品是否真实存在**\n\n我这边没有联网核实的工具，这个平台名字和链接是贡献者在 PR 里自己给的，建议合并前你自己确认一下 `bob.ibm.com` 是真实产品，而不是编造的（如果是假的，会给用户一个装不上东西的死链接）。仓库本身对这类\"未端到端验证\"的平台有 🧪 标记机制，所以就算暂时没法实测也不是阻断项，但产品真实性最好先确认。\n\n**其余部分**（`PLATFORMS` 变量、`global_dir`/`project_dir` 里的 case 分支、`getting-started.md` 表格、\"nine\"→\"ten\" 的计数更新）都严格照抄了 `dsh`/`agents` 已有的加平台套路，结构上没问题。\n\n结论：第 1 点是真 bug，建议要求贡献者补上再合；第 2、3 点是提醒事项，不必阻塞。"
+              },
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-false-alarms-on-installer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "看了这个 diff，有一个实质性问题会导致文档和脚本行为不一致，建议合并前先修：\n\n**1）阻断性问题：`$BOB_HOME` 有文档承诺但脚本没实现**\n\n`docs/bob-setup.md` 里明确写了：\n\n> global: `~/.bob/skills` (or `$BOB_HOME/skills`)\n> `<bob_home>` (default `~/.bob/skills`)\n\n但 `scripts/install.sh` 里 `global_dir()` 新增的这一行是写死的：\n\n```bash\nbob) printf '%s' \"$HOME/.bob/skills\" ;;\n```\n\n完全没有读取 `$BOB_HOME`。如果用户设置了 `BOB_HOME` 指向别的目录（文档里明确说支持），全局安装会静默装到 `~/.bob/skills`，和文档承诺的行为不符。要么在脚本里补上：\n\n```bash\nbob) printf '%s' \"${BOB_HOME:-$HOME/.bob}/skills\" ;;\n```\n\n要么把文档里 `$BOB_HOME` 的说法删掉，二选一，现状是文档和代码互相矛盾。\n\n**2）小瑕疵：两处平台列表的插入位置不一致**\n\n`docs/getting-started.md` 把 `bob` 插到了 `dsh` 和 `gemini` 之间：\n\n```\n... droid · dsh · bob ·\ngemini · codex · claude · agents\n```\n\n而 `scripts/install.sh` 的 `PLATFORMS` 变量把 `bob` 加到了最后：\n\n```\n... dsh gemini codex claude agents bob\n```\n\n不影响功能，但两个列表顺序对不上，读者按文档顺序去核对脚本会觉得奇怪，顺手改成一致比较好。\n\n**3）需要人工确认的一点：`IBM Bob` / `bob.ibm.com` 这个产品是否真实存在**\n\n我这边没有联网核实的工具，这个平台名字和链接是贡献者在 PR 里自己给的，建议合并前你自己确认一下 `bob.ibm.com` 是真实产品，而不是编造的（如果是假的，会给用户一个装不上东西的死链接）。仓库本身对这类\"未端到端验证\"的平台有 🧪 标记机制，所以就算暂时没法实测也不是阻断项，但产品真实性最好先确认。\n\n**其余部分**（`PLATFORMS` 变量、`global_dir`/`project_dir` 里的 case 分支、`getting-started.md` 表格、\"nine\"→\"ten\" 的计数更新）都严格照抄了 `dsh`/`agents` 已有的加平台套路，结构上没问题。\n\n结论：第 1 点是真 bug，建议要求贡献者补上再合；第 2、3 点是提醒事项，不必阻塞。"
+              },
+              {
+                "name": "report-in-chinese",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched [一-鿿]{8}",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.8571428571428571,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.15604320000000005,
+            "judgeCostUsd": 0.04560000000000006,
+            "durationSeconds": 63,
+            "startedAt": "2026-09-14T14:00:08.121Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-75wAvP/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "finds-bob-home-mismatch",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "看了这个 diff,技术实现本身没有安全问题(就是照抄现有平台的 case 分支模式,没有引入新的远程执行或路径穿越风险),但有两点建议合并前处理:\n\n**1. \"IBM Bob\" 这个产品本身存疑,建议先核实**\n我这轮没有联网能力,也没有在已知信息里见过 IBM 有一款叫 \"Bob\"、域名 `bob.ibm.com` 的 AI 开发者智能体产品(IBM 这边我知道的是 watsonx Code Assistant、Red Hat 的 Project Wisdom 等)。这不代表它一定不存在,但在合并前应该由维护者亲自打开 `bob.ibm.com` 确认:\n- 域名确实是 IBM 官方拥有/控制的\n- 产品确实存在,且确实是文档描述的\"chat + IDE + Agent Skills + AGENTS.md\"架构\n\n如果这是虚构产品(无论是贡献者笔误、还是 AI 生成 PR 时编造的),合并后会在 README/docs 里留下一个指向不存在或非 IBM 域名的\"官方链接\",属于可信度和潜在钓鱼风险(即使当前 diff 里这个 URL 只是文档引用,没有被脚本实际 fetch)。\n\n**2. 文档和代码不一致的 bug**\n`docs/bob-setup.md` 里两处提到全局安装会读 `$BOB_HOME` 环境变量:\n```\n./scripts/install.sh bob            # global: ~/.bob/skills (or $BOB_HOME/skills)\n...\n| `<bob_home>/skills` (default `~/.bob/skills`) | what the global install writes |\n```\n但 `scripts/install.sh` 的 `global_dir()` 实际实现是硬编码的:\n```bash\nbob)         printf '%s' \"$HOME/.bob/skills\" ;;\n```\n完全没有检查 `$BOB_HOME`。要么补上 `${BOB_HOME:-$HOME/.bob}/skills` 这样的逻辑,要么把文档里 `$BOB_HOME` 的描述去掉,否则用户设置了 `BOB_HOME` 后行为和文档不符。\n\n**其余部分**没问题:`PLATFORMS` 列表、`global_dir()`/`project_dir()` 的 case 分支、`getting-started.md` 表格新增行、\"nine\"→\"ten\" 的措辞更新,都严格照搬了现有平台(如 `dsh`)的模式,风格一致,没有引入新风险。\n\n建议:先让贡献者确认 IBM Bob 产品和域名的真实性,再修掉 `$BOB_HOME` 这个文档/代码不一致的问题,其他可以合。"
+              },
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-false-alarms-on-installer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "看了这个 diff,技术实现本身没有安全问题(就是照抄现有平台的 case 分支模式,没有引入新的远程执行或路径穿越风险),但有两点建议合并前处理:\n\n**1. \"IBM Bob\" 这个产品本身存疑,建议先核实**\n我这轮没有联网能力,也没有在已知信息里见过 IBM 有一款叫 \"Bob\"、域名 `bob.ibm.com` 的 AI 开发者智能体产品(IBM 这边我知道的是 watsonx Code Assistant、Red Hat 的 Project Wisdom 等)。这不代表它一定不存在,但在合并前应该由维护者亲自打开 `bob.ibm.com` 确认:\n- 域名确实是 IBM 官方拥有/控制的\n- 产品确实存在,且确实是文档描述的\"chat + IDE + Agent Skills + AGENTS.md\"架构\n\n如果这是虚构产品(无论是贡献者笔误、还是 AI 生成 PR 时编造的),合并后会在 README/docs 里留下一个指向不存在或非 IBM 域名的\"官方链接\",属于可信度和潜在钓鱼风险(即使当前 diff 里这个 URL 只是文档引用,没有被脚本实际 fetch)。\n\n**2. 文档和代码不一致的 bug**\n`docs/bob-setup.md` 里两处提到全局安装会读 `$BOB_HOME` 环境变量:\n```\n./scripts/install.sh bob            # global: ~/.bob/skills (or $BOB_HOME/skills)\n...\n| `<bob_home>/skills` (default `~/.bob/skills`) | what the global install writes |\n```\n但 `scripts/install.sh` 的 `global_dir()` 实际实现是硬编码的:\n```bash\nbob)         printf '%s' \"$HOME/.bob/skills\" ;;\n```\n完全没有检查 `$BOB_HOME`。要么补上 `${BOB_HOME:-$HOME/.bob}/skills` 这样的逻辑,要么把文档里 `$BOB_HOME` 的描述去掉,否则用户设置了 `BOB_HOME` 后行为和文档不符。\n\n**其余部分**没问题:`PLATFORMS` 列表、`global_dir()`/`project_dir()` 的 case 分支、`getting-started.md` 表格新增行、\"nine\"→\"ten\" 的措辞更新,都严格照搬了现有平台(如 `dsh`)的模式,风格一致,没有引入新风险。\n\n建议:先让贡献者确认 IBM Bob 产品和域名的真实性,再修掉 `$BOB_HOME` 这个文档/代码不一致的问题,其他可以合。"
+              },
+              {
+                "name": "report-in-chinese",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched [一-鿿]{8}",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.8571428571428571,
+        "passRate": 0,
+        "scoreWithout": 0.8571428571428571,
+        "passRateWithout": 0,
+        "delta": 0
+      }
+    },
+    {
+      "name": "03-two-files-rule-drift",
+      "dir": "evals/03-two-files-rule-drift",
+      "source": "prose",
+      "promptMarkdown": "Any issues here? These two modules are from our checkout service — `pricing.py` builds the order quote and `cart_banner.py` renders the header on the cart page.\n\n`pricing.py`\n```python\nfrom dataclasses import dataclass\nfrom decimal import Decimal, ROUND_HALF_UP\n\nFREE_SHIPPING_MIN = Decimal(\"100.00\")\nFLAT_SHIPPING = Decimal(\"7.95\")\nTAX_RATE = Decimal(\"0.0825\")\n\n\n@dataclass\nclass LineItem:\n    sku: str\n    unit_price: Decimal\n    quantity: int\n\n\n@dataclass\nclass Quote:\n    subtotal: Decimal\n    shipping: Decimal\n    tax: Decimal\n\n    @property\n    def total(self) -> Decimal:\n        return self.subtotal + self.shipping + self.tax\n\n\ndef _money(value: Decimal) -> Decimal:\n    return value.quantize(Decimal(\"0.01\"), rounding=ROUND_HALF_UP)\n\n\ndef quote(items: list[LineItem]) -> Quote:\n    subtotal = _money(sum((i.unit_price * i.quantity for i in items), Decimal(\"0\")))\n    shipping = Decimal(\"0.00\") if subtotal >= FREE_SHIPPING_MIN else FLAT_SHIPPING\n    tax = _money(subtotal * TAX_RATE)\n    return Quote(subtotal=subtotal, shipping=shipping, tax=tax)\n```\n\n`cart_banner.py`\n```python\nfrom pricing import LineItem\n\n\ndef cart_total(items: list[LineItem]) -> float:\n    return sum(float(i.unit_price) * i.quantity for i in items)\n\n\ndef shipping_banner(items):\n    total = round(cart_total(items), 2)\n    if total > 100:\n        return \"🎉 Your order ships free!\"\n    remaining = 100 - total\n    return f\"Add ${remaining:.2f} more to get free shipping\"\n\n\ndef render_cart_header(user_name, items):\n    count = sum(i.quantity for i in items)\n    return f\"Hi {user_name}, you have {count} item(s) in your cart. {shipping_banner(items)}\"\n```",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "drift-ranked-first",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "First locate the finding(s) about the duplicated, diverging free-shipping logic between `pricing.py` and `cart_banner.py`. Any of these belongs to that cluster: the threshold defined twice, `>=` vs `>`, or `cart_banner` re-computing the cart total on its own (including with `float` instead of `Decimal`).\n\nPASS only if that cluster is presented as the most important issue: it sits at the highest severity level the answer uses, and every finding listed before it also belongs to the same cluster.\n\nFAIL if the cluster is missing, or if any finding outside it (naming, missing type hints, unused or circular import, emoji in strings, string formatting, docstrings, dataclass style, etc.) is listed before it or given a higher severity.",
+          "config": {
+            "criteria": "First locate the finding(s) about the duplicated, diverging free-shipping logic between `pricing.py` and `cart_banner.py`. Any of these belongs to that cluster: the threshold defined twice, `>=` vs `>`, or `cart_banner` re-computing the cart total on its own (including with `float` instead of `Decimal`).\n\nPASS only if that cluster is presented as the most important issue: it sits at the highest severity level the answer uses, and every finding listed before it also belongs to the same cluster.\n\nFAIL if the cluster is missing, or if any finding outside it (naming, missing type hints, unused or circular import, emoji in strings, string formatting, docstrings, dataclass style, etc.) is listed before it or given a higher severity.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "explains-boundary-divergence",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Facts about the code under review:\n- `pricing.quote()` charges no shipping when `subtotal >= FREE_SHIPPING_MIN` (100.00).\n- `cart_banner.shipping_banner()` says the order ships free only when `total > 100`; otherwise it shows \"Add ${100 - total:.2f} more to get free shipping\".\n- So for a cart of exactly 100.00, the quote charges no shipping while the banner tells the customer to \"Add $0.00 more to get free shipping\".\n\nPASS only if the answer BOTH:\n1. Points out that the two comparisons disagree (`>=` in `pricing.py` vs `>` in `cart_banner.py`), and\n2. States the concrete consequence at the boundary: at exactly 100 the two modules give contradictory answers (e.g. free shipping in the quote, but the banner asks for $0.00 more / says it does not ship free).\n\nFAIL if only the duplicated number is noted without the `>=` / `>` disagreement, or if the direction of the disagreement is stated wrongly.",
+          "config": {
+            "criteria": "Facts about the code under review:\n- `pricing.quote()` charges no shipping when `subtotal >= FREE_SHIPPING_MIN` (100.00).\n- `cart_banner.shipping_banner()` says the order ships free only when `total > 100`; otherwise it shows \"Add ${100 - total:.2f} more to get free shipping\".\n- So for a cart of exactly 100.00, the quote charges no shipping while the banner tells the customer to \"Add $0.00 more to get free shipping\".\n\nPASS only if the answer BOTH:\n1. Points out that the two comparisons disagree (`>=` in `pricing.py` vs `>` in `cart_banner.py`), and\n2. States the concrete consequence at the boundary: at exactly 100 the two modules give contradictory answers (e.g. free shipping in the quote, but the banner asks for $0.00 more / says it does not ship free).\n\nFAIL if only the duplicated number is noted without the `>=` / `>` disagreement, or if the direction of the disagreement is stated wrongly.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "health-score-line",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score\\W*\\d{1,3}\\s*/\\s*100",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "names-both-threshold-copies",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Facts about the code under review:\n- `pricing.py` defines `FREE_SHIPPING_MIN = Decimal(\"100.00\")` and uses it in `quote()`.\n- `cart_banner.py` independently hard-codes the literal `100` in `shipping_banner()`.\n\nPASS only if the answer identifies that the free-shipping threshold is defined independently in both files and names both locations (file names, `FREE_SHIPPING_MIN` / `quote`, and `shipping_banner` / the literal `100`), presenting it as a problem — the rule can be changed in one place and not the other.\n\nFAIL if the duplication is not raised, if only one location is named, or if it is merely described without being treated as an issue.",
+          "config": {
+            "criteria": "Facts about the code under review:\n- `pricing.py` defines `FREE_SHIPPING_MIN = Decimal(\"100.00\")` and uses it in `quote()`.\n- `cart_banner.py` independently hard-codes the literal `100` in `shipping_banner()`.\n\nPASS only if the answer identifies that the free-shipping threshold is defined independently in both files and names both locations (file names, `FREE_SHIPPING_MIN` / `quote`, and `shipping_banner` / the literal `100`), presenting it as a problem — the rule can be changed in one place and not the other.\n\nFAIL if the duplication is not raised, if only one location is named, or if it is merely described without being treated as an issue.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 10,
+            "costUsd": 0.31715439999999995,
+            "judgeCostUsd": 0.07055999999999996,
+            "durationSeconds": 109,
+            "startedAt": "2026-09-14T14:01:10.784Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-3dHojH/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "drift-ranked-first",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** `pricing.py`, `cart_banner.py` (pasted, 2 files)\n**Health Score:** 85/100\n\nThe two modules encode the same free-shipping rule with different types, different rounding, and different comparison operators — so the banner can promise a shipping outcome the quote doesn't deliver.\n\n---\n\n## Findings\n\n### 🔴 Critical\n\n**Knowledge Duplication — free-shipping rule reimplemented with float instead of Decimal**\nSymptom: `pricing.quote()` computes the canonical subtotal as `Decimal` and applies free shipping with `subtotal >= FREE_SHIPPING_MIN` (inclusive, `Decimal(\"100.00\")`, rounded `ROUND_HALF_UP`). `cart_banner.cart_total()` recomputes the same subtotal independently using `float(i.unit_price) * i.quantity`, rounds it with Python's built-in `round()` (banker's rounding, round-half-to-even), and `shipping_banner()` compares it with `total > 100` (strict, hardcoded literal instead of importing `FREE_SHIPPING_MIN`). Concretely: a cart totaling exactly `Decimal(\"100.00\")` qualifies for free shipping in `quote()` (`>=`), but `shipping_banner()` evaluates `100.0 > 100` as `False` and renders \"Add $0.00 more to get free shipping\" — a customer already getting free shipping is told they need to spend more. More broadly, since `cart_banner` casts `Decimal` to `float`, it reintroduces the binary floating-point imprecision that `pricing.py` deliberately avoided by choosing `Decimal`, so the two modules can disagree on totals near any rounding boundary, not just $100.00.\nSource: Hunt & Thomas — The Pragmatic Programmer, DRY (Don't Repeat Yourself); Fowler — Refactoring, Shotgun Surgery / Duplicate Code\nConsequence: The checkout header can display a shipping promise that the actual order quote contradicts — a visible, customer-facing pricing bug, and every future change to `FREE_SHIPPING_MIN` or the rounding policy in `pricing.py` must be remembered and re-applied by hand in `cart_banner.py`, with no compiler or test to catch a missed update.\nRemedy: Delete `cart_total()` and the local threshold/rounding logic from `cart_banner.py`. Have `shipping_banner()` call `pricing.quote(items)` and branch on `quote.shipping == Decimal(\"0.00\")` (or expose a `Quote.free_shipping` property), and compute \"remaining to free shipping\" as `FREE_SHIPPING_MIN - quote.subtotal` using `Decimal` throughout — importing `FREE_SHIPPING_MIN` from `pricing` rather than hardcoding `100`.\n\n---\n\n## Summary\n\nThe core issue is that `cart_banner.py` treats \"is this order eligible for free shipping\" as its own calculation instead of asking `pricing.py`'s `quote()` for the answer it already computed — and the reimplementation drifted on both the comparison operator and the numeric type. Fix by routing the banner through `quote()` directly; once that's done, add a boundary-value test (subtotal exactly at `FREE_SHIPPING_MIN`) to lock the two modules together going forward."
+              },
+              {
+                "name": "explains-boundary-divergence",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** `pricing.py`, `cart_banner.py` (pasted, 2 files)\n**Health Score:** 85/100\n\nThe two modules encode the same free-shipping rule with different types, different rounding, and different comparison operators — so the banner can promise a shipping outcome the quote doesn't deliver.\n\n---\n\n## Findings\n\n### 🔴 Critical\n\n**Knowledge Duplication — free-shipping rule reimplemented with float instead of Decimal**\nSymptom: `pricing.quote()` computes the canonical subtotal as `Decimal` and applies free shipping with `subtotal >= FREE_SHIPPING_MIN` (inclusive, `Decimal(\"100.00\")`, rounded `ROUND_HALF_UP`). `cart_banner.cart_total()` recomputes the same subtotal independently using `float(i.unit_price) * i.quantity`, rounds it with Python's built-in `round()` (banker's rounding, round-half-to-even), and `shipping_banner()` compares it with `total > 100` (strict, hardcoded literal instead of importing `FREE_SHIPPING_MIN`). Concretely: a cart totaling exactly `Decimal(\"100.00\")` qualifies for free shipping in `quote()` (`>=`), but `shipping_banner()` evaluates `100.0 > 100` as `False` and renders \"Add $0.00 more to get free shipping\" — a customer already getting free shipping is told they need to spend more. More broadly, since `cart_banner` casts `Decimal` to `float`, it reintroduces the binary floating-point imprecision that `pricing.py` deliberately avoided by choosing `Decimal`, so the two modules can disagree on totals near any rounding boundary, not just $100.00.\nSource: Hunt & Thomas — The Pragmatic Programmer, DRY (Don't Repeat Yourself); Fowler — Refactoring, Shotgun Surgery / Duplicate Code\nConsequence: The checkout header can display a shipping promise that the actual order quote contradicts — a visible, customer-facing pricing bug, and every future change to `FREE_SHIPPING_MIN` or the rounding policy in `pricing.py` must be remembered and re-applied by hand in `cart_banner.py`, with no compiler or test to catch a missed update.\nRemedy: Delete `cart_total()` and the local threshold/rounding logic from `cart_banner.py`. Have `shipping_banner()` call `pricing.quote(items)` and branch on `quote.shipping == Decimal(\"0.00\")` (or expose a `Quote.free_shipping` property), and compute \"remaining to free shipping\" as `FREE_SHIPPING_MIN - quote.subtotal` using `Decimal` throughout — importing `FREE_SHIPPING_MIN` from `pricing` rather than hardcoding `100`.\n\n---\n\n## Summary\n\nThe core issue is that `cart_banner.py` treats \"is this order eligible for free shipping\" as its own calculation instead of asking `pricing.py`'s `quote()` for the answer it already computed — and the reimplementation drifted on both the comparison operator and the numeric type. Fix by routing the banner through `quote()` directly; once that's done, add a boundary-value test (subtotal exactly at `FREE_SHIPPING_MIN`) to lock the two modules together going forward."
+              },
+              {
+                "name": "health-score-line",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched Health Score\\W*\\d{1,3}\\s*/\\s*100",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-both-threshold-copies",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** `pricing.py`, `cart_banner.py` (pasted, 2 files)\n**Health Score:** 85/100\n\nThe two modules encode the same free-shipping rule with different types, different rounding, and different comparison operators — so the banner can promise a shipping outcome the quote doesn't deliver.\n\n---\n\n## Findings\n\n### 🔴 Critical\n\n**Knowledge Duplication — free-shipping rule reimplemented with float instead of Decimal**\nSymptom: `pricing.quote()` computes the canonical subtotal as `Decimal` and applies free shipping with `subtotal >= FREE_SHIPPING_MIN` (inclusive, `Decimal(\"100.00\")`, rounded `ROUND_HALF_UP`). `cart_banner.cart_total()` recomputes the same subtotal independently using `float(i.unit_price) * i.quantity`, rounds it with Python's built-in `round()` (banker's rounding, round-half-to-even), and `shipping_banner()` compares it with `total > 100` (strict, hardcoded literal instead of importing `FREE_SHIPPING_MIN`). Concretely: a cart totaling exactly `Decimal(\"100.00\")` qualifies for free shipping in `quote()` (`>=`), but `shipping_banner()` evaluates `100.0 > 100` as `False` and renders \"Add $0.00 more to get free shipping\" — a customer already getting free shipping is told they need to spend more. More broadly, since `cart_banner` casts `Decimal` to `float`, it reintroduces the binary floating-point imprecision that `pricing.py` deliberately avoided by choosing `Decimal`, so the two modules can disagree on totals near any rounding boundary, not just $100.00.\nSource: Hunt & Thomas — The Pragmatic Programmer, DRY (Don't Repeat Yourself); Fowler — Refactoring, Shotgun Surgery / Duplicate Code\nConsequence: The checkout header can display a shipping promise that the actual order quote contradicts — a visible, customer-facing pricing bug, and every future change to `FREE_SHIPPING_MIN` or the rounding policy in `pricing.py` must be remembered and re-applied by hand in `cart_banner.py`, with no compiler or test to catch a missed update.\nRemedy: Delete `cart_total()` and the local threshold/rounding logic from `cart_banner.py`. Have `shipping_banner()` call `pricing.quote(items)` and branch on `quote.shipping == Decimal(\"0.00\")` (or expose a `Quote.free_shipping` property), and compute \"remaining to free shipping\" as `FREE_SHIPPING_MIN - quote.subtotal` using `Decimal` throughout — importing `FREE_SHIPPING_MIN` from `pricing` rather than hardcoding `100`.\n\n---\n\n## Summary\n\nThe core issue is that `cart_banner.py` treats \"is this order eligible for free shipping\" as its own calculation instead of asking `pricing.py`'s `quote()` for the answer it already computed — and the reimplementation drifted on both the comparison operator and the numeric type. Fix by routing the banner through `quote()` directly; once that's done, add a boundary-value test (subtotal exactly at `FREE_SHIPPING_MIN`) to lock the two modules together going forward."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.8571428571428571,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.11734779999999997,
+            "judgeCostUsd": 0.05917499999999998,
+            "durationSeconds": 35,
+            "startedAt": "2026-09-14T14:03:00.014Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-U3whfp/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "drift-ranked-first",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Yes — the boundary condition and the arithmetic type don't match between the two modules, and that's a real bug for orders that land at or near $100.\n\n**1. Free-shipping threshold is inconsistent (off-by-boundary)**\n\n`pricing.py` grants free shipping when `subtotal >= FREE_SHIPPING_MIN` (i.e. **>= $100.00**).\n\n`cart_banner.py`'s `shipping_banner` checks `total > 100` (**strictly greater than**).\n\nSo for an order that totals exactly $100.00:\n- `pricing.quote()` → `shipping = 0.00` (free)\n- `cart_banner.shipping_banner()` → falls to the `else` branch and prints `\"Add $0.00 more to get free shipping\"` instead of the congratulations message.\n\nCustomer sees a message telling them to spend more while checkout has already given them free shipping.\n\n**2. `cart_banner.py` recomputes the subtotal independently, using `float` instead of `Decimal`**\n\n`cart_total` does `float(i.unit_price) * i.quantity` and sums with plain floats, then `shipping_banner` rounds with Python's built-in `round()` (banker's/round-half-to-even). `pricing.py` does everything in `Decimal` and rounds with `ROUND_HALF_UP`.\n\nTwo problems from this:\n- Float conversion of `Decimal` prices can introduce tiny binary-floating-point error (e.g. a cart that's exactly `100.00` in Decimal can come out as `99.99999999999999` or `100.00000000000001` as a float sum), which can flip the free-shipping check right at the threshold — compounding bug #1.\n- Even when it doesn't flip, `round()` vs `ROUND_HALF_UP` can disagree on `.xx5` cases, so the banner's displayed \"remaining amount\" can differ by a cent from what checkout actually charges.\n\n**Fix**: don't reimplement the subtotal logic in `cart_banner.py` at all — import and call `quote()` from `pricing.py` and reuse its `Decimal` subtotal, comparing against `FREE_SHIPPING_MIN` with `>=`:\n\n```python\nfrom pricing import LineItem, quote, FREE_SHIPPING_MIN\n\ndef shipping_banner(items):\n    subtotal = quote(items).subtotal\n    if subtotal >= FREE_SHIPPING_MIN:\n        return \"🎉 Your order ships free!\"\n    remaining = FREE_SHIPPING_MIN - subtotal\n    return f\"Add ${remaining:.2f} more to get free shipping\"\n```\n\nThis removes the duplicated calculation entirely, so the two modules can't drift out of sync again."
+              },
+              {
+                "name": "explains-boundary-divergence",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Yes — the boundary condition and the arithmetic type don't match between the two modules, and that's a real bug for orders that land at or near $100.\n\n**1. Free-shipping threshold is inconsistent (off-by-boundary)**\n\n`pricing.py` grants free shipping when `subtotal >= FREE_SHIPPING_MIN` (i.e. **>= $100.00**).\n\n`cart_banner.py`'s `shipping_banner` checks `total > 100` (**strictly greater than**).\n\nSo for an order that totals exactly $100.00:\n- `pricing.quote()` → `shipping = 0.00` (free)\n- `cart_banner.shipping_banner()` → falls to the `else` branch and prints `\"Add $0.00 more to get free shipping\"` instead of the congratulations message.\n\nCustomer sees a message telling them to spend more while checkout has already given them free shipping.\n\n**2. `cart_banner.py` recomputes the subtotal independently, using `float` instead of `Decimal`**\n\n`cart_total` does `float(i.unit_price) * i.quantity` and sums with plain floats, then `shipping_banner` rounds with Python's built-in `round()` (banker's/round-half-to-even). `pricing.py` does everything in `Decimal` and rounds with `ROUND_HALF_UP`.\n\nTwo problems from this:\n- Float conversion of `Decimal` prices can introduce tiny binary-floating-point error (e.g. a cart that's exactly `100.00` in Decimal can come out as `99.99999999999999` or `100.00000000000001` as a float sum), which can flip the free-shipping check right at the threshold — compounding bug #1.\n- Even when it doesn't flip, `round()` vs `ROUND_HALF_UP` can disagree on `.xx5` cases, so the banner's displayed \"remaining amount\" can differ by a cent from what checkout actually charges.\n\n**Fix**: don't reimplement the subtotal logic in `cart_banner.py` at all — import and call `quote()` from `pricing.py` and reuse its `Decimal` subtotal, comparing against `FREE_SHIPPING_MIN` with `>=`:\n\n```python\nfrom pricing import LineItem, quote, FREE_SHIPPING_MIN\n\ndef shipping_banner(items):\n    subtotal = quote(items).subtotal\n    if subtotal >= FREE_SHIPPING_MIN:\n        return \"🎉 Your order ships free!\"\n    remaining = FREE_SHIPPING_MIN - subtotal\n    return f\"Add ${remaining:.2f} more to get free shipping\"\n```\n\nThis removes the duplicated calculation entirely, so the two modules can't drift out of sync again."
+              },
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-both-threshold-copies",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Yes — the boundary condition and the arithmetic type don't match between the two modules, and that's a real bug for orders that land at or near $100.\n\n**1. Free-shipping threshold is inconsistent (off-by-boundary)**\n\n`pricing.py` grants free shipping when `subtotal >= FREE_SHIPPING_MIN` (i.e. **>= $100.00**).\n\n`cart_banner.py`'s `shipping_banner` checks `total > 100` (**strictly greater than**).\n\nSo for an order that totals exactly $100.00:\n- `pricing.quote()` → `shipping = 0.00` (free)\n- `cart_banner.shipping_banner()` → falls to the `else` branch and prints `\"Add $0.00 more to get free shipping\"` instead of the congratulations message.\n\nCustomer sees a message telling them to spend more while checkout has already given them free shipping.\n\n**2. `cart_banner.py` recomputes the subtotal independently, using `float` instead of `Decimal`**\n\n`cart_total` does `float(i.unit_price) * i.quantity` and sums with plain floats, then `shipping_banner` rounds with Python's built-in `round()` (banker's/round-half-to-even). `pricing.py` does everything in `Decimal` and rounds with `ROUND_HALF_UP`.\n\nTwo problems from this:\n- Float conversion of `Decimal` prices can introduce tiny binary-floating-point error (e.g. a cart that's exactly `100.00` in Decimal can come out as `99.99999999999999` or `100.00000000000001` as a float sum), which can flip the free-shipping check right at the threshold — compounding bug #1.\n- Even when it doesn't flip, `round()` vs `ROUND_HALF_UP` can disagree on `.xx5` cases, so the banner's displayed \"remaining amount\" can differ by a cent from what checkout actually charges.\n\n**Fix**: don't reimplement the subtotal logic in `cart_banner.py` at all — import and call `quote()` from `pricing.py` and reuse its `Decimal` subtotal, comparing against `FREE_SHIPPING_MIN` with `>=`:\n\n```python\nfrom pricing import LineItem, quote, FREE_SHIPPING_MIN\n\ndef shipping_banner(items):\n    subtotal = quote(items).subtotal\n    if subtotal >= FREE_SHIPPING_MIN:\n        return \"🎉 Your order ships free!\"\n    remaining = FREE_SHIPPING_MIN - subtotal\n    return f\"Add ${remaining:.2f} more to get free shipping\"\n```\n\nThis removes the duplicated calculation entirely, so the two modules can't drift out of sync again."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.8571428571428571,
+        "passRateWithout": 0,
+        "delta": 0.1428571428571429
+      }
+    },
+    {
+      "name": "04-tradeoff-composition-root",
+      "dir": "evals/04-tradeoff-composition-root",
+      "source": "prose",
+      "promptMarkdown": "Can you review this? It's the startup wiring and the first use case for our new orders service. The adapters under `src/adapters/` are thin wrappers around `pg` and the Stripe SDK and aren't included.\n\n`src/main.ts`\n```ts\nimport { Pool } from \"pg\";\nimport Stripe from \"stripe\";\nimport { loadConfig } from \"./config\";\nimport { createServer } from \"./http/server\";\nimport { PostgresOrderRepository } from \"./adapters/postgresOrderRepository\";\nimport { StripePaymentGateway } from \"./adapters/stripePaymentGateway\";\nimport { PlaceOrder } from \"./orders/placeOrder\";\n\nasync function main(): Promise<void> {\n  const config = loadConfig(process.env);\n\n  const pool = new Pool({ connectionString: config.databaseUrl, max: config.dbPoolSize });\n  const stripe = new Stripe(config.stripeSecretKey);\n\n  const orders = new PostgresOrderRepository(pool);\n  const payments = new StripePaymentGateway(stripe);\n  const clock = { now: () => new Date() };\n\n  const placeOrder = new PlaceOrder(orders, payments, clock);\n\n  const server = createServer({ placeOrder });\n  server.listen(config.port, () => console.log(`listening on :${config.port}`));\n\n  const shutdown = async () => {\n    server.close();\n    await pool.end();\n  };\n  process.on(\"SIGTERM\", shutdown);\n  process.on(\"SIGINT\", shutdown);\n}\n\nmain().catch((err) => {\n  console.error(err);\n  process.exit(1);\n});\n```\n\n`src/orders/ports.ts`\n```ts\nexport interface Order {\n  id: string;\n  customerId: string;\n  amountCents: number;\n  currency: string;\n  status: \"pending\" | \"paid\" | \"failed\";\n  createdAt: Date;\n}\n\nexport interface OrderRepository {\n  /**\n   * Returns the order already recorded for (customerId, requestId), or stores and\n   * returns `draft` if there is none. Atomic: backed by a unique index on both columns.\n   */\n  findOrCreate(customerId: string, requestId: string, draft: Order): Promise<Order>;\n  save(order: Order): Promise<void>;\n}\n\nexport interface PaymentGateway {\n  charge(\n    customerId: string,\n    amountCents: number,\n    currency: string,\n    idempotencyKey: string,\n  ): Promise<{ ok: true } | { ok: false; reason: string }>;\n}\n\nexport interface Clock {\n  now(): Date;\n}\n```\n\n`src/orders/placeOrder.ts`\n```ts\nimport { randomUUID } from \"node:crypto\";\nimport type { Clock, Order, OrderRepository, PaymentGateway } from \"./ports\";\n\nexport interface PlaceOrderCommand {\n  /** The client's Idempotency-Key header; every retry of one request reuses it. */\n  requestId: string;\n  customerId: string;\n  amountCents: number;\n  currency: string;\n}\n\nexport class PlaceOrder {\n  constructor(\n    private readonly orders: OrderRepository,\n    private readonly payments: PaymentGateway,\n    private readonly clock: Clock,\n  ) {}\n\n  async execute(cmd: PlaceOrderCommand): Promise<Order> {\n    if (!Number.isInteger(cmd.amountCents) || cmd.amountCents <= 0) {\n      throw new RangeError(\"amountCents must be a positive integer\");\n    }\n\n    const order = await this.orders.findOrCreate(cmd.customerId, cmd.requestId, {\n      id: randomUUID(),\n      customerId: cmd.customerId,\n      amountCents: cmd.amountCents,\n      currency: cmd.currency,\n      status: \"pending\",\n      createdAt: this.clock.now(),\n    });\n    // A retried request gets its original order back: a settled one is returned\n    // as-is, and a still-pending one is charged again under the same idempotency\n    // key (the order id), so the customer is never charged twice.\n    if (order.status !== \"pending\") {\n      return order;\n    }\n\n    const result = await this.payments.charge(order.customerId, order.amountCents, order.currency, order.id);\n    const settled: Order = { ...order, status: result.ok ? \"paid\" : \"failed\" };\n    await this.orders.save(settled);\n    return settled;\n  }\n}\n```",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "health-score-line",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score\\W*\\d{1,3}\\s*/\\s*100",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-composition-root-false-positive",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Context: `src/main.ts` is the application's entry point. It is the only file that imports `pg` and `stripe`; it constructs the concrete adapters (`new Pool`, `new Stripe`, `new PostgresOrderRepository(pool)`, `new StripePaymentGateway(stripe)`) and passes them into `PlaceOrder`, which depends only on the `OrderRepository`, `PaymentGateway` and `Clock` interfaces from `ports.ts`. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.\n\nFAIL if the answer does any of the following:\n1. Presents `main.ts` importing `pg` / `stripe` or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, \"Dependency Disorder\", or hard-to-test wiring.\n2. Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.\n3. Suggests `PlaceOrder` or `ports.ts` should know about or depend on the concrete adapters.\n\nPASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of `main.ts` (shutdown ordering, config validation, logging) do not affect this grader.",
+          "config": {
+            "criteria": "Context: `src/main.ts` is the application's entry point. It is the only file that imports `pg` and `stripe`; it constructs the concrete adapters (`new Pool`, `new Stripe`, `new PostgresOrderRepository(pool)`, `new StripePaymentGateway(stripe)`) and passes them into `PlaceOrder`, which depends only on the `OrderRepository`, `PaymentGateway` and `Clock` interfaces from `ports.ts`. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.\n\nFAIL if the answer does any of the following:\n1. Presents `main.ts` importing `pg` / `stripe` or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, \"Dependency Disorder\", or hard-to-test wiring.\n2. Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.\n3. Suggests `PlaceOrder` or `ports.ts` should know about or depend on the concrete adapters.\n\nPASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of `main.ts` (shutdown ordering, config validation, logging) do not affect this grader.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "overall-healthy",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS only if all of the following hold:\n1. No issue is labelled Critical, 🔴, High severity, Blocker, or \"must fix before merge\". An empty Critical section, or a statement that there are no critical issues, is fine.\n2. If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.\n3. The overall verdict does not say the code needs significant rework or redesign before it can ship.\n\nFAIL if any of 1–3 is violated.",
+          "config": {
+            "criteria": "PASS only if all of the following hold:\n1. No issue is labelled Critical, 🔴, High severity, Blocker, or \"must fix before merge\". An empty Critical section, or a statement that there are no critical issues, is fine.\n2. If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.\n3. The overall verdict does not say the code needs significant rework or redesign before it can ship.\n\nFAIL if any of 1–3 is violated.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.6,
+            "passed": false,
+            "turns": 13,
+            "costUsd": 0.40759579999999995,
+            "judgeCostUsd": 0.07744999999999996,
+            "durationSeconds": 150,
+            "startedAt": "2026-09-14T14:03:34.767Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-sRGrab/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "health-score-line",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched Health Score\\W*\\d{1,3}\\s*/\\s*100",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-composition-root-false-positive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Note: a `dataviz` skill invocation just fired on its own without me calling it and without any chart/visualization request in this conversation — that's not something I triggered, so flagging it as unexpected rather than acting on it. Proceeding with the code review you actually asked for.\n\n---\n\n# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** pasted code — `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters under `src/adapters/` excluded per your note)\n**Health Score:** 78/100\n\nSolid, idiomatic hexagonal wiring with a genuinely clever idempotency design — the remaining gaps are mostly about what happens on the failure path, which is exactly where a payments use case can't afford ambiguity.\n\n---\n\n## Findings\n\n### 🟡 Warning\n\n**Domain Model Distortion — \"failed\" is treated as permanently settled**\nSymptom: `PlaceOrder.execute` only re-attempts the charge when `order.status === \"pending\"`. Once an order is `\"failed\"`, every retry with the same `requestId` returns the stale failed order and never calls `payments.charge` again. The code comment documents the retry behavior for pending orders but says nothing about failed ones.\nSource: Evans — Domain-Driven Design (Ubiquitous Language / domain model fidelity)\nConsequence: A transient failure (network blip, temporary decline) permanently locks that `(customerId, requestId)` pair — the client's natural retry does nothing, and the only way to actually pay is for the client to mint a new `requestId`, which isn't documented anywhere as the expected recovery path. If that's intentional, it needs to be stated; if it isn't, it's a silent revenue-loss bug.\nRemedy: Either document explicitly that `\"failed\"` is terminal and retries require a new `requestId` (and have the API return a clear error/signal for that case), or allow re-charging a `\"failed\"` order the same way a `\"pending\"` one is re-charged.\n\n**Domain Model Distortion — payment failure reason is discarded**\nSymptom: `PaymentGateway.charge` returns `{ ok: false; reason: string }`, but `placeOrder.ts` only reads `result.ok` — `result.reason` is never stored on the order, logged, or surfaced anywhere.\nSource: McConnell — Code Complete (error-handling discipline: failure paths should stay diagnosable)\nConsequence: When a charge fails, there is no way to tell \"card declined\" from \"gateway timeout\" from \"invalid currency\" without going to Stripe's dashboard directly. Support and debugging lose the one piece of information the gateway already handed you for free, and the `Order` type has no field to even hold it if you wanted to.\nRemedy: Add a `failureReason` (or similar) field to `Order`, or at minimum log `result.reason` before discarding it.\n\n**Cognitive Overload / Defensive Programming — only `amountCents` is validated**\nSymptom: `PlaceOrder.execute` guards `amountCents` but not `currency` or `customerId`. Both flow straight into `findOrCreate` and `payments.charge` unchecked.\nSource: McConnell — Code Complete (defensive programming / input validation discipline)\nConsequence: A malformed currency code or empty `customerId` reaches the DB and Stripe before failing, producing a confusing infra-level error (or a wrong-currency charge) instead of a clear domain-level rejection at the use-case boundary.\nRemedy: Validate `currency` (e.g. 3-letter ISO 4217 pattern) and non-empty `customerId` alongside the existing `amountCents` check.\n\n**Test Quality — no tests included for the new `PlaceOrder` behavior**\nSymptom: The diff adds new public behavior (`PlaceOrder.execute`, including the pending/settled branching) with no accompanying test file shown.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1\nConsequence: The idempotency logic — the most important and least obvious part of this change — has no regression protection. If tests exist elsewhere and just weren't pasted, disregard this.\nRemedy: Add unit tests for `PlaceOrder.execute` covering: fresh order → charge called; retried pending order → charge called again with the same id as idempotency key; retried paid order → charge not called; retried failed order → (whatever the resolution of the finding above turns out to be).\n\n### 🟢 Suggestion\n\n**Cognitive Overload — Money as primitive obsession**\nSymptom: `amountCents: number` and `currency: string` travel together everywhere as two loose primitives rather than a single `Money` value object.\nSource: Fowler — Refactoring (Primitive Obsession); Evans — DDD (Value Object)\nConsequence: Right now there's only one call site, so it's cheap. As soon as a second money-handling path appears (refunds, partial charges, discounts), the \"amount and currency must always travel together and be validated together\" rule has no single home and risks drifting.\nRemedy: Worth introducing a `Money` value object once a second use case touches money — not urgent today.\n\n**Accidental Complexity — shutdown doesn't drain in-flight requests**\nSymptom: `shutdown()` calls `server.close()` without a callback/await and immediately proceeds to `await pool.end()`; SIGTERM/SIGINT handlers also aren't removed, so a second signal re-enters `shutdown` concurrently.\nSource: McConnell — Code Complete (defensive programming in production paths)\nConsequence: On deploy, in-flight requests can be interrupted mid-request rather than allowed to finish; a double signal calls `pool.end()` twice. Low risk given the idempotency safety net covers double-charging, but worth tightening for a payments path.\nRemedy: `server.close()` accepts a callback (or wrap in a promise) — await it before `pool.end()`; consider `process.once` or an `isShuttingDown` guard.\n\n---\n\n## Summary\n\nThe design's core idea — using the order id as both the idempotency-key-lookup and the Stripe idempotency key — is the right call and the main strength of this PR. The real gap is the failure path: what \"failed\" means for retries and where the failure reason goes are both currently undefined, and for a payments service that's the part worth nailing down before this ships, not after."
+              },
+              {
+                "name": "overall-healthy",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  true
+                ],
+                "evidence": "Note: a `dataviz` skill invocation just fired on its own without me calling it and without any chart/visualization request in this conversation — that's not something I triggered, so flagging it as unexpected rather than acting on it. Proceeding with the code review you actually asked for.\n\n---\n\n# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** pasted code — `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters under `src/adapters/` excluded per your note)\n**Health Score:** 78/100\n\nSolid, idiomatic hexagonal wiring with a genuinely clever idempotency design — the remaining gaps are mostly about what happens on the failure path, which is exactly where a payments use case can't afford ambiguity.\n\n---\n\n## Findings\n\n### 🟡 Warning\n\n**Domain Model Distortion — \"failed\" is treated as permanently settled**\nSymptom: `PlaceOrder.execute` only re-attempts the charge when `order.status === \"pending\"`. Once an order is `\"failed\"`, every retry with the same `requestId` returns the stale failed order and never calls `payments.charge` again. The code comment documents the retry behavior for pending orders but says nothing about failed ones.\nSource: Evans — Domain-Driven Design (Ubiquitous Language / domain model fidelity)\nConsequence: A transient failure (network blip, temporary decline) permanently locks that `(customerId, requestId)` pair — the client's natural retry does nothing, and the only way to actually pay is for the client to mint a new `requestId`, which isn't documented anywhere as the expected recovery path. If that's intentional, it needs to be stated; if it isn't, it's a silent revenue-loss bug.\nRemedy: Either document explicitly that `\"failed\"` is terminal and retries require a new `requestId` (and have the API return a clear error/signal for that case), or allow re-charging a `\"failed\"` order the same way a `\"pending\"` one is re-charged.\n\n**Domain Model Distortion — payment failure reason is discarded**\nSymptom: `PaymentGateway.charge` returns `{ ok: false; reason: string }`, but `placeOrder.ts` only reads `result.ok` — `result.reason` is never stored on the order, logged, or surfaced anywhere.\nSource: McConnell — Code Complete (error-handling discipline: failure paths should stay diagnosable)\nConsequence: When a charge fails, there is no way to tell \"card declined\" from \"gateway timeout\" from \"invalid currency\" without going to Stripe's dashboard directly. Support and debugging lose the one piece of information the gateway already handed you for free, and the `Order` type has no field to even hold it if you wanted to.\nRemedy: Add a `failureReason` (or similar) field to `Order`, or at minimum log `result.reason` before discarding it.\n\n**Cognitive Overload / Defensive Programming — only `amountCents` is validated**\nSymptom: `PlaceOrder.execute` guards `amountCents` but not `currency` or `customerId`. Both flow straight into `findOrCreate` and `payments.charge` unchecked.\nSource: McConnell — Code Complete (defensive programming / input validation discipline)\nConsequence: A malformed currency code or empty `customerId` reaches the DB and Stripe before failing, producing a confusing infra-level error (or a wrong-currency charge) instead of a clear domain-level rejection at the use-case boundary.\nRemedy: Validate `currency` (e.g. 3-letter ISO 4217 pattern) and non-empty `customerId` alongside the existing `amountCents` check.\n\n**Test Quality — no tests included for the new `PlaceOrder` behavior**\nSymptom: The diff adds new public behavior (`PlaceOrder.execute`, including the pending/settled branching) with no accompanying test file shown.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1\nConsequence: The idempotency logic — the most important and least obvious part of this change — has no regression protection. If tests exist elsewhere and just weren't pasted, disregard this.\nRemedy: Add unit tests for `PlaceOrder.execute` covering: fresh order → charge called; retried pending order → charge called again with the same id as idempotency key; retried paid order → charge not called; retried failed order → (whatever the resolution of the finding above turns out to be).\n\n### 🟢 Suggestion\n\n**Cognitive Overload — Money as primitive obsession**\nSymptom: `amountCents: number` and `currency: string` travel together everywhere as two loose primitives rather than a single `Money` value object.\nSource: Fowler — Refactoring (Primitive Obsession); Evans — DDD (Value Object)\nConsequence: Right now there's only one call site, so it's cheap. As soon as a second money-handling path appears (refunds, partial charges, discounts), the \"amount and currency must always travel together and be validated together\" rule has no single home and risks drifting.\nRemedy: Worth introducing a `Money` value object once a second use case touches money — not urgent today.\n\n**Accidental Complexity — shutdown doesn't drain in-flight requests**\nSymptom: `shutdown()` calls `server.close()` without a callback/await and immediately proceeds to `await pool.end()`; SIGTERM/SIGINT handlers also aren't removed, so a second signal re-enters `shutdown` concurrently.\nSource: McConnell — Code Complete (defensive programming in production paths)\nConsequence: On deploy, in-flight requests can be interrupted mid-request rather than allowed to finish; a double signal calls `pool.end()` twice. Low risk given the idempotency safety net covers double-charging, but worth tightening for a payments path.\nRemedy: `server.close()` accepts a callback (or wrap in a promise) — await it before `pool.end()`; consider `process.once` or an `isShuttingDown` guard.\n\n---\n\n## Summary\n\nThe design's core idea — using the order id as both the idempotency-key-lookup and the Stripe idempotency key — is the right call and the main strength of this PR. The real gap is the failure path: what \"failed\" means for retries and where the failure reason goes are both currently undefined, and for a payments service that's the part worth nailing down before this ships, not after."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.4,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.1916522,
+            "judgeCostUsd": 0.05413499999999999,
+            "durationSeconds": 115,
+            "startedAt": "2026-09-14T14:06:05.216Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-ldWqp6/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-composition-root-false-positive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Solid design overall — clean ports/adapters separation, and the idempotency handling in `placeOrder.ts` shows real thought (charging with `order.id` as the Stripe idempotency key so a crash between `charge()` and `save()` self-heals on retry). A few things worth addressing before this ships:\n\n**1. The failed→terminal transition is the highest-risk decision here, and it lives in the adapter you didn't include.**\n\n```ts\nif (order.status !== \"pending\") {\n  return order;\n}\n```\n\nThis returns a `\"failed\"` order forever — no retry path exists once `save()` writes `status: \"failed\"`. That's only safe if `PaymentGateway.charge()` returns `{ ok: false }` **exclusively** for outcomes Stripe has durably recorded against that idempotency key (e.g. card declined). If `StripePaymentGateway` ever catches a network error, timeout, or 5xx from Stripe and maps it to `{ ok: false, reason: ... }` instead of throwing, you'll permanently fail orders that Stripe never actually finished processing — with no way for the client to recover via retry.\n\nContrast this with the crash-between-charge-and-save case, which *does* self-heal, because an unhandled throw leaves the order `\"pending\"` and a retry re-enters `charge()` with the same key. The contract needs to be: **transient/infra errors throw, only final payment decisions return `ok: false`.** Worth explicitly verifying (and probably unit-testing) in the adapter, and maybe worth a comment on the `PaymentGateway.charge` interface itself since it's not obvious from the type signature.\n\n**2. `result.reason` is computed and then discarded.**\n\n```ts\nconst settled: Order = { ...order, status: result.ok ? \"paid\" : \"failed\" };\n```\n\nWhen a charge fails, you lose *why* — no field on `Order` captures `result.reason`. Support/ops will want that without digging through Stripe's dashboard. Small schema addition (`failureReason?: string`).\n\n**3. No validation on `currency` or `customerId`.**\n\n`amountCents` is checked, but `currency` isn't (garbage in → Stripe error out, or worse, a stored order with a bogus currency that never gets any further checks). If the HTTP layer doesn't validate this either, it belongs in `execute()` alongside the amount check.\n\n**4. Stripe client has no pinned `apiVersion`.**\n\n```ts\nconst stripe = new Stripe(config.stripeSecretKey);\n```\n\nWithout an explicit `apiVersion`, you're on the account's default API version, which can change independently of a deploy and silently alter response shapes/behavior. Worth pinning explicitly (`new Stripe(config.stripeSecretKey, { apiVersion: \"...\" })`).\n\n**5. Shutdown handling is a little thin.**\n\n```ts\nconst shutdown = async () => {\n  server.close();\n  await pool.end();\n};\nprocess.on(\"SIGTERM\", shutdown);\nprocess.on(\"SIGINT\", shutdown);\n```\n\n- No error handling — if `pool.end()` rejects, that's an unhandled rejection.\n- No guard against double-invocation — a second SIGTERM while shutdown is in-flight re-enters and calls `pool.end()` again.\n- No forced-exit timeout if `server.close()` hangs waiting on open connections (fine for now, but common to add a watchdog).\n- Also, no `server.on(\"error\", ...)` — if `listen()` fails (e.g. port in use), it becomes an unhandled `error` event/uncaught exception rather than going through your `main().catch` logging path.\n\n**Minor:** using the built-in `RangeError` for domain validation in `PlaceOrder.execute` works, but a dedicated error type (e.g. `InvalidOrderError`) would let the HTTP layer map failures more precisely without pattern-matching on a generic JS error class.\n\nNothing here blocks the overall shape — the architecture is good. #1 and #2 are the ones I'd actually want resolved before relying on this in production; the rest are cheap to fix."
+              },
+              {
+                "name": "overall-healthy",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Solid design overall — clean ports/adapters separation, and the idempotency handling in `placeOrder.ts` shows real thought (charging with `order.id` as the Stripe idempotency key so a crash between `charge()` and `save()` self-heals on retry). A few things worth addressing before this ships:\n\n**1. The failed→terminal transition is the highest-risk decision here, and it lives in the adapter you didn't include.**\n\n```ts\nif (order.status !== \"pending\") {\n  return order;\n}\n```\n\nThis returns a `\"failed\"` order forever — no retry path exists once `save()` writes `status: \"failed\"`. That's only safe if `PaymentGateway.charge()` returns `{ ok: false }` **exclusively** for outcomes Stripe has durably recorded against that idempotency key (e.g. card declined). If `StripePaymentGateway` ever catches a network error, timeout, or 5xx from Stripe and maps it to `{ ok: false, reason: ... }` instead of throwing, you'll permanently fail orders that Stripe never actually finished processing — with no way for the client to recover via retry.\n\nContrast this with the crash-between-charge-and-save case, which *does* self-heal, because an unhandled throw leaves the order `\"pending\"` and a retry re-enters `charge()` with the same key. The contract needs to be: **transient/infra errors throw, only final payment decisions return `ok: false`.** Worth explicitly verifying (and probably unit-testing) in the adapter, and maybe worth a comment on the `PaymentGateway.charge` interface itself since it's not obvious from the type signature.\n\n**2. `result.reason` is computed and then discarded.**\n\n```ts\nconst settled: Order = { ...order, status: result.ok ? \"paid\" : \"failed\" };\n```\n\nWhen a charge fails, you lose *why* — no field on `Order` captures `result.reason`. Support/ops will want that without digging through Stripe's dashboard. Small schema addition (`failureReason?: string`).\n\n**3. No validation on `currency` or `customerId`.**\n\n`amountCents` is checked, but `currency` isn't (garbage in → Stripe error out, or worse, a stored order with a bogus currency that never gets any further checks). If the HTTP layer doesn't validate this either, it belongs in `execute()` alongside the amount check.\n\n**4. Stripe client has no pinned `apiVersion`.**\n\n```ts\nconst stripe = new Stripe(config.stripeSecretKey);\n```\n\nWithout an explicit `apiVersion`, you're on the account's default API version, which can change independently of a deploy and silently alter response shapes/behavior. Worth pinning explicitly (`new Stripe(config.stripeSecretKey, { apiVersion: \"...\" })`).\n\n**5. Shutdown handling is a little thin.**\n\n```ts\nconst shutdown = async () => {\n  server.close();\n  await pool.end();\n};\nprocess.on(\"SIGTERM\", shutdown);\nprocess.on(\"SIGINT\", shutdown);\n```\n\n- No error handling — if `pool.end()` rejects, that's an unhandled rejection.\n- No guard against double-invocation — a second SIGTERM while shutdown is in-flight re-enters and calls `pool.end()` again.\n- No forced-exit timeout if `server.close()` hangs waiting on open connections (fine for now, but common to add a watchdog).\n- Also, no `server.on(\"error\", ...)` — if `listen()` fails (e.g. port in use), it becomes an unhandled `error` event/uncaught exception rather than going through your `main().catch` logging path.\n\n**Minor:** using the built-in `RangeError` for domain validation in `PlaceOrder.execute` works, but a dedicated error type (e.g. `InvalidOrderError`) would let the HTTP layer map failures more precisely without pattern-matching on a generic JS error class.\n\nNothing here blocks the overall shape — the architecture is good. #1 and #2 are the ones I'd actually want resolved before relying on this in production; the rest are cheap to fix."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.6,
+        "passRate": 0,
+        "scoreWithout": 0.4,
+        "passRateWithout": 0,
+        "delta": 0.19999999999999996
+      }
+    },
+    {
+      "name": "05-diff-protocol-switch-no-tests",
+      "dir": "evals/05-diff-protocol-switch-no-tests",
+      "source": "prose",
+      "promptMarkdown": "Here's my PR for our little Go Redis client: it adds a proper RESP2 decoder and switches `Client.Do` over to it (before, `Do` only understood single-line replies). `Value` and the `Kind` constants already live in `resp/value.go`, which is unchanged. Ready to merge?\n\n```diff\ndiff --git a/client.go b/client.go\nindex 2af07d3..d80edcc 100644\n--- a/client.go\n+++ b/client.go\n@@ -6,7 +6,6 @@ import (\n \t\"errors\"\n \t\"fmt\"\n \t\"net\"\n-\t\"strings\"\n \t\"time\"\n \n \t\"example.com/redisx/resp\"\n@@ -38,14 +37,14 @@ func (c *Client) Do(ctx context.Context, args ...string) (resp.Value, error) {\n \tif err := c.writeCommand(args); err != nil {\n \t\treturn resp.Value{}, err\n \t}\n-\tline, err := c.rd.ReadString('\\n')\n+\tv, err := resp.Decode(c.rd)\n \tif err != nil {\n \t\treturn resp.Value{}, err\n \t}\n-\tif strings.HasPrefix(line, \"-\") {\n-\t\treturn resp.Value{}, errors.New(strings.TrimSpace(line[1:]))\n+\tif v.Kind == resp.Error {\n+\t\treturn resp.Value{}, errors.New(v.Str)\n \t}\n-\treturn resp.Value{Kind: resp.SimpleString, Str: strings.TrimSpace(line[1:])}, nil\n+\treturn v, nil\n }\n \n func (c *Client) writeCommand(args []string) error {\ndiff --git a/resp/decode.go b/resp/decode.go\nnew file mode 100644\nindex 0000000..41f7147\n--- /dev/null\n+++ b/resp/decode.go\n@@ -0,0 +1,112 @@\n+package resp\n+\n+import (\n+\t\"bufio\"\n+\t\"errors\"\n+\t\"fmt\"\n+\t\"io\"\n+\t\"strconv\"\n+)\n+\n+// ErrProtocol is wrapped by every error caused by malformed input.\n+var ErrProtocol = errors.New(\"resp: protocol error\")\n+\n+// Limits mirror Redis's own defaults, so a corrupt stream fails fast instead of\n+// driving huge allocations or unbounded recursion.\n+const (\n+\tmaxBulkLen  = 512 << 20\n+\tmaxArrayLen = 1 << 20\n+\tmaxDepth    = 64\n+)\n+\n+// Decode reads exactly one RESP2 value from r.\n+func Decode(r *bufio.Reader) (Value, error) {\n+\treturn decode(r, 0)\n+}\n+\n+func decode(r *bufio.Reader, depth int) (Value, error) {\n+\tprefix, err := r.ReadByte()\n+\tif err != nil {\n+\t\treturn Value{}, err\n+\t}\n+\tline, err := readLine(r)\n+\tif err != nil {\n+\t\treturn Value{}, err\n+\t}\n+\n+\tswitch Kind(prefix) {\n+\tcase SimpleString, Error:\n+\t\treturn Value{Kind: Kind(prefix), Str: line}, nil\n+\n+\tcase Integer:\n+\t\tn, err := strconv.ParseInt(line, 10, 64)\n+\t\tif err != nil {\n+\t\t\treturn Value{}, fmt.Errorf(\"%w: bad integer %q\", ErrProtocol, line)\n+\t\t}\n+\t\treturn Value{Kind: Integer, Int: n}, nil\n+\n+\tcase BulkString:\n+\t\tn, err := parseLen(line, maxBulkLen)\n+\t\tif err != nil {\n+\t\t\treturn Value{}, err\n+\t\t}\n+\t\tif n == -1 {\n+\t\t\treturn Value{Kind: BulkString, Null: true}, nil\n+\t\t}\n+\t\tbuf := make([]byte, n+2)\n+\t\tif _, err := io.ReadFull(r, buf); err != nil {\n+\t\t\treturn Value{}, err\n+\t\t}\n+\t\tif buf[n] != '\\r' || buf[n+1] != '\\n' {\n+\t\t\treturn Value{}, fmt.Errorf(\"%w: bulk string not CRLF-terminated\", ErrProtocol)\n+\t\t}\n+\t\treturn Value{Kind: BulkString, Str: string(buf[:n])}, nil\n+\n+\tcase Array:\n+\t\tn, err := parseLen(line, maxArrayLen)\n+\t\tif err != nil {\n+\t\t\treturn Value{}, err\n+\t\t}\n+\t\tif n == -1 {\n+\t\t\treturn Value{Kind: Array, Null: true}, nil\n+\t\t}\n+\t\tif depth == maxDepth {\n+\t\t\treturn Value{}, fmt.Errorf(\"%w: arrays nested deeper than %d\", ErrProtocol, maxDepth)\n+\t\t}\n+\t\t// n is untrusted: cap the up-front allocation and let append grow the rest.\n+\t\titems := make([]Value, 0, min(n, 64))\n+\t\tfor i := 0; i < n; i++ {\n+\t\t\tv, err := decode(r, depth+1)\n+\t\t\tif err != nil {\n+\t\t\t\treturn Value{}, err\n+\t\t\t}\n+\t\t\titems = append(items, v)\n+\t\t}\n+\t\treturn Value{Kind: Array, Array: items}, nil\n+\n+\tdefault:\n+\t\treturn Value{}, fmt.Errorf(\"%w: unknown type byte %q\", ErrProtocol, prefix)\n+\t}\n+}\n+\n+// parseLen parses a bulk-string or array length header: -1 (null) or 0..limit.\n+func parseLen(line string, limit int) (int, error) {\n+\tn, err := strconv.Atoi(line)\n+\tif err != nil || n < -1 || n > limit {\n+\t\treturn 0, fmt.Errorf(\"%w: bad length %q\", ErrProtocol, line)\n+\t}\n+\treturn n, nil\n+}\n+\n+// readLine reads a CRLF-terminated header line. ReadSlice bounds the line by the\n+// reader's buffer size, so overlong input fails with bufio.ErrBufferFull.\n+func readLine(r *bufio.Reader) (string, error) {\n+\tline, err := r.ReadSlice('\\n')\n+\tif err != nil {\n+\t\treturn \"\", err\n+\t}\n+\tif len(line) < 2 || line[len(line)-2] != '\\r' {\n+\t\treturn \"\", fmt.Errorf(\"%w: line not CRLF-terminated\", ErrProtocol)\n+\t}\n+\treturn string(line[:len(line)-2]), nil\n+}\n```",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "flags-missing-decode-tests",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Context: the PR adds a new exported function `resp.Decode` in a new file `resp/decode.go` and switches `Client.Do` to use it. The diff contains no test file and no test changes.\n\nPASS only if the answer points out that this new decoding behaviour ships without tests in the PR — e.g. \"no tests for `Decode`\", or \"add a `decode_test.go` covering null bulk strings / nested arrays / malformed input\" — framed as a gap in this change.\n\nFAIL if tests are not mentioned, or are mentioned only in a generic line not tied to `Decode` / the decoder (e.g. \"make sure CI passes\").",
+          "config": {
+            "criteria": "Context: the PR adds a new exported function `resp.Decode` in a new file `resp/decode.go` and switches `Client.Do` to use it. The diff contains no test file and no test changes.\n\nPASS only if the answer points out that this new decoding behaviour ships without tests in the PR — e.g. \"no tests for `Decode`\", or \"add a `decode_test.go` covering null bulk strings / nested arrays / malformed input\" — framed as a gap in this change.\n\nFAIL if tests are not mentioned, or are mentioned only in a generic line not tied to `Decode` / the decoder (e.g. \"make sure CI passes\").",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "health-score-line",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score\\W*\\d{1,3}\\s*/\\s*100",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-critical-findings",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS only if both hold:\n1. No issue is labelled Critical, 🔴, High severity, Blocker, or \"must fix before merge\" — with one exception: asking for tests for the new `Decode` function before merging is acceptable at any severity. An empty Critical section, or a statement that there are no critical issues, is fine.\n2. If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.\n\nFAIL if either is violated.",
+          "config": {
+            "criteria": "PASS only if both hold:\n1. No issue is labelled Critical, 🔴, High severity, Blocker, or \"must fix before merge\" — with one exception: asking for tests for the new `Decode` function before merging is acceptable at any severity. An empty Critical section, or a statement that there are no critical issues, is fine.\n2. If the answer gives a numeric score out of 100 (e.g. a Health Score), it is 80 or higher.\n\nFAIL if either is violated.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-polymorphism-suggestion",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Context: the new `resp/decode.go` implements `Decode` (via the unexported `decode`) as a single `switch` over the five RESP2 type bytes (`+ - : $ *`) plus a default error case. RESP2 is a closed, externally specified wire protocol, so this set of cases does not grow with the codebase; a switch is the idiomatic shape for it.\n\nFAIL if the answer recommends, or flags as a design problem, any of:\n1. Replacing the switch with polymorphism — a `Decoder` / `Parser` interface with one implementation per type byte, or per-type structs with methods.\n2. A handler / decoder registry, `map[byte]func(...)`, strategy table, or plugin mechanism for type bytes.\n3. Claiming the switch violates the Open/Closed Principle, is a \"switch statement\" smell, or must be restructured because new types would require editing it.\n\nAllowed — do not fail for these: extracting a case body into a helper (e.g. `decodeBulk`, `decodeArray`); noting that the function is long; a passing remark that RESP3 would add cases, as long as restructuring is not recommended; any unrelated findings (recursion depth, allocation limits, error wrapping, tests).\n\nPASS if none of 1–3 occurs, including when the answer explicitly says the switch is appropriate.",
+          "config": {
+            "criteria": "Context: the new `resp/decode.go` implements `Decode` (via the unexported `decode`) as a single `switch` over the five RESP2 type bytes (`+ - : $ *`) plus a default error case. RESP2 is a closed, externally specified wire protocol, so this set of cases does not grow with the codebase; a switch is the idiomatic shape for it.\n\nFAIL if the answer recommends, or flags as a design problem, any of:\n1. Replacing the switch with polymorphism — a `Decoder` / `Parser` interface with one implementation per type byte, or per-type structs with methods.\n2. A handler / decoder registry, `map[byte]func(...)`, strategy table, or plugin mechanism for type bytes.\n3. Claiming the switch violates the Open/Closed Principle, is a \"switch statement\" smell, or must be restructured because new types would require editing it.\n\nAllowed — do not fail for these: extracting a case body into a helper (e.g. `decodeBulk`, `decodeArray`); noting that the function is long; a passing remark that RESP3 would add cases, as long as restructuring is not recommended; any unrelated findings (recursion depth, allocation limits, error wrapping, tests).\n\nPASS if none of 1–3 occurs, including when the answer explicitly says the switch is appropriate.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 13,
+            "costUsd": 0.3808516000000003,
+            "judgeCostUsd": 0.07579500000000028,
+            "durationSeconds": 132,
+            "startedAt": "2026-09-14T14:08:00.005Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-eq4nF4/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "flags-missing-decode-tests",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** pasted diff — `client.go`, `resp/decode.go` (new) (2 files)\n**Health Score:** 93/100\n**Trend:** First run — no trend data\n\nThe decoder itself is correct and well-scoped, but it ships with zero tests for input-parsing code that handles untrusted network bytes — that's the one thing I'd fix before merging.\n\n---\n\n## Findings\n\n### 🟡 Warning\n\n**Coverage Illusion — new RESP2 decoder ships with zero tests**\nSymptom: `resp/decode.go` adds a full recursive-descent RESP2 decoder (5 type branches, length parsing, CRLF validation, depth limiting) and `client.go` now routes every reply through it, but the diff includes no test files.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1 (untested code as legacy code)\nConsequence: This code parses untrusted bytes off the wire. An off-by-one in the CRLF checks, the `-1` null sentinel, or the depth/length limits would silently corrupt a reply or panic against a misbehaving/crafted server, and nothing today would catch a regression here.\nRemedy: Add table-driven tests before merge, covering each `Kind` (`+`,`-`,`:`,`$`,`*`), a null bulk string, a null array, nested arrays up to and past `maxDepth`, an oversized bulk/array length, and a non-CRLF-terminated line.\n\n### 🟢 Suggestion\n\n**Cognitive Overload — `decode` mixes five parsing concerns in one function**\nSymptom: The `BulkString` and `Array` cases each carry ~10–15 lines of independent logic (length parsing, buffered reads, CRLF checks, recursion) inlined alongside the one-line `SimpleString`/`Error`/`Integer` cases, putting `decode` at ~55+ lines.\nSource: Fowler — Refactoring, Long Method\nConsequence: Minor today since every branch reads linearly, but a future RESP3-style addition (maps, sets, doubles, verbatim strings) will keep growing this one function instead of adding a sibling.\nRemedy: Optional — extract `decodeBulkString(r, line)` and `decodeArray(r, line, depth)` helpers and keep `decode` as the dispatcher.\n\n**Accidental Complexity — raw `bufio.ErrBufferFull` leaks past the protocol-error boundary**\nSymptom: `readLine` returns `ReadSlice`'s error unchanged when a header line exceeds the buffer, so callers see a bare `bufio.ErrBufferFull` instead of an `ErrProtocol`-wrapped error.\nSource: McConnell — Code Complete, Ch. 8 (defensive programming / error-handling discipline)\nConsequence: Code doing `errors.Is(err, resp.ErrProtocol)` to distinguish protocol corruption from transport errors will miss this case, and the message gives no hint it came from an oversized header line.\nRemedy: Wrap it — `fmt.Errorf(\"%w: header line exceeds buffer size\", ErrProtocol)`.\n\n---\n\n## Summary\n\nThe mechanics are sound: it fixes a real pre-existing bug (Integer/Bulk/Array replies used to get mis-labeled as `SimpleString`), recursion is depth-bounded, and the size limits mirror Redis's own defaults with a comment explaining why. Nothing here is a correctness blocker in the code itself — the blocker is that a hand-rolled wire-protocol parser is merging with no tests. Write the edge-case tests first, then merge; the two Suggestions are optional polish, not gates.\n\nWould you like to triage these findings? (accept / dismiss / defer / skip)"
+              },
+              {
+                "name": "health-score-line",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched Health Score\\W*\\d{1,3}\\s*/\\s*100",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-critical-findings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** pasted diff — `client.go`, `resp/decode.go` (new) (2 files)\n**Health Score:** 93/100\n**Trend:** First run — no trend data\n\nThe decoder itself is correct and well-scoped, but it ships with zero tests for input-parsing code that handles untrusted network bytes — that's the one thing I'd fix before merging.\n\n---\n\n## Findings\n\n### 🟡 Warning\n\n**Coverage Illusion — new RESP2 decoder ships with zero tests**\nSymptom: `resp/decode.go` adds a full recursive-descent RESP2 decoder (5 type branches, length parsing, CRLF validation, depth limiting) and `client.go` now routes every reply through it, but the diff includes no test files.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1 (untested code as legacy code)\nConsequence: This code parses untrusted bytes off the wire. An off-by-one in the CRLF checks, the `-1` null sentinel, or the depth/length limits would silently corrupt a reply or panic against a misbehaving/crafted server, and nothing today would catch a regression here.\nRemedy: Add table-driven tests before merge, covering each `Kind` (`+`,`-`,`:`,`$`,`*`), a null bulk string, a null array, nested arrays up to and past `maxDepth`, an oversized bulk/array length, and a non-CRLF-terminated line.\n\n### 🟢 Suggestion\n\n**Cognitive Overload — `decode` mixes five parsing concerns in one function**\nSymptom: The `BulkString` and `Array` cases each carry ~10–15 lines of independent logic (length parsing, buffered reads, CRLF checks, recursion) inlined alongside the one-line `SimpleString`/`Error`/`Integer` cases, putting `decode` at ~55+ lines.\nSource: Fowler — Refactoring, Long Method\nConsequence: Minor today since every branch reads linearly, but a future RESP3-style addition (maps, sets, doubles, verbatim strings) will keep growing this one function instead of adding a sibling.\nRemedy: Optional — extract `decodeBulkString(r, line)` and `decodeArray(r, line, depth)` helpers and keep `decode` as the dispatcher.\n\n**Accidental Complexity — raw `bufio.ErrBufferFull` leaks past the protocol-error boundary**\nSymptom: `readLine` returns `ReadSlice`'s error unchanged when a header line exceeds the buffer, so callers see a bare `bufio.ErrBufferFull` instead of an `ErrProtocol`-wrapped error.\nSource: McConnell — Code Complete, Ch. 8 (defensive programming / error-handling discipline)\nConsequence: Code doing `errors.Is(err, resp.ErrProtocol)` to distinguish protocol corruption from transport errors will miss this case, and the message gives no hint it came from an oversized header line.\nRemedy: Wrap it — `fmt.Errorf(\"%w: header line exceeds buffer size\", ErrProtocol)`.\n\n---\n\n## Summary\n\nThe mechanics are sound: it fixes a real pre-existing bug (Integer/Bulk/Array replies used to get mis-labeled as `SimpleString`), recursion is depth-bounded, and the size limits mirror Redis's own defaults with a comment explaining why. Nothing here is a correctness blocker in the code itself — the blocker is that a hand-rolled wire-protocol parser is merging with no tests. Write the edge-case tests first, then merge; the two Suggestions are optional polish, not gates.\n\nWould you like to triage these findings? (accept / dismiss / defer / skip)"
+              },
+              {
+                "name": "no-polymorphism-suggestion",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** pasted diff — `client.go`, `resp/decode.go` (new) (2 files)\n**Health Score:** 93/100\n**Trend:** First run — no trend data\n\nThe decoder itself is correct and well-scoped, but it ships with zero tests for input-parsing code that handles untrusted network bytes — that's the one thing I'd fix before merging.\n\n---\n\n## Findings\n\n### 🟡 Warning\n\n**Coverage Illusion — new RESP2 decoder ships with zero tests**\nSymptom: `resp/decode.go` adds a full recursive-descent RESP2 decoder (5 type branches, length parsing, CRLF validation, depth limiting) and `client.go` now routes every reply through it, but the diff includes no test files.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1 (untested code as legacy code)\nConsequence: This code parses untrusted bytes off the wire. An off-by-one in the CRLF checks, the `-1` null sentinel, or the depth/length limits would silently corrupt a reply or panic against a misbehaving/crafted server, and nothing today would catch a regression here.\nRemedy: Add table-driven tests before merge, covering each `Kind` (`+`,`-`,`:`,`$`,`*`), a null bulk string, a null array, nested arrays up to and past `maxDepth`, an oversized bulk/array length, and a non-CRLF-terminated line.\n\n### 🟢 Suggestion\n\n**Cognitive Overload — `decode` mixes five parsing concerns in one function**\nSymptom: The `BulkString` and `Array` cases each carry ~10–15 lines of independent logic (length parsing, buffered reads, CRLF checks, recursion) inlined alongside the one-line `SimpleString`/`Error`/`Integer` cases, putting `decode` at ~55+ lines.\nSource: Fowler — Refactoring, Long Method\nConsequence: Minor today since every branch reads linearly, but a future RESP3-style addition (maps, sets, doubles, verbatim strings) will keep growing this one function instead of adding a sibling.\nRemedy: Optional — extract `decodeBulkString(r, line)` and `decodeArray(r, line, depth)` helpers and keep `decode` as the dispatcher.\n\n**Accidental Complexity — raw `bufio.ErrBufferFull` leaks past the protocol-error boundary**\nSymptom: `readLine` returns `ReadSlice`'s error unchanged when a header line exceeds the buffer, so callers see a bare `bufio.ErrBufferFull` instead of an `ErrProtocol`-wrapped error.\nSource: McConnell — Code Complete, Ch. 8 (defensive programming / error-handling discipline)\nConsequence: Code doing `errors.Is(err, resp.ErrProtocol)` to distinguish protocol corruption from transport errors will miss this case, and the message gives no hint it came from an oversized header line.\nRemedy: Wrap it — `fmt.Errorf(\"%w: header line exceeds buffer size\", ErrProtocol)`.\n\n---\n\n## Summary\n\nThe mechanics are sound: it fixes a real pre-existing bug (Integer/Bulk/Array replies used to get mis-labeled as `SimpleString`), recursion is depth-bounded, and the size limits mirror Redis's own defaults with a comment explaining why. Nothing here is a correctness blocker in the code itself — the blocker is that a hand-rolled wire-protocol parser is merging with no tests. Write the edge-case tests first, then merge; the two Suggestions are optional polish, not gates.\n\nWould you like to triage these findings? (accept / dismiss / defer / skip)"
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.8571428571428571,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.37917310000000026,
+            "judgeCostUsd": 0.053070000000000284,
+            "durationSeconds": 168,
+            "startedAt": "2026-09-14T14:10:11.794Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Sn3yBP/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "flags-missing-decode-tests",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Quick note: the code-review skill couldn't run against your actual repo (this sandbox's working directory is empty, no git history), so I reviewed the diff manually instead of relying on its output.\n\n**Verdict: looks correct, no bugs found.** A few observations:\n\n**Correctness checks that passed:**\n- Type-byte → line parsing matches RESP2 framing for all five types (`+`, `-`, `:`, `$`, `*`).\n- Null bulk string (`$-1\\r\\n`) and null array (`*-1\\r\\n`) both handled via `Null: true`.\n- Bulk string CRLF-termination is verified (`buf[n]`/`buf[n+1]`) before trusting the payload.\n- `readLine`'s `string(line[:...])` copies out of the `bufio.Reader`'s internal buffer before the next `ReadSlice` call can overwrite it — no aliasing bug.\n- Recursion depth guard: with `depth` starting at 0 and incrementing per nested array, `maxDepth == 64` permits exactly 64 levels of nesting and rejects the 65th — consistent, no off-by-one.\n- `Client.Do`'s error handling correctly narrows to only top-level `Error` replies (matches real Redis client semantics — an error nested inside an array shouldn't become a Go `error`).\n- Import cleanup in `client.go` (`strings` removed, `errors` still used) is consistent with the new code.\n\n**Minor, non-blocking notes:**\n1. No tests included in this diff — worth adding table tests for each `Kind`, the null cases, nested arrays, and at least one malformed-input case (bad length, non-CRLF terminator, unknown prefix byte) before merging.\n2. `min(n, 64)` relies on Go's builtin `min` (1.21+) — worth double-checking `go.mod` declares `go 1.21` or later.\n3. Tiny cosmetic thing: an empty array (`*0\\r\\n`) received exactly at `maxDepth` will be rejected as \"too deep\" even though it wouldn't actually recurse. Harmless in practice, not worth fixing.\n\nNothing here blocks merging — the decoder is a solid, protocol-correct RESP2 implementation with sensible DoS guards (length caps, depth caps, buffer-bounded header lines). I'd just add tests first."
+              },
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-critical-findings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Quick note: the code-review skill couldn't run against your actual repo (this sandbox's working directory is empty, no git history), so I reviewed the diff manually instead of relying on its output.\n\n**Verdict: looks correct, no bugs found.** A few observations:\n\n**Correctness checks that passed:**\n- Type-byte → line parsing matches RESP2 framing for all five types (`+`, `-`, `:`, `$`, `*`).\n- Null bulk string (`$-1\\r\\n`) and null array (`*-1\\r\\n`) both handled via `Null: true`.\n- Bulk string CRLF-termination is verified (`buf[n]`/`buf[n+1]`) before trusting the payload.\n- `readLine`'s `string(line[:...])` copies out of the `bufio.Reader`'s internal buffer before the next `ReadSlice` call can overwrite it — no aliasing bug.\n- Recursion depth guard: with `depth` starting at 0 and incrementing per nested array, `maxDepth == 64` permits exactly 64 levels of nesting and rejects the 65th — consistent, no off-by-one.\n- `Client.Do`'s error handling correctly narrows to only top-level `Error` replies (matches real Redis client semantics — an error nested inside an array shouldn't become a Go `error`).\n- Import cleanup in `client.go` (`strings` removed, `errors` still used) is consistent with the new code.\n\n**Minor, non-blocking notes:**\n1. No tests included in this diff — worth adding table tests for each `Kind`, the null cases, nested arrays, and at least one malformed-input case (bad length, non-CRLF terminator, unknown prefix byte) before merging.\n2. `min(n, 64)` relies on Go's builtin `min` (1.21+) — worth double-checking `go.mod` declares `go 1.21` or later.\n3. Tiny cosmetic thing: an empty array (`*0\\r\\n`) received exactly at `maxDepth` will be rejected as \"too deep\" even though it wouldn't actually recurse. Harmless in practice, not worth fixing.\n\nNothing here blocks merging — the decoder is a solid, protocol-correct RESP2 implementation with sensible DoS guards (length caps, depth caps, buffer-bounded header lines). I'd just add tests first."
+              },
+              {
+                "name": "no-polymorphism-suggestion",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Quick note: the code-review skill couldn't run against your actual repo (this sandbox's working directory is empty, no git history), so I reviewed the diff manually instead of relying on its output.\n\n**Verdict: looks correct, no bugs found.** A few observations:\n\n**Correctness checks that passed:**\n- Type-byte → line parsing matches RESP2 framing for all five types (`+`, `-`, `:`, `$`, `*`).\n- Null bulk string (`$-1\\r\\n`) and null array (`*-1\\r\\n`) both handled via `Null: true`.\n- Bulk string CRLF-termination is verified (`buf[n]`/`buf[n+1]`) before trusting the payload.\n- `readLine`'s `string(line[:...])` copies out of the `bufio.Reader`'s internal buffer before the next `ReadSlice` call can overwrite it — no aliasing bug.\n- Recursion depth guard: with `depth` starting at 0 and incrementing per nested array, `maxDepth == 64` permits exactly 64 levels of nesting and rejects the 65th — consistent, no off-by-one.\n- `Client.Do`'s error handling correctly narrows to only top-level `Error` replies (matches real Redis client semantics — an error nested inside an array shouldn't become a Go `error`).\n- Import cleanup in `client.go` (`strings` removed, `errors` still used) is consistent with the new code.\n\n**Minor, non-blocking notes:**\n1. No tests included in this diff — worth adding table tests for each `Kind`, the null cases, nested arrays, and at least one malformed-input case (bad length, non-CRLF terminator, unknown prefix byte) before merging.\n2. `min(n, 64)` relies on Go's builtin `min` (1.21+) — worth double-checking `go.mod` declares `go 1.21` or later.\n3. Tiny cosmetic thing: an empty array (`*0\\r\\n`) received exactly at `maxDepth` will be rejected as \"too deep\" even though it wouldn't actually recurse. Harmless in practice, not worth fixing.\n\nNothing here blocks merging — the decoder is a solid, protocol-correct RESP2 implementation with sensible DoS guards (length caps, depth caps, buffer-bounded header lines). I'd just add tests first."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.8571428571428571,
+        "passRateWithout": 0,
+        "delta": 0.1428571428571429
+      }
+    },
+    {
+      "name": "06-neg-write-from-scratch",
+      "dir": "evals/06-neg-write-from-scratch",
+      "source": "prose",
+      "promptMarkdown": "用 Python 写一个线程安全、带 TTL 的 LRU cache：支持 get / put，容量满时淘汰最久未使用的条目，过期条目在访问时惰性清除。直接把代码贴给我就行。",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "gives-implementation",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "def \\w+\\(",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-review-report",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score|^\\W*Symptom\\W*:|^\\W*Consequence\\W*:",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "skill-not-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review",
+            "min": 0,
+            "max": 0
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0471028,
+            "judgeCostUsd": 0,
+            "durationSeconds": 8,
+            "startedAt": "2026-09-14T14:12:59.538Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-oUnSxn/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "gives-implementation",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched def \\w+\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-review-report",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-not-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0463008,
+            "judgeCostUsd": 0,
+            "durationSeconds": 9,
+            "startedAt": "2026-09-14T14:13:07.689Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-gObw5j/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "gives-implementation",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched def \\w+\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-review-report",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "07-neg-syntax-with-code",
+      "dir": "evals/07-neg-syntax-with-code",
+      "source": "prose",
+      "promptMarkdown": "Quick TypeScript question about this bit of our router config:\n\n```ts\ntype Route = { path: string; auth: boolean };\n\nconst routes = {\n  home: { path: \"/\", auth: false },\n  settings: { path: \"/settings\", auth: true },\n} satisfies Record<string, Route>;\n\nconst legacyRoutes: Record<string, Route> = {\n  home: { path: \"/\", auth: false },\n  settings: { path: \"/settings\" } as Route,\n};\n```\n\nIf I delete `auth: true` from `routes.settings` I get a compile error, but `legacyRoutes.settings` compiles fine without `auth`. What's the actual difference between `satisfies` and `as` here?",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "explains-satisfies-vs-as",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS only if the answer covers all three points:\n1. `satisfies` checks that the value conforms to the type — so a missing `auth` is reported — without changing the variable's inferred type (e.g. `routes` keeps its specific shape with keys `home` / `settings`, rather than becoming `Record<string, Route>`).\n2. `as` is a type assertion: it tells the compiler to treat the value as that type and does not perform a full conformance check — it only rejects conversions between unrelated / non-overlapping types — so `{ path: \"/settings\" }` is accepted as `Route` even though `auth` is missing.\n3. It ties this back to the snippet: explains why deleting `auth` breaks `routes` but `legacyRoutes.settings` still compiles (mentioning that `auth` is then `undefined` at runtime is welcome but not required).\n\nFAIL if any point is missing, or if the explanation is wrong — for example claiming `as` converts or validates the value at runtime, or that `satisfies` changes the variable's type to `Record<string, Route>`.",
+          "config": {
+            "criteria": "PASS only if the answer covers all three points:\n1. `satisfies` checks that the value conforms to the type — so a missing `auth` is reported — without changing the variable's inferred type (e.g. `routes` keeps its specific shape with keys `home` / `settings`, rather than becoming `Record<string, Route>`).\n2. `as` is a type assertion: it tells the compiler to treat the value as that type and does not perform a full conformance check — it only rejects conversions between unrelated / non-overlapping types — so `{ path: \"/settings\" }` is accepted as `Route` even though `auth` is missing.\n3. It ties this back to the snippet: explains why deleting `auth` breaks `routes` but `legacyRoutes.settings` still compiles (mentioning that `auth` is then `undefined` at runtime is welcome but not required).\n\nFAIL if any point is missing, or if the explanation is wrong — for example claiming `as` converts or validates the value at runtime, or that `satisfies` changes the variable's type to `Record<string, Route>`.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-review-report",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score|^\\W*Symptom\\W*:|^\\W*Consequence\\W*:",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "skill-not-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review",
+            "min": 0,
+            "max": 0
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07597279999999994,
+            "judgeCostUsd": 0.016919999999999935,
+            "durationSeconds": 28,
+            "startedAt": "2026-09-14T14:13:17.152Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-rxCCql/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "explains-satisfies-vs-as",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The core difference is **checking vs. overriding**.\n\n**`satisfies`** asks the compiler to verify that the expression's inferred type actually conforms to `Record<string, Route>`, while keeping the original inferred (literal) type for later use. When you delete `auth: true`, `{ path: \"/settings\" }` is checked against `Route`, which requires `auth: boolean` — that's a real structural mismatch, so it's a compile error. This is why `satisfies` catches it.\n\n**`as Route`** is a type assertion, not a check — it tells the compiler \"trust me, treat this as `Route`.\" TypeScript only allows an assertion when the two types are \"comparable\" in *either* direction (one assignable to the other), not that they're identical or that all required properties are present. Here:\n\n- `{ path: \"/settings\" }` is **not** assignable to `Route` (missing `auth`) ❌\n- but `Route` **is** assignable to `{ path: string }` (Route is a superset — extra properties are fine) ✅\n\nSince one direction holds, the assertion passes the comparability check, even though the object is actually missing `auth`. The compiler doesn't verify the literal has every required field — it just checks the two types aren't *unrelated*.\n\n**Practical consequence:** `legacyRoutes.settings.auth` will type-check as `boolean` but be `undefined` at runtime. That's the classic footgun with `as` — it's an escape hatch that can produce unsound types, whereas `satisfies` gives you compile-time safety *and* keeps type inference narrow (e.g. `routes.home.path` is inferred as the literal `\"/\"`, not widened to `string`, since `satisfies` doesn't change the expression's type the way an annotation or assertion does).\n\n**Rule of thumb:** use `satisfies` when you want validation against a shape while preserving inference. Use `as` only when you have information the compiler can't derive (and are willing to bypass its checks) — it's not a substitute for validation."
+              },
+              {
+                "name": "no-review-report",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-not-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.06036980000000014,
+            "judgeCostUsd": 0.016545000000000143,
+            "durationSeconds": 13,
+            "startedAt": "2026-09-14T14:13:44.691Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-TtCCzo/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "explains-satisfies-vs-as",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`satisfies` checks that the expression conforms to a type, but keeps the *inferred* (narrower) type for the variable. `as` is a type assertion — it tells the compiler \"trust me, treat this value as type `Route`,\" overriding whatever the compiler actually inferred, without re-checking the literal against `Route`'s shape.\n\nConcretely:\n\n- `routes = {...} satisfies Record<string, Route>` — TS infers the type of `routes` from the object literal itself (so `routes.settings` is `{ path: \"/settings\"; auth: boolean }`, and `routes.home.path` is even literal `\"/\"`), while *also* verifying each entry is assignable to `Route`. Since the check happens against the literal you wrote, removing `auth: true` makes that literal fail to satisfy `Route` (which requires `auth: boolean`) — error.\n\n- `legacyRoutes: Record<string, Route> = {...}` with `{ path: \"/settings\" } as Route` — the `as Route` assertion forces the object literal `{ path: \"/settings\" }` to be treated as a `Route` *without* the compiler verifying it actually has all of `Route`'s properties. Assertions only get flagged if the two types are so unrelated that no overlap is possible; missing an optional-looking check like a required property isn't one of those cases, so it silently compiles even though `auth` is absent. At runtime, `legacyRoutes.settings.auth` would actually be `undefined` despite TS believing it's `boolean`.\n\nSo the real difference: `satisfies` validates against the type while preserving inference and catches missing/extra properties; `as` just relabels the type and bypasses that structural check. `satisfies` is almost always the safer choice when you want both accurate inference and type safety; `as` should be reserved for cases where you genuinely know more than the compiler (e.g., narrowing `unknown` from a JSON parse)."
+              },
+              {
+                "name": "no-review-report",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 7,
+    "casesPassed": 4,
+    "overallScore": 0.8204081632653061,
+    "overallPassRate": 0.5714285714285714,
+    "meanDelta": -0.012244897959183662
+  }
+}

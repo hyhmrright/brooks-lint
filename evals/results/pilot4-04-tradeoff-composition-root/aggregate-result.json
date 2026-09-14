@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.270",
+  "startedAt": "2026-09-14T14:18:20.865Z",
+  "durationSeconds": 202,
+  "costUsd": 0.4905764,
+  "partial": false,
+  "suite": {
+    "root": "/Users/hyh/code/brooks-lint",
+    "ablation": "with-without",
+    "judgeModel": "opus",
+    "caseFilter": "04-tradeoff-composition-root",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "brooks-lint",
+        "version": "1.5.0",
+        "path": "/Users/hyh/code/brooks-lint"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "04-tradeoff-composition-root",
+      "dir": "evals/04-tradeoff-composition-root",
+      "source": "prose",
+      "promptMarkdown": "Can you review this? It's the startup wiring and the first use case for our new orders service. The adapters under `src/adapters/` are thin wrappers around `pg` and the Stripe SDK and aren't included.\n\n`src/main.ts`\n```ts\nimport { Pool } from \"pg\";\nimport Stripe from \"stripe\";\nimport { loadConfig } from \"./config\";\nimport { createServer } from \"./http/server\";\nimport { PostgresOrderRepository } from \"./adapters/postgresOrderRepository\";\nimport { StripePaymentGateway } from \"./adapters/stripePaymentGateway\";\nimport { PlaceOrder } from \"./orders/placeOrder\";\n\nasync function main(): Promise<void> {\n  const config = loadConfig(process.env);\n\n  const pool = new Pool({ connectionString: config.databaseUrl, max: config.dbPoolSize });\n  const stripe = new Stripe(config.stripeSecretKey);\n\n  const orders = new PostgresOrderRepository(pool);\n  const payments = new StripePaymentGateway(stripe);\n  const clock = { now: () => new Date() };\n\n  const placeOrder = new PlaceOrder(orders, payments, clock);\n\n  const server = createServer({ placeOrder });\n  server.listen(config.port, () => console.log(`listening on :${config.port}`));\n\n  const shutdown = async () => {\n    server.close();\n    await pool.end();\n  };\n  process.on(\"SIGTERM\", shutdown);\n  process.on(\"SIGINT\", shutdown);\n}\n\nmain().catch((err) => {\n  console.error(err);\n  process.exit(1);\n});\n```\n\n`src/orders/ports.ts`\n```ts\nexport interface Order {\n  id: string;\n  customerId: string;\n  amountCents: number;\n  currency: string;\n  status: \"pending\" | \"paid\" | \"failed\";\n  createdAt: Date;\n}\n\nexport interface OrderRepository {\n  /**\n   * Returns the order already recorded for (customerId, requestId), or stores and\n   * returns `draft` if there is none. Atomic: backed by a unique index on both columns.\n   */\n  findOrCreate(customerId: string, requestId: string, draft: Order): Promise<Order>;\n  save(order: Order): Promise<void>;\n}\n\nexport interface PaymentGateway {\n  charge(\n    customerId: string,\n    amountCents: number,\n    currency: string,\n    idempotencyKey: string,\n  ): Promise<{ ok: true } | { ok: false; reason: string }>;\n}\n\nexport interface Clock {\n  now(): Date;\n}\n```\n\n`src/orders/placeOrder.ts`\n```ts\nimport { randomUUID } from \"node:crypto\";\nimport type { Clock, Order, OrderRepository, PaymentGateway } from \"./ports\";\n\nexport interface PlaceOrderCommand {\n  /** The client's Idempotency-Key header; every retry of one request reuses it. */\n  requestId: string;\n  customerId: string;\n  amountCents: number;\n  currency: string;\n}\n\nexport class PlaceOrder {\n  constructor(\n    private readonly orders: OrderRepository,\n    private readonly payments: PaymentGateway,\n    private readonly clock: Clock,\n  ) {}\n\n  async execute(cmd: PlaceOrderCommand): Promise<Order> {\n    if (!Number.isInteger(cmd.amountCents) || cmd.amountCents <= 0) {\n      throw new RangeError(\"amountCents must be a positive integer\");\n    }\n\n    const order = await this.orders.findOrCreate(cmd.customerId, cmd.requestId, {\n      id: randomUUID(),\n      customerId: cmd.customerId,\n      amountCents: cmd.amountCents,\n      currency: cmd.currency,\n      status: \"pending\",\n      createdAt: this.clock.now(),\n    });\n    // A retried request gets its original order back: a settled one is returned\n    // as-is, and a still-pending one is charged again under the same idempotency\n    // key (the order id), so the customer is never charged twice.\n    if (order.status !== \"pending\") {\n      return order;\n    }\n\n    const result = await this.payments.charge(order.customerId, order.amountCents, order.currency, order.id);\n    const settled: Order = { ...order, status: result.ok ? \"paid\" : \"failed\" };\n    await this.orders.save(settled);\n    return settled;\n  }\n}\n```",
+      "model": "sonnet",
+      "runsPerCase": 3,
+      "timeoutSeconds": 480,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "health-score-line",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "Health Score\\W*\\d{1,3}\\s*/\\s*100",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-composition-root-false-positive",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Context: `src/main.ts` is the application's entry point. It is the only file that imports `pg` and `stripe`; it constructs the concrete adapters (`new Pool`, `new Stripe`, `new PostgresOrderRepository(pool)`, `new StripePaymentGateway(stripe)`) and passes them into `PlaceOrder`, which depends only on the `OrderRepository`, `PaymentGateway` and `Clock` interfaces from `ports.ts`. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.\n\nFAIL if the answer does any of the following:\n1. Presents `main.ts` importing `pg` / `stripe` or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, \"Dependency Disorder\", or hard-to-test wiring.\n2. Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.\n3. Suggests `PlaceOrder` or `ports.ts` should know about or depend on the concrete adapters.\n\nPASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of `main.ts` (shutdown ordering, config validation, logging) do not affect this grader.",
+          "config": {
+            "criteria": "Context: `src/main.ts` is the application's entry point. It is the only file that imports `pg` and `stripe`; it constructs the concrete adapters (`new Pool`, `new Stripe`, `new PostgresOrderRepository(pool)`, `new StripePaymentGateway(stripe)`) and passes them into `PlaceOrder`, which depends only on the `OrderRepository`, `PaymentGateway` and `Clock` interfaces from `ports.ts`. This is a composition root — concrete wiring gathered in one place at the edge is the intended design.\n\nFAIL if the answer does any of the following:\n1. Presents `main.ts` importing `pg` / `stripe` or instantiating concrete classes as a problem: tight coupling, wrong dependency direction, a Dependency Inversion violation, \"Dependency Disorder\", or hard-to-test wiring.\n2. Recommends introducing a DI / IoC container (e.g. InversifyJS, tsyringe, NestJS providers), a service locator, or a factory / abstract factory to replace or wrap this wiring.\n3. Suggests `PlaceOrder` or `ports.ts` should know about or depend on the concrete adapters.\n\nPASS if none of these occur — whether the answer leaves the wiring alone or explicitly calls it an appropriate composition root. Findings about other aspects of `main.ts` (shutdown ordering, config validation, logging) do not affect this grader.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "overall-healthy",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS only if all of the following hold:\n1. No issue is labelled Critical, 🔴, High severity, or Blocker, and no issue is declared blocking (\"must fix before merge\", \"blocks merge\", \"do not merge until\"). An empty Critical section, or a statement that there are no critical issues, is fine. Saying some issues are worth addressing before shipping or before production, without calling them critical or blocking, is also fine.\n2. If the answer gives a numeric Health Score out of 100, it is 70 or higher. (Under brooks-lint's default weights — Critical −15, Warning −5, Suggestion −1 — 70 still leaves room for about six Warnings.)\n3. The overall verdict does not say the code needs significant rework or redesign before it can ship.\n\nFAIL if any of 1–3 is violated.",
+          "config": {
+            "criteria": "PASS only if all of the following hold:\n1. No issue is labelled Critical, 🔴, High severity, or Blocker, and no issue is declared blocking (\"must fix before merge\", \"blocks merge\", \"do not merge until\"). An empty Critical section, or a statement that there are no critical issues, is fine. Saying some issues are worth addressing before shipping or before production, without calling them critical or blocking, is also fine.\n2. If the answer gives a numeric Health Score out of 100, it is 70 or higher. (Under brooks-lint's default weights — Critical −15, Warning −5, Suggestion −1 — 70 still leaves room for about six Warnings.)\n3. The overall verdict does not say the code needs significant rework or redesign before it can ship.\n\nFAIL if any of 1–3 is violated.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brooks-review"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.6,
+            "passed": false,
+            "turns": 9,
+            "costUsd": 0.3277426,
+            "judgeCostUsd": 0.080625,
+            "durationSeconds": 133,
+            "startedAt": "2026-09-14T14:18:20.893Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-U079Qz/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "health-score-line",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched Health Score\\W*\\d{1,3}\\s*/\\s*100",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-composition-root-false-positive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters excluded, as noted)\n**Health Score:** 63/100\n\nSolid dependency direction and a genuinely safe-looking idempotency design on paper, undercut by two correctness gaps that would surface in production under normal operating conditions (deploys and legitimate client retries).\n\n---\n\n## Findings\n\n### 🔴 Critical\n\n**Dependency Disorder / Error Handling — Shutdown doesn't sequence connection drain before closing the pool**\nSymptom: `shutdown()` in `src/main.ts` calls `server.close()` without awaiting completion (no callback, no Promise wrapper) and immediately proceeds to `await pool.end()`. `server.close()` only stops *accepting new* connections — it does not wait for in-flight requests to finish. There is also no `.catch`/try-catch around either call, so a rejection inside `shutdown()` during a `SIGTERM`/`SIGINT` handler becomes an unhandled promise rejection.\nSource: McConnell — Code Complete, defensive programming and error-handling discipline (missing error handling makes the failure mode invisible until it hits production).\nConsequence: On every rolling deploy, requests already in flight (including in-progress `PlaceOrder.execute` calls that may have already charged Stripe) can have their DB pool yanked out from under them mid-query, turning a successful charge into a request that errors out to the client. That forces the client to retry, and while the idempotency key generally protects against a double charge, it does not protect against dropped/confusing responses on every deploy.\nRemedy: Wrap `server.close()` in a Promise and `await` it before ending the pool; add a `try/catch` (or `.catch`) around the whole shutdown sequence with logging, and consider a shutdown timeout to force-exit if connections don't drain in time.\n\n**Domain Model Distortion — Retried idempotent requests aren't validated against the original payload**\nSymptom: `orders.findOrCreate(customerId, requestId, draft)` returns the previously stored order whenever `(customerId, requestId)` already exists, regardless of whether `draft.amountCents`/`draft.currency` match what was originally stored. `PlaceOrder.execute` then returns that stored order as-is for any non-`pending` status, silently ignoring the new command's amount/currency.\nSource: Evans — Domain-Driven Design (aggregate invariant ownership); McConnell — Code Complete (defensive programming / explicit error paths).\nConsequence: A client that reuses an `Idempotency-Key` with a different amount (a bug, a stale retry after a legitimate correction, or a copy-pasted header) gets back a `200`-equivalent response reporting success for the *old* amount, with no signal that the request it actually sent was never processed. This is a silent financial-correctness bug, not just an edge case — idempotency implementations (Stripe's own API included) generally treat a parameter mismatch on a reused key as an error rather than swallowing it.\nRemedy: When `findOrCreate` returns an existing order, compare the stored `amountCents`/`currency`/`customerId` against the incoming command and throw a distinct \"idempotency key reused with different parameters\" error if they differ.\n\n### 🟡 Warning\n\n**Coverage Illusion — no tests included for the new use case or wiring**\nSymptom: The shared files add new public behavior (`PlaceOrder.execute`, the `main.ts` composition root) with no accompanying test files.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1.\nConsequence: The idempotency logic in particular (`findOrCreate` + status branching) is exactly the kind of subtle control flow that regresses silently without characterization tests — the two Critical findings above are the sort of bug a unit test on `PlaceOrder` would likely catch immediately.\nRemedy: Add unit tests for `PlaceOrder.execute` covering: fresh order → charge succeeds/fails; retry of a `pending` order (recharge); retry of a settled order (short-circuit); and, once fixed, retry with mismatched amount.\n\n*(If tests exist but weren't part of what was shared, disregard this one.)*\n\n### 🟢 Suggestion\n\n**Cognitive Overload — Money and identifiers passed as raw primitives**\nSymptom: `amountCents: number`, `currency: string`, `customerId: string` are all bare primitives with no format validation beyond the `amountCents > 0` integer check (e.g., `currency` isn't checked against ISO-4217, `customerId` isn't checked for non-empty).\nSource: Fowler — Refactoring, Primitive Obsession; Evans — DDD, Value Objects.\nConsequence: Nothing stops an empty `customerId` or a garbage `currency` string from reaching the payment adapter; validation failures will surface as opaque Stripe SDK errors instead of a clear domain error at the boundary.\nRemedy: Not urgent at this scale — worth a small `Money`/`CustomerId` value type once a second use case starts repeating the same validation, rather than now.\n\n**Domain Model Distortion — Status transition lives in the use case, not on `Order`**\nSymptom: `Order` (`src/orders/ports.ts`) is a pure data interface; the pending→paid/failed transition is computed inline in `PlaceOrder.execute` (`{ ...order, status: result.ok ? \"paid\" : \"failed\" }`) rather than as a method/invariant on the entity.\nSource: Evans — DDD, Anemic Domain Model; Fowler — Data Class.\nConsequence: Fine today with two terminal states and one transition, but if more statuses or invariants are added (e.g., refunds, partial failures), transition logic will likely spread across future use cases.\nRemedy: No action needed now — revisit if a second state-mutating use case appears.\n\n---\n\n## Summary\n\nFix the two Critical items before merging: the shutdown sequencing bug will cause dropped requests on every deploy, and the idempotency-retry gap can silently return a stale/incorrect amount to a legitimate client. Both are small, targeted fixes (a Promise-wrapped shutdown, and a parameter-equality check in the retry path) that don't require restructuring anything — the overall dependency direction (domain → ports, composition root wiring concretes) is exactly right and shouldn't change."
+              },
+              {
+                "name": "overall-healthy",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "# Brooks-Lint Review\n\n**Mode:** PR Review\n**Scope:** `src/main.ts`, `src/orders/ports.ts`, `src/orders/placeOrder.ts` (adapters excluded, as noted)\n**Health Score:** 63/100\n\nSolid dependency direction and a genuinely safe-looking idempotency design on paper, undercut by two correctness gaps that would surface in production under normal operating conditions (deploys and legitimate client retries).\n\n---\n\n## Findings\n\n### 🔴 Critical\n\n**Dependency Disorder / Error Handling — Shutdown doesn't sequence connection drain before closing the pool**\nSymptom: `shutdown()` in `src/main.ts` calls `server.close()` without awaiting completion (no callback, no Promise wrapper) and immediately proceeds to `await pool.end()`. `server.close()` only stops *accepting new* connections — it does not wait for in-flight requests to finish. There is also no `.catch`/try-catch around either call, so a rejection inside `shutdown()` during a `SIGTERM`/`SIGINT` handler becomes an unhandled promise rejection.\nSource: McConnell — Code Complete, defensive programming and error-handling discipline (missing error handling makes the failure mode invisible until it hits production).\nConsequence: On every rolling deploy, requests already in flight (including in-progress `PlaceOrder.execute` calls that may have already charged Stripe) can have their DB pool yanked out from under them mid-query, turning a successful charge into a request that errors out to the client. That forces the client to retry, and while the idempotency key generally protects against a double charge, it does not protect against dropped/confusing responses on every deploy.\nRemedy: Wrap `server.close()` in a Promise and `await` it before ending the pool; add a `try/catch` (or `.catch`) around the whole shutdown sequence with logging, and consider a shutdown timeout to force-exit if connections don't drain in time.\n\n**Domain Model Distortion — Retried idempotent requests aren't validated against the original payload**\nSymptom: `orders.findOrCreate(customerId, requestId, draft)` returns the previously stored order whenever `(customerId, requestId)` already exists, regardless of whether `draft.amountCents`/`draft.currency` match what was originally stored. `PlaceOrder.execute` then returns that stored order as-is for any non-`pending` status, silently ignoring the new command's amount/currency.\nSource: Evans — Domain-Driven Design (aggregate invariant ownership); McConnell — Code Complete (defensive programming / explicit error paths).\nConsequence: A client that reuses an `Idempotency-Key` with a different amount (a bug, a stale retry after a legitimate correction, or a copy-pasted header) gets back a `200`-equivalent response reporting success for the *old* amount, with no signal that the request it actually sent was never processed. This is a silent financial-correctness bug, not just an edge case — idempotency implementations (Stripe's own API included) generally treat a parameter mismatch on a reused key as an error rather than swallowing it.\nRemedy: When `findOrCreate` returns an existing order, compare the stored `amountCents`/`currency`/`customerId` against the incoming command and throw a distinct \"idempotency key reused with different parameters\" error if they differ.\n\n### 🟡 Warning\n\n**Coverage Illusion — no tests included for the new use case or wiring**\nSymptom: The shared files add new public behavior (`PlaceOrder.execute`, the `main.ts` composition root) with no accompanying test files.\nSource: Feathers — Working Effectively with Legacy Code, Ch. 1.\nConsequence: The idempotency logic in particular (`findOrCreate` + status branching) is exactly the kind of subtle control flow that regresses silently without characterization tests — the two Critical findings above are the sort of bug a unit test on `PlaceOrder` would likely catch immediately.\nRemedy: Add unit tests for `PlaceOrder.execute` covering: fresh order → charge succeeds/fails; retry of a `pending` order (recharge); retry of a settled order (short-circuit); and, once fixed, retry with mismatched amount.\n\n*(If tests exist but weren't part of what was shared, disregard this one.)*\n\n### 🟢 Suggestion\n\n**Cognitive Overload — Money and identifiers passed as raw primitives**\nSymptom: `amountCents: number`, `currency: string`, `customerId: string` are all bare primitives with no format validation beyond the `amountCents > 0` integer check (e.g., `currency` isn't checked against ISO-4217, `customerId` isn't checked for non-empty).\nSource: Fowler — Refactoring, Primitive Obsession; Evans — DDD, Value Objects.\nConsequence: Nothing stops an empty `customerId` or a garbage `currency` string from reaching the payment adapter; validation failures will surface as opaque Stripe SDK errors instead of a clear domain error at the boundary.\nRemedy: Not urgent at this scale — worth a small `Money`/`CustomerId` value type once a second use case starts repeating the same validation, rather than now.\n\n**Domain Model Distortion — Status transition lives in the use case, not on `Order`**\nSymptom: `Order` (`src/orders/ports.ts`) is a pure data interface; the pending→paid/failed transition is computed inline in `PlaceOrder.execute` (`{ ...order, status: result.ok ? \"paid\" : \"failed\" }`) rather than as a method/invariant on the entity.\nSource: Evans — DDD, Anemic Domain Model; Fowler — Data Class.\nConsequence: Fine today with two terminal states and one transition, but if more statuses or invariants are added (e.g., refunds, partial failures), transition logic will likely spread across future use cases.\nRemedy: No action needed now — revisit if a second state-mutating use case appears.\n\n---\n\n## Summary\n\nFix the two Critical items before merging: the shutdown sequencing bug will cause dropped requests on every deploy, and the idempotency-retry gap can silently return a stale/incorrect amount to a legitimate client. Both are small, targeted fixes (a Promise-wrapped shutdown, and a parameter-equality check in the retry path) that don't require restructuring anything — the overall dependency direction (domain → ports, composition root wiring concretes) is exactly right and shouldn't change."
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.8,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.1628338,
+            "judgeCostUsd": 0.053549999999999986,
+            "durationSeconds": 68,
+            "startedAt": "2026-09-14T14:20:34.199Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Hu9rRA/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "health-score-line",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-composition-root-false-positive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The files aren't in the repo, so I'll review the pasted code directly. Two real bugs and a few risks worth flagging.\n\n## Bugs\n\n**1. Double-charge race isn't actually closed by the idempotency key (`placeOrder.ts`).**\nIf a client retries before the first attempt finishes (a real scenario for HTTP retries on timeout), both calls hit `findOrCreate`, both get back the same `pending` order, and both call `payments.charge(...)` concurrently with the *same* idempotency key (`order.id`). Stripe does not serialize concurrent requests sharing an idempotency key — it returns a \"request outstanding\" / lock error to whichever call arrives second. If `StripePaymentGateway` maps that error into `{ ok: false, reason }` (the natural thing for a thin wrapper to do), you'll mark the order `\"failed\"` even though the original charge may well succeed. The comment on line 25-27 (\"...so the customer is never charged twice\") is true for *money* but false for *order status* — status can end up wrong.\n\nWorth deciding explicitly: either the repository needs to serialize concurrent settlement of the same order (e.g. a DB-level lock or a `pending → paid/failed` conditional update that only the winner applies), or the adapter needs to treat Stripe's lock-conflict response as \"retry/poll, don't fail\" rather than a decline.\n\n**2. `orders.save(settled)` has no compare-and-swap guard.**\n`OrderRepository.save` just takes an `Order` and presumably does a blind `UPDATE ... WHERE id = ?`. Combined with #1, two concurrent executions racing to settle the same order will last-write-wins each other — the terminal status depends on write ordering, not on what actually happened with Stripe. I'd change the contract to something like `save(order, expectedStatus: \"pending\")` that no-ops (or throws) if the row's current status has already moved on, so a losing writer can't clobber a winner's result.\n\n## Wiring risks in `main.ts`\n\n**3. No `pool.on(\"error\", ...)` listener.** `pg.Pool` emits `'error'` for idle-client backend errors (e.g. connection dropped by the DB). With no listener, Node treats it as an unhandled error and crashes the process — this is a well-known pg gotcha, worth a one-line handler that logs and lets the pool recover.\n\n**4. Shutdown isn't idempotent and has no timeout.** If SIGTERM and SIGINT both arrive (common during some deploy sequences), `shutdown()` runs twice: `pool.end()` called a second time throws (`Called end on pool more than once`). Also `server.close()` only stops new connections — it waits indefinitely for keep-alive connections to drain, so a lingering client can hang the process forever on shutdown. Suggest guarding with a `let shuttingDown` flag and adding a hard timeout that forces `process.exit()`.\n\n**5. Stripe client has no pinned `apiVersion`.** Without it, the SDK/account default API version applies, so a Stripe-side account upgrade can silently change response shapes under you. Minor, but worth locking down for a payments path.\n\n## Smaller notes\n\n- `cmd.currency` and `cmd.requestId`/`customerId` aren't validated for shape (empty string, etc.) the way `amountCents` is — inconsistent given this is the idempotency key material.\n- `server` has no `'error'` listener either (e.g. `EADDRINUSE` on `listen`), same class of issue as #3.\n\nNice separation of concerns otherwise — ports are clean, the domain logic reads clearly, and the idempotency *design* (dedupe on `(customerId, requestId)`, reuse `order.id` as the Stripe key) is the right shape. The gap is purely in what happens when two attempts for the same pending order overlap in time."
+              },
+              {
+                "name": "overall-healthy",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The files aren't in the repo, so I'll review the pasted code directly. Two real bugs and a few risks worth flagging.\n\n## Bugs\n\n**1. Double-charge race isn't actually closed by the idempotency key (`placeOrder.ts`).**\nIf a client retries before the first attempt finishes (a real scenario for HTTP retries on timeout), both calls hit `findOrCreate`, both get back the same `pending` order, and both call `payments.charge(...)` concurrently with the *same* idempotency key (`order.id`). Stripe does not serialize concurrent requests sharing an idempotency key — it returns a \"request outstanding\" / lock error to whichever call arrives second. If `StripePaymentGateway` maps that error into `{ ok: false, reason }` (the natural thing for a thin wrapper to do), you'll mark the order `\"failed\"` even though the original charge may well succeed. The comment on line 25-27 (\"...so the customer is never charged twice\") is true for *money* but false for *order status* — status can end up wrong.\n\nWorth deciding explicitly: either the repository needs to serialize concurrent settlement of the same order (e.g. a DB-level lock or a `pending → paid/failed` conditional update that only the winner applies), or the adapter needs to treat Stripe's lock-conflict response as \"retry/poll, don't fail\" rather than a decline.\n\n**2. `orders.save(settled)` has no compare-and-swap guard.**\n`OrderRepository.save` just takes an `Order` and presumably does a blind `UPDATE ... WHERE id = ?`. Combined with #1, two concurrent executions racing to settle the same order will last-write-wins each other — the terminal status depends on write ordering, not on what actually happened with Stripe. I'd change the contract to something like `save(order, expectedStatus: \"pending\")` that no-ops (or throws) if the row's current status has already moved on, so a losing writer can't clobber a winner's result.\n\n## Wiring risks in `main.ts`\n\n**3. No `pool.on(\"error\", ...)` listener.** `pg.Pool` emits `'error'` for idle-client backend errors (e.g. connection dropped by the DB). With no listener, Node treats it as an unhandled error and crashes the process — this is a well-known pg gotcha, worth a one-line handler that logs and lets the pool recover.\n\n**4. Shutdown isn't idempotent and has no timeout.** If SIGTERM and SIGINT both arrive (common during some deploy sequences), `shutdown()` runs twice: `pool.end()` called a second time throws (`Called end on pool more than once`). Also `server.close()` only stops new connections — it waits indefinitely for keep-alive connections to drain, so a lingering client can hang the process forever on shutdown. Suggest guarding with a `let shuttingDown` flag and adding a hard timeout that forces `process.exit()`.\n\n**5. Stripe client has no pinned `apiVersion`.** Without it, the SDK/account default API version applies, so a Stripe-side account upgrade can silently change response shapes under you. Minor, but worth locking down for a payments path.\n\n## Smaller notes\n\n- `cmd.currency` and `cmd.requestId`/`customerId` aren't validated for shape (empty string, etc.) the way `amountCents` is — inconsistent given this is the idempotency key material.\n- `server` has no `'error'` listener either (e.g. `EADDRINUSE` on `listen`), same class of issue as #3.\n\nNice separation of concerns otherwise — ports are clean, the domain logic reads clearly, and the idempotency *design* (dedupe on `(customerId, requestId)`, reuse `order.id` as the Stripe key) is the right shape. The gap is purely in what happens when two attempts for the same pending order overlap in time."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.6,
+        "passRate": 0,
+        "scoreWithout": 0.8,
+        "passRateWithout": 0,
+        "delta": -0.20000000000000007
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.6,
+    "overallPassRate": 0,
+    "meanDelta": -0.20000000000000007
+  }
+}
