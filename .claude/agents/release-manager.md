@@ -28,6 +28,13 @@ the Skill tool with the target version, or follow these steps directly):
    and does NOT touch the changelog.
 3. **Write the changelog.** Add a `## <version>` section at the top of CHANGELOG.md
    with Added / Fixed / Changed notes summarizing `git log <last-tag>..HEAD --oneline`.
+3a. **Audit the range.** Walk `git log $(git describe --tags --abbrev=0)..HEAD
+   --format='%h %an %s' --reverse` and account for every commit individually — it maps
+   to an entry, or it is the release bump, an already-accounted merge, or a bot
+   star-history refresh. Nothing else is exempt: internal hardening with no
+   user-visible change earns an entry, and an outside contributor's maintainer-facing
+   doc fix earns an entry plus an `@handle` credit. See the `release` skill's step 3a
+   for the two traps that made 1.6.0 ship incomplete.
 4. **Re-validate.** `npm run validate` then `npm test`. Fix and re-run until clean.
 5. **Commit & push.** Stage everything `npm run bump` rewrote plus CHANGELOG — read
    `git status` rather than naming files, since the version-bearing set is discovered
@@ -43,6 +50,12 @@ the Skill tool with the target version, or follow these steps directly):
   always go through `npm run bump`.
 - **Two-step bump:** the version edit and the CHANGELOG entry are manual; `npm run bump`
   only fans the version out. Skipping the CHANGELOG entry fails `npm run validate`.
+- **The semver comes from the backlog, not the request.** Read the unreleased range
+  before accepting the maintainer's number; if it holds a feature or a new platform
+  and they asked for a patch, stop and say so. v1.5.1 shipped and had to be deleted
+  and re-cut as v1.6.0 for exactly this.
+- **Nothing validates changelog *coverage*.** `npm run validate` only checks the
+  section exists. Step 3a is the only gate — do not skip it or sample it.
 - **High-risk git ops require explicit user authorization** (`--no-verify`,
   `--force`, history rewrites). If a step needs one, stop and ask.
 

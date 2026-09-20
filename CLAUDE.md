@@ -88,4 +88,14 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
 ## Release Process
 
-Set the new version in `package.json` (e.g. `npm version <v> --no-git-tag-version`), then `npm run bump` (propagates the version to all manifests plus every version-bearing text file listed by `scripts/version-refs.mjs` — all six README badges and the docs landing-page JSON-LD) → add the new `CHANGELOG.md` section by hand → `npm run validate` → commit, push, tag GitHub release.
+Set the new version in `package.json` (e.g. `npm version <v> --no-git-tag-version`), then `npm run bump` (propagates the version to all manifests plus every version-bearing text file listed by `scripts/version-refs.mjs` — all six README badges and the docs landing-page JSON-LD) → add the new `CHANGELOG.md` section by hand → **audit the commit range** (below) → `npm run validate` → commit, push, tag GitHub release.
+
+**Check the version number against the backlog first.** The bump is decided by what is *unreleased*, not by the size of the change in front of you. `git log $(git describe --tags --abbrev=0)..HEAD --oneline` before choosing the number — a "small doc fix" on top of an unreleased new platform is a minor, not a patch. v1.5.1 was cut, then deleted and re-cut as v1.6.0 for exactly this reason.
+
+**Audit the commit range against the changelog — every commit, no sampling.** `npm run validate` checks that a section for the new version *exists*; nothing checks that it *covers* the range, so this is the only gate. List the commits, then account for each one individually:
+
+```bash
+git log $(git describe --tags --abbrev=0)..HEAD --format='%h %an %s' --reverse
+```
+
+Each commit must map to a changelog entry, or to one of these exclusions: the release bump itself, a merge commit whose branch commits are already accounted for, or a bot `chore:` data refresh (star history). Anything else needs an entry — **including** internal hardening with no user-visible behavior change (a new validator check, a test-only guard) and **including** maintainer-facing doc fixes from outside contributors, who get credited by `@handle` like any other. Two things make this failure easy: a commit that landed *after* the last tag reads as prior state when a later entry mentions it in passing, and a commit whose own message says "this belongs in the next release's changelog entry" is invisible unless someone reads the range. Both happened in 1.6.0 and both were caught only by an audit after the release was already published.

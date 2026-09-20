@@ -18,6 +18,14 @@ disable-model-invocation: true
 Target version comes from `$ARGUMENTS` (e.g. `1.4.0`). If empty, ask the maintainer
 for the semver bump before doing anything.
 
+**Before accepting that version, read the backlog.** Run
+`git log $(git describe --tags --abbrev=0)..HEAD --oneline` and look at what is
+actually unreleased — the bump is decided by the whole range, not by the change
+that prompted the release. If the range contains a feature or a new platform and
+the maintainer asked for a patch, stop and say so: v1.5.1 was published, then
+deleted and re-cut as v1.6.0 because twenty unreleased commits (including a new
+platform) had been swept into a patch.
+
 Execute these steps in order. `bump-version.mjs` reads the version FROM
 `package.json` and does NOT touch the changelog — so the version edit and the
 CHANGELOG entry are manual; the script only fans the version out to the manifests
@@ -34,9 +42,26 @@ and every version-bearing text file.
    here — the script's is authoritative.
 3. **Write the changelog.** Add a new section at the top of `CHANGELOG.md` with
    categorized notes (Added / Fixed / Changed) summarizing the commits since the
-   last release tag (`git log <last-tag>..HEAD --oneline`). The heading MUST be
-   `## [<version>] - YYYY-MM-DD` — `npm run validate` parses that exact shape and
-   fails on a bare `## <version>`.
+   last release tag. The heading MUST be `## [<version>] - YYYY-MM-DD` —
+   `npm run validate` parses that exact shape and fails on a bare `## <version>`.
+3a. **Audit the range — every commit, no sampling.** `npm run validate` only
+   checks that a section for the new version *exists*; nothing checks that it
+   *covers* the range, so this walk is the only gate. List the commits:
+
+   ```bash
+   git log $(git describe --tags --abbrev=0)..HEAD --format='%h %an %s' --reverse
+   ```
+
+   Account for each one individually — it maps to an entry you just wrote, or to
+   one of exactly three exclusions: the release bump itself, a merge commit whose
+   branch commits are already accounted for, or a bot `chore:` star-history
+   refresh. Everything else earns an entry, **including** internal hardening with
+   no user-visible behavior change (a new validator check, a test-only guard) and
+   **including** maintainer-facing doc fixes from outside contributors, who are
+   credited by `@handle`. Watch two traps: a commit that landed after the tag
+   reads as prior state when a later entry mentions it in passing, and a commit
+   whose own message says "this belongs in the next release's changelog entry" is
+   invisible unless you read the range. Both slipped through 1.6.0.
 4. **Validate.** `npm run validate` — fails if any manifest, any version-bearing
    text file, or the CHANGELOG entry is out of sync. Fix and re-run until clean.
    Then `npm test`.
