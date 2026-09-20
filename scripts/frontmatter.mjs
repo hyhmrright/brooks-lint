@@ -16,6 +16,15 @@ function findMatches(text, pattern) {
 }
 
 /**
+ * The YAML block between the leading `---` fences, or null when a file has no
+ * frontmatter. Non-greedy, so it stops at the FIRST closing fence rather than
+ * swallowing a `---` rule further down the document.
+ */
+function frontmatterBlock(text) {
+  return normalizeNewlines(text).match(/^---\n([\s\S]*?)\n---/)?.[1] ?? null;
+}
+
+/**
  * Parse the `books:` list from a YAML frontmatter block at the top of a
  * markdown file. Returns an array of book title strings, or null if the
  * frontmatter or `books` key is absent.
@@ -32,10 +41,9 @@ function findMatches(text, pattern) {
  * other special characters — the only delimiter is the line break.
  */
 export function parseFrontmatterBooks(text) {
-  const normalized = normalizeNewlines(text);
-  const match = normalized.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return null;
-  const booksSection = match[1].match(/^books:\n((?:[ \t]+-[^\n]+\n?)+)/m);
+  const block = frontmatterBlock(text);
+  if (block === null) return null;
+  const booksSection = block.match(/^books:\n((?:[ \t]+-[^\n]+\n?)+)/m);
   if (!booksSection) return null;
   return booksSection[1]
     .split("\n")
@@ -83,6 +91,23 @@ export function extractChangelogVersion(text) {
 export function extractGuideStepLabels(text) {
   return findMatches(text, /^### Step (\d+[a-z]?)/gm)
     .map(m => m.replace(/^### Step /, ""));
+}
+
+/**
+ * True when a SKILL.md frontmatter opts the skill into OpenCode's `/` menu.
+ *
+ * OpenCode v2 reads `metadata.opencode/slash` (skill-file.ts →
+ * `metadataBoolean(frontmatter.metadata, "opencode/slash")`); without it the
+ * skill is reachable only via `/skills` or `@name`. `"true"` is the canonical
+ * spelling, but YAML's bare `true` parses to the same boolean, so both pass.
+ *
+ * Expected frontmatter shape:
+ *   metadata:
+ *     opencode/slash: "true"
+ */
+export function hasOpencodeSlashFlag(text) {
+  const metadata = (frontmatterBlock(text) ?? "").match(/^metadata:\n((?:[ \t]+[^\n]*\n?)+)/m)?.[1] ?? "";
+  return /^[ \t]+opencode\/slash:[ \t]*["']?true["']?[ \t]*$/m.test(metadata);
 }
 
 export const PRODUCTION_RISK_COUNT = 6;

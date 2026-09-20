@@ -12,6 +12,8 @@ description: >
   Do NOT trigger for: writing new tests from scratch (use the regular test-writing
   workflow) or testing framework/syntax questions — this skill reviews an existing
   suite for structural quality problems, not individual test authoring.
+metadata:
+  opencode/slash: "true"
 ---
 
 # Brooks-Lint — Test Quality Review

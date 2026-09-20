@@ -108,9 +108,8 @@ CLAUDE.md harness change-log table.
 - **All `Agent` calls use `model: "opus"`** — harness quality tracks agent reasoning.
 - **consistency-qa must be `general-purpose`** (it runs npm scripts); the
   trigger-boundary-auditor is read-only.
-- **No Claude Code slash commands are created** — short forms are auto-installed by
-  the session-start hook. OpenCode wrappers under `commands/opencode/` are installed
-  by `scripts/install.sh`.
+- **No slash commands are created** — short forms are auto-installed by the
+  session-start hook.
 - **Direct-to-main**: changes push to `main` without a PR (per repo CLAUDE.md); the
   global simplify→review→commit gate still applies to non-doc edits, but skill/guide
   content is markdown and follows the validate gate instead.

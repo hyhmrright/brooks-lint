@@ -12,6 +12,8 @@ description: >
   conceptual integrity / Brooks's Law / Mythical Man-Month / second system effect.
   Do NOT trigger for: questions about how to write code from scratch, language syntax
   questions, or framework/tool questions where no existing code is shared.
+metadata:
+  opencode/slash: "true"
 ---
 
 # Brooks-Lint — PR Review

@@ -23,6 +23,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - **Project Config:** If a `.brooks-lint.yaml` exists in the project root, read and apply it before running any review mode — including `strictness`, which changes the weights above.
 - **SKILL.md Process vs guide steps:** `SKILL.md` Process is a high-level skeleton (3–6 items) that cites guide Step ranges inline (e.g. `Scan decay risks (Steps 1–7 of the guide)`); the guide owns the detailed numbered steps. Counts do NOT need to match 1:1. Automated: `npm run validate` checks guide step continuity (sub-steps like `2a`/`6b` allowed) and SKILL.md Process-section presence.
 - **Trigger descriptions:** Every `SKILL.md` `description:` field must include a "Do NOT trigger for:" clause defining the negative boundary to prevent false triggering.
+- **OpenCode slash opt-in:** Every `SKILL.md` frontmatter must also carry `metadata:` › `opencode/slash: "true"` — OpenCode v2 lists a skill in its `/` menu only when that key is set, and no other platform reads it. Automated: `npm run validate`.
 
 ## Project Structure
 - `skills/brooks-{review,audit,debt,test,health,sweep}/`: the six skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — each a `SKILL.md` plus its guide.

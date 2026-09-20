@@ -10,6 +10,8 @@ description: >
   Do NOT trigger for: server health checks, HTTP /health endpoints, Kubernetes probes,
   database health, or application uptime — "health" in those contexts is infrastructure,
   not code quality. Also not for single-function refactoring questions.
+metadata:
+  opencode/slash: "true"
 ---
 
 # Brooks-Lint — Tech Debt Assessment

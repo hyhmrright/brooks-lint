@@ -24,6 +24,7 @@ import {
   countTestRisks,
   extractChangelogVersion,
   extractGuideStepLabels,
+  hasOpencodeSlashFlag,
 } from "./frontmatter.mjs";
 import { extractRiskCodes, classify } from "./eval-utils.mjs";
 import { parseFindings, countFindings, extractLocation, SOURCE_EXTENSIONS } from "./report-parse.mjs";
@@ -36,8 +37,6 @@ import {
   parseInstallerPlatforms,
   platformEnumeration,
   namesPlatform,
-  opencodeCommandWrappers,
-  parseInstallerCommandDirs,
 } from "./platforms.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -269,6 +268,57 @@ test("assembles sweep prompt with both risk catalogs and sweep guide", () => {
   assert.match(prompt, /## Risk 1: Cognitive Overload/);
   assert.match(prompt, /## Risk T1: Test Obscurity/);
   assert.match(prompt, /# Brooks-Lint .* Full Sweep Guide/);
+});
+
+// ── hasOpencodeSlashFlag ───────────────────────────────────────────────────
+
+console.log("\nhasOpencodeSlashFlag");
+
+const SLASH_FRONTMATTER = [
+  "---",
+  "name: brooks-review",
+  "description: >",
+  "  PR code review. Do NOT trigger for: architecture audits.",
+  "metadata:",
+  '  opencode/slash: "true"',
+  "---",
+  "",
+  "# Brooks-Lint — PR Review",
+  "",
+].join("\n");
+
+test("accepts frontmatter carrying the opt-in flag", () => {
+  assert.equal(hasOpencodeSlashFlag(SLASH_FRONTMATTER), true);
+});
+
+test("rejects frontmatter with no metadata block", () => {
+  const text = SLASH_FRONTMATTER.replace('metadata:\n  opencode/slash: "true"\n', "");
+  assert.equal(hasOpencodeSlashFlag(text), false);
+});
+
+test("rejects a metadata block that omits opencode/slash", () => {
+  const text = SLASH_FRONTMATTER.replace('  opencode/slash: "true"', "  audience: maintainers");
+  assert.equal(hasOpencodeSlashFlag(text), false);
+});
+
+test("rejects the flag set to false", () => {
+  assert.equal(hasOpencodeSlashFlag(SLASH_FRONTMATTER.replace('"true"', '"false"')), false);
+});
+
+test("accepts YAML's bare true, which parses to the same boolean", () => {
+  assert.equal(hasOpencodeSlashFlag(SLASH_FRONTMATTER.replace('"true"', "true")), true);
+});
+
+test("ignores an opencode/slash line outside the frontmatter", () => {
+  const text = ["---", "name: brooks-review", "---", "", "metadata:", '  opencode/slash: "true"', ""].join("\n");
+  assert.equal(hasOpencodeSlashFlag(text), false);
+});
+
+test("every shipped skill carries the flag", () => {
+  for (const mode of VALID_MODES) {
+    const skillMd = readFileSync(path.join(__dirname, "..", "skills", `brooks-${mode}`, "SKILL.md"), "utf8");
+    assert.ok(hasOpencodeSlashFlag(skillMd), `brooks-${mode}/SKILL.md should opt into OpenCode's / menu`);
+  }
 });
 
 // ── readHistory ────────────────────────────────────────────────────────────
@@ -1009,48 +1059,6 @@ test("parses the real installer, proving the patterns still match", () => {
   assert.ok(declared.length >= 12, `expected the full platform list, got ${declared.length}`);
   assert.deepEqual(new Set(globalArms), new Set(declared));
   assert.deepEqual(new Set(project), new Set(declared));
-});
-
-console.log("\nparseInstallerCommandDirs");
-
-const COMMAND_FIXTURE = [
-  "global_command_dir() {",
-  "  case $1 in",
-  "    opencode) printf '%s' \"$HOME/.config/opencode/command\" ;;",
-  "    *)        return 1 ;;",
-  "  esac",
-  "}",
-  "",
-  "project_command_dir() {",
-  "  case $1 in",
-  "    opencode) printf '%s' \"$PWD/.opencode/command\" ;;",
-  "    *)        return 1 ;;",
-  "  esac",
-  "}",
-].join("\n");
-
-test("reads the opencode command folder for both scopes", () => {
-  const parsed = parseInstallerCommandDirs(COMMAND_FIXTURE);
-  assert.deepEqual(parsed.global, ["opencode"]);
-  assert.deepEqual(parsed.project, ["opencode"]);
-});
-
-test("returns empty arrays when the installer has no command mappings", () => {
-  assert.deepEqual(parseInstallerCommandDirs("#!/usr/bin/env bash"), { global: [], project: [] });
-});
-
-test("parses the real installer's command mappings", () => {
-  const installer = readFileSync(path.join(__dirname, "install.sh"), "utf8");
-  const { global: globalDirs, project } = parseInstallerCommandDirs(installer);
-  assert.ok(globalDirs.includes("opencode"), "global_command_dir() should map opencode");
-  assert.ok(project.includes("opencode"), "project_command_dir() should map opencode");
-});
-
-console.log("\nopencodeCommandWrappers");
-
-test("ships exactly one OpenCode wrapper per mode", () => {
-  const wrappers = opencodeCommandWrappers(path.resolve(__dirname, ".."));
-  assert.deepEqual(wrappers, VALID_MODES.map((mode) => `brooks-${mode}.md`).sort());
 });
 
 // ── Integration: validate-repo.mjs passes against current repo ─────────────

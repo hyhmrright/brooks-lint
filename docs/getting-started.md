@@ -36,9 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 `<platform>` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · bob ·
 gemini · codex · claude · agents`. Add `--project` to install into the current repo instead of your
 global config. `agents` targets the vendor-neutral `~/.agents/skills` folder that Cursor, Copilot, pi,
-Gemini, Codex, and DeepSeek Harness all read. On OpenCode the installer also drops the six `/brooks-*`
-slash-command wrappers into its command folder (`~/.config/opencode/command/`, or `.opencode/command/`
-with `--project`).
+Gemini, Codex, and DeepSeek Harness all read.
 
 ## Per-platform guides
 

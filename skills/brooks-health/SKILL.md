@@ -12,6 +12,8 @@ description: >
   trigger when the user specifically requests only one dimension — use the
   corresponding focused skill instead (brooks-review / brooks-audit /
   brooks-debt / brooks-test).
+metadata:
+  opencode/slash: "true"
 ---
 
 # Brooks-Lint — Health Dashboard

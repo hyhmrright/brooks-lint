@@ -10,6 +10,8 @@ description: >
   or "give me a codebase tour" (use onboarding mode).
   Do NOT trigger for: PR-level code review (use brooks-review) or line-level refactoring
   questions — this skill analyzes structural/module-level concerns, not individual functions.
+metadata:
+  opencode/slash: "true"
 ---
 
 # Brooks-Lint — Architecture Audit

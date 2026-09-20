@@ -9,9 +9,6 @@
 # folder for your platform, so the relative reads always resolve — you can't get
 # the layout wrong.
 #
-# OpenCode additionally gets slash-command wrappers (/brooks-review … /brooks-sweep)
-# copied from commands/opencode/ into its command folder.
-#
 # Usage:
 #   ./scripts/install.sh <platform> [--project]
 #   curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
@@ -22,8 +19,7 @@
 #
 # Flags:
 #   --project   install into the current repo (./.<platform>/skills) instead of the global folder
-#   --dir PATH  install into an explicit skills folder (overrides platform mapping;
-#               OpenCode slash-command wrappers are skipped, since their folder is unknown)
+#   --dir PATH  install into an explicit folder (overrides platform mapping)
 #   --list      print supported platforms and exit
 #
 set -euo pipefail
@@ -35,14 +31,14 @@ err()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; }
 info() { printf '\033[36m›\033[0m %s\n' "$*"; }
 ok()   { printf '\033[32m✓\033[0m %s\n' "$*"; }
 
-# --- resolve the repo root (adjacent to this script, or clone) ---------------
-resolve_root() {
+# --- resolve the skills/ source (adjacent to this script, or clone) ----------
+resolve_src() {
   local script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" >/dev/null 2>&1 && pwd || true)"
   if [ -n "$script_dir" ] && [ -d "$script_dir/../skills" ]; then
     local root
     root="$( cd "$script_dir/.." && pwd )"
-    printf '%s' "$root"
+    printf '%s' "$root/skills"
     return
   fi
   # Running via curl | bash — clone a shallow copy.
@@ -50,7 +46,7 @@ resolve_root() {
   tmp="$(mktemp -d)"
   info "Cloning brooks-lint into $tmp …" >&2
   git clone --depth 1 "$REPO_URL" "$tmp/brooks-lint" >/dev/null 2>&1
-  printf '%s' "$tmp/brooks-lint"
+  printf '%s' "$tmp/brooks-lint/skills"
 }
 
 # --- map a platform to its skills folder -------------------------------------
@@ -95,23 +91,6 @@ project_dir() {
   esac
 }
 
-# --- map a platform to its slash-command folder ------------------------------
-# OpenCode loads command/*.md (as well as the docs' commands/*.md spelling). The
-# other platforms either auto-register skills or install commands their own way.
-global_command_dir() {
-  case "$1" in
-    opencode) printf '%s' "$HOME/.config/opencode/command" ;;
-    *)        return 1 ;;
-  esac
-}
-
-project_command_dir() {
-  case "$1" in
-    opencode) printf '%s' "$PWD/.opencode/command" ;;
-    *)        return 1 ;;
-  esac
-}
-
 # --- arg parsing -------------------------------------------------------------
 PLATFORM=""
 SCOPE="global"
@@ -147,20 +126,8 @@ else
   DEST="$(global_dir "$PLATFORM")" || { err "unknown platform: $PLATFORM"; exit 2; }
 fi
 
-ROOT="$(resolve_root)"
-SRC="$ROOT/skills"
+SRC="$(resolve_src)"
 [ -d "$SRC" ] || { err "could not locate skills/ source at: $SRC"; exit 1; }
-
-# OpenCode additionally gets slash-command wrappers. An explicit --dir targets
-# the skills folder only, so the command folder is unknown and commands are skipped.
-CMD_DEST=""
-if [ -z "$EXPLICIT_DIR" ] && [ "$PLATFORM" = "opencode" ]; then
-  if [ "$SCOPE" = "project" ]; then
-    CMD_DEST="$(project_command_dir "$PLATFORM")"
-  else
-    CMD_DEST="$(global_command_dir "$PLATFORM")"
-  fi
-fi
 
 # --- copy flat ---------------------------------------------------------------
 info "Installing brooks-lint skills"
@@ -172,17 +139,6 @@ cp -R "$SRC"/* "$DEST"/
 count="$(find "$DEST" -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')"
 ok "Installed $count skills (+ _shared/) into $DEST"
 info "Flat layout verified: brooks-* and _shared/ are siblings, so ../_shared/ resolves."
-
-if [ -n "$CMD_DEST" ]; then
-  CMD_SRC="$ROOT/commands/opencode"
-  [ -d "$CMD_SRC" ] || { err "could not locate OpenCode commands at: $CMD_SRC"; exit 1; }
-  mkdir -p "$CMD_DEST"
-  cp -R "$CMD_SRC"/*.md "$CMD_DEST"/
-  cmd_count="$(find "$CMD_DEST" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')"
-  ok "Installed $cmd_count slash commands into $CMD_DEST"
-elif [ "$PLATFORM" = "opencode" ]; then
-  info "Skipping OpenCode slash commands (--dir targets the skills folder only)."
-fi
 echo
 info "Next: open your agent and ask \"review this PR\" / \"audit the architecture\","
 info "or invoke a skill directly (e.g. /brooks-review). See docs/<platform>-setup.md."

@@ -12,6 +12,8 @@ description: >
   findings without code changes; single-dimension reviews (use the focused skill
   instead: brooks-review / brooks-audit / brooks-debt / brooks-test); server health
   checks, HTTP /health endpoints, Kubernetes probes, database health, or application uptime.
+metadata:
+  opencode/slash: "true"
 ---
 
 # Brooks-Lint — Full Sweep & Auto-Fix

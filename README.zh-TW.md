@@ -297,8 +297,8 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [設定](docs/dsh-setup.md) |
 | IBM Bob（`bob`） | `~/.bob/skills` | `AGENTS.md` | [設定](docs/bob-setup.md) |
 
-OpenCode、Kiro、Factory Droid 與 DeepSeek Harness 還會自動註冊 `/brooks-review`。不熟悉 skills、或用的是上面
-沒列出的 agent？見 **[docs/getting-started.md](docs/getting-started.md)**。
+OpenCode v2、Kiro、Factory Droid 與 DeepSeek Harness 還會自動註冊 `/brooks-review`。不熟悉 skills、
+或用的是上面沒列出的 agent？見 **[docs/getting-started.md](docs/getting-started.md)**。
 
 > **🧪 驗證狀態。** Claude Code、Gemini CLI、Codex CLI 已由維護者驗證。上面十個平台依據各工具官方技能規範撰寫，
 > 並已在檔案佈局層面驗證（安裝器經過測試），但維護者尚未在每個平台端到端實跑。在某平台試過了——無論成功**還是**失敗？
@@ -317,10 +317,9 @@ OpenCode、Kiro、Factory Droid 與 DeepSeek Harness 還會自動註冊 `/brooks
 | `/brooks-sweep` | 一次性掃描 R1–R6、T1–T6 與架構，然後施加修復：安全改動自動套用，跨檔案改動需確認，架構決策標記為人工處理項。輸出修復日誌與健康分變化。 |
 
 **各平台語法。** Claude Code 也接受帶命名空間的完整形式 `/brooks-lint:brooks-review`——短命令由
-session-start 鉤子在首次工作階段啟動時自動安裝。Codex CLI 用 `$brooks-review`。Gemini CLI 直接用上表。
-OpenCode 在安裝器放入命令包裝後同樣直接用上表（`~/.config/opencode/command/`，加 `--project` 則為
-`.opencode/command/`）。Cursor、Antigravity、pi、DeepSeek Harness 依據每個技能的 `description` 自動呼叫
-Agent Skills，直接提問即可（「審查這個 PR」「我們最糟的技術債在哪」）；需要顯式呼叫時用各平台自己的語法
+session-start 鉤子在首次工作階段啟動時自動安裝。Codex CLI 用 `$brooks-review`。Gemini CLI 與 OpenCode v2
+直接用上表。Cursor、Antigravity、pi、DeepSeek Harness 依據每個技能的 `description` 自動呼叫 Agent
+Skills，直接提問即可（「審查這個 PR」、「我們最糟的技術債在哪」）；需要顯式呼叫時用各平台自己的語法
 （pi 把每個技能註冊為 `/skill:brooks-review`；dsh 直接用上表，可從 `/` 選單挑或手打）。在所有平台上，
 當你討論程式碼品質、架構或測試健康時，這些技能也會自動觸發。
 
@@ -392,7 +391,7 @@ brooks-lint/
 │   ├── brooks-health/    # 模式 5：健康儀表板   → health-guide.md
 │   └── brooks-sweep/     # 模式 6：全面掃描     → sweep-guide.md
 ├── hooks/                # SessionStart 鉤子
-├── commands/             # 短命令包裝（Claude 鉤子 + OpenCode 安裝器）
+├── commands/             # 短命令包裝（由鉤子自動安裝）
 ├── evals/                # 57 情境評測套件 + 凍結的 parser 保真度語料
 └── assets/               # logo、banner、demo
 ```

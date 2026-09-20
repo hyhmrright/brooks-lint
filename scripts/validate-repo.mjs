@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
@@ -10,6 +10,7 @@ import {
   countTestRisks,
   extractChangelogVersion,
   extractGuideStepLabels,
+  hasOpencodeSlashFlag,
   PRODUCTION_RISK_COUNT,
   TEST_RISK_COUNT,
 } from "./frontmatter.mjs";
@@ -22,8 +23,6 @@ import {
   parseInstallerPlatforms,
   platformEnumeration,
   namesPlatform,
-  opencodeCommandWrappers,
-  parseInstallerCommandDirs,
 } from "./platforms.mjs";
 import { render as renderStarHistory, readStamps as readStarStamps } from "./gen-star-history.mjs";
 
@@ -383,49 +382,27 @@ function checkInstallerPlatforms() {
   }
 }
 
-// OpenCode is the one platform whose slash-command wrappers install.sh ships.
-// The wrapper set is derived from the mode registry, so adding or renaming a
-// skill fails here instead of silently leaving a dead /brooks-* command behind.
-function checkOpencodeCommands() {
-  const wrappers = opencodeCommandWrappers(root);
-  const expected = SKILL_GUIDES.map(([dir]) => `${dir}.md`);
+// OpenCode v2 shadows nothing and auto-registers nothing: a skill reaches the
+// `/` menu only by opting in with metadata.opencode/slash. No other platform
+// reads the flag, so nothing else fails when a new skill ships without it —
+// this check is the only thing standing between a seventh skill and a silently
+// missing /brooks-* on OpenCode. Scans the directory rather than the mode
+// registry so an unregistered skill folder is caught too; _shared/ has no
+// SKILL.md and is skipped by construction.
+function checkOpencodeSlashFlag() {
+  const skillDirs = readdirSync(path.join(root, "skills"), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .filter((dir) => existsSync(path.join(root, "skills", dir, "SKILL.md")))
+    .sort();
 
-  for (const file of expected) {
-    check(
-      wrappers.includes(file),
-      `commands/opencode/${file} is missing — every skill needs an OpenCode slash-command wrapper`,
-    );
-  }
+  check(skillDirs.length > 0, "skills/ contains no SKILL.md — expected at least one skill");
 
-  for (const file of wrappers) {
+  for (const dir of skillDirs) {
     check(
-      expected.includes(file),
-      `commands/opencode/${file} has no matching skill — remove the wrapper or register the skill`,
+      hasOpencodeSlashFlag(readText(`skills/${dir}/SKILL.md`)),
+      `skills/${dir}/SKILL.md frontmatter needs metadata: opencode/slash: "true" — without it the skill never appears in OpenCode's / menu`,
     );
-
-    const text = readText(`commands/opencode/${file}`);
-    const frontmatter = text.match(/^---\n([\s\S]*?)\n---/);
-    check(
-      frontmatter !== null && /^description:\s*\S/m.test(frontmatter[1]),
-      `commands/opencode/${file} should declare a description: in its frontmatter`,
-    );
-    const skill = file.replace(/\.md$/, "");
-    check(
-      text.includes(skill),
-      `commands/opencode/${file} should point at the '${skill}' skill`,
-    );
-    check(
-      !text.includes("CLAUDE_PLUGIN_ROOT"),
-      `commands/opencode/${file} must be OpenCode-native — ${"${CLAUDE_PLUGIN_ROOT}"} only expands in Claude Code`,
-    );
-  }
-
-  if (wrappers.length > 0) {
-    const installer = readText("scripts/install.sh");
-    const { global: globalDirs, project: projectDirs } = parseInstallerCommandDirs(installer);
-    check(globalDirs.includes("opencode"), "scripts/install.sh global_command_dir() should map opencode");
-    check(projectDirs.includes("opencode"), "scripts/install.sh project_command_dir() should map opencode");
-    check(installer.includes("commands/opencode"), "scripts/install.sh should copy the commands/opencode wrappers");
   }
 }
 
@@ -490,7 +467,7 @@ checkContributing();
 checkAgentsDocs();
 checkPlatformDocs();
 checkInstallerPlatforms();
-checkOpencodeCommands();
+checkOpencodeSlashFlag();
 checkSecurity();
 checkStarHistory();
 checkHookOutput();
