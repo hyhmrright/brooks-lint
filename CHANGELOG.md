@@ -2,6 +2,89 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [1.7.0] - 2026-09-20
+
+Maintainer-facing only — the six skills, their guides, and everything the plugin
+installs are byte-for-byte identical to 1.6.0. This release hardens how *this
+repo* cuts releases, after 1.6.0 shipped with two changes missing from its
+changelog section and both were found only by auditing after publication.
+
+### Added
+
+- **`npm run changelog:audit` — account for every commit in the release range**
+  ([`scripts/changelog-audit.mjs`](scripts/changelog-audit.mjs)). It derives the
+  range from the last release tag (`v[0-9]*`), applies the only three exemptions
+  — the release bump, a merge commit whose branch commits are listed separately,
+  and the weekly star-history refresh — and prints the rest as a checklist to
+  walk. Each line gets an entry or a stated reason it needs none. Between
+  releases it frames the same range as the next release's backlog and exits 0,
+  so it is also how you check the *version number* against what is actually
+  unreleased before choosing it.
+
+  The star-history exemption is judged by the files a commit touched, not by its
+  subject: the paths come from `STAR_HISTORY_FILES`, exported by
+  `gen-star-history.mjs` so the chart generator and the exemption share one
+  definition. Matching on `[bot]` + `chore:` instead would have exempted a
+  `dependabot[bot]` `chore(deps): bump …` for free, and a dependency bump is a
+  change this changelog records.
+
+- **A release-time coverage gate inside `npm run validate`.** `checkChangelog()`
+  only ever proved the new version's section *exists*. `checkChangelogCoverage()`
+  now also fails on the one gap a machine can prove: a pull request merged in the
+  range whose `#N` the section never cites — matched as `#N` or a `/pull/N` link.
+
+  It runs **only while a release is in progress**, derived as "`package.json`'s
+  version has no `v<version>` tag yet" — so it is a no-op during normal work and
+  unskippable at the one moment it matters, with no flag to remember.
+  `validate.yml` checks out with `fetch-depth: 0` because the gate needs tags.
+
+- **A `Changelog:` git trailer** for a commit that lands without a version bump
+  and defers its entry to the next release. The audit surfaces it on the
+  checklist. A trailer rather than a sentence in the body, because prose cannot
+  tell a commit deferring its own entry from one quoting another that did — which
+  is how 1.6.0 lost `d4b5c40` despite it asking in plain English to be logged.
+
+- **`npm run validate` says what the gate did, on every run.** A stand-down
+  names its reason (`Changelog coverage: not audited — v1.6.0 is already
+  tagged.`); an audit names its range and its scope (`… audited 4 commits in
+  v1.6.0..HEAD — pull-request citations only; walk the rest with npm run
+  changelog:audit.`). Plain `npm version <v>` tags as it commits and a
+  remotely-deleted tag survives locally — either silently disables the audit for
+  a whole release, and an unannounced off-state reads exactly like a pass.
+
+  The audited half was missing until this release was cut: the gate printed
+  nothing on the one path that actually audits, and the test covering it had
+  only ever run against this repo while it was tagged, so it exercised the
+  stand-down branch and never the other one. Bumping to 1.7.0 put the repo in
+  enforce mode for the first time and the test failed on the spot.
+
+### Fixed
+
+- **The [1.6.0] section above now covers the two changes it had missed** —
+  `d4b5c40`'s platform-validation checks, and PR #25 from **[@2233admin](https://github.com/2233admin)**,
+  who went uncredited in a release that credited two other contributors. Both
+  were added after 1.6.0 was published.
+
+### Changed
+
+- **Cutting a release now requires walking the commit range, not sampling it.**
+  `CLAUDE.md`'s Release Process, the `release` skill, and the `release-manager`
+  agent all gained an explicit audit step between writing the changelog and
+  validating, and all three now state the rule the 1.6.0 misses came from:
+  nothing is exempt beyond the three listed exemptions — internal hardening with
+  no user-visible behavior change earns an entry, and so does an outside
+  contributor's maintainer-facing fix, who gets an `@handle` credit like anyone
+  else.
+
+- **The release process documents what a green audit does not prove.** Three
+  blind spots, by construction: a bare `#N` *anywhere* in the section clears the
+  gate (it proves the number was written, not that an entry was); a rebase-merged
+  PR leaves neither a `(#N)` subject nor a merge commit, so nothing is enforced
+  behind its checklist line; and whatever is staged into the release bump itself
+  is never audited by any release — land such fixes as their own commit before
+  bumping. Recorded in `CLAUDE.md`, the `release` skill, and the
+  `release-manager` agent.
+
 ## [1.6.0] - 2026-09-20
 
 ### Added
