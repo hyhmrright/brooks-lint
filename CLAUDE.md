@@ -75,6 +75,7 @@ To add a scenario: append to the `evals` array with the next sequential `id` and
 ```bash
 npm run bump              # Propagate the package.json version to all manifests + every version-bearing text file (NOT changelog)
 npm run validate          # Repo consistency: manifests, version refs, changelog, source inventory, skills structure
+npm run changelog:audit   # Release-time: account for every commit since the last tag (see Release Process)
 npm test                  # Unit tests for validate-repo helpers
 npm run evals             # Eval structural validation (IDs, fields, risk-code refs)
 npm run evals:live        # Live evals against the AI (requires ANTHROPIC_API_KEY)
@@ -90,12 +91,16 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
 Set the new version in `package.json` (e.g. `npm version <v> --no-git-tag-version`), then `npm run bump` (propagates the version to all manifests plus every version-bearing text file listed by `scripts/version-refs.mjs` — all six README badges and the docs landing-page JSON-LD) → add the new `CHANGELOG.md` section by hand → **audit the commit range** (below) → `npm run validate` → commit, push, tag GitHub release.
 
-**Check the version number against the backlog first.** The bump is decided by what is *unreleased*, not by the size of the change in front of you. `git log $(git describe --tags --abbrev=0)..HEAD --oneline` before choosing the number — a "small doc fix" on top of an unreleased new platform is a minor, not a patch. v1.5.1 was cut, then deleted and re-cut as v1.6.0 for exactly this reason.
+**Check the version number against the backlog first.** The bump is decided by what is *unreleased*, not by the size of the change in front of you. `npm run changelog:audit` prints the range before you choose the number — a "small doc fix" on top of an unreleased new platform is a minor, not a patch. v1.5.1 was cut, then deleted and re-cut as v1.6.0 for exactly this reason.
 
-**Audit the commit range against the changelog — every commit, no sampling.** `npm run validate` checks that a section for the new version *exists*; nothing checks that it *covers* the range, so this is the only gate. List the commits, then account for each one individually:
+**Audit the commit range against the changelog — every commit, no sampling.** `npm run changelog:audit` (`scripts/changelog-audit.mjs`) derives the range from the last release tag (`v*`) and prints it as a checklist to walk, with three exemptions applied for you: the release bump itself, a merge commit (its branch commits are listed separately), and a bot `chore:` refresh. **Nothing else is exempt** — internal hardening with no user-visible behavior change (a new validator check, a test-only guard) earns an entry, and so does a maintainer-facing doc fix from an outside contributor, who gets credited by `@handle` like any other.
 
-```bash
-git log $(git describe --tags --abbrev=0)..HEAD --format='%h %an %s' --reverse
+The script fails on the one gap it can *prove*: a pull request merged in the range whose `#N` the section never cites. `checkChangelogCoverage()` runs that same check inside `npm run validate`, but **only while a release is in progress** — derived as "`package.json`'s version has no `v<version>` tag yet", so it is a no-op during normal work and unskippable at the one moment it matters. It needs tags, which is why `validate.yml` checks out with `fetch-depth: 0`. Everything else on the checklist is judgment and stays yours.
+
+**A commit that defers its changelog entry says so in a `Changelog:` trailer**, so the audit can surface it in the checklist:
+
+```
+Changelog: added — platform docs and installer mappings are cross-checked
 ```
 
-Each commit must map to a changelog entry, or to one of these exclusions: the release bump itself, a merge commit whose branch commits are already accounted for, or a bot `chore:` data refresh (star history). Anything else needs an entry — **including** internal hardening with no user-visible behavior change (a new validator check, a test-only guard) and **including** maintainer-facing doc fixes from outside contributors, who get credited by `@handle` like any other. Two things make this failure easy: a commit that landed *after* the last tag reads as prior state when a later entry mentions it in passing, and a commit whose own message says "this belongs in the next release's changelog entry" is invisible unless someone reads the range. Both happened in 1.6.0 and both were caught only by an audit after the release was already published.
+Use it when a change lands without a version bump. A trailer rather than a sentence in the body, because prose cannot tell a commit deferring its own entry from one quoting another commit that did. This is what 1.6.0 got wrong twice: `d4b5c40` asked in plain prose to be logged in the next release and was missed anyway, and PR #25 went uncredited in a release that credited two other contributors. Both were found only by auditing after publishing.

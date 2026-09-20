@@ -8,6 +8,7 @@ import {
   countBookSections,
   countProductionRisks,
   countTestRisks,
+  extractChangelogSection,
   extractChangelogVersion,
   extractGuideStepLabels,
   hasOpencodeSlashFlag,
@@ -16,6 +17,7 @@ import {
 } from "./frontmatter.mjs";
 import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
 import { versionRefs } from "./version-refs.mjs";
+import { auditRange, commitsSince, isTagged, lastTag } from "./changelog-audit.mjs";
 import {
   platformDocs,
   setupGuides,
@@ -103,6 +105,34 @@ function checkChangelog() {
     latestVersion === version,
     `CHANGELOG.md latest version ${latestVersion ?? "<missing>"} does not match package.json version ${version}`,
   );
+}
+
+// A release is in progress exactly when package.json's version has no tag yet
+// — the one moment at which the commits since the last tag are the ones the
+// new CHANGELOG section must cover. Between releases the version is already
+// tagged and this is a no-op, so the audit never nags during normal work.
+//
+// Only the provable gap fails here: a pull request merged in the range whose
+// number the section never cites. Everything else is judgment and belongs to
+// the maintainer walking `npm run changelog:audit`.
+function checkChangelogCoverage() {
+  if (isTagged(version, root)) return;
+  const tag = lastTag(root);
+  if (tag === null) {
+    console.warn(
+      "Note: no tag reachable from HEAD, so changelog coverage was not audited.\n" +
+        "      CI needs actions/checkout with fetch-depth: 0 for this check to run.",
+    );
+    return;
+  }
+  const section = extractChangelogSection(readText("CHANGELOG.md"));
+  for (const { gap, pr, hash } of auditRange(commitsSince(tag, root), section)) {
+    check(
+      !gap,
+      `CHANGELOG.md [${version}] never cites #${pr}, merged into ${tag}..HEAD as ${hash.slice(0, 7)} — ` +
+        `add it to the section or record why it needs no entry (see npm run changelog:audit)`,
+    );
+  }
 }
 
 // Version strings embedded in text files (README badges, docs JSON-LD). The
@@ -455,6 +485,7 @@ function checkHookOutput() {
 checkVersionConsistency();
 checkDescriptionConsistency();
 checkChangelog();
+checkChangelogCoverage();
 checkVersionRefs();
 checkReadmeIntegrity();
 checkConfigExamples();

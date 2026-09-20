@@ -19,8 +19,7 @@ Target version comes from `$ARGUMENTS` (e.g. `1.4.0`). If empty, ask the maintai
 for the semver bump before doing anything.
 
 **Before accepting that version, read the backlog.** Run
-`git log $(git describe --tags --abbrev=0)..HEAD --oneline` and look at what is
-actually unreleased — the bump is decided by the whole range, not by the change
+`npm run changelog:audit` and look at what is actually unreleased — the bump is decided by the whole range, not by the change
 that prompted the release. If the range contains a feature or a new platform and
 the maintainer asked for a patch, stop and say so: v1.5.1 was published, then
 deleted and re-cut as v1.6.0 because twenty unreleased commits (including a new
@@ -44,24 +43,26 @@ and every version-bearing text file.
    categorized notes (Added / Fixed / Changed) summarizing the commits since the
    last release tag. The heading MUST be `## [<version>] - YYYY-MM-DD` —
    `npm run validate` parses that exact shape and fails on a bare `## <version>`.
-3a. **Audit the range — every commit, no sampling.** `npm run validate` only
-   checks that a section for the new version *exists*; nothing checks that it
-   *covers* the range, so this walk is the only gate. List the commits:
+3a. **Audit the range — every commit, no sampling.** Run:
 
    ```bash
-   git log $(git describe --tags --abbrev=0)..HEAD --format='%h %an %s' --reverse
+   npm run changelog:audit
    ```
 
-   Account for each one individually — it maps to an entry you just wrote, or to
-   one of exactly three exclusions: the release bump itself, a merge commit whose
-   branch commits are already accounted for, or a bot `chore:` star-history
-   refresh. Everything else earns an entry, **including** internal hardening with
-   no user-visible behavior change (a new validator check, a test-only guard) and
-   **including** maintainer-facing doc fixes from outside contributors, who are
-   credited by `@handle`. Watch two traps: a commit that landed after the tag
-   reads as prior state when a later entry mentions it in passing, and a commit
-   whose own message says "this belongs in the next release's changelog entry" is
-   invisible unless you read the range. Both slipped through 1.6.0.
+   It derives the range from the last tag, applies the only three exemptions
+   (the release bump, a merge commit whose branch commits are listed
+   separately, a bot `chore:` refresh) and prints the rest as a checklist.
+   Walk it: each line gets an entry you just wrote, or a reason it needs none.
+   **Nothing else is exempt** — internal hardening with no user-visible change
+   earns an entry, and so does an outside contributor's maintainer-facing fix,
+   which also earns an `@handle` credit. A `Changelog:` trailer on a commit is
+   surfaced as a flag; that commit's entry is the one you are writing now.
+
+   The script exits non-zero on the gap it can prove — a pull request in the
+   range whose `#N` the section never cites. That same check runs inside
+   `npm run validate` while a release is in progress, so it cannot be skipped;
+   the rest of the checklist is judgment and is not enforced.
+
 4. **Validate.** `npm run validate` — fails if any manifest, any version-bearing
    text file, or the CHANGELOG entry is out of sync. Fix and re-run until clean.
    Then `npm test`.

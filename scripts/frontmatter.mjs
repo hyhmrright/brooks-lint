@@ -84,6 +84,19 @@ export function extractChangelogVersion(text) {
 }
 
 /**
+ * Extract the newest release section from CHANGELOG.md — everything from the
+ * first `## [version] - date` heading up to the next one. Returns "" when the
+ * file has no version heading at all.
+ */
+export function extractChangelogSection(text) {
+  const body = normalizeNewlines(text);
+  const headings = [...body.matchAll(/^## \[.+?\] - /gm)];
+  if (headings.length === 0) return "";
+  // slice(start, undefined) runs to the end — the newest-is-only-section case.
+  return body.slice(headings[0].index, headings[1]?.index);
+}
+
+/**
  * Extract step labels from a guide file.
  * Matches: ### Step 1, ### Step 2a, ### Step 6b, ### Step 0, etc.
  * Returns: ["1", "2a", "6b", ...] — the label portion only.
