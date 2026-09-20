@@ -52,6 +52,19 @@ All notable changes to brooks-lint are documented here.
   READMEs and `docs/getting-started.md`. Contributed by
   [@asotobu](https://github.com/asotobu).
 
+- **Platform docs and installer mappings are cross-checked** — `scripts/platforms.mjs`
+  parses `install.sh` so both checks derive their inputs instead of restating them.
+  `checkPlatformDocs()` requires every `docs/<name>-setup.md` to be linked from all
+  six READMEs and `docs/getting-started.md`, and every setup link in those documents
+  to resolve to a guide that exists; `checkInstallerPlatforms()` requires `PLATFORMS`
+  and the `global_dir()` / `project_dir()` case tables to cover each other, so a
+  platform can no longer be listed without a path mapping (`install.sh <platform>`
+  would die with "unknown platform") or mapped without appearing in `--list`. Adding
+  dsh had meant hand-syncing nine places with nothing checking any of them. Verified
+  by mutation rather than by a green run: dropping the dsh link from `README.ko.md`
+  and `README.es.md`, and deleting the dsh arm from `project_dir()`, each produce the
+  specific expected failure.
+
 - **`api-base-url` input on the GitHub Action** — the Anthropic SDK already reads
   `ANTHROPIC_BASE_URL`, so `ci-review.mjs` could target any Anthropic-compatible
   `/v1/messages` endpoint; the Action was the one path with no way to set it. The
@@ -107,6 +120,18 @@ All notable changes to brooks-lint are documented here.
   pilot rounds recorded in `evals/PILOT-LOG.md` as the calibration baseline. This
   is separate from the 57-scenario `evals/evals.json` suite and the frozen parser
   benchmark; it measures the plugin end to end in Claude Code.
+
+- **The maintainer docs no longer understate what `npm run bump` rewrites** ([#25]) —
+  four spots in `CLAUDE.md` and the release skill still called it "the README badge",
+  singular, which is the exact assumption that let the localized badges and the docs
+  JSON-LD go stale; the release instructions separately named a single README to
+  stage, which would leave six modified files out of a release commit. Both now defer
+  to `git status` and to every version-bearing text file discovered from disk by
+  `scripts/version-refs.mjs`, phrased so a new translation or docs page needs no edit
+  here. Contributed by [@2233admin](https://github.com/2233admin), with a follow-up
+  sweep of the three spots that pass missed.
+
+[#25]: https://github.com/hyhmrright/brooks-lint/pull/25
 
 ## [1.5.0] - 2026-08-14
 
