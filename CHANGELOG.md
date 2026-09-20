@@ -2,6 +2,112 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [1.5.1] - 2026-09-20
+
+### Added
+
+- **OpenCode v2 lists all six modes in its `/` menu** (#31, #34) — every
+  `SKILL.md` frontmatter now carries `metadata.opencode/slash: "true"`, the opt-in
+  OpenCode v2 reads through
+  `metadataBoolean(frontmatter.metadata, "opencode/slash")` (`skill-file.ts:45`).
+  With it, `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`,
+  `/brooks-health` and `/brooks-sweep` appear in the `/` popup and run the skill
+  directly; without it a skill is reachable only through `/skills` or `@name`.
+
+  Slash-command wrappers are deliberately **not** shipped. PR #34 proposed six of
+  them under `commands/opencode/`, but on v2 a command that shares a skill's name
+  *shadows* it: the TUI's `/` popup skips skills already registered as commands
+  (`autocomplete.tsx:526`) and submit resolves `isCommand` before `isSkill`
+  (`index.tsx:1292`) — so the wrapper would hide the very skill it exists to
+  expose. The frontmatter opt-in is OpenCode's own supported path and adds no
+  files to install or keep in sync.
+
+  On OpenCode 1.x the flag is ignored, and 1.x is still what npm `latest`
+  installs (`opencode-ai` `dist-tags.latest` is on the 1.18.x line, with no
+  `latest-2` tag). There, use `/skills` → pick, or type `/brooks-review`
+  **followed by a space** — a bare `/brooks-review` plus Enter is swallowed by the
+  `/` popup. All six READMEs now scope the auto-register claim to **v2**, and
+  [`docs/opencode-setup.md`](docs/opencode-setup.md) is rewritten for v2 with the
+  1.x fallback and the shadowing caveat spelled out.
+
+  Thanks to **[@rapcal](https://github.com/rapcal)**, whose screenshots disproved
+  the maintainer's claim that a bare `/brooks-review` already worked on 1.x, and
+  whose pointer to the v2 docs found the flag this release uses instead.
+
+- **`npm run validate` now fails when a skill ships without the OpenCode opt-in**
+  — `checkOpencodeSlashFlag()` in `validate-repo.mjs` reads `skills/*/SKILL.md`
+  from disk (so an unregistered skill folder is caught too, and `_shared/` is
+  skipped by construction since it has no `SKILL.md`), backed by
+  `hasOpencodeSlashFlag()` in `frontmatter.mjs`, which parses the `metadata:`
+  block and accepts both `"true"` and YAML's bare `true`. No other platform reads
+  the flag, so nothing else would fail — this check is the only thing standing
+  between a seventh skill and a silently missing `/brooks-*` on OpenCode. Seven
+  unit tests cover it, and the authoring rule is recorded in `CLAUDE.md`,
+  `AGENTS.md` and `GEMINI.md` so all three agent-facing docs carry it.
+
+- **IBM Bob (`bob`) support** (#32, #33) — `./scripts/install.sh bob` installs
+  into `~/.bob/skills` (`--project` targets `./.bob/skills`); Bob also reads
+  `AGENTS.md`, so the Iron Law and Health Score rules load with it. New guide at
+  [`docs/bob-setup.md`](docs/bob-setup.md), linked and enumerated across all six
+  READMEs and `docs/getting-started.md`. Contributed by
+  [@asotobu](https://github.com/asotobu).
+
+- **`api-base-url` input on the GitHub Action** — the Anthropic SDK already reads
+  `ANTHROPIC_BASE_URL`, so `ci-review.mjs` could target any Anthropic-compatible
+  `/v1/messages` endpoint; the Action was the one path with no way to set it. The
+  input is deliberately generic rather than naming a gateway — one vendor-neutral
+  knob covers self-hosted proxies, LLM gateways and regional mirrors, and keeps
+  vendor-specific model-id remapping out of the repo. It is exported only when
+  non-empty, so an `ANTHROPIC_BASE_URL` inherited from the job environment is not
+  blanked out by an unset input. Documented in all six READMEs and the workflow
+  example, including the note that the diff is sent to whatever host is named.
+
+### Fixed
+
+- **A platform could ship half-documented with a green build** — `checkPlatformDocs`
+  only required each `docs/<name>-setup.md` to be linked from all seven platform
+  documents. IBM Bob satisfied that on arrival and still shipped with its name
+  missing from the `<platform> = …` enumeration in five of the six READMEs, plus
+  stale "nine platforms" counts. Validation now also requires every `PLATFORMS`
+  entry to appear in each document's enumeration line — the one place worth
+  checking, because a bare mention elsewhere proves nothing (a table row's
+  `~/.bob/skills` already contains "bob"). Scoping to that line meant the six
+  READMEs had to stop omitting `claude`, which was an inconsistency rather than a
+  rule, so the check needs no exemption list.
+
+- **The CI reviewer silently produced an empty report against some endpoints** —
+  `message.content[0]` is only the report when the model returns text first. An
+  endpoint that emits a thinking block ahead of it — which the new `api-base-url`
+  input makes reachable — left the report empty and the Health Score `null` with
+  no error to show for it. Both scripts now take the first *text* block.
+
+- **The star-history chart is first-party and deterministic** — GitHub restricted
+  the stargazers API to a repository's own admins and collaborators (announced
+  2026-06-30), so the third-party chart endpoint rendered as a broken panel in all
+  six READMEs. The raw `starred_at` timestamps (no usernames) now live in
+  `assets/star-history.json` and `assets/star-history.svg` is a pure function of
+  them, re-rendered and compared by `npm run validate`, so a hand-edited SVG fails
+  the build. That rewrite also fixed a real defect: `render()` anchored the time
+  axis to `Date.now()`, so every x coordinate shifted on every run and the weekly
+  workflow's "commit only when the chart moved" guard could never skip. The axis
+  now ends at the newest star.
+
+### Changed
+
+- **`commands/` is Claude Code and Gemini only again** — the six short-form
+  wrappers there are untouched and still installed by the session-start hook; the
+  OpenCode copies PR #34 added, along with the `install.sh` and `platforms.mjs`
+  plumbing that carried them, are gone in favour of the frontmatter opt-in above.
+  `frontmatterBlock()` was extracted in `frontmatter.mjs` rather than repeating the
+  fence regex a third time.
+
+- **A `claude plugin eval` suite for brooks-review** — seven cases under `evals/`
+  (two real PRs, a two-file rule drift, two tradeoff/false-positive guards and two
+  should-not-fire negatives), each run with and without the plugin, plus four
+  pilot rounds recorded in `evals/PILOT-LOG.md` as the calibration baseline. This
+  is separate from the 57-scenario `evals/evals.json` suite and the frozen parser
+  benchmark; it measures the plugin end to end in Claude Code.
+
 ## [1.5.0] - 2026-08-14
 
 ### Added
