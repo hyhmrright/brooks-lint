@@ -243,6 +243,11 @@ function truncate(text, width) {
   return text.length <= width ? text : `${text.slice(0, width - 1)}…`;
 }
 
+/** `1 commit` / `2 commits` — a count that reads as English at either end. */
+export function plural(count, noun) {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
 /**
  * Render the audit as a walkable checklist. Returns the lines to print.
  *
@@ -250,8 +255,12 @@ function truncate(text, width) {
  * where an uncited pull request describes a backlog rather than a defect.
  */
 export function report(range, entries, sectionHeading, { enforce = true } = {}) {
+  // Handled here rather than in the CLI so the wording right after a release —
+  // the most common moment to run this — is reachable from a test.
+  if (entries.length === 0) return [`Nothing to audit — ${range} is empty.`];
+
   const target = enforce ? `CHANGELOG.md § ${sectionHeading}` : "the next release's section";
-  const lines = [`Changelog audit — ${entries.length} commits in ${range}, against ${target}`];
+  const lines = [`Changelog audit — ${plural(entries.length, "commit")} in ${range}, against ${target}`];
   const exempt = entries.filter((entry) => entry.exempt);
   const walk = entries.filter((entry) => !entry.exempt);
 
@@ -275,12 +284,14 @@ export function report(range, entries, sectionHeading, { enforce = true } = {}) 
 
   const gaps = entries.filter((entry) => entry.gap);
   lines.push("");
-  lines.push(
-    gaps.length === 0
-      ? `  Every pull request in the range is cited. The ${walk.length} lines above still need your eyes.`
-      : `  FAIL: ${gaps.length} pull request(s) merged in this range are never cited in § ${sectionHeading}:`,
-  );
-  for (const gap of gaps) lines.push(`    #${gap.pr}  ${gap.hash.slice(0, 7)}  ${truncate(gap.subject, 60)}`);
+  if (gaps.length > 0) {
+    lines.push(`  FAIL: § ${sectionHeading} never cites ${plural(gaps.length, "pull request")} merged in this range:`);
+    for (const gap of gaps) lines.push(`    #${gap.pr}  ${gap.hash.slice(0, 7)}  ${truncate(gap.subject, 60)}`);
+  } else if (walk.length === 0) {
+    lines.push("  Every commit in the range is exempt — nothing to walk.");
+  } else {
+    lines.push("  Every pull request in the range is cited. The checklist above still needs your eyes.");
+  }
   return lines;
 }
 
@@ -305,7 +316,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // the steady state of a documented command is not a standing failure.
   const enforce = !isTagged(version, root);
   if (!enforce) {
-    console.log(`No release in progress (v${version} is tagged). These ${entries.length} commits are the next release's range:\n`);
+    console.log(`No release in progress (v${version} is tagged) — this is the next release's backlog:\n`);
   }
   console.log(report(`${tag}..HEAD`, entries, heading, { enforce }).join("\n"));
   process.exit(enforce && entries.some((entry) => entry.gap) ? 1 : 0);

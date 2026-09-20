@@ -36,6 +36,7 @@ import {
   isTagged,
   lastTag,
   parseCommitLog,
+  plural,
   pullRequestOf,
   report,
 } from "./changelog-audit.mjs";
@@ -1455,7 +1456,9 @@ test("report names every uncited pull request in its FAIL line", () => {
       }),
   );
   const lines = report("v1.5.0..HEAD", auditRange(commits, "## [1.6.0] - 2026-09-20\n\n- nothing\n"), "[1.6.0]").join("\n");
-  assert.match(lines, /FAIL: 1 pull request/);
+  assert.match(lines, /Changelog audit — 2 commits in/, "the plural branch is read, not just the singular one");
+  assert.match(lines, /FAIL: § \[1\.6\.0\] never cites 1 pull request merged/);
+  assert.doesNotMatch(lines, /1 pull requests|2 commit /, "neither branch may pluralize the other's way");
   assert.match(lines, /#25/);
   assert.match(lines, /no entry needed \(1\)/, "the bot chore is reported as exempt, not as a line to walk");
 });
@@ -1463,8 +1466,41 @@ test("report names every uncited pull request in its FAIL line", () => {
 test("report says so when nothing is provably missing", () => {
   const commits = parseCommitLog(logRecord({ subject: "feat: add IBM Bob support (#33)" }));
   const lines = report("v1.5.0..HEAD", auditRange(commits, "## [1.6.0]\n\n- Bob (#33)\n"), "[1.6.0]").join("\n");
-  assert.match(lines, /Every pull request in the range is cited/);
+  assert.match(lines, /Every pull request in the range is cited\. The checklist above still needs your eyes\./);
   assert.equal(lines.includes("FAIL"), false);
+  // One commit, so a count in this sentence could only ever read "1 lines".
+  assert.match(lines, /Changelog audit — 1 commit in v1\.5\.0\.\.HEAD/);
+  assert.doesNotMatch(lines, /1 commits|1 lines/);
+});
+
+test("plural reads as English at zero, one and many", () => {
+  // The helper exists only to get both branches right; a test that reads one
+  // branch would ship the mirror image of the bug it was added to fix.
+  assert.equal(plural(0, "commit"), "0 commits");
+  assert.equal(plural(1, "commit"), "1 commit");
+  assert.equal(plural(2, "commit"), "2 commits");
+  assert.equal(plural(1, "pull request"), "1 pull request");
+  assert.equal(plural(3, "pull request"), "3 pull requests");
+});
+
+test("report says there is nothing to audit when the range is empty", () => {
+  // The state right after a release, and the most common moment to run this.
+  assert.deepEqual(report("v1.7.0..HEAD", [], "[1.7.0]"), [
+    "Nothing to audit — v1.7.0..HEAD is empty.",
+  ]);
+});
+
+test("report says so when a range holds nothing but exempt commits", () => {
+  const commits = parseCommitLog(
+    logRecord({
+      author: "github-actions[bot]",
+      subject: "chore: refresh the star history chart",
+      files: ["assets/star-history.svg", "assets/star-history.json"],
+    }),
+  );
+  const lines = report("v1.6.0..HEAD", auditRange(commits, "## [1.7.0]\n\n- nothing\n"), "[1.7.0]").join("\n");
+  assert.match(lines, /Every commit in the range is exempt/);
+  assert.doesNotMatch(lines, /checklist above/, "there is no checklist when every commit is exempt");
 });
 
 test("extractChangelogSection returns an empty string when there is no release heading", () => {

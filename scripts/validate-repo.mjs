@@ -16,7 +16,7 @@ import {
 } from "./frontmatter.mjs";
 import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
 import { versionRefs } from "./version-refs.mjs";
-import { coverageVerdict } from "./changelog-audit.mjs";
+import { coverageVerdict, plural } from "./changelog-audit.mjs";
 import {
   platformDocs,
   setupGuides,
@@ -127,7 +127,7 @@ function checkChangelogCoverage() {
   // spelled out because the gate proves each merged pull request's number
   // appears somewhere in the section, never that an entry was written.
   console.log(
-    `Changelog coverage: audited ${verdict.commitCount} commits in ${verdict.range} — ` +
+    `Changelog coverage: audited ${plural(verdict.commitCount, "commit")} in ${verdict.range} — ` +
       `pull-request citations only; walk the rest with npm run changelog:audit.`,
   );
   for (const gap of verdict.errors) check(false, gap);
