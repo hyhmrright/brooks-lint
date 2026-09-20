@@ -300,7 +300,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [설정](docs/dsh-setup.md) |
 | IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [설정](docs/bob-setup.md) |
 
-Kiro, Factory Droid, DeepSeek Harness는 `/brooks-review`도 자동 등록합니다. 스킬이 처음이거나 위
+OpenCode, Kiro, Factory Droid, DeepSeek Harness는 `/brooks-review`도 자동 등록합니다. 스킬이 처음이거나 위
 목록에 없는 에이전트를 쓰시나요? **[docs/getting-started.md](docs/getting-started.md)**를 참고하세요.
 
 > **🧪 검증 상태.** Claude Code, Gemini CLI, Codex CLI는 메인테이너가 검증했습니다. 위
@@ -324,9 +324,10 @@ Kiro, Factory Droid, DeepSeek Harness는 `/brooks-review`도 자동 등록합니
 
 **플랫폼별 문법.** Claude Code는 네임스페이스가 붙은 전체 형식 `/brooks-lint:brooks-review`도 받습니다
 — 짧은 형식은 session-start 훅이 첫 세션 시작 시 자동 설치합니다. Codex CLI는 `$brooks-review`를 씁니다.
-Gemini CLI는 위 표 그대로입니다. OpenCode, Cursor, Antigravity, pi, DeepSeek Harness는 각 스킬의
-`description`에서 Agent Skills를 호출하므로 그냥 요청하면 됩니다（"이 PR을 리뷰해줘", "우리 최악의 기술
-부채는 어디야?"）. 명시적 호출이 필요하면 각 플랫폼의 문법을 쓰세요（pi는 각 스킬을
+Gemini CLI는 위 표 그대로입니다. OpenCode는 설치기가 명령 래퍼를 설치한 뒤 위 표 그대로 쓸 수 있습니다
+（`~/.config/opencode/command/`, `--project`면 `.opencode/command/`）. Cursor, Antigravity, pi, DeepSeek
+Harness는 각 스킬의 `description`에서 Agent Skills를 호출하므로 그냥 요청하면 됩니다（"이 PR을 리뷰해줘",
+"우리 최악의 기술 부채는 어디야?"）. 명시적 호출이 필요하면 각 플랫폼의 문법을 쓰세요（pi는 각 스킬을
 `/skill:brooks-review`로 등록; dsh는 위 표 그대로이며 `/` 메뉴에서 고르거나 직접 입력）. 모든
 플랫폼에서 코드 품질, 아키텍처, 테스트 건강을 이야기하면 스킬이 자동으로 트리거됩니다.
 
@@ -400,7 +401,7 @@ brooks-lint/
 │   ├── brooks-health/    # 모드 5: 건강 대시보드      → health-guide.md
 │   └── brooks-sweep/     # 모드 6: 전면 스윕          → sweep-guide.md
 ├── hooks/                # SessionStart 훅
-├── commands/             # 짧은 명령 래퍼（훅이 자동 설치）
+├── commands/             # 짧은 명령 래퍼（Claude 훅 + OpenCode 설치기）
 ├── evals/                # 57 시나리오 eval 스위트 + 동결된 파서 충실도 코퍼스
 └── assets/               # 로고, 배너, 데모
 ```

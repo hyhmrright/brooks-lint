@@ -302,7 +302,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 | DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [設定](docs/dsh-setup.md) |
 | IBM Bob（`bob`） | `~/.bob/skills` | `AGENTS.md` | [設定](docs/bob-setup.md) |
 
-Kiro、Factory Droid、DeepSeek Harness は `/brooks-review` も自動登録します。スキルが初めて、または
+OpenCode、Kiro、Factory Droid、DeepSeek Harness は `/brooks-review` も自動登録します。スキルが初めて、または
 上記にないエージェントをお使いですか？ **[docs/getting-started.md](docs/getting-started.md)** を参照してください。
 
 > **🧪 検証状況。** Claude Code、Gemini CLI、Codex CLI はメンテナーによって検証済みです。上記の十の
@@ -325,11 +325,12 @@ Kiro、Factory Droid、DeepSeek Harness は `/brooks-review` も自動登録し�
 
 **プラットフォーム別の構文。** Claude Code は名前空間付きの完全形 `/brooks-lint:brooks-review` も受け付けます
 ——短縮形は session-start フックが最初のセッション開始時に自動インストールします。Codex CLI は
-`$brooks-review`。Gemini CLI は上の表のとおり。OpenCode、Cursor、Antigravity、pi、DeepSeek Harness は
-各スキルの `description` から Agent Skills を呼び出すので、話しかけるだけで十分です（「この PR をレビューして」
-「最悪の技術的負債はどこ？」）。明示的に呼び出す場合は各プラットフォームの構文を使います（pi は各スキルを
-`/skill:brooks-review` として登録。dsh は上の表のとおりで、`/` メニューから選ぶか直接入力）。どの
-プラットフォームでも、コード品質・アーキテクチャ・テストの健全性に
+`$brooks-review`。Gemini CLI は上の表のとおり。OpenCode は、インストーラーがコマンドラッパーを配置した
+時点で上の表のとおりに使えます（`~/.config/opencode/command/`、`--project` なら `.opencode/command/`）。
+Cursor、Antigravity、pi、DeepSeek Harness は各スキルの `description` から Agent Skills を呼び出すので、
+話しかけるだけで十分です（「この PR をレビューして」「最悪の技術的負債はどこ？」）。明示的に呼び出す場合は
+各プラットフォームの構文を使います（pi は各スキルを `/skill:brooks-review` として登録。dsh は上の表のとおりで、
+`/` メニューから選ぶか直接入力）。どのプラットフォームでも、コード品質・アーキテクチャ・テストの健全性に
 ついて話すと、スキルは自動的にトリガーされます。
 
 > PR レビューには軽量な Step 7 クイックテストチェックが自動的に含まれます（ドキュメントのみの diff では
@@ -402,7 +403,7 @@ brooks-lint/
 │   ├── brooks-health/    # モード 5：健全性ダッシュボード → health-guide.md
 │   └── brooks-sweep/     # モード 6：全面スイープ         → sweep-guide.md
 ├── hooks/                # SessionStart フック
-├── commands/             # 短縮コマンドのラッパー（フックが自動インストール）
+├── commands/             # 短縮ラッパー（Claude フック + OpenCode インストーラー）
 ├── evals/                # 57 シナリオの eval スイート + 凍結されたパーサー忠実度コーパス
 └── assets/               # ロゴ、バナー、デモ
 ```
