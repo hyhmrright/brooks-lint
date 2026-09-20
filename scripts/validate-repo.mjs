@@ -122,6 +122,14 @@ function checkChangelogCoverage() {
     console.log(`Changelog coverage: not audited — ${verdict.skipped}.`);
     return;
   }
+  // Every audited run is announced, not only the failing ones — the range is
+  // context for a failure and the only proof of life on a pass. The scope is
+  // spelled out because the gate proves each merged pull request's number
+  // appears somewhere in the section, never that an entry was written.
+  console.log(
+    `Changelog coverage: audited ${verdict.commitCount} commits in ${verdict.range} — ` +
+      `pull-request citations only; walk the rest with npm run changelog:audit.`,
+  );
   for (const gap of verdict.errors) check(false, gap);
 }
 

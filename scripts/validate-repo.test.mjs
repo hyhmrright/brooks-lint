@@ -1352,6 +1352,30 @@ test("coverageVerdict reports an uncited pull request while a release is in prog
   });
 });
 
+test("coverageVerdict reports what it audited, so a clean pass is not silent", () => {
+  // The gate proves only that each merged pull request's number appears in the
+  // section. Without these fields validate-repo prints nothing on the one path
+  // that actually audits, and an unwalked checklist reads as a complete one.
+  withTempRepo(({ dir, git, commit }) => {
+    commit("first");
+    git("tag", "v0.1.0");
+    commit("docs: a contributor fix (#25)");
+    commit("chore: unrelated");
+    // Exempt, and still counted: report() heads its checklist with the whole
+    // range, so counting only what needs an entry would make the two commands
+    // disagree about how long the checklist is.
+    commit("chore(release): bump version to 0.2.0");
+    const verdict = coverageVerdict({
+      version: "0.2.0",
+      cwd: dir,
+      changelog: "## [0.2.0] - 2026-09-20\n\n- credits #25\n",
+    });
+    assert.deepEqual(verdict.errors, []);
+    assert.equal(verdict.range, "v0.1.0..HEAD");
+    assert.equal(verdict.commitCount, 3);
+  });
+});
+
 test("coverageVerdict stands down once the version is tagged", () => {
   // Wiring this guard backwards would audit between releases and never during
   // one — the precise failure the check exists to prevent.

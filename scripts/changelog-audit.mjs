@@ -190,7 +190,8 @@ export function auditRange(commits, section) {
 }
 
 /**
- * The release-time coverage verdict for a repository, as `{ skipped, errors }`.
+ * The release-time coverage verdict for a repository, as `{ skipped, errors }`,
+ * plus `{ range, commitCount }` on the one path that actually audits.
  *
  * Lives here rather than inside validate-repo.mjs so it can be pointed at a
  * throwaway repository and tested: validate-repo.mjs resolves its root from
@@ -199,7 +200,10 @@ export function auditRange(commits, section) {
  *
  * `skipped` names why the audit did not run, and is null when it did. Callers
  * must say so out loud — a gate whose off-state looks exactly like its pass
- * is the silence this whole check exists to remove.
+ * is the silence this whole check exists to remove. `range` and `commitCount`
+ * are the facts that announcement needs, and are present only when `skipped`
+ * is null. `commitCount` counts the whole range, exemptions included, so it
+ * matches the count `report()` heads its checklist with.
  */
 export function coverageVerdict({ version, cwd, changelog }) {
   if (!isRepoRoot(cwd)) return { skipped: `${cwd} is not a git work tree root`, errors: [] };
@@ -217,9 +221,12 @@ export function coverageVerdict({ version, cwd, changelog }) {
   const tag = lastTag(cwd);
   if (tag === null) return { skipped: "no release tag is reachable from HEAD", errors: [] };
 
+  const commits = commitsSince(tag, cwd);
   return {
     skipped: null,
-    errors: auditRange(commitsSince(tag, cwd), section)
+    range: `${tag}..HEAD`,
+    commitCount: commits.length,
+    errors: auditRange(commits, section)
       .filter((entry) => entry.gap)
       .map(
         (entry) =>
