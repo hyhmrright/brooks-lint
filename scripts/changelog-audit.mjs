@@ -13,11 +13,12 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { extractChangelogSection } from "./frontmatter.mjs";
+import { STAR_HISTORY_FILES } from "./gen-star-history.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -46,13 +47,27 @@ function gitOrNull(args, cwd) {
  * a fresh repo or a shallow CI clone fetched without tags. Callers report the
  * skip rather than failing, because an unknowable range is not a gap.
  *
- * Matched against `v*` because that is the shape the release process creates
+ * Matched against `v[0-9]*` because that is the shape the release process creates
  * (`gh release create v<version>`). Without the filter any other tag — a
  * `nightly-*`, an experiment — would win `describe` and silently collapse the
  * range to nothing, turning this whole gate into a vacuous pass.
  */
+/**
+ * True when `cwd` is itself a git work tree root. git discovery walks upwards,
+ * so a de-gitted copy of this repo sitting inside another one would otherwise
+ * derive its range from the OUTER repo's tags — a nonsense range reported as
+ * fact. An explicit skip beats a confident wrong answer.
+ */
+export function isRepoRoot(cwd) {
+  const toplevel = gitOrNull(["rev-parse", "--show-toplevel"], cwd);
+  // Both sides go through realpath: git always reports a resolved path, while
+  // the caller's may cross a symlink (every macOS /var/folders temp dir does).
+  // Comparing them raw would skip the audit on a path that is in fact the root.
+  return toplevel !== null && realpathSync(toplevel) === realpathSync(cwd);
+}
+
 export function lastTag(cwd) {
-  return gitOrNull(["describe", "--tags", "--abbrev=0", "--match", "v*"], cwd);
+  return gitOrNull(["describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"], cwd);
 }
 
 /** True when `v<version>` exists, i.e. the version has already been released. */
@@ -60,23 +75,34 @@ export function isTagged(version, cwd) {
   return gitOrNull(["rev-parse", "--verify", `refs/tags/v${version}`], cwd) !== null;
 }
 
-const LOG_FORMAT = ["%H", "%an", "%P", "%s", "%b"].join(FIELD) + RECORD;
+// RECORD leads each commit and a trailing FIELD closes the body, so that
+// `--name-only`'s file list — which git appends after the format — arrives as
+// a field of its own instead of running into the next commit.
+const LOG_FORMAT = RECORD + ["%H", "%an", "%P", "%s", "%b", ""].join(FIELD);
 
-/** Parse `git log --format=LOG_FORMAT` output into commit records. */
+/** Parse `git log --format=LOG_FORMAT --name-only` output into commit records. */
 export function parseCommitLog(stdout) {
   return stdout
     .split(RECORD)
-    .map((record) => record.replace(/^\n/, ""))
     .filter((record) => record.length > 0)
     .map((record) => {
-      const [hash, author, parents, subject, body] = record.split(FIELD);
-      return { hash, author, parents: parents.split(" ").filter(Boolean), subject, body };
+      const [hash, author, parents, subject, body, files = ""] = record.split(FIELD);
+      return {
+        hash,
+        author,
+        parents: parents.split(" ").filter(Boolean),
+        subject,
+        body,
+        files: files.split("\n").filter(Boolean),
+      };
     });
 }
 
-/** Every commit in `<ref>..HEAD`, oldest first. */
+/** Every commit in `<ref>..HEAD`, oldest first, with the files each touched. */
 export function commitsSince(ref, cwd) {
-  return parseCommitLog(git(["log", `${ref}..HEAD`, `--format=${LOG_FORMAT}`, "--reverse"], cwd));
+  return parseCommitLog(
+    git(["log", `${ref}..HEAD`, `--format=${LOG_FORMAT}`, "--name-only", "--reverse"], cwd),
+  );
 }
 
 /**
@@ -89,8 +115,24 @@ export function commitsSince(ref, cwd) {
 export function exemption(commit) {
   if (commit.parents.length > 1) return "merge — its branch commits are listed separately";
   if (/^chore\(release\): bump version to /.test(commit.subject)) return "release bump";
-  if (/\[bot\]$/.test(commit.author) && /^chore(\([^)]*\))?: /.test(commit.subject)) return "bot chore";
+  if (isStarHistoryRefresh(commit)) return "star history refresh";
   return null;
+}
+
+/**
+ * The weekly chart refresh: a bot commit touching the two files the chart owns
+ * and nothing else.
+ *
+ * Judged by what it changed, not by how it is titled. `[bot]` + `chore:` was a
+ * proxy wide enough to swallow a `dependabot[bot]` `chore(deps): bump …`, and
+ * a dependency bump is a change this repo's changelog records.
+ */
+function isStarHistoryRefresh(commit) {
+  return (
+    /\[bot\]$/.test(commit.author) &&
+    commit.files.length > 0 &&
+    commit.files.every((file) => STAR_HISTORY_FILES.includes(file))
+  );
 }
 
 /**
@@ -115,12 +157,18 @@ export function pullRequestOf(subject) {
  * quotes d4b5c40's wording and matched the phrase regex this replaced.
  */
 export function changelogTrailer(body) {
-  return body.match(/^Changelog:[ \t]*(.+?)[ \t]*$/m)?.[1] ?? null;
+  const matches = [...(body ?? "").matchAll(/^Changelog:[ \t]*(.+?)[ \t]*$/gm)];
+  return matches.at(-1)?.[1] ?? null;
 }
 
-/** Every `#N` the section cites, as numbers. */
+/**
+ * Every pull request the section cites, as numbers — written bare (`#25`, the
+ * repo's convention) or linked by URL, since a `.../pull/25` link names it just
+ * as plainly and failing on one would block a legitimate release.
+ */
 function citedPullRequests(section) {
-  return new Set([...section.matchAll(/#(\d+)/g)].map((match) => Number(match[1])));
+  const matches = [...section.matchAll(/#(\d+)|\/pull\/(\d+)/g)];
+  return new Set(matches.map((match) => Number(match[1] ?? match[2])));
 }
 
 /**
@@ -141,15 +189,62 @@ export function auditRange(commits, section) {
   });
 }
 
+/**
+ * The release-time coverage verdict for a repository, as `{ skipped, errors }`.
+ *
+ * Lives here rather than inside validate-repo.mjs so it can be pointed at a
+ * throwaway repository and tested: validate-repo.mjs resolves its root from
+ * `__dirname` and can only ever audit brooks-lint itself, which is tagged, so
+ * a test there would exercise nothing but the skip.
+ *
+ * `skipped` names why the audit did not run, and is null when it did. Callers
+ * must say so out loud — a gate whose off-state looks exactly like its pass
+ * is the silence this whole check exists to remove.
+ */
+export function coverageVerdict({ version, cwd, changelog }) {
+  if (!isRepoRoot(cwd)) return { skipped: `${cwd} is not a git work tree root`, errors: [] };
+  if (isTagged(version, cwd)) return { skipped: `v${version} is already tagged`, errors: [] };
+
+  const section = extractChangelogSection(changelog);
+  const heading = section.split("\n")[0].replace(/^## /, "").trim();
+  // The section still describes the previous release, which checkChangelog()
+  // already reports. Auditing against it would name a section that does not
+  // exist yet and tell the maintainer to add an entry to it.
+  if (!heading.startsWith(`[${version}]`)) {
+    return { skipped: `CHANGELOG.md has no [${version}] section yet`, errors: [] };
+  }
+
+  const tag = lastTag(cwd);
+  if (tag === null) return { skipped: "no release tag is reachable from HEAD", errors: [] };
+
+  return {
+    skipped: null,
+    errors: auditRange(commitsSince(tag, cwd), section)
+      .filter((entry) => entry.gap)
+      .map(
+        (entry) =>
+          `CHANGELOG.md ${heading} never cites #${entry.pr}, merged into ${tag}..HEAD as ` +
+          `${entry.hash.slice(0, 7)} — add it to the section or record why it needs no entry ` +
+          `(see npm run changelog:audit)`,
+      ),
+  };
+}
+
 // ── CLI ────────────────────────────────────────────────────────────────────
 
 function truncate(text, width) {
   return text.length <= width ? text : `${text.slice(0, width - 1)}…`;
 }
 
-/** Render the audit as a walkable checklist. Returns the lines to print. */
-export function report(range, entries, sectionHeading) {
-  const lines = [`Changelog audit — ${entries.length} commits in ${range}, against CHANGELOG.md § ${sectionHeading}`];
+/**
+ * Render the audit as a walkable checklist. Returns the lines to print.
+ *
+ * `enforce: false` drops the pass/fail verdict, for the between-releases view
+ * where an uncited pull request describes a backlog rather than a defect.
+ */
+export function report(range, entries, sectionHeading, { enforce = true } = {}) {
+  const target = enforce ? `CHANGELOG.md § ${sectionHeading}` : "the next release's section";
+  const lines = [`Changelog audit — ${entries.length} commits in ${range}, against ${target}`];
   const exempt = entries.filter((entry) => entry.exempt);
   const walk = entries.filter((entry) => !entry.exempt);
 
@@ -161,13 +256,15 @@ export function report(range, entries, sectionHeading) {
   }
 
   if (walk.length > 0) {
-    lines.push("", `  account for each of these (${walk.length}) — an entry in § ${sectionHeading}, or a reason it needs none:`);
+    lines.push("", `  account for each of these (${walk.length}) — an entry in ${target}, or a reason it needs none:`);
     for (const entry of walk) {
       lines.push(`    [ ] ${entry.hash.slice(0, 7)}  ${truncate(entry.author, 14).padEnd(14)}  ${truncate(entry.subject, 56)}`);
       if (entry.trailer) lines.push(`        ⚠ Changelog: ${entry.trailer}`);
-      if (entry.gap) lines.push(`        ⚠ PR #${entry.pr} is never cited in the section`);
+      if (entry.gap && enforce) lines.push(`        ⚠ PR #${entry.pr} is never cited in the section`);
     }
   }
+
+  if (!enforce) return lines;
 
   const gaps = entries.filter((entry) => entry.gap);
   lines.push("");
@@ -181,9 +278,10 @@ export function report(range, entries, sectionHeading) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const tag = lastTag(root);
+  const { version } = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+  const tag = isRepoRoot(root) ? lastTag(root) : null;
   if (tag === null) {
-    console.log("No tag is reachable from HEAD — nothing to audit against. (Shallow clone? `git fetch --tags`.)");
+    console.log("No release tag is reachable from HEAD — nothing to audit against. (Shallow clone? `git fetch --tags`.)");
     process.exit(0);
   }
   const section = extractChangelogSection(readFileSync(path.join(root, "CHANGELOG.md"), "utf8"));
@@ -193,6 +291,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   const heading = section.split("\n")[0].replace(/^## /, "").trim();
   const entries = auditRange(commitsSince(tag, root), section);
-  console.log(report(`${tag}..HEAD`, entries, heading).join("\n"));
-  process.exit(entries.some((entry) => entry.gap) ? 1 : 0);
+
+  // Between releases the newest section is already published, so an uncited
+  // pull request is not a gap anyone can close — nobody edits a shipped
+  // section. Show the same range as the next release's backlog and exit 0, so
+  // the steady state of a documented command is not a standing failure.
+  const enforce = !isTagged(version, root);
+  if (!enforce) {
+    console.log(`No release in progress (v${version} is tagged). These ${entries.length} commits are the next release's range:\n`);
+  }
+  console.log(report(`${tag}..HEAD`, entries, heading, { enforce }).join("\n"));
+  process.exit(enforce && entries.some((entry) => entry.gap) ? 1 : 0);
 }

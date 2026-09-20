@@ -22,8 +22,11 @@ import { dirname, join } from "node:path";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 // README-only assets, so they live in assets/ alone — unlike the banners, the
 // GitHub Pages site under docs/ does not render them.
-const OUT = join(ROOT, "assets", "star-history.svg");
-const DATA = join(ROOT, "assets", "star-history.json");
+//
+// Repo-relative, and exported, because the weekly workflow's bot commits are
+// identified by touching these two files and nothing else (changelog-audit.mjs).
+export const STAR_HISTORY_FILES = ["assets/star-history.svg", "assets/star-history.json"];
+const [OUT, DATA] = STAR_HISTORY_FILES.map((rel) => join(ROOT, rel));
 
 const REPO = process.env.GITHUB_REPOSITORY ?? "hyhmrright/brooks-lint";
 

@@ -32,6 +32,7 @@ import {
   changelogTrailer,
   exemption,
   commitsSince,
+  coverageVerdict,
   isTagged,
   lastTag,
   parseCommitLog,
@@ -1082,6 +1083,14 @@ test("validate-repo.mjs exits 0 against the current repository", () => {
   // execFileSync throws on non-zero exit — reaching here means exit 0
 });
 
+test("validate-repo.mjs runs the changelog coverage check and says what it did", () => {
+  // Deleting checkChangelogCoverage() from the registration list, or inverting
+  // its release-in-progress guard, both silence this line — and a gate whose
+  // off-state is invisible is the silence this whole check exists to remove.
+  const stdout = execFileSync("node", [path.join(__dirname, "validate-repo.mjs")], { encoding: "utf8" });
+  assert.match(stdout, /Changelog coverage: (not audited — |audited)/);
+});
+
 test("validate-repo.mjs ignores an inherited CLAUDE_PLUGIN_ROOT", () => {
   // Running `npm run validate` from inside Claude Code exports CLAUDE_PLUGIN_ROOT.
   // The hook branches on that variable, so leaking it into the default-output
@@ -1100,19 +1109,24 @@ console.log("\nchangelog audit");
 const FIELD = "\x1f";
 const RECORD = "\x1e";
 
-/** Build a `git log` record the way changelog-audit.mjs asks git to format it. */
-function logRecord({ hash = "0".repeat(40), author = "hyh", parents = "abc123", subject, body = "" }) {
-  return [hash, author, parents, subject, body].join(FIELD) + RECORD;
+/**
+ * Build a `git log --name-only` record the way changelog-audit.mjs formats it:
+ * RECORD leads, and the file list follows a trailing FIELD.
+ */
+function logRecord({ hash = "0".repeat(40), author = "hyh", parents = "abc123", subject, body = "", files = [] }) {
+  const fileBlock = files.length > 0 ? `\n\n${files.join("\n")}\n` : "";
+  return RECORD + [hash, author, parents, subject, body, fileBlock].join(FIELD);
 }
 
 test("parseCommitLog keeps multi-line bodies intact", () => {
   const stdout =
-    logRecord({ hash: "a".repeat(40), subject: "first", body: "line one\n\nline two\n" }) +
+    logRecord({ hash: "a".repeat(40), subject: "first", body: "line one\n\nline two\n", files: ["a.md"] }) +
     "\n" +
     logRecord({ hash: "b".repeat(40), subject: "second" });
   const commits = parseCommitLog(stdout);
   assert.equal(commits.length, 2);
   assert.equal(commits[0].body, "line one\n\nline two\n");
+  assert.deepEqual(commits[0].files, ["a.md"]);
   assert.equal(commits[1].subject, "second");
   assert.equal(commits[1].hash, "b".repeat(40));
 });
@@ -1126,27 +1140,62 @@ test("parseCommitLog returns nothing for an empty range", () => {
   assert.deepEqual(parseCommitLog(""), []);
 });
 
-test("exemption covers merges, release bumps and bot chores", () => {
-  assert.match(exemption({ parents: ["a", "b"], author: "hyh", subject: "Merge pull request #34 from x/y" }), /merge/);
+test("exemption covers merges, release bumps and the star history refresh", () => {
   assert.match(
-    exemption({ parents: ["a"], author: "hyh", subject: "chore(release): bump version to 1.6.0" }),
+    exemption({ parents: ["a", "b"], author: "hyh", subject: "Merge pull request #34 from x/y", files: [] }),
+    /merge/,
+  );
+  assert.match(
+    exemption({ parents: ["a"], author: "hyh", subject: "chore(release): bump version to 1.6.0", files: ["package.json"] }),
     /release bump/,
   );
   assert.match(
-    exemption({ parents: ["a"], author: "github-actions[bot]", subject: "chore: refresh the star history chart" }),
-    /bot chore/,
+    exemption({
+      parents: ["a"],
+      author: "github-actions[bot]",
+      subject: "chore: refresh the star history chart",
+      files: ["assets/star-history.svg"],
+    }),
+    /star history refresh/,
   );
 });
 
 test("exemption covers nothing else — internal hardening still needs an entry", () => {
   // d4b5c40 changed no user-visible behavior and was still a 1.6.0 omission.
   assert.equal(
-    exemption({ parents: ["a"], author: "hyh", subject: "test: fail validation when a platform is documented unevenly" }),
+    exemption({
+      parents: ["a"],
+      author: "hyh",
+      subject: "test: fail validation when a platform is documented unevenly",
+      files: ["scripts/validate-repo.mjs"],
+    }),
     null,
   );
-  // A human's chore: is not a bot refresh, and a bot's non-chore is not either.
-  assert.equal(exemption({ parents: ["a"], author: "hyh", subject: "chore: tidy up" }), null);
-  assert.equal(exemption({ parents: ["a"], author: "dependabot[bot]", subject: "feat: something" }), null);
+  assert.equal(exemption({ parents: ["a"], author: "hyh", subject: "chore: tidy up", files: ["a.md"] }), null);
+});
+
+test("exemption judges a bot commit by what it changed, not by its subject", () => {
+  // `[bot]` + `chore:` was wide enough to swallow a dependency bump, which is a
+  // change this repo's changelog records.
+  assert.equal(
+    exemption({
+      parents: ["a"],
+      author: "dependabot[bot]",
+      subject: "chore(deps): bump @anthropic-ai/sdk from 1.0.0 to 1.1.0",
+      files: ["package.json", "package-lock.json"],
+    }),
+    null,
+  );
+  // Nor does the refresh's own subject exempt a commit that touched more.
+  assert.equal(
+    exemption({
+      parents: ["a"],
+      author: "github-actions[bot]",
+      subject: "chore: refresh the star history chart",
+      files: ["assets/star-history.svg", "README.md"],
+    }),
+    null,
+  );
 });
 
 test("pullRequestOf reads both GitHub merge subject conventions", () => {
@@ -1164,6 +1213,24 @@ test("changelogTrailer reads the trailer and ignores prose about one", () => {
   assert.equal(changelogTrailer("Body text.\n\nChangelog: added — platform docs are cross-checked\n"), "added — platform docs are cross-checked");
   // a1036cc quotes d4b5c40's wording; a phrase regex flagged it, a trailer does not.
   assert.equal(changelogTrailer("its own commit message asked to be carried into the next release's changelog.\n"), null);
+});
+
+test("changelogTrailer takes the commit's own trailer, not one it quotes", () => {
+  const body = [
+    "Reverting d4b5c40, whose message ended:",
+    "",
+    "Changelog: added — platform docs are cross-checked",
+    "",
+    "That entry is withdrawn.",
+    "",
+    "Changelog: removed — the platform doc cross-check",
+  ].join("\n");
+  assert.equal(changelogTrailer(body), "removed — the platform doc cross-check");
+});
+
+test("changelogTrailer tolerates a commit with no body", () => {
+  assert.equal(changelogTrailer(undefined), null);
+  assert.equal(changelogTrailer(""), null);
 });
 
 test("auditRange flags a merged pull request the section never cites", () => {
@@ -1250,6 +1317,86 @@ test("lastTag returns null when no release tag is reachable", () => {
   });
 });
 
+test("commitsSince reads the author and a real merge's two parents", () => {
+  // Swapping %an and %P in LOG_FORMAT leaves subject-only assertions green
+  // while quietly killing both exemptions, so both fields come from real git.
+  withTempRepo(({ dir, git, commit }) => {
+    commit("first");
+    git("tag", "v0.1.0");
+    git("checkout", "-q", "-b", "feature");
+    commit("feat: on a branch");
+    git("checkout", "-q", "main");
+    git("merge", "-q", "--no-ff", "feature", "-m", "Merge pull request #34 from x/y");
+    const commits = commitsSince("v0.1.0", dir);
+    const merge = commits.find((c) => c.subject.startsWith("Merge pull request"));
+    assert.equal(commits[0].author, "test", "%an must land in author, not a parent hash");
+    assert.equal(merge.parents.length, 2, "%P must land in parents");
+    assert.match(exemption(merge), /merge/);
+    assert.deepEqual(commits[0].files, ["file.txt"], "--name-only must reach the files field");
+  });
+});
+
+test("coverageVerdict reports an uncited pull request while a release is in progress", () => {
+  withTempRepo(({ dir, git, commit }) => {
+    commit("first");
+    git("tag", "v0.1.0");
+    commit("docs: a contributor fix (#25)");
+    const verdict = coverageVerdict({
+      version: "0.2.0",
+      cwd: dir,
+      changelog: "## [0.2.0] - 2026-09-20\n\n- something unrelated\n",
+    });
+    assert.equal(verdict.skipped, null);
+    assert.equal(verdict.errors.length, 1);
+    assert.match(verdict.errors[0], /never cites #25/);
+  });
+});
+
+test("coverageVerdict stands down once the version is tagged", () => {
+  // Wiring this guard backwards would audit between releases and never during
+  // one — the precise failure the check exists to prevent.
+  withTempRepo(({ dir, git, commit }) => {
+    commit("first");
+    git("tag", "v0.1.0");
+    commit("docs: a contributor fix (#25)");
+    git("tag", "v0.2.0");
+    const verdict = coverageVerdict({
+      version: "0.2.0",
+      cwd: dir,
+      changelog: "## [0.2.0] - 2026-09-20\n\n- something unrelated\n",
+    });
+    assert.match(verdict.skipped, /already tagged/);
+    assert.deepEqual(verdict.errors, []);
+  });
+});
+
+test("coverageVerdict stands down before the new section is written", () => {
+  // checkChangelog() already reports the mismatch; auditing here would tell the
+  // maintainer to add an entry to a section that does not exist yet.
+  withTempRepo(({ dir, git, commit }) => {
+    commit("first");
+    git("tag", "v0.1.0");
+    commit("docs: a contributor fix (#25)");
+    const verdict = coverageVerdict({
+      version: "0.2.0",
+      cwd: dir,
+      changelog: "## [0.1.0] - 2026-08-14\n\n- the previous release\n",
+    });
+    assert.match(verdict.skipped, /no \[0\.2\.0\] section yet/);
+    assert.deepEqual(verdict.errors, []);
+  });
+});
+
+test("coverageVerdict stands down outside a git work tree root", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "brooks-audit-"));
+  try {
+    const verdict = coverageVerdict({ version: "0.2.0", cwd: dir, changelog: "## [0.2.0] - 2026-09-20\n" });
+    assert.match(verdict.skipped, /not a git work tree root/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("extractChangelogSection returns only the newest release", () => {
   const changelog = [
     "# Changelog",
@@ -1276,7 +1423,12 @@ test("report names every uncited pull request in its FAIL line", () => {
   const commits = parseCommitLog(
     logRecord({ hash: "c".repeat(40), author: "2233admin", subject: "docs: finish the cleanup (#25)" }) +
       "\n" +
-      logRecord({ hash: "d".repeat(40), author: "github-actions[bot]", subject: "chore: refresh the star history chart" }),
+      logRecord({
+        hash: "d".repeat(40),
+        author: "github-actions[bot]",
+        subject: "chore: refresh the star history chart",
+        files: ["assets/star-history.svg"],
+      }),
   );
   const lines = report("v1.5.0..HEAD", auditRange(commits, "## [1.6.0] - 2026-09-20\n\n- nothing\n"), "[1.6.0]").join("\n");
   assert.match(lines, /FAIL: 1 pull request/);

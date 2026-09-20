@@ -49,9 +49,10 @@ and every version-bearing text file.
    npm run changelog:audit
    ```
 
-   It derives the range from the last tag, applies the only three exemptions
-   (the release bump, a merge commit whose branch commits are listed
-   separately, a bot `chore:` refresh) and prints the rest as a checklist.
+   It derives the range from the last release tag, applies the only three
+   exemptions (the release bump, a merge commit whose branch commits are listed
+   separately, and the star-history refresh — a bot commit touching only the
+   chart's own two files) and prints the rest as a checklist.
    Walk it: each line gets an entry you just wrote, or a reason it needs none.
    **Nothing else is exempt** — internal hardening with no user-visible change
    earns an entry, and so does an outside contributor's maintainer-facing fix,
@@ -60,8 +61,12 @@ and every version-bearing text file.
 
    The script exits non-zero on the gap it can prove — a pull request in the
    range whose `#N` the section never cites. That same check runs inside
-   `npm run validate` while a release is in progress, so it cannot be skipped;
-   the rest of the checklist is judgment and is not enforced.
+   `npm run validate` while a release is in progress, so it cannot be skipped,
+   and validate prints one line whenever it stands down. The rest of the
+   checklist is judgment and is not enforced. A green audit is not proof of a
+   complete changelog: a bare `#N` anywhere in the section clears the gate, a
+   rebase-merged PR leaves nothing to match, and anything staged into the
+   release bump itself is never audited. See CLAUDE.md's Release Process.
 
 4. **Validate.** `npm run validate` — fails if any manifest, any version-bearing
    text file, or the CHANGELOG entry is out of sync. Fix and re-run until clean.

@@ -8,7 +8,6 @@ import {
   countBookSections,
   countProductionRisks,
   countTestRisks,
-  extractChangelogSection,
   extractChangelogVersion,
   extractGuideStepLabels,
   hasOpencodeSlashFlag,
@@ -17,7 +16,7 @@ import {
 } from "./frontmatter.mjs";
 import { GUIDE_BY_MODE, VALID_MODES } from "./assemble-prompt.mjs";
 import { versionRefs } from "./version-refs.mjs";
-import { auditRange, commitsSince, isTagged, lastTag } from "./changelog-audit.mjs";
+import { coverageVerdict } from "./changelog-audit.mjs";
 import {
   platformDocs,
   setupGuides,
@@ -107,32 +106,23 @@ function checkChangelog() {
   );
 }
 
-// A release is in progress exactly when package.json's version has no tag yet
-// — the one moment at which the commits since the last tag are the ones the
-// new CHANGELOG section must cover. Between releases the version is already
-// tagged and this is a no-op, so the audit never nags during normal work.
+// Changelog COVERAGE, as distinct from checkChangelog()'s existence check.
+// The audit runs only while a release is in progress — derived as "this
+// version has no tag yet" — so it never nags during normal work. Only the
+// provable gap fails: a pull request merged in the range whose number the
+// section never cites. Everything else is judgment and belongs to the
+// maintainer walking `npm run changelog:audit`.
 //
-// Only the provable gap fails here: a pull request merged in the range whose
-// number the section never cites. Everything else is judgment and belongs to
-// the maintainer walking `npm run changelog:audit`.
+// The skip is announced rather than silent. Plain `npm version <v>` tags as it
+// commits, and a tag deleted on the remote can survive locally; either would
+// switch this check off, and an unannounced off-state reads exactly like a pass.
 function checkChangelogCoverage() {
-  if (isTagged(version, root)) return;
-  const tag = lastTag(root);
-  if (tag === null) {
-    console.warn(
-      "Note: no tag reachable from HEAD, so changelog coverage was not audited.\n" +
-        "      CI needs actions/checkout with fetch-depth: 0 for this check to run.",
-    );
+  const verdict = coverageVerdict({ version, cwd: root, changelog: readText("CHANGELOG.md") });
+  if (verdict.skipped !== null) {
+    console.log(`Changelog coverage: not audited — ${verdict.skipped}.`);
     return;
   }
-  const section = extractChangelogSection(readText("CHANGELOG.md"));
-  for (const { gap, pr, hash } of auditRange(commitsSince(tag, root), section)) {
-    check(
-      !gap,
-      `CHANGELOG.md [${version}] never cites #${pr}, merged into ${tag}..HEAD as ${hash.slice(0, 7)} — ` +
-        `add it to the section or record why it needs no entry (see npm run changelog:audit)`,
-    );
-  }
+  for (const gap of verdict.errors) check(false, gap);
 }
 
 // Version strings embedded in text files (README badges, docs JSON-LD). The

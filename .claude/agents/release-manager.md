@@ -29,12 +29,15 @@ the Skill tool with the target version, or follow these steps directly):
 3. **Write the changelog.** Add a `## <version>` section at the top of CHANGELOG.md
    with Added / Fixed / Changed notes summarizing `git log <last-tag>..HEAD --oneline`.
 3a. **Audit the range.** `npm run changelog:audit` — it derives the range from the
-   last tag, applies the only three exemptions (release bump, merge commit, bot
-   `chore:` refresh) and prints the rest as a checklist. Walk every line: an entry,
+   last release tag, applies the only three exemptions (release bump, merge commit,
+   and the star-history refresh, judged by the files it touched) and prints the rest
+   as a checklist. Walk every line: an entry,
    or a reason it needs none. Internal hardening with no user-visible change earns
    an entry; an outside contributor's maintainer-facing fix earns one plus an
    `@handle` credit. The script exits non-zero on an uncited pull request, and
-   `npm run validate` enforces that same check during a release.
+   `npm run validate` enforces that same check during a release, printing one line
+   whenever it stands down. Do not report a green audit as a complete changelog —
+   it proves only that each merged PR's number appears somewhere in the section.
 
 4. **Re-validate.** `npm run validate` then `npm test`. Fix and re-run until clean.
 5. **Commit & push.** Stage everything `npm run bump` rewrote plus CHANGELOG — read
