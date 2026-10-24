@@ -22,7 +22,7 @@ export function buildMarket(local, registry) {
       author: "hyhmrright",
       homepage: "https://hyhmrright.github.io/brooks-lint/",
       repository: { url: "https://github.com/hyhmrright/brooks-lint" },
-      keywords: published.keywords,
+      metadata: { keywords: published.keywords },
       versions: [{
         version: published.version,
         publishTimestamp: Math.floor(timestamp / 1000),

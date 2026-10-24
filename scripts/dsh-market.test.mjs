@@ -14,6 +14,8 @@ test("market pins the published npm version and its registry publication time", 
   const index = buildMarket(local, registry);
   assert.equal(index.format, 1);
   assert.equal(index.plugins[0].name, local.name);
+  assert.deepEqual(index.plugins[0].metadata.keywords, published.keywords);
+  assert.equal(Object.hasOwn(index.plugins[0], "keywords"), false);
   assert.deepEqual(index.plugins[0].versions, [{
     version: local.version,
     publishTimestamp: 1792807200,
