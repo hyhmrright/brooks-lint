@@ -36,7 +36,13 @@ Execute the repo's release procedure (the `release` skill codifies it — read `
    from disk and is more than one README; commit
    `chore(release): bump version to <version>`; push to `main` (direct-to-main repo,
    no PR).
-6. **Tag & publish.** `gh release create v<version> --title "v<version>"
+5a. **Remote CI gate.** After push, resolve `git rev-parse HEAD` and locate the
+   `Validate` workflow run with that exact `headSha`. Run
+   `gh run watch <run-id> --exit-status` and verify every matrix job succeeded.
+   Queued, missing, cancelled, or failed CI is not a pass. Do not tag, create a
+   GitHub release, or publish npm artifacts before this gate succeeds. If CI
+   fails, stop publication, fix and commit, and wait for the new commit's run.
+6. **Tag & publish.** After remote CI passes, `gh release create v<version> --title "v<version>"
    --notes "<changelog section>"`.
 
 ## Hard conventions

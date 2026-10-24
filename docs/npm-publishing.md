@@ -9,6 +9,11 @@ installer reads those mappings as data without executing the shell script.
 
 1. Follow the repository release procedure, including the complete changelog audit,
    version propagation, offline validation, unit tests, structural evals, and parser benchmark.
+   After pushing, wait for the `Validate` workflow on the exact release commit
+   to finish successfully on every Node.js version. A local pass is insufficient;
+   do not create the release or publish to npm while CI is pending or failing.
+   `npm run release:ci` checks the exact commit and every remote job. The npm
+   `prepublishOnly` hook enforces it automatically, including for dry runs.
 2. Run `npm publish --dry-run` and inspect the packed files. The package must contain
    `bin/`, `lib/`, `scripts/install.sh`, `scripts/npm-platforms.mjs`, `skills/` including
    `_shared/`, and `cordis.patch.yml`. No install lifecycle script is required.

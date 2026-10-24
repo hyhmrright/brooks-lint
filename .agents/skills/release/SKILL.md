@@ -76,7 +76,14 @@ and every version-bearing text file.
    discovered from disk and is more than one README; commit
    with a conventional message (`chore(release): bump version to <version>`); push
    to `main` (direct-to-main repo — no PR).
-6. **Tag & publish.** Create the GitHub release:
+5a. **Wait for remote CI on the exact release commit.** After pushing, resolve
+   `git rev-parse HEAD`, find the `Validate` workflow run whose `headSha` matches
+   that commit, and wait for it with `gh run watch <run-id> --exit-status`.
+   Inspect every matrix job. A missing, queued, cancelled, or failed run is not
+   a pass. Local checks do not replace this gate. Do not create the GitHub release
+   or publish to npm until this exact-commit run has completed successfully.
+   If CI fails, diagnose and commit the fix, then wait for the new commit's CI.
+6. **Tag & publish.** Only after the remote gate passes, create the GitHub release:
    `gh release create v<version> --title "v<version>" --notes "<changelog section>"`.
 
 Report the released version and the GitHub release URL when done.

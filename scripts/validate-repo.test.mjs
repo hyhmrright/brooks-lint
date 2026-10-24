@@ -1383,7 +1383,8 @@ function withStagedRelease({ version, section, subject, tagIt = false }, check) 
       { encoding: "utf8" },
     );
   try {
-    execFileSync("git", ["clone", "-q", path.resolve(__dirname, ".."), dir], { encoding: "utf8" });
+    // Source release tags must not compete with the synthetic fixture tags.
+    execFileSync("git", ["clone", "--no-tags", "-q", path.resolve(__dirname, ".."), dir], { encoding: "utf8" });
     cpSync(__dirname, path.join(dir, "scripts"), { recursive: true });
 
     // The tag lands BEFORE the commit under audit. Tagging HEAD instead would
