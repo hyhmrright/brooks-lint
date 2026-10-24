@@ -2,6 +2,17 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [1.9.1] - 2026-10-24
+
+### Fixed
+
+- Release-test fixtures now clone without inherited tags, preventing a previously published annotated release tag from changing the fixture baseline and failing remote validation.
+- npm publication now requires a clean committed tree and a successful latest remote Validate run for the exact release commit, including every matrix job. Added regression tests and an explicit remote-CI gate to the release workflow so local checks alone cannot authorize publication.
+
+### Changed
+
+- This patch supersedes npm 1.9.0, which was published before its remote validation failure was identified. The 1.9.0 GitHub release remains a draft; its tag is preserved.
+
 ## [1.9.0] - 2026-10-24
 
 ### Added
