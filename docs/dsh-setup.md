@@ -5,19 +5,45 @@ open-source agent harness — an "everything is a plugin" architecture with a We
 `npx @deepseek-ai/dsh web`. It natively loads [Agent Skills](https://agentskills.io) and reads
 `AGENTS.md`, so all six brooks-lint modes run with no conversion.
 
-## Install
+## Install the npm plugin
+
+Use the package name directly in **Plugins → Add plugin**: `brooks-lint`. With the DSH CLI:
 
 ```bash
-# simplest — one command (global)
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- dsh
-
-# from a clone
-./scripts/install.sh dsh            # global: ~/.dsh/skills (or $DSH_HOME/skills)
-./scripts/install.sh dsh --project  # this repo: ./.dsh/skills
+dsh plugin --profile web add brooks-lint
 ```
 
-Prefer a manual copy? Clone the repo and `cp -r skills/* ~/.dsh/skills/` — the contents, not the
-`skills/` folder itself, so `_shared/` lands as a sibling of the `brooks-*` folders.
+For the desktop app, use `dsh plugin --profile desktop add brooks-lint`. Fully quit the desktop
+app before changing its profile from the CLI, then reopen it. Use the profile where you want the
+plugin available. The plugin registers all six modes and provides their shared framework resources.
+
+## Find it in Discover
+
+DSH ships no market index by default. To search for this package, enable **Plugins → Experimental
+plugins → More → Custom plugin markets**, open **Discover → Add index source**, and add:
+
+```text
+https://hyhmrright.github.io/brooks-lint/dsh/index.json
+```
+
+Search for `brooks-lint`, open its card, and confirm installation. Index sources belong to the current
+profile. This is the project's own market index; inclusion in other community markets is pending and
+is not required for package-name installation through Add plugin. See the
+[official plugin-market guide](https://deepseek-harness.github.io/deepseek-harness/en/guide/plugin-market).
+
+## Alternative: install skill files
+
+Use the universal npm installer if you prefer filesystem skills instead of the DSH plugin:
+
+```bash
+npx brooks-lint install dsh            # global: ~/.dsh/skills (or $DSH_HOME/skills)
+npx brooks-lint install dsh --project  # current repo: ./.dsh/skills
+npx brooks-lint install --list
+```
+
+Install either the plugin or the skill files to avoid duplicate registrations. The existing shell
+installer also works: `./scripts/install.sh dsh` (add `--project` for the current repo).
+For manual installation, copy `skills/*` flat so `_shared/` sits beside the `brooks-*` folders.
 
 dsh scans these skill roots, highest priority first, so an existing vendor-neutral install is picked
 up automatically:
@@ -27,7 +53,7 @@ up automatically:
 | `<projectRoot>/.dsh/skills` | what `--project` writes |
 | `<projectRoot>/.agents/skills` | shared with Cursor, Copilot, pi |
 | `$DSH_HOME/skills` (default `~/.dsh/skills`) | what the global install writes |
-| `$DSH_AGENTS_HOME/skills` (default `~/.agents/skills`) | `./scripts/install.sh agents` also covers dsh |
+| `$DSH_AGENTS_HOME/skills` (default `~/.agents/skills`) | `npx brooks-lint install agents` also covers dsh |
 
 The project root is the nearest ancestor containing `.git`; without one, dsh uses the current
 directory. When the same skill name appears in two roots, the higher one wins.
@@ -48,6 +74,8 @@ Remedy) and the Health Score rules; dsh also loads `$DSH_HOME/AGENTS.md` plus ev
 the project root down to your working directory.
 
 ## Notes
+
+The following layout details apply to filesystem installation.
 
 - **Flat layout** is mandatory (the installer guarantees it): discovery is one level deep
   (`<root>/<name>/SKILL.md`), never recursive, and the skills read `../_shared/`, which only resolves

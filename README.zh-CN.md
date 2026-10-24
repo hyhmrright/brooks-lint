@@ -281,6 +281,15 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
+npm 可安装同一套 Agent Skills，只需 Node.js 和 npm，无需 Git 或 Bash。
+这是向兼容工具安装技能，不是 IDE 扩展；上面的 Shell 安装方式仍然可用。
+
+```bash
+npx brooks-lint install <平台>
+npx brooks-lint install <平台> --project
+npx brooks-lint install --list
+```
+
 安装器会把技能**扁平**拷进该平台对应的文件夹，让共享框架（`../_shared/`）始终正确解析——你不可能装错布局。
 装好后直接提问（"审查这个 PR"、"审查架构"），对应技能就会依据 `description` 自动触发。
 

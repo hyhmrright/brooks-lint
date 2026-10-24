@@ -284,6 +284,15 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
+npm instala los mismos Agent Skills con Node.js y npm, sin Git ni Bash.
+Añade habilidades a agentes compatibles; no es una extensión del IDE. El instalador de Shell anterior sigue disponible.
+
+```bash
+npx brooks-lint install <platform>
+npx brooks-lint install <platform> --project
+npx brooks-lint install --list
+```
+
 El instalador copia los skills **de forma plana** en la carpeta correcta, de modo que el framework compartido
 (`../_shared/`) siempre se resuelve — no puedes equivocarte con el diseño. Luego solo pide ("revisa este PR",
 "audita la arquitectura") y el skill correspondiente se activa automáticamente desde su `description`.

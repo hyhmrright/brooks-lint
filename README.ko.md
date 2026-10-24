@@ -283,6 +283,15 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
+npm으로도 같은 Agent Skills를 설치할 수 있습니다. Node.js와 npm이 필요하며 Git이나 Bash는 필요하지 않습니다.
+지원 에이전트에 스킬을 추가하는 방식이며 IDE 확장은 아닙니다. 위의 Shell 설치기도 계속 사용할 수 있습니다.
+
+```bash
+npx brooks-lint install <platform>
+npx brooks-lint install <platform> --project
+npx brooks-lint install --list
+```
+
 설치기는 스킬을 당신의 플랫폼에 맞는 폴더로 **평평하게** 복사하므로, 공유 프레임워크（`../_shared/`）가
 항상 올바르게 해석됩니다 — 레이아웃을 잘못 잡을 수가 없습니다. 그런 다음 그냥 요청하면（"이 PR을
 리뷰해줘", "아키텍처를 감사해줘"）, 일치하는 스킬이 자신의 `description`에서 자동으로 트리거됩니다.

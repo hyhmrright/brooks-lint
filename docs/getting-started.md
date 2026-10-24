@@ -22,13 +22,19 @@ platforms that discover skills with a single-level glob (`skills/<name>/SKILL.md
 
 ## Simplest install — one command
 
-The installer copies the skills flat into the correct folder for your platform, so you can't get the
-layout wrong:
+With Node.js and npm installed, use the published package without Git or Bash:
 
 ```bash
-# from a clone
-./scripts/install.sh <platform>
+npx brooks-lint install <platform>
+npx brooks-lint install <platform> --project
+npx brooks-lint install --list
+```
 
+This installs Agent Skills into the selected agent's skill directory; it is not a native IDE extension.
+The installer preserves the flat layout. The existing shell installer remains available:
+
+```bash
+./scripts/install.sh <platform>
 # or without cloning
 curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
 ```
@@ -69,8 +75,10 @@ If your agent accepts a skills folder or an instruction file, brooks-lint works:
 
 ## Verification status
 
-The marketplace-installed platforms (Claude Code, Gemini CLI, Codex CLI) are maintainer-verified. The
-ten Agent-Skills platforms above are documented from each tool's official skill spec and verified at
-the file-layout level (the installer is tested), but not yet end-to-end run by the maintainer on every
-platform. **Tried one? Tell us** — [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new)
+Current maintainer verification covers Codex-related capabilities only. Other integrations retain
+historical verification or documentation based on their official skill specifications. Automated
+installer checks cover file layouts; they do not establish end-to-end behavior in every host.
+This tool list describes compatibility, not a measured market-share percentage.
+
+Community verification is welcome: [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new)
 with the platform, version, and what you saw, working or broken.
