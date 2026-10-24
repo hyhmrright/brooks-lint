@@ -2,6 +2,22 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [1.9.0] - 2026-10-24
+
+### Added
+
+- Native DeepSeek Harness plugin bundle and skill provider, exposing the six skills and their shared resources through the DSH registry (#44). Thanks to @Sad-happy.
+- A portable npm CLI for installing the skills into all 14 existing coding-agent platform targets, with global, project, and custom destinations, platform listing, and no Bash or Git requirement.
+- npm distribution metadata, packed-artifact installation regression tests, and a DSH market-index generator that requires an actually published npm version and uses its registry publication timestamp. Documentation covers npm installation, publication, and adding the project-owned DSH market source; default market inclusion and live host compatibility are not claimed.
+
+### Fixed
+
+- DSH skill discovery now ignores only missing files; unexpected read failures retain the file path and original cause instead of silently hiding skills. Six provider regression tests cover discovery, descriptions, loading, shared resources, and error handling.
+
+### Changed
+
+- All six README translations and the getting-started and DSH guides now distinguish npm filesystem installation from native plugin registration. Installer tests cover all platform destinations, argument validation, path safety, and preservation of unrelated files.
+
 ## [1.8.0] - 2026-10-16
 
 ### Added
