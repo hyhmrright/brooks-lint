@@ -2,12 +2,10 @@
 
 All notable changes to brooks-lint are documented here.
 
-## [1.9.0] - 2026-10-24
+## [1.9.1] - 2026-10-24
 
-Release preparation only; publication is paused pending maintainer approval.
-The earlier GitHub 1.9.0 and 1.9.1 releases and tags were removed. npm 1.9.0
-was withdrawn and cannot be republished under the same package name and version.
-A future npm publication requires a separately approved, unused version.
+This release unifies GitHub and npm at 1.9.1. The withdrawn npm 1.9.0 is not
+reused. Publication follows successful remote CI on the exact release commit.
 
 ### Added
 
@@ -23,8 +21,16 @@ A future npm publication requires a separately approved, unused version.
 
 ### Changed
 
-- Consolidated release preparation at GitHub version 1.9.0, synchronized distribution documentation and GitHub repository metadata, and kept publication on hold until explicit approval. A tracked About/topics/managed-label configuration and metadata verification command now participate in the publication gate.
+- Synchronized GitHub and npm release information at 1.9.1 across all README translations, manifests, installation guides, and the website. A tracked About/topics/managed-label configuration and metadata verification command now participate in the publication gate.
 - All six README translations and the getting-started and DSH guides now distinguish npm filesystem installation from native plugin registration. Installer tests cover all platform destinations, argument validation, path safety, and preservation of unrelated files.
+
+### Thanks
+
+A special thank-you to [@Sad-happy](https://github.com/Sad-happy) for contributing
+the native DeepSeek Harness bundle and skill provider in [#44](https://github.com/hyhmrright/brooks-lint/pull/44),
+and for following through with community end-to-end verification on DSH 0.2.1-rc.2
+Desktop. Your contribution made brooks-lint a proper installable DSH plugin, and
+your real-host testing helped us bring it to npm and plugin-market discovery.
 
 ## [1.8.0] - 2026-10-16
 

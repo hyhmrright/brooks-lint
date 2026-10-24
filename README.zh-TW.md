@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.9.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -281,13 +281,15 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
-**發佈準備中，暫停發佈。** 目前請使用上面的 Shell/GitHub 安裝方式。下方 npm 命令是規劃中的安裝方式，目前不可用：npm 1.9.0 已撤回且不能重用，新的 npm 版本須經核准後發佈。需要 Node.js **20+** 和 npm。安裝器涵蓋 **13 個具名編碼工具及通用 `agents` 目標**；驗證範圍是安裝相容性，不代表每個宿主的執行階段實測。
+也可使用 **Node.js 20+** 和 npm 安裝同一套 Agent Skills，無需 Git 或 Bash。安裝器涵蓋 **13 個具名編碼工具及通用 `agents` 目標**，安裝的是技能而非 IDE 原生擴充套件。自動檢查驗證檔案佈局和資源，不代表每個宿主的執行階段實測。Shell 安裝器仍然可用。
 
 ```bash
 npx brooks-lint install <平台>
 npx brooks-lint install <平台> --project
 npx brooks-lint install --list
 ```
+
+特別感謝 [@Sad-happy](https://github.com/Sad-happy) 在 [PR #44](https://github.com/hyhmrright/brooks-lint/pull/44) 中實作原生 DSH bundle 和技能提供器，並在 DSH 0.2.1-rc.2 桌面應用中完成社群驗證，讓依套件名稱安裝外掛成為可能。安裝及自訂市場搜尋見 [DSH 指南](docs/dsh-setup.md)。
 
 安裝器會把技能**扁平**複製進該平台對應的資料夾，讓共享框架（`../_shared/`）始終正確解析——你不可能裝錯佈局。
 裝好後直接提問（「審查這個 PR」、「稽核架構」），對應技能就會依據 `description` 自動觸發。
@@ -430,7 +432,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.0
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.1
         with:
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.9.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -283,13 +283,15 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
-**Release preparation — publication on hold.** Use the shell/GitHub installation above today. The npm commands below describe the planned installer and are not currently available: npm 1.9.0 was withdrawn and cannot be reused; a new npm version requires approval. Node.js **20+** and npm are required. The installer covers **13 named coding tools plus the generic `agents` target**; checks verify installation compatibility, not runtime behavior in every host.
+Install the same Agent Skills with **Node.js 20+** and npm, without Git or Bash. The installer covers **13 named coding tools plus the generic `agents` target**. It installs skills rather than native IDE extensions; automated checks verify file layouts and resources, not runtime behavior in every host. The shell installer remains available.
 
 ```bash
 npx brooks-lint install <platform>
 npx brooks-lint install <platform> --project
 npx brooks-lint install --list
 ```
+
+Many thanks to [@Sad-happy](https://github.com/Sad-happy) for building the native DSH bundle and skill provider in [PR #44](https://github.com/hyhmrright/brooks-lint/pull/44), and for verifying it with the DSH 0.2.1-rc.2 desktop app. That contribution made package-name plugin installation possible. See the [DSH setup guide](docs/dsh-setup.md) for installation and custom-market search.
 
 The installer copies the skills **flat** into the right folder, so the shared framework
 (`../_shared/`) always resolves — you can't get the layout wrong. Then just ask ("review this PR",
@@ -441,7 +443,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.0
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.1
         with:
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

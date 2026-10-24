@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.9.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -283,13 +283,15 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
-**릴리스 준비 중 · 게시 보류.** 현재는 위의 Shell/GitHub 설치를 사용하세요. 아래 npm 명령은 예정된 방식이며 현재 사용할 수 없습니다. npm 1.9.0은 철회되어 재사용할 수 없으며 새 npm 버전 게시에는 승인이 필요합니다. Node.js **20+**와 npm이 필요합니다. 설치 대상은 **이름이 지정된 코딩 도구 13개와 범용 `agents` 대상**입니다. 검증 범위는 설치 호환성이며 모든 호스트의 런타임 검증을 뜻하지 않습니다.
+**Node.js 20+**와 npm으로 같은 Agent Skills를 설치할 수 있으며 Git이나 Bash는 필요하지 않습니다. 설치 대상은 **이름이 지정된 코딩 도구 13개와 범용 `agents` 대상**입니다. IDE 확장 대신 스킬을 설치합니다. 자동 검사는 파일 배치와 리소스를 검증하며 모든 호스트의 런타임 검증을 뜻하지 않습니다. Shell 설치기도 계속 사용할 수 있습니다.
 
 ```bash
 npx brooks-lint install <platform>
 npx brooks-lint install <platform> --project
 npx brooks-lint install --list
 ```
+
+[@Sad-happy](https://github.com/Sad-happy) 님께 감사드립니다. [PR #44](https://github.com/hyhmrright/brooks-lint/pull/44)에서 네이티브 DSH bundle과 스킬 제공자를 구현하고 DSH 0.2.1-rc.2 데스크톱 앱에서 커뮤니티 검증을 진행해 패키지 이름으로 플러그인을 설치할 수 있게 해주셨습니다. 설치와 사용자 지정 마켓 검색은 [DSH 가이드](docs/dsh-setup.md)를 참고하세요.
 
 설치기는 스킬을 당신의 플랫폼에 맞는 폴더로 **평평하게** 복사하므로, 공유 프레임워크（`../_shared/`）가
 항상 올바르게 해석됩니다 — 레이아웃을 잘못 잡을 수가 없습니다. 그런 다음 그냥 요청하면（"이 PR을
@@ -439,7 +441,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.0
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.1
         with:
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
