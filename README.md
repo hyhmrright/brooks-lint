@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.9.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -283,8 +283,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
-npm installs the same Agent Skills without Git or Bash; Node.js and npm are required.
-This adds skills to supported agents, rather than an IDE extension. The shell installer above remains available.
+**Release preparation — publication on hold.** Use the shell/GitHub installation above today. The npm commands below describe the planned installer and are not currently available: npm 1.9.0 was withdrawn and cannot be reused; a new npm version requires approval. Node.js **20+** and npm are required. The installer covers **13 named coding tools plus the generic `agents` target**; checks verify installation compatibility, not runtime behavior in every host.
 
 ```bash
 npx brooks-lint install <platform>
@@ -442,7 +441,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.1
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.0
         with:
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

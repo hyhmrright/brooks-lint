@@ -39,6 +39,17 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `hooks/`: SessionStart hook for Claude Code session-level awareness.
 - `evals/`: 58 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks — `npm run evals` (structural), `npm run evals:live` (against the AI, needs `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
 
+## Release Preparation
+
+Keep the six README translations, CHANGELOG, four plugin manifests, website metadata,
+installation guides, and Action examples synchronized with `package.json` via
+`npm run bump`. Apply GitHub About, topics, and managed labels from
+`.github/repository-metadata.json` with `npm run github:metadata -- --apply`, then
+verify with `npm run github:metadata -- --check`. Preserve unrelated issue labels.
+Run the full offline gate, push, and require the exact commit's remote Validate
+matrix to pass before any publication. Honor explicit user publication holds;
+passing CI is not publication approval. Withdrawn npm versions cannot be reused.
+
 ## Development & Debugging
 - **Skill Testing:** After modifying `skills/` locally, exit the Gemini CLI (`/quit`) and relaunch to pick up the changes.
 - **Extension Installation:** Users can install the extension in the current workspace via `/extensions install .`.

@@ -36,7 +36,13 @@ Execute the repo's release procedure (the `release` skill codifies it — read `
    from disk and is more than one README; commit
    `chore(release): bump version to <version>`; push to `main` (direct-to-main repo,
    no PR).
-5a. **Remote CI gate.** After push, resolve `git rev-parse HEAD` and locate the
+5a. **Release surfaces and approval.** Check all README translations, CHANGELOG,
+   plugin manifests, site metadata, install guides, and GitHub About/topics/managed
+   labels. Apply `.github/repository-metadata.json` with
+   `npm run github:metadata -- --apply`, then verify with `--check`. Preserve other
+   labels. Explicit publication holds require fresh user approval; green CI is not
+   approval. Never attempt to reuse a withdrawn npm version.
+5b. **Remote CI gate.** After push, resolve `git rev-parse HEAD` and locate the
    `Validate` workflow run with that exact `headSha`. Run
    `gh run watch <run-id> --exit-status` and verify every matrix job succeeded.
    Queued, missing, cancelled, or failed CI is not a pass. Do not tag, create a

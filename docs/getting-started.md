@@ -22,7 +22,17 @@ platforms that discover skills with a single-level glob (`skills/<name>/SKILL.md
 
 ## Simplest install — one command
 
-With Node.js and npm installed, use the published package without Git or Bash:
+Use the existing shell installer from GitHub while npm publication is on hold:
+
+```bash
+./scripts/install.sh <platform>
+# or without cloning
+curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
+```
+
+**Release preparation — publication on hold.** The npm commands below are planned and currently
+unavailable. npm 1.9.0 was withdrawn and cannot be reused; a new npm version requires approval.
+After publication, Node.js **20+** and npm will provide installation without Git or Bash:
 
 ```bash
 npx brooks-lint install <platform>
@@ -31,13 +41,8 @@ npx brooks-lint install --list
 ```
 
 This installs Agent Skills into the selected agent's skill directory; it is not a native IDE extension.
-The installer preserves the flat layout. The existing shell installer remains available:
-
-```bash
-./scripts/install.sh <platform>
-# or without cloning
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-```
+Both installers preserve the flat layout. The inventory covers **13 named coding tools plus the
+generic `agents` target**. Installation compatibility checks do not verify runtime behavior in every host.
 
 `<platform>` ∈ `opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · bob ·
 gemini · codex · claude · agents`. Add `--project` to install into the current repo instead of your

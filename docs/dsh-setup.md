@@ -5,45 +5,56 @@ open-source agent harness — an "everything is a plugin" architecture with a We
 `npx @deepseek-ai/dsh web`. It natively loads [Agent Skills](https://agentskills.io) and reads
 `AGENTS.md`, so all six brooks-lint modes run with no conversion.
 
-## Install the npm plugin
+## Install now: skill files from GitHub
 
-Use the package name directly in **Plugins → Add plugin**: `brooks-lint`. With the DSH CLI:
+npm publication is on hold. Install the working filesystem skills from GitHub:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- dsh
+# from a clone; add --project for the current repo
+./scripts/install.sh dsh
+```
+
+For manual installation, copy `skills/*` flat so `_shared/` sits beside the `brooks-*` folders.
+
+## Planned npm plugin installation
+
+**Not currently available.** npm 1.9.0 was withdrawn and cannot be reused. A new npm version
+requires approval before publication. The repository is in release preparation; a GitHub version
+number does not make the withdrawn npm version reusable.
+
+After an approved npm publication, enter `brooks-lint` in **Plugins → Add plugin**, or use:
 
 ```bash
 dsh plugin --profile web add brooks-lint
 ```
 
 For the desktop app, use `dsh plugin --profile desktop add brooks-lint`. Fully quit the desktop
-app before changing its profile from the CLI, then reopen it. Use the profile where you want the
-plugin available. The plugin registers all six modes and provides their shared framework resources.
+app before changing its profile from the CLI, then reopen it. The plugin registers all six modes
+and provides their shared framework resources. Avoid installing both plugin and filesystem copies.
 
-## Find it in Discover
+The planned universal installer requires Node.js **20+** and npm:
 
-DSH ships no market index by default. To search for this package, enable **Plugins → Experimental
-plugins → More → Custom plugin markets**, open **Discover → Add index source**, and add:
+```bash
+npx brooks-lint install dsh
+npx brooks-lint install dsh --project
+npx brooks-lint install --list
+```
+
+## Planned Discover index
+
+The project's index has **not been generated or deployed**. Do not add it as a working source yet.
+DSH ships no market index by default. After an approved npm publication and verified index deployment,
+enable **Plugins → Experimental plugins → More → Custom plugin markets**, open
+**Discover → Add index source**, and add the planned URL:
 
 ```text
 https://hyhmrright.github.io/brooks-lint/dsh/index.json
 ```
 
-Search for `brooks-lint`, open its card, and confirm installation. Index sources belong to the current
-profile. This is the project's own market index; inclusion in other community markets is pending and
-is not required for package-name installation through Add plugin. See the
-[official plugin-market guide](https://deepseek-harness.github.io/deepseek-harness/en/guide/plugin-market).
-
-## Alternative: install skill files
-
-Use the universal npm installer if you prefer filesystem skills instead of the DSH plugin:
-
-```bash
-npx brooks-lint install dsh            # global: ~/.dsh/skills (or $DSH_HOME/skills)
-npx brooks-lint install dsh --project  # current repo: ./.dsh/skills
-npx brooks-lint install --list
-```
-
-Install either the plugin or the skill files to avoid duplicate registrations. The existing shell
-installer also works: `./scripts/install.sh dsh` (add `--project` for the current repo).
-For manual installation, copy `skills/*` flat so `_shared/` sits beside the `brooks-*` folders.
+Then search for `brooks-lint` and confirm installation. Index sources belong to the current profile.
+This will be the project's own market index; inclusion in other community markets remains pending.
+See the [official plugin-market guide](https://deepseek-harness.github.io/deepseek-harness/en/guide/plugin-market).
 
 dsh scans these skill roots, highest priority first, so an existing vendor-neutral install is picked
 up automatically:
@@ -53,7 +64,7 @@ up automatically:
 | `<projectRoot>/.dsh/skills` | what `--project` writes |
 | `<projectRoot>/.agents/skills` | shared with Cursor, Copilot, pi |
 | `$DSH_HOME/skills` (default `~/.dsh/skills`) | what the global install writes |
-| `$DSH_AGENTS_HOME/skills` (default `~/.agents/skills`) | `npx brooks-lint install agents` also covers dsh |
+| `$DSH_AGENTS_HOME/skills` (default `~/.agents/skills`) | `./scripts/install.sh agents` also covers dsh |
 
 The project root is the nearest ancestor containing `.git`; without one, dsh uses the current
 directory. When the same skill name appears in two roots, the higher one wins.

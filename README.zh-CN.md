@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.9.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -281,8 +281,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
-npm 可安装同一套 Agent Skills，只需 Node.js 和 npm，无需 Git 或 Bash。
-这是向兼容工具安装技能，不是 IDE 扩展；上面的 Shell 安装方式仍然可用。
+**发布准备中，暂停发布。** 当前请使用上面的 Shell/GitHub 安装方式。下方 npm 命令是计划中的安装方式，目前不可用：npm 1.9.0 已撤回且不能复用，新的 npm 版本须经批准后发布。需要 Node.js **20+** 和 npm。安装器覆盖 **13 个具名编码工具及通用 `agents` 目标**；验证范围是安装兼容性，不代表每个宿主的运行时实测。
 
 ```bash
 npx brooks-lint install <平台>
@@ -431,7 +430,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.1
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.0
         with:
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

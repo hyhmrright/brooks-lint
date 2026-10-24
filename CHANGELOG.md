@@ -2,18 +2,12 @@
 
 All notable changes to brooks-lint are documented here.
 
-## [1.9.1] - 2026-10-24
-
-### Fixed
-
-- Release-test fixtures now clone without inherited tags, preventing a previously published annotated release tag from changing the fixture baseline and failing remote validation.
-- npm publication now requires a clean committed tree and a successful latest remote Validate run for the exact release commit, including every matrix job. Added regression tests and an explicit remote-CI gate to the release workflow so local checks alone cannot authorize publication.
-
-### Changed
-
-- This patch supersedes npm 1.9.0, which was published before its remote validation failure was identified. The 1.9.0 GitHub release remains a draft; its tag is preserved.
-
 ## [1.9.0] - 2026-10-24
+
+Release preparation only; publication is paused pending maintainer approval.
+The earlier GitHub 1.9.0 and 1.9.1 releases and tags were removed. npm 1.9.0
+was withdrawn and cannot be republished under the same package name and version.
+A future npm publication requires a separately approved, unused version.
 
 ### Added
 
@@ -23,10 +17,13 @@ All notable changes to brooks-lint are documented here.
 
 ### Fixed
 
+- Release-test fixtures clone without inherited tags, preventing published annotated tags from changing synthetic audit baselines in CI.
+- npm publication requires a clean committed tree and a successful latest remote Validate run for the exact commit, including every matrix job. Regression tests and the release procedure enforce remote verification before publication.
 - DSH skill discovery now ignores only missing files; unexpected read failures retain the file path and original cause instead of silently hiding skills. Six provider regression tests cover discovery, descriptions, loading, shared resources, and error handling.
 
 ### Changed
 
+- Consolidated release preparation at GitHub version 1.9.0, synchronized distribution documentation and GitHub repository metadata, and kept publication on hold until explicit approval. A tracked About/topics/managed-label configuration and metadata verification command now participate in the publication gate.
 - All six README translations and the getting-started and DSH guides now distinguish npm filesystem installation from native plugin registration. Installer tests cover all platform destinations, argument validation, path safety, and preservation of unrelated files.
 
 ## [1.8.0] - 2026-10-16

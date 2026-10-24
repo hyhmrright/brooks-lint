@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.9.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
   <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
   <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
@@ -283,8 +283,7 @@ curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts
 #   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
 ```
 
-npm으로도 같은 Agent Skills를 설치할 수 있습니다. Node.js와 npm이 필요하며 Git이나 Bash는 필요하지 않습니다.
-지원 에이전트에 스킬을 추가하는 방식이며 IDE 확장은 아닙니다. 위의 Shell 설치기도 계속 사용할 수 있습니다.
+**릴리스 준비 중 · 게시 보류.** 현재는 위의 Shell/GitHub 설치를 사용하세요. 아래 npm 명령은 예정된 방식이며 현재 사용할 수 없습니다. npm 1.9.0은 철회되어 재사용할 수 없으며 새 npm 버전 게시에는 승인이 필요합니다. Node.js **20+**와 npm이 필요합니다. 설치 대상은 **이름이 지정된 코딩 도구 13개와 범용 `agents` 대상**입니다. 검증 범위는 설치 호환성이며 모든 호스트의 런타임 검증을 뜻하지 않습니다.
 
 ```bash
 npx brooks-lint install <platform>
@@ -440,7 +439,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.1
+      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.0
         with:
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

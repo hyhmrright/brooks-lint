@@ -20,6 +20,7 @@ function main() {
   const run = successfulRun(runs, sha);
   const { jobs } = JSON.parse(command("gh", ["run", "view", String(run.databaseId), "--repo", "hyhmrright/brooks-lint", "--json", "jobs"]));
   if (!jobs.length || jobs.some((job) => job.conclusion !== "success")) throw new Error("Release blocked: not every Validate job succeeded");
+  command(process.execPath, [fileURLToPath(new URL("./github-metadata.mjs", import.meta.url)), "--check"]);
   console.log(`Release CI passed: ${sha} — ${run.url}`);
 }
 

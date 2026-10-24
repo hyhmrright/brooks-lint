@@ -76,7 +76,13 @@ and every version-bearing text file.
    discovered from disk and is more than one README; commit
    with a conventional message (`chore(release): bump version to <version>`); push
    to `main` (direct-to-main repo — no PR).
-5a. **Wait for remote CI on the exact release commit.** After pushing, resolve
+5a. **Synchronize release surfaces and approval.** Check all six README translations,
+   CHANGELOG, plugin manifests, website and installation guides against the release
+   state. Run `npm run github:metadata -- --apply` and then `--check` to synchronize
+   About, homepage, topics, and managed labels. Preserve unrelated labels. Honor
+   explicit publication holds; completed preparation and green CI are not approval.
+   Withdrawn npm versions cannot be reused, even when GitHub tags are deleted.
+5b. **Wait for remote CI on the exact release commit.** After pushing, resolve
    `git rev-parse HEAD`, find the `Validate` workflow run whose `headSha` matches
    that commit, and wait for it with `gh run watch <run-id> --exit-status`.
    Inspect every matrix job. A missing, queued, cancelled, or failed run is not

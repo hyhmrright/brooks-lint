@@ -141,6 +141,17 @@ CLAUDE_PLUGIN_ROOT=1 bash hooks/session-start   # plugin platform branch
 
 ## Release Process
 
+Before publication, synchronize all README translations, CHANGELOG, plugin manifests,
+version-bearing website and Action examples, installation guides, and GitHub About,
+topics, and managed issue labels. `npm run bump` propagates versions;
+`npm run github:metadata -- --apply` applies `.github/repository-metadata.json`, and
+`npm run github:metadata -- --check` verifies it without changing unrelated labels.
+Commit and push, then wait for the exact commit's `Validate` workflow to pass on
+all matrix jobs. Run `npm run release:ci`; local checks alone never permit publication.
+Honor any explicit publication hold: a green CI is not approval to publish.
+Withdrawn npm package versions cannot be reused, even if GitHub tags are removed.
+
+
 Set the new version in `package.json` (e.g. `npm version <v> --no-git-tag-version`), then `npm run bump` (propagates the version to all manifests plus every version-bearing text file listed by `scripts/version-refs.mjs` — all six README badges and action `uses:` pins, the docs landing-page JSON-LD, and `docs/github-action-example.yml`) → add the new `CHANGELOG.md` section by hand → **audit the commit range** (below) → `npm run validate` → commit, push, tag GitHub release.
 
 **Check the version number against the backlog first.** The bump is decided by what is *unreleased*, not by the size of the change in front of you. `npm run changelog:audit` prints the range before you choose the number — a "small doc fix" on top of an unreleased new platform is a minor, not a patch. v1.5.1 was cut, then deleted and re-cut as v1.6.0 for exactly this reason.
