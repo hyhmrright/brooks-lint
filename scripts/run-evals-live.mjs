@@ -14,8 +14,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Anthropic from "@anthropic-ai/sdk";
 import { assembleSystemPrompt, VALID_MODES } from "./assemble-prompt.mjs";
+import { assertRunnerMode, modesForRunner, runnerInstructions } from "./modes.mjs";
 import { parseArgs, parseMaxTokens, maxTokensError, warnIfTruncated } from "./cli-utils.mjs";
 import { extractRiskCodes, classify } from "./eval-utils.mjs";
 
@@ -54,18 +54,28 @@ if (scenarios.length === 0) {
   process.exit(1);
 }
 
+const unsupported = scenarios.filter((scenario) => !modesForRunner("eval").includes(scenario.mode));
+if (unsupported.length && (filterId !== null || filterMode)) {
+  try { assertRunnerMode(unsupported[0].mode, "eval"); }
+  catch (error) { console.error(error.message); process.exit(1); }
+}
+for (const scenario of unsupported) console.log(`Skipped #${scenario.id} (${scenario.mode}): requires an interactive agent; excluded from API eval metrics.`);
+scenarios = scenarios.filter((scenario) => modesForRunner("eval").includes(scenario.mode));
+if (!scenarios.length) { console.error("No scenarios supported by the API eval runner match the filters."); process.exit(1); }
+
 console.log(`Running ${scenarios.length} scenario(s) with model ${model}...\n`);
 
 // ── Prompt assembly cache — one per mode ──────────────────────────────────────
 
 const promptCache = {};
 function getSystemPrompt(mode) {
-  if (!promptCache[mode]) promptCache[mode] = assembleSystemPrompt(mode, skillsDir);
+  if (!promptCache[mode]) promptCache[mode] = `${assembleSystemPrompt(mode, skillsDir)}\n\n${runnerInstructions("eval")}`;
   return promptCache[mode];
 }
 
 // ── Run scenarios ─────────────────────────────────────────────────────────────
 
+const { default: Anthropic } = await import("@anthropic-ai/sdk");
 const client = new Anthropic();
 const results = [];
 
@@ -89,8 +99,8 @@ for (const scenario of scenarios) {
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     });
-    aiText  = message.content.find((block) => block.type === "text")?.text ?? "";
-    verdict = classify(scenario, aiText);
+    aiText = message.content.filter((block) => block.type === "text").map((block) => block.text).join("\n");
+    verdict = message.stop_reason === "max_tokens" ? "fail" : classify(scenario, aiText);
   } catch (err) {
     error   = err.message;
     verdict = "error";
@@ -115,6 +125,7 @@ const passRate = Math.round(((counts.pass + counts["false-positive-pass"]) / tot
 console.log("\nBrooks-Lint Eval Report");
 console.log("═══════════════════════");
 console.log(`Total    : ${total}`);
+console.log(`Skipped  : ${unsupported.length} (unsupported runner capabilities; excluded)`);
 console.log(`Pass     : ${counts.pass}`);
 console.log(`FP-Pass  : ${counts["false-positive-pass"]}`);
 console.log(`Partial  : ${counts.partial}`);
@@ -154,4 +165,4 @@ if (failed.length > 0) {
   }
 }
 
-if (counts.fail > 0 || counts.error > 0) process.exit(1);
+if (counts.fail > 0 || counts.error > 0 || counts.partial > 0) process.exit(1);

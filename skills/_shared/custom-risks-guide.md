@@ -36,7 +36,27 @@ process:
 - Apply the Iron Law: `Source` field should be `"[Project-defined risk] — <risk name>"`
 - Include custom risk findings in the Health Score (same deduction rules as R/T codes)
 - In the report, custom findings appear after standard findings under a
-  **### Project-Specific Risks** sub-heading
+  `### Project-Specific Risks` sub-heading. Include the `C<number>` code in each
+  bold finding title and all four non-empty Iron Law fields.
+- Give every custom finding an explicit severity: use a nested standard heading
+  (`#### 🔴 Critical`, `#### 🟡 Warning`, or `#### 🟢 Suggestion`), or put the
+  severity emoji immediately before its bold title. The project-specific heading
+  itself has no severity; never inherit or guess a severity from a preceding
+  standard finding.
+
+Example:
+
+```markdown
+### Project-Specific Risks
+
+#### 🟡 Warning
+
+**C1 Project Risk Name — Concrete finding title**
+Symptom: [observed evidence and file location]
+Source: [Project-defined risk] — Project Risk Name
+Consequence: [specific impact]
+Remedy: [specific corrective action]
+```
 
 ---
 

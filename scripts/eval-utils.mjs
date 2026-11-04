@@ -4,6 +4,7 @@
  */
 
 import { PRODUCTION_RISK_COUNT, TEST_RISK_COUNT } from "./frontmatter.mjs";
+import { parseReport, readScore } from "./report-parse.mjs";
 
 /**
  * Canonical risk codes, derived from the counts rather than spelled out, so a
@@ -24,34 +25,26 @@ export function extractRiskCodes(text) {
 }
 
 export function classify(scenario, aiText) {
-  const hasHealthScore = /Health\s+Score[:\s]+\d+/i.test(aiText);
-
-  // no_health_score exits before risk-code extraction (codes are not needed).
+  if (typeof aiText !== "string" || !aiText.trim()) return "fail";
+  const parsed = parseReport(aiText, { mode: scenario.mode, requireScore: !scenario.no_health_score });
   if (scenario.no_health_score) {
-    return hasHealthScore ? "fail" : "false-positive-pass";
+    return readScore(aiText, scenario.mode).present || parsed.findings.length || parsed.errors.length
+      ? "fail" : "false-positive-pass";
   }
-
+  if (!parsed.valid) return "fail";
   const expectedCodes = extractRiskCodes(scenario.expected_output);
-  const foundCodes    = extractRiskCodes(aiText);
-
-  // no_risk_codes exits after extraction (needs codes, not Iron Law / Health Score).
-  // In this branch expected_output describes what must NOT be flagged, so
-  // expectedCodes is a *forbidden* set — hence the inverted-looking filter.
+  const foundCodes = new Set(parsed.findings.map((finding) => finding.riskCode).filter(Boolean));
   if (scenario.no_risk_codes) {
-    const forbiddenHits = [...foundCodes].filter((c) => expectedCodes.has(c));
-    return forbiddenHits.length === 0 ? "false-positive-pass" : "fail";
+    return parsed.findings.length === 0 ? "false-positive-pass" : "fail";
   }
-
-  const hasIronLaw =
-    (/\bSymptom\b/.test(aiText) && /\bSource\b/.test(aiText) &&
-     /\bConsequence\b/.test(aiText) && /\bRemedy\b/.test(aiText)) ||
-    (/症状/.test(aiText) && /根源/.test(aiText) &&
-     /后果/.test(aiText) && /修复/.test(aiText));
-
+  if (scenario.forbidden_risk_codes) {
+    return scenario.forbidden_risk_codes.some((code) => foundCodes.has(code)) ? "fail" : "false-positive-pass";
+  }
+  // This is a structural contract check, not a semantic judgment of the evidence.
+  if (!expectedCodes.size) return "fail";
   const truePositives  = [...expectedCodes].filter((c) => foundCodes.has(c));
   const falseNegatives = [...expectedCodes].filter((c) => !foundCodes.has(c));
-
-  if (falseNegatives.length === 0 && hasIronLaw && hasHealthScore) return "pass";
-  if (truePositives.length > 0   && hasIronLaw)                    return "partial";
+  if (falseNegatives.length === 0) return "pass";
+  if (truePositives.length > 0) return "partial";
   return "fail";
 }

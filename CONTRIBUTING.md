@@ -58,12 +58,19 @@ head-to-head against an unaided review — not this suite's pass rate.)
 }
 ```
 
-Use the next sequential `id` after the last entry in `evals/evals.json` (currently 58 scenarios). The `mode` field is required — use one of: `"review"`, `"audit"`, `"debt"`, `"test"`, `"health"`, `"sweep"`.
+Use the next sequential `id` after the last entry in `evals/evals.json` (currently 64 scenarios). The `mode` field is required — use one of: `"review"`, `"audit"`, `"debt"`, `"test"`, `"health"`, `"sweep"`.
 
-Optional flags for special scenarios:
-- `"no_risk_codes": true` — for false-positive scenarios where no risk codes should appear in output
-- `"no_health_score": true` — for scenarios testing Health Score suppression (e.g. onboarding mode)
-- These two flags are mutually exclusive.
+Optional boundary settings for special scenarios:
+
+- `"no_risk_codes": true` — no findings are allowed, including unrelated risk codes.
+- `"forbidden_risk_codes": ["R5"]` — only the listed risks are forbidden; other valid findings are allowed.
+- `"no_health_score": true` — test score suppression (for example, onboarding mode).
+
+These three settings are mutually exclusive. The deterministic grader checks
+report structure and parsed finding codes, not semantic truth. Code mentions in
+ordinary prose are not findings. API evals diagnose supplied fixtures in the five
+read-only modes; Full Sweep needs an interactive execution environment and is
+excluded from default API pass rates. See [runner contracts](docs/runner-contracts.md).
 
 In your PR, show the before/after: what the skill produced before your change
 and what it produces after. Even a screenshot or paste of the output is enough.

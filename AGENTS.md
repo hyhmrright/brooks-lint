@@ -31,7 +31,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `hooks/`: SessionStart hook for session-level awareness (not used by Codex CLI).
 - `commands/`: Short-form command wrappers for Claude Code (not used by Codex CLI).
-- `evals/`: 58 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks — `npm run evals` (structural), `npm run evals:live` (against the AI, needs `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
+- `evals/`: 64 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks — `npm run evals` (structural), `npm run evals:live` (against the AI, needs `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
 
 ---
 **Note:** Codex CLI should prioritize instructions found in `AGENTS.md` when operating in this repository.
@@ -112,11 +112,17 @@ for Codex use the repository skills and explicit verification gate above.
 
 ## Eval Suite
 
-`evals/evals.json` contains 58 benchmark scenarios covering R1–R6 (code decay) and T1–T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario has `id`, `name`, `prompt`, `expected_output`, `mode`, `files`. Optional flags (mutually exclusive): `no_risk_codes: true` (no risk codes expected in output) or `no_health_score: true` (Health Score suppression test).
+`evals/evals.json` contains 64 benchmark scenarios covering R1–R6 (code decay) and T1–T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario has `id`, `name`, `prompt`, `expected_output`, `mode`, `files`. Optional boundary settings (mutually exclusive): `no_risk_codes: true` (no findings allowed), `no_health_score: true` (Health Score suppression test), or `forbidden_risk_codes: [R5]` (only those codes are forbidden; other findings are permitted).
 
 To add a scenario: append to the `evals` array with the next sequential `id` and the relevant risk code. Validate structure with `npm run evals`; live-test with `npm run evals:live` (requires `ANTHROPIC_API_KEY`).
 
-`expected_output` should describe the Iron Law finding (Symptom + risk code) and a Health Score range; it does NOT need to be verbatim — the evaluator matches semantics. For false-positive / tradeoff scenarios, set `no_risk_codes: true` and describe what must NOT appear in output.
+`expected_output` should describe the Iron Law finding (Symptom + risk code) and a Health Score range; it does NOT need to be verbatim. The deterministic evaluator checks report structure and finding risk codes, not semantic truth or whether the evidence establishes the diagnosis. Human or semantic review is still needed for those claims. For entirely clean false-positive / tradeoff scenarios, set `no_risk_codes: true`; use `forbidden_risk_codes` for targeted exclusions.
+
+The API eval runner diagnoses supplied fixtures in `review`, `audit`, `debt`, `test`,
+and `health`. It explicitly skips `sweep` scenarios in default runs and excludes them
+from pass-rate denominators; selecting unsupported scenarios explicitly is an error.
+Full Sweep needs an interactive execution environment. The CI runner supports only
+`review` on a collected diff. See `docs/runner-contracts.md` for scope and input rules.
 
 ## Parser-Fidelity Benchmark
 

@@ -56,7 +56,9 @@
       "expected_output": "Must NOT flag R1 Cognitive Overload. Code has named constants, clear function name, single level of nesting, < 20 lines of logic, descriptive error wrapping. If any findings, they should be unrelated to cognitive overload. Health Score should be high (80+).",
       "files": [],
       "mode": "review",
-      "no_risk_codes": true
+      "forbidden_risk_codes": [
+        "R1"
+      ]
     },
     {
       "id": 8,
@@ -89,7 +91,9 @@
       "expected_output": "Must NOT flag R2 Change Propagation. Service has single responsibility, uses event bus for side effects (no direct coupling to downstream systems). If any findings, they should be unrelated to change propagation. Health Score should be high (80+).",
       "files": [],
       "mode": "review",
-      "no_risk_codes": true
+      "forbidden_risk_codes": [
+        "R2"
+      ]
     },
     {
       "id": 12,
@@ -333,7 +337,9 @@
       "expected_output": "Must NOT flag R4 Accidental Complexity just because a switch exists. This switch is an explicit boundary over a closed external protocol and may be the clearest design. If any concern is raised, it should not be Speculative Generality or missing polymorphism by default.",
       "files": [],
       "mode": "review",
-      "no_risk_codes": true
+      "forbidden_risk_codes": [
+        "R4"
+      ]
     },
     {
       "id": 41,
@@ -342,7 +348,9 @@
       "expected_output": "Must NOT flag R5 Dependency Disorder merely because concrete infrastructure is instantiated here. This is a composition root / assembly boundary, which is allowed to depend on details. Health Score should remain high unless another real issue is found.",
       "files": [],
       "mode": "review",
-      "no_risk_codes": true
+      "forbidden_risk_codes": [
+        "R5"
+      ]
     },
     {
       "id": 42,
@@ -360,7 +368,9 @@
       "expected_output": "Must NOT flag T6 Architecture Mismatch as Critical solely because the ratio is not close to 70:20:10. The suite is risk-shaped, uses characterization tests and seams for legacy code, and keeps runtime reasonable. If any finding exists, it should acknowledge the deliberate tradeoff rather than treating the ratio alone as a smell.",
       "files": [],
       "mode": "test",
-      "no_risk_codes": true
+      "forbidden_risk_codes": [
+        "T6"
+      ]
     },
     {
       "id": 44,
@@ -453,7 +463,9 @@
       "expected_output": "Architecture Audit report. Must NOT flag R5 Dependency Disorder for a circular dependency: the two modules depend only on interfaces (ports) each side owns, with concrete wiring isolated in a composition root — this is correct Dependency Inversion, not a cycle. There is no concrete import cycle between OrderService and PaymentService. Health Score should remain high (80+). If any concern is raised it must acknowledge this is a deliberate, sound inversion rather than a dependency cycle.",
       "files": [],
       "mode": "audit",
-      "no_risk_codes": true
+      "forbidden_risk_codes": [
+        "R5"
+      ]
     },
     {
       "id": 55,
@@ -475,7 +487,7 @@
       "id": 57,
       "name": "debt-legit-aggregate-root-not-god-class",
       "prompt": "We have one big class, ShoppingCart, and a new hire flagged it as a 'god class' / too much tech debt. Can you confirm whether it's really a problem?\n\n```python\nclass ShoppingCart:\n    \"\"\"Aggregate root for the cart bounded context. All cart invariants live here.\"\"\"\n    def __init__(self):\n        self._lines: list[CartLine] = []\n\n    def add_item(self, sku, qty, unit_price):\n        if qty <= 0:\n            raise ValueError('qty must be positive')\n        existing = self._find(sku)\n        if existing:\n            existing.increase(qty)\n        else:\n            self._lines.append(CartLine(sku, qty, unit_price))\n\n    def remove_item(self, sku):\n        self._lines = [l for l in self._lines if l.sku != sku]\n\n    def apply_coupon(self, coupon):\n        if self.subtotal() < coupon.min_spend:\n            raise CouponNotApplicable(coupon.code)\n        self._coupon = coupon\n\n    def subtotal(self):\n        return sum(l.line_total() for l in self._lines)\n\n    def total(self):\n        return self._coupon.apply(self.subtotal()) if self._coupon else self.subtotal()\n```",
-      "expected_output": "Tech Debt Assessment that must NOT flag this as a god class / Change Propagation / Domain Model Distortion debt. ShoppingCart is a cohesive aggregate root: every method enforces an invariant of the same concept (cart contents and pricing), it delegates line-level math to CartLine, and it keeps business logic in the domain object rather than leaking it to services — this is good DDD, not debt. No R-series risk code should be flagged. Health Score should remain high (80+). If any concern is raised it must acknowledge the cohesion rather than treating size alone as a smell.",
+      "expected_output": "Tech Debt Assessment that must NOT flag this as a god class / R2 Change Propagation / R6 Domain Model Distortion debt. ShoppingCart is a cohesive aggregate root: every method enforces an invariant of the same concept (cart contents and pricing), it delegates line-level math to CartLine, and it keeps business logic in the domain object rather than leaking it to services — this is good DDD, not debt. No R-series risk code should be flagged. Health Score should remain high (80+). If any concern is raised it must acknowledge the cohesion rather than treating size alone as a smell.",
       "files": [],
       "mode": "debt",
       "no_risk_codes": true
@@ -487,6 +499,59 @@
       "expected_output": "Test Quality Review that honors the supplied project config instead of ignoring it. Because the config sets `disable: [T5]`, the happy-path-only suite must NOT produce a T5 Coverage Illusion finding — the 92% line coverage with no sad-path, boundary, or rounding tests is exactly a T5 symptom, and T5 is disabled, so it is silently omitted and does not affect the Health Score. The report must carry the config line immediately after the Scope line, stating the provenance it was given: `Config: .brooks-lint.yaml applied from base (main) — strictness: legacy-friendly, 1 risk disabled, 0 paths ignored`. Scoring must use the legacy-friendly deduction weights, so the Health Score should stay high (80+). Any remaining findings still follow the Iron Law (Symptom/Source/Consequence/Remedy).",
       "files": [],
       "mode": "test",
+      "forbidden_risk_codes": [
+        "T5"
+      ]
+    },
+    {
+      "id": 59,
+      "name": "review-new-public-behavior-missing-tests",
+      "prompt": "Review this complete small PR. The repository has no existing tests for the new clamp behavior, and this diff adds no tests. Inspect the public behavior and run the Quick Test Check.\n```diff\n+++ b/src/clamp.js\n+export function clamp(value, min, max) {\n+  return Math.min(max, Math.max(min, value));\n+}\n```",
+      "expected_output": "PR Review with Health Score around 90-95/100 and a T5 Coverage Illusion Warning: a new exported behavior has no tests for below-minimum, within-range, and above-maximum inputs. Include concrete Symptom, Source (Working Effectively with Legacy Code), Consequence and Remedy. Do not mistake a lack of test changes alone for proof: this scenario explicitly states no existing coverage.",
+      "files": [],
+      "mode": "review"
+    },
+    {
+      "id": 60,
+      "name": "review-covered-pure-refactor",
+      "prompt": "Review this behavior-preserving refactor. Existing tests below already run and cover all boundary cases; no new public behavior is added.\n```diff\n export function clamp(value, min, max) {\n-  return Math.min(max, Math.max(min, value));\n+  const lowerBounded = Math.max(min, value);\n+  return Math.min(max, lowerBounded);\n }\n```\nExisting tests: clamp(-1,0,10) === 0; clamp(0,0,10) === 0; clamp(4,0,10) === 4; clamp(10,0,10) === 10; clamp(11,0,10) === 10.",
+      "expected_output": "Clean PR Review, Health Score 100/100. No findings: existing behavior is unchanged and boundary tests cover it, so do not invent T5 Coverage Illusion merely because tests are absent from the diff.",
+      "files": [],
+      "mode": "review",
+      "no_risk_codes": true
+    },
+    {
+      "id": 61,
+      "name": "review-new-tests-mock-wiring-only",
+      "prompt": "Review this addition to a calculator test. computeTotal is production code, stubbed out by this test; no other behavior assertions exist.\n```diff\n+++ b/tests/total.test.js\n+test(\"total delegates\", () => {\n+  const calculator = { computeTotal: jest.fn(() => 12) };\n+  calculator.computeTotal([3, 9]);\n+  expect(calculator.computeTotal).toHaveBeenCalledWith([3, 9]);\n+});\n```",
+      "expected_output": "PR Review with Health Score around 90-95/100. Identify T4 Mock Abuse: the changed test replaces the behavior under test and verifies only that the stub was invoked, so a broken real computation cannot fail it. Cite The Art of Unit Testing and provide all Iron Law fields.",
+      "files": [],
+      "mode": "review"
+    },
+    {
+      "id": 62,
+      "name": "review-observable-command-spy",
+      "prompt": "Review this new test; the behavior is issuing exactly one cancellation command. The API implementation is supplied.\n```js\nexport function cancel(jobId, queue) { queue.publish({ type: \"cancel\", jobId }); }\n```\n```diff\n+++ b/tests/cancel.test.js\n+test(\"cancel publishes the requested job id\", () => {\n+  const commands = [];\n+  cancel(\"job-7\", { publish: command => commands.push(command) });\n+  assert.deepEqual(commands, [{ type: \"cancel\", jobId: \"job-7\" }]);\n+});\n```",
+      "expected_output": "Clean PR Review with Health Score 100/100 and no findings. Do not report T4 Mock Abuse: this fake captures the externally observable command, which is the public behavior. A single interaction boundary does not imply over-mocking.",
+      "files": [],
+      "mode": "review",
+      "no_risk_codes": true
+    },
+    {
+      "id": 63,
+      "name": "review-new-tests-obscure-names",
+      "prompt": "Review these added tests for an existing total(items) utility. Existing coverage is complete; focus on readability of the added tests.\n```diff\n+++ b/tests/total.test.js\n+test(\"test1\", () => { assert.equal(total([]), 0); });\n+test(\"test2\", () => { assert.equal(total([3]), 3); });\n+test(\"test3\", () => { assert.equal(total([3, 9]), 12); });\n```",
+      "expected_output": "PR Review with a T1 Test Obscurity Suggestion and Health Score around 97-99/100. The added names conceal the empty/single/multiple-item scenarios; include all Iron Law fields and cite xUnit Test Patterns or The Art of Unit Testing. Do not classify focused assertions themselves as brittle.",
+      "files": [],
+      "mode": "review"
+    },
+    {
+      "id": 64,
+      "name": "review-new-tests-clear-intent",
+      "prompt": "Review these tests for an existing total(items) utility. Its contract sums a finite array of numbers; these are the only relevant cases for this change.\n```diff\n+++ b/tests/total.test.js\n+test(\"total of an empty array is zero\", () => { assert.equal(total([]), 0); });\n+test(\"total of one item preserves its value\", () => { assert.equal(total([3]), 3); });\n+test(\"total sums every item\", () => { assert.equal(total([3, 9]), 12); });\n```",
+      "expected_output": "Clean PR Review with Health Score 100/100 and no findings. Do not flag T1 Test Obscurity: names specify the scenario and outcome, setup is inline, and each assertion has one clear purpose.",
+      "files": [],
+      "mode": "review",
       "no_risk_codes": true
     }
   ]

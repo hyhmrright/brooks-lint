@@ -4,7 +4,7 @@ author: "hyhmrright"
 
 inputs:
   mode:
-    description: "Review mode: review, audit, debt, test, health, sweep"
+    description: "CI supports review only (supplied diff); use an interactive agent for other modes"
     default: "review"
   anthropic-api-key:
     description: "Anthropic API key"
@@ -34,13 +34,16 @@ inputs:
     description: "Anthropic-compatible /v1/messages endpoint to call instead of api.anthropic.com (empty = Anthropic)"
     default: ""
   max-tokens:
-    description: "Output token ceiling for the report — raise it if long sweep/health reports come back truncated (empty = ci-review.mjs default, currently 4096)"
+    description: "Output token ceiling for the review — truncated reports fail instead of passing quality gates (empty = ci-review.mjs default, currently 4096)"
     default: ""
 
 outputs:
   score:
-    description: "Health Score from the review (0-100)"
+    description: "Health Score from a completed review (0-100); empty when skipped"
     value: ${{ steps.score.outputs.score }}
+  skipped:
+    description: "True when there was no diff to review; no quality verdict was produced"
+    value: ${{ steps.score.outputs.skipped }}
 
 branding:
   icon: "shield"
@@ -142,12 +145,20 @@ runs:
         score=$(node --input-type=module -e "
           import { readFileSync } from 'fs';
           const r = JSON.parse(readFileSync('brooks-lint-report.json', 'utf8'));
-          console.log(r.score ?? 0);
+          if (r.status === 'skipped') console.log('');
+          else if (r.status !== 'complete' || !Number.isInteger(r.score) || r.score < 0 || r.score > 100) process.exit(1);
+          else console.log(r.score);
         ")
         echo "score=$score" >> "$GITHUB_OUTPUT"
+        if [ -z "$score" ]; then
+          echo "skipped=true" >> "$GITHUB_OUTPUT"
+          echo "No diff to review — skipped without a score or quality verdict."
+        else
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Post PR Comment
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' && steps.score.outputs.skipped != 'true'
       uses: actions/github-script@v8
       with:
         script: |
@@ -175,7 +186,7 @@ runs:
           });
 
     - name: Upload SARIF
-      if: inputs.sarif-file != ''
+      if: inputs.sarif-file != '' && steps.score.outputs.skipped != 'true'
       uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: ${{ inputs.sarif-file }}
@@ -184,7 +195,7 @@ runs:
     # an input to attacker-controlled text (a PR title, a branch name) would
     # otherwise be injecting shell here. Same reason as the Run step above.
     - name: Check Threshold
-      if: inputs.fail-below != '0'
+      if: inputs.fail-below != '0' && steps.score.outputs.skipped != 'true'
       shell: bash
       env:
         SCORE: ${{ steps.score.outputs.score }}
@@ -196,7 +207,7 @@ runs:
         fi
 
     - name: Quality Gates
-      if: inputs.fail-on != 'none' || inputs.fail-on-regression == 'true'
+      if: steps.score.outputs.skipped != 'true' && (inputs.fail-on != 'none' || inputs.fail-on-regression == 'true')
       shell: bash
       env:
         FAIL_ON: ${{ inputs.fail-on }}

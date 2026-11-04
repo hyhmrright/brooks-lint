@@ -18,6 +18,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { VALID_MODES } from "./assemble-prompt.mjs";
+import { MODES } from "./modes.mjs";
 import { RISK_CODES, extractRiskCodes } from "./eval-utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -68,20 +69,19 @@ for (const ev of evals) {
     }
   }
 
-  if (typeof ev.prompt === "string" && ev.prompt.trim().length === 0) {
-    fail("fields", `${label}: 'prompt' is empty`);
+  for (const field of ["name", "prompt", "expected_output"]) {
+    if (typeof ev[field] !== "string" || !ev[field].trim()) fail("fields", `${label}: '${field}' must be a non-empty string`);
   }
 
-  if (typeof ev.expected_output === "string" && ev.expected_output.trim().length === 0) {
-    fail("fields", `${label}: 'expected_output' is empty`);
-  }
-
-  if (typeof ev.mode === "string" && !VALID_MODES.includes(ev.mode)) {
+  if (!VALID_MODES.includes(ev.mode)) {
     fail("fields", `${label}: 'mode' must be one of ${VALID_MODES.join(", ")} (got '${ev.mode}')`);
   }
 
   if ("files" in ev && !Array.isArray(ev.files)) {
     fail("fields", `${label}: 'files' must be an array when present (got ${typeof ev.files})`);
+  }
+  if (Array.isArray(ev.files) && ev.files.some((file) => !file || typeof file.path !== "string" || !file.path.trim() || typeof file.content !== "string")) {
+    fail("fields", `${label}: each fixture requires a non-empty 'path' and string 'content'`);
   }
 
   // expected_output should reference at least one risk code so reviewers know
@@ -92,23 +92,21 @@ for (const ev of evals) {
     // Same word-bounded extraction the live runner classifies with — a substring
     // scan here would let the two disagree about what a scenario expects.
     const referencedCodes = [...extractRiskCodes(ev.expected_output)];
-    const isBoundaryScenario = ev.no_risk_codes || ev.no_health_score;
+    const isBoundaryScenario = ev.no_risk_codes || ev.no_health_score || ev.forbidden_risk_codes;
     if (referencedCodes.length === 0 && !isBoundaryScenario) {
       warnings.push(`${label}: expected_output does not reference any risk code (${RISK_CODES.join(", ")})`);
     }
 
     // mode ↔ risk-code compatibility: assemble-prompt.mjs only loads the risk
-    // definitions for that mode (test→T-codes, review/audit/debt→R-codes,
-    // health/sweep→both). A code outside the loaded set is a dead reference —
+    // definitions from the common mode registry. Review includes Quick Test
+    // Check's T-codes. A code outside the loaded set is a dead reference —
     // the model is never given its definition, so the scenario cannot pass live.
     // RISK_CODES is R/T-prefixed by construction, so c[0] fully partitions it.
     const refsR = referencedCodes.filter((c) => c[0] === "R");
     const refsT = referencedCodes.filter((c) => c[0] === "T");
-    if (ev.mode === "test" && refsR.length > 0) {
-      fail("coherence", `${label}: mode 'test' loads only T-codes but expected_output references ${refsR.join(", ")}`);
-    }
-    if (["review", "audit", "debt"].includes(ev.mode) && refsT.length > 0) {
-      fail("coherence", `${label}: mode '${ev.mode}' loads only R-codes but expected_output references ${refsT.join(", ")}`);
+    const unsupported = [...refsR, ...refsT].filter((code) => Object.hasOwn(MODES, ev.mode) && !MODES[ev.mode].risks.includes(code[0]));
+    if (unsupported.length) {
+      fail("coherence", `${label}: mode '${ev.mode}' does not load definitions for ${unsupported.join(", ")}`);
     }
   }
 
@@ -122,8 +120,14 @@ for (const ev of evals) {
   if ("no_health_score" in ev && ev.no_health_score !== true) {
     fail("fields", `${label}: 'no_health_score' must be true when present (got ${JSON.stringify(ev.no_health_score)})`);
   }
-  if (ev.no_risk_codes && ev.no_health_score) {
-    fail("coherence", `${label}: 'no_risk_codes' and 'no_health_score' are mutually exclusive`);
+  if ("forbidden_risk_codes" in ev) {
+    if (!Array.isArray(ev.forbidden_risk_codes) || !ev.forbidden_risk_codes.length ||
+        ev.forbidden_risk_codes.some((code) => !RISK_CODES.includes(code) || !Object.hasOwn(MODES, ev.mode) || !MODES[ev.mode].risks.includes(code[0]))) {
+      fail("fields", `${label}: 'forbidden_risk_codes' must be a non-empty array of risk codes supported by the mode`);
+    }
+  }
+  if ([ev.no_risk_codes, ev.no_health_score, ev.forbidden_risk_codes].filter(Boolean).length > 1) {
+    fail("coherence", `${label}: boundary flags are mutually exclusive`);
   }
 }
 
@@ -136,7 +140,7 @@ for (const ev of evals) {
 
 const coveredCodes = new Set();
 for (const ev of evals) {
-  if (ev.no_risk_codes || ev.no_health_score) continue;
+  if (ev.no_risk_codes || ev.no_health_score || ev.forbidden_risk_codes) continue;
   if (typeof ev.expected_output !== "string") continue;
   for (const code of extractRiskCodes(ev.expected_output)) coveredCodes.add(code);
 }

@@ -227,7 +227,7 @@ graph TD
 
 **점수 결정성** — 고정된 진단 집합（2 Critical / 3 Warning / 1 Suggestion）에 대해, strictness 프리셋은 각자의 `common.md` 표가 예측하는 점수를 정확히 산출합니다: strict **34**, balanced **54**, legacy-friendly **74** — 그리고 `legacy-friendly`만이 상위 세 개의 수정으로 시작합니다.
 
-**모델 품질** — 모델이 실제 코드에서 *올바른* 위험을 찾아내는지는 **58개 시나리오 eval 스위트**（`evals/evals.json`）로 측정합니다: `npm run evals`（구조 검증）와 `npm run evals:live`（실측, `ANTHROPIC_API_KEY` 필요）.
+**평가 계약** — **64개 시나리오 eval 스위트**（`evals/evals.json`）는 `npm run evals`로 시나리오 구조를, `npm run evals:live`로 모델 보고서 구조와 위험 코드를 검사합니다（`ANTHROPIC_API_KEY` 필요）. 이 결정론적 검사만으로 진단 내용의 정확성을 입증할 수는 없습니다. API 러너는 제공된 픽스처의 `review`, `audit`, `debt`, `test`, `health`를 평가합니다. 기본 실행은 `sweep`을 명시적으로 건너뛰고 통과율에서 제외하며, 명시적으로 선택하면 오류가 납니다. Full Sweep에는 대화형 실행 환경이 필요합니다. [러너 계약](docs/runner-contracts.md)을 참고하세요.
 
 > 범위와 정직성: 파서 수치는 결정론적이며 정확히 재현됩니다. strictness 및 eval 스위트 수치는 모델에 대한 단일 실행 실측치로, 실행마다 약간씩 변동합니다. 파서 벤치마크는 보고서 파싱 충실도（도구가 보고서에 기재된 모든 진단을 읽어내는가?）를 측정하는 것이지, 특정 진단이 "옳은지"를 측정하는 것이 아닙니다. 심각도 카운트 일치가 완전히 독립적인 신호입니다; 위험 코드 일치는 공유된 표준 name→code 범례 또한 반영합니다.
 
@@ -417,7 +417,7 @@ brooks-lint/
 │   └── brooks-sweep/     # 모드 6: 전면 스윕          → sweep-guide.md
 ├── hooks/                # SessionStart 훅
 ├── commands/             # 짧은 명령 래퍼（훅이 자동 설치）
-├── evals/                # 58 시나리오 eval 스위트 + 동결된 파서 충실도 코퍼스
+├── evals/                # 64 시나리오 eval 스위트 + 동결된 파서 충실도 코퍼스
 └── assets/               # 로고, 배너, 데모
 ```
 
@@ -452,7 +452,7 @@ jobs:
 
 이 Action은 리뷰를 PR 댓글로 게시하며, 건강 점수가 임계값 아래로 떨어지면 선택적으로 체크를 실패시킵니다. `.brooks-lint-history.json`이 저장소에 커밋되어 있으면 댓글에 추세 변화도 포함됩니다（예: "85 → 82 (−3) over last 3 runs"）.
 
-**CI의 `mode: sweep`은 보고만 하고 수정을 적용하지는 않습니다.** 이 Action은 도구가 없는 API 호출을 한 번만 하므로 Full Sweep의 동의 게이트(Step 0), 파일 직접 수정, 반복 루프를 실행할 수 없습니다 — Fix Log와 Iteration History 섹션은 비어서 돌아오고, `.brooks-lint.yaml`의 `sweep.max_iterations`도 여기서는 작동하지 않습니다. 얻는 것은 스윕 자체가 아니라 스윕에 대한 설명입니다. 수정이 실제로 적용되길 원한다면 파일 도구가 있고 Step 0의 동의 프롬프트에 답할 수 있는 환경에서 `/brooks-sweep`을 대화형으로 실행하세요. 읽기 전용 5개 모드 — `review`, `audit`, `debt`, `test`, `health` — 는 CI에서도 로컬과 똑같이 동작합니다.
+**CI는 `mode: review`만 지원합니다.** 수집한 diff를 검토하며 파일 읽기 도구나 편집 기능은 없습니다. GitHub PR 실행은 이벤트의 base/head SHA를 비교합니다. 두 커밋과 병합 기준점을 확보하도록 `fetch-depth: 0`을 유지하세요. 빈 diff는 점수 없이 건너뛰고, 참조 누락이나 diff 수집 실패는 오류로 처리합니다. `audit`, `debt`, `test`, `health`, `sweep`은 프로젝트에 접근할 수 있는 대화형 Agent에서 계속 사용할 수 있습니다. CLI에서는 `--base-ref <ref> --head-ref <ref>`로 비교 범위를 지정하며, `config-ref: base`의 신뢰할 설정도 해당 base에서 읽습니다. [러너 계약](docs/runner-contracts.md)을 참고하세요.
 
 **품질 게이트와 Code Scanning.** `fail-below` 외에도 이 Action은 다음을 제공합니다:
 
@@ -467,7 +467,7 @@ jobs:
 
 `fail-on-regression`은 `.brooks-lint-history.json`을 읽으므로, "새로운 회귀 없음"을 강제하려면 그 파일을 커밋하세요. `sarif-file`을 설정하면 진단이 PR의 **Files changed** 탭에 인라인으로 나타나며, job에 `security-events: write` 권한이 필요합니다.
 
-**CI의 프로젝트 설정.** action은 `.brooks-lint.yaml`(`strictness`, `disable`, `focus`, `severity`, `ignore`, `custom_risks`)을 적용하며, PR 체크아웃이 아니라 **base 브랜치**에서 읽습니다. 따라서 pull request가 자신을 리뷰하는 정책을 약화시킬 수 없습니다. 모든 위험을 비활성화하는 diff라면 그 설정 변경이 승인되기도 전에 점수 100으로 `fail-below`를 통과했을 것입니다. PR이 처음 추가한 설정도 같은 이유로 머지된 뒤에 적용됩니다. 리포트의 `Config:` 줄에는 사용한 출처(예: `applied from base (main)`)가 표시됩니다. 이를 위해서는 클론에 base 객체가 있어야 하므로 템플릿이 `fetch-depth: 0`으로 체크아웃합니다. PR에서 base 참조가 없으면 action은 오류로 중단하고 `fetch-depth: 0`을 사용하도록 안내합니다. PR 자체의 정책으로 폴백하지 않습니다. PR 이외의 실행(로컬 실행 포함)에서는 base 참조를 읽을 수 없으면 작업 트리의 설정으로 폴백하고 출처를 명시합니다. PR 자체의 사본을 쓰려면 `config-ref: head`를 설정하세요 — `.brooks-lint.yaml`이 CODEOWNERS로 보호되어 있고 설정 변경이 그것을 제안한 PR에서 바로 적용되어야 할 때 적합합니다:
+**CI의 프로젝트 설정.** action은 `.brooks-lint.yaml`(`strictness`, `disable`, `focus`, `severity`, `ignore`, `custom_risks`)을 적용하며, PR 체크아웃이 아니라 **선택한 base 커밋**에서 읽습니다. 따라서 pull request가 자신을 리뷰하는 정책을 약화시킬 수 없습니다. 모든 위험을 비활성화하는 diff라면 그 설정 변경이 승인되기도 전에 점수 100으로 `fail-below`를 통과했을 것입니다. PR이 처음 추가한 설정도 같은 이유로 머지된 뒤에 적용됩니다. 리포트의 `Config:` 줄에는 사용한 출처(예: `applied from base (<ref>)`)가 표시됩니다. 이를 위해서는 클론에 base 객체가 있어야 하므로 템플릿이 `fetch-depth: 0`으로 체크아웃합니다. PR에서 base 참조가 없으면 action은 오류로 중단하고 `fetch-depth: 0`을 사용하도록 안내합니다. PR 자체의 정책으로 폴백하지 않습니다. base를 명시하지 않은 로컬 스테이징·미스테이징 변경 리뷰에서는 기본 base 참조가 없을 때 출처를 명시하고 작업 트리 설정을 사용할 수 있습니다. 명시한 base가 없으면 항상 오류가 납니다. PR 자체의 사본을 쓰려면 `config-ref: head`를 설정하세요 — `.brooks-lint.yaml`이 CODEOWNERS로 보호되어 있고 설정 변경이 그것을 제안한 PR에서 바로 적용되어야 할 때 적합합니다:
 
 ```yaml
         with:
@@ -492,7 +492,7 @@ brooks-lint는 여기에 지정한 호스트로 diff를 전송하므로, 소스 
 
 **이 방식으로는 fork에서 온 pull request를 리뷰할 수 없습니다.** GitHub은 fork의 `pull_request` 실행에 저장소 시크릿도 `id-token: write`도 부여하지 않으므로, 역할과 교환할 OIDC 토큰도 대신 쓸 저장된 키도 없습니다. fork까지 커버하려면 다른 트리거(`pull_request_target` — 신뢰할 수 없는 브랜치를 대상으로 실행할 때 필요한 모든 주의를 기울여서)나 다른 키 공급원이 필요합니다.
 
-**출력 상한.** `max-tokens: 8192`는 리포트의 출력 토큰 상한을 올립니다(기본값 4096). 긴 `sweep`이나 `health` 리포트는 이 상한에 도달할 수 있고, 잘림은 잘못된 방향으로 실패합니다: 잘려 나간 진단은 집계되지 않으므로 건강 점수가 오히려 *더 높게* 나오고, `fail-below` 게이트가 실패시켜야 할 실행을 통과시킬 수 있습니다. 그 사실을 직접 알아챌 필요는 없습니다: 리포트가 잘린 실행은 `::warning::` 어노테이션을 남기고, PR 코멘트에도 같은 경고를 반복하며, `brooks-lint-report.json`에 `"truncated": true`를 기록합니다 — `max-tokens`를 올리고 다시 실행하세요. 이 때문에 실행이 실패하지는 않습니다.
+**출력 상한과 잘못된 보고서.** `max-tokens: 8192`는 보고서 출력 상한을 높입니다（기본값 4096）. 잘리거나 구조가 잘못된 보고서는 실행을 실패시키며 게이트를 통과할 점수를 제공하지 않습니다. 잘림이 발생하면 상한을 높여 다시 실행하세요. 건너뛴 실행은 `score: null`이며, Action은 누락된 값을 0으로 바꾸는 대신 점수 임계값 검사와 SARIF 업로드를 건너뜁니다.
 
 **비용:** PR 실행당 약 $0.05–0.15로, diff 크기와 모델에 따라 다릅니다. `pull_request` 이벤트에서만 실행할 것을 권장합니다.
 

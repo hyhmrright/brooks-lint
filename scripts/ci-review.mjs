@@ -1,5 +1,5 @@
 /**
- * CI entry point — runs a brooks-lint mode via Anthropic SDK.
+ * CI entry point — reviews a supplied Git diff via Anthropic SDK.
  * Shared prompt assembly with run-evals-live.mjs (via assemble-prompt.mjs).
  *
  * Reads git diff from the project, assembles the system prompt for the mode,
@@ -17,6 +17,7 @@
  *     --skills-dir ./skills \
  *     --project-dir /path/to/project \
  *     [--config-ref base|head] \
+ *     [--base-ref <ref>] [--head-ref <ref>] \
  *     [--format json|sarif] \
  *     [--sarif-out brooks-lint.sarif] \
  *     [--max-tokens 4096]
@@ -25,12 +26,12 @@
  *   ANTHROPIC_API_KEY  required
  */
 
-import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Anthropic from "@anthropic-ai/sdk";
 import { assembleSystemPrompt, VALID_MODES } from "./assemble-prompt.mjs";
+import { assertRunnerMode, runnerInstructions } from "./modes.mjs";
+import { readCiDiff } from "./ci-diff.mjs";
 import {
   CONFIG_REFS,
   configSizeError,
@@ -40,7 +41,7 @@ import {
   loadProjectConfig,
 } from "./ci-config.mjs";
 import { readHistory, getTrend } from "./history.mjs";
-import { countFindings } from "./report-parse.mjs";
+import { countFindings, parseReport } from "./report-parse.mjs";
 import { reportToSarif } from "./sarif.mjs";
 import { parseArgs, parseMaxTokens, maxTokensError, warnIfTruncated } from "./cli-utils.mjs";
 
@@ -63,6 +64,8 @@ if (!VALID_MODES.includes(mode)) {
   console.error(`Unknown mode: ${mode}. Valid modes: ${VALID_MODES.join(", ")}`);
   process.exit(1);
 }
+try { assertRunnerMode(mode, "ci"); }
+catch (error) { console.error(error.message); process.exit(1); }
 
 if (!["json", "sarif"].includes(format)) {
   console.error(`Unknown format: ${format}. Valid formats: json, sarif`);
@@ -79,34 +82,19 @@ if (maxTokens === null) {
   process.exit(1);
 }
 
-// ── Read git diff ─────────────────────────────────────────────────────────────
-
-function getGitDiff(projectRoot) {
-  const run = (cmd, cmdArgs) => {
-    try {
-      return execFileSync(cmd, cmdArgs, { cwd: projectRoot, encoding: "utf8" });
-    } catch {
-      return "";
-    }
-  };
-
-  const staged = run("git", ["diff", "--cached"]);
-  if (staged.trim()) return { diff: staged, scope: "staged changes (git diff --cached)" };
-
-  const unstaged = run("git", ["diff"]);
-  if (unstaged.trim()) return { diff: unstaged, scope: "unstaged changes (git diff)" };
-
-  const branch = run("git", ["diff", "main...HEAD"]);
-  if (branch.trim()) return { diff: branch, scope: "branch changes vs main (git diff main...HEAD)" };
-
-  return { diff: "", scope: "no diff detected — full codebase scan" };
-}
-
 // ── Main ──────────────────────────────────────────────────────────────────────
-
-const client = new Anthropic();
-
-const { diff, scope } = getGitDiff(projectDir);
+let input;
+try { input = readCiDiff({ projectDir, baseRef: args["base-ref"], headRef: args["head-ref"] }); }
+catch (error) { console.error(JSON.stringify({ error: error.message, mode })); process.exit(1); }
+const { diff, scope } = input;
+if (input.status === "skipped") {
+  if (format === "sarif") {
+    console.error("No diff to review; SARIF was not generated.");
+  } else {
+    console.log(JSON.stringify({ status: "skipped", reason: "No changes in the selected diff", report: "", score: null, mode, scope, findings: { critical: 0, warning: 0, suggestion: 0 } }));
+  }
+  process.exit(0);
+}
 
 // The project config goes in its own system block rather than through
 // assembleSystemPrompt(): that function is shared with run-evals-live.mjs and
@@ -114,7 +102,7 @@ const { diff, scope } = getGitDiff(projectDir);
 // out of the user message, which carries the untrusted diff.
 let projectConfig;
 try {
-  projectConfig = loadProjectConfig({ projectDir, configRef });
+  projectConfig = loadProjectConfig({ projectDir, configRef, baseRef: input.baseRef });
 } catch (err) {
   console.error(JSON.stringify({ error: err.message, mode, scope }, null, 2));
   process.exit(1);
@@ -131,6 +119,7 @@ if (projectConfig.content) {
 const systemBlocks = [
   { type: "text", text: assembleSystemPrompt(mode, skillsDir) },
   { type: "text", text: configSystemBlock(projectConfig) },
+  { type: "text", text: runnerInstructions("ci") },
 ];
 
 // common.md makes custom-risks-guide.md a conditional read; CI has no on-demand
@@ -140,12 +129,12 @@ if (projectConfig.content && hasCustomRisks(projectConfig.content)) {
   if (guide) systemBlocks.push({ type: "text", text: guide });
 }
 
-const userMessage = diff
-  ? `Run brooks-lint ${mode} mode on the following diff.\n\nScope: ${scope}\n\n\`\`\`diff\n${diff}\n\`\`\``
-  : `Run brooks-lint ${mode} mode on this project.\n\nScope: ${scope}`;
+const userMessage = `Run brooks-lint ${mode} mode on the following diff.\n\nScope: ${scope}\n\n\`\`\`diff\n${diff}\n\`\`\``;
 
 let message;
 try {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const client = new Anthropic();
   message = await client.messages.create({
     model,
     max_tokens: maxTokens,
@@ -157,19 +146,17 @@ try {
   process.exit(1);
 }
 
-// A response that stopped at the ceiling is missing the findings it had not
-// written yet, and every number below is derived from the findings that did
-// arrive: countFindings() counts fewer of them and the Health Score, being
-// base 100 minus deductions, comes back higher. Say so on the run before
-// emitting a score a fail-below gate is about to believe.
+// Truncation is diagnostic output only; it cannot produce a passing CI result.
 const truncated = warnIfTruncated(message);
 
-// The first block is not always the text one — an endpoint that returns a
-// thinking block first would otherwise yield undefined.
-const report = message.content.find((block) => block.type === "text")?.text ?? "";
+const report = message.content.filter((block) => block.type === "text").map((block) => block.text).join("\n");
 
-const scoreMatch = report.match(/Health\s+Score[:\s]+(\d+)/i);
-const score = scoreMatch ? parseInt(scoreMatch[1], 10) : null;
+const parsed = parseReport(report, { mode });
+if (truncated || !parsed.valid) {
+  console.error(JSON.stringify({ status: "incomplete", error: truncated ? "Model response was truncated" : "Invalid review report", errors: parsed.errors, mode, scope, report }));
+  process.exit(1);
+}
+const score = parsed.score;
 
 const findings = countFindings(report);
 
@@ -204,7 +191,7 @@ if (format === "sarif") {
   console.log(sarif);
 } else {
   console.log(JSON.stringify(
-    { report, score, mode, scope, trend: trendNote, findings, previousScore, delta, truncated },
+    { status: "complete", report, score, mode, scope, trend: trendNote, findings, previousScore, delta, truncated },
     null,
     2,
   ));

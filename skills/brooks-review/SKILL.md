@@ -25,7 +25,8 @@ Read in order:
 1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score
 2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs
 3. `../_shared/decay-risks.md` — symptom definitions and source attributions
-4. `pr-review-guide.md` (this directory) — the analysis process
+4. `../_shared/test-decay-risks.md` — test risk definitions for the Quick Test Check
+5. `pr-review-guide.md` (this directory) — the analysis process
 
 ## Process
 

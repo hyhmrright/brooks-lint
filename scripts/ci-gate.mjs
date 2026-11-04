@@ -14,6 +14,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "./cli-utils.mjs";
+import { parseReport } from "./report-parse.mjs";
 
 /**
  * True when findings at/above the `failOn` severity exist.
@@ -37,12 +38,28 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = parseArgs(process.argv.slice(2));
   const report = JSON.parse(readFileSync(args.report, "utf8"));
   const failOn = args["fail-on"] ?? "none";
+  if (!["none", "warning", "critical"].includes(failOn)) {
+    console.error(`Invalid fail-on: ${failOn}`);
+    process.exit(1);
+  }
+  if (report.status === "skipped") {
+    console.log("brooks-lint skipped: no diff to review; no score or quality verdict.");
+    process.exit(0);
+  }
+  const parsed = parseReport(report.report, { mode: report.mode });
+  if (report.truncated || !parsed.valid || parsed.score !== report.score ||
+      (report.status && report.status !== "complete")) {
+    console.error("Quality gates require a complete, valid report and matching score.");
+    process.exit(1);
+  }
+  const counts = { critical: 0, warning: 0, suggestion: 0 };
+  for (const finding of parsed.findings) counts[finding.severity]++;
   // parseArgs yields boolean true for a bare flag and a string otherwise.
   const failOnRegression = String(args["fail-on-regression"]).toLowerCase() === "true";
 
   let failed = false;
-  if (failOn !== "none" && severityBreached(report.findings, failOn)) {
-    console.error(`Severity gate failed (fail-on=${failOn}): ${JSON.stringify(report.findings)}`);
+  if (failOn !== "none" && severityBreached(counts, failOn)) {
+    console.error(`Severity gate failed (fail-on=${failOn}): ${JSON.stringify(counts)}`);
     failed = true;
   }
   if (failOnRegression) {

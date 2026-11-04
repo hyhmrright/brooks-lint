@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0  # needed for git diff main...HEAD and to read .brooks-lint.yaml from the base ref
+          fetch-depth: 0  # needed for the PR event base/head SHAs and base config
 
       # Bedrock path (step 1 of 3) — assume the role allowed to invoke the model.
       # - uses: aws-actions/configure-aws-credentials@v6
@@ -53,7 +53,7 @@ jobs:
       # installs. Bump this deliberately.
       - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.9.1
         with:
-          # review | audit | debt | test | health | sweep
+          # CI supports review only; other modes require an interactive agent
           mode: review
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Bedrock path (step 3 of 3) — uncomment these three, replacing the line above
@@ -71,4 +71,4 @@ jobs:
           # fail-on-regression: true     # fail if the Health Score dropped vs the last run
           # sarif-file: brooks-lint.sarif  # also upload findings to GitHub Code Scanning
           # api-base-url: https://your-gateway.example.com  # any Anthropic-compatible /v1/messages endpoint
-          # max-tokens: 8192             # raise the 4096 output ceiling; a truncated report scores too HIGH
+          # max-tokens: 8192             # raise the default 4096 output ceiling

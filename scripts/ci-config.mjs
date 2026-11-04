@@ -50,9 +50,8 @@ export const MAX_CONFIG_BYTES = 64 * 1024;
  */
 export function baseRefCandidates(env = process.env) {
   const baseRef = (env.GITHUB_BASE_REF ?? "").trim();
-  // GITHUB_BASE_REF is set only on pull_request events. A scheduled or manual
-  // full-codebase run has none, so fall back to the usual default branches —
-  // the same assumption getGitDiff() already makes with `main...HEAD`.
+  // PR/explicit comparisons supply an exact baseRef to loadProjectConfig.
+  // Local staged/unstaged reviews can fall back to conventional base branches.
   const names = baseRef ? [baseRef] : ["main", "master"];
   return names.flatMap((name) => [
     { ref: `origin/${name}`, label: name },
@@ -124,6 +123,7 @@ function readWorkingTreeFile(projectDir, filename) {
 export function loadProjectConfig({
   projectDir,
   configRef = "base",
+  baseRef,
   env = process.env,
   refExists = gitRefExists,
   showRef = gitShowFile,
@@ -133,7 +133,9 @@ export function loadProjectConfig({
   let baseResolved = false;
 
   if (configRef === "base") {
-    for (const { ref, label } of baseRefCandidates(env)) {
+    if (baseRef && !refExists(projectDir, baseRef)) throw new Error(`Cannot read the selected base config: ${baseRef} does not resolve`);
+    const candidates = baseRef ? [{ ref: baseRef, label: baseRef }] : baseRefCandidates(env);
+    for (const { ref, label } of candidates) {
       attempted.push(ref);
       if (!refExists(projectDir, ref)) continue;
       baseResolved = true;

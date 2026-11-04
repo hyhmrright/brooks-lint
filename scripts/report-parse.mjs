@@ -38,8 +38,36 @@ const SEVERITY_HEADER_RE =
   /^#{2,6}\s*(?:🔴|🟡|🟢|⚠️?|❗)?\s*(Critical|Warning|Suggestion)s?(?:\s+(?:Issues?|Findings?|Items?))?\s*:?\s*$/i;
 const SECTION_HEADER_RE = /^#{1,6}\s/;
 const BOLD_TITLE_RE = /^\s*(?:🔴|🟡|🟢)?\s*\*\*(.+?)\*\*\s*$/;
-const FIELD_RE = /^\s*(Symptom|Source|Consequence|Remedy)\s*[:：]\s*(.*)$/i;
+const FIELD_RE = /^\s*(?:\*\*)?(Symptom|Source|Consequence|Remedy)(?:\*\*)?\s*[:：](?:\*\*)?\s*(.*)$/i;
 const EMOJI_SEVERITY = { "🔴": "critical", "🟡": "warning", "🟢": "suggestion" };
+
+/** Exclude examples and explicitly suppressed findings from every machine view. */
+function reportContent(report) {
+  let fence = null;
+  const errors = [];
+  const lines = (report ?? "").split(/\r?\n/).filter((line) => {
+    const marker = line.match(/^\s*(`{3,}|~{3,})/);
+    if (marker) {
+      if (!fence) fence = marker[1];
+      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = null;
+      return false;
+    }
+    return !fence;
+  });
+  if (fence) errors.push("Unclosed code fence in report");
+  const suppressedStart = /<details\b[^>]*>\s*<summary\b[^>]*>\s*Suppressed(?:\s*\(\d+\))?\s*<\/summary\s*>/i;
+  const text = lines.join("\n").replace(/<details\b[^>]*>[\s\S]*?<\/details\s*>/gi, (block) => {
+    if (!suppressedStart.test(block)) return block;
+    if ((block.match(/<details\b/gi) ?? []).length !== 1) {
+      errors.push("Nested or malformed Suppressed section");
+      return block;
+    }
+    // A boundary prevents the next active finding from inheriting an old tier.
+    return "\n## Suppressed\n";
+  });
+  if (suppressedStart.test(text)) errors.push("Unclosed or malformed Suppressed section");
+  return { lines: text.split("\n"), errors };
+}
 
 // A path with a directory separator, or a bare filename with a known source
 // extension — optionally followed by `:line`. The extension allowlist keeps
@@ -81,8 +109,8 @@ function splitTitle(bold) {
 // a hardcoded `[RT][1-6]` range silently dropped anything outside it.
 const CODES = Object.keys(RISK_CATALOG).join("|");
 // Case-sensitive on purpose: a lowercase `r1` in prose is not a risk citation.
-const EXPLICIT_CODE_RE = new RegExp(`\\b(${CODES})\\b`);
-const PARENTHESISED_CODE_RE = new RegExp(`\\((${CODES})\\)`, "i");
+const EXPLICIT_CODE_RE = new RegExp(`\\b(${CODES}|C\\d+)\\b`);
+const PARENTHESISED_CODE_RE = new RegExp(`\\((${CODES}|C\\d+)\\)`, "i");
 
 function resolveCode(namePart) {
   const explicit = namePart.match(EXPLICIT_CODE_RE);
@@ -115,12 +143,13 @@ export function extractLocation(text) {
  * @returns {Array<{severity, riskCode, riskName, title, symptom, source,
  *   consequence, remedy, file, line}>}
  */
-export function parseFindings(report) {
-  const lines = (report ?? "").split(/\r?\n/);
+function readFindings(report) {
+  const { lines, errors } = reportContent(report);
   const findings = [];
   let severity = null;
   let current = null;
   let field = null;
+  let customSection = false;
 
   const commit = () => {
     if (!current) return;
@@ -135,25 +164,41 @@ export function parseFindings(report) {
     if (sevHeader) {
       commit();
       severity = sevHeader[1].toLowerCase();
+      const emoji = line.match(/(🔴|🟡|🟢)/)?.[1];
+      if (emoji && EMOJI_SEVERITY[emoji] !== severity) errors.push(`Conflicting severity in heading: ${line.trim()}`);
       continue;
     }
     if (SECTION_HEADER_RE.test(line)) {
+      if (/^#{2,6}\s+Project-Specific Risks\s*$/i.test(line)) {
+        commit();
+        customSection = true;
+        severity = null;
+        // This heading supplies no severity; require a nested tier or inline emoji.
+        continue;
+      }
       // A non-severity header ends the current Findings group (e.g. ## Summary).
       commit();
       severity = null;
+      customSection = false;
       continue;
     }
 
-    const bold = severity && line.match(BOLD_TITLE_RE);
+    const titleLine = line.match(BOLD_TITLE_RE);
+    const inlineSeverity = line.match(/^\s*(🔴|🟡|🟢)/);
+    const bold = (severity || customSection || inlineSeverity) && titleLine;
+    if (titleLine && !bold && resolveCode(splitTitle(titleLine[1]).namePart)) {
+      errors.push(`Finding outside a severity group: ${titleLine[1]}`);
+    }
     if (bold) {
       commit();
       const emoji = line.match(/^\s*(🔴|🟡|🟢)/);
+      if (emoji && severity && EMOJI_SEVERITY[emoji[1]] !== severity) errors.push(`Conflicting severity for finding: ${bold[1]}`);
       const { namePart, title } = splitTitle(bold[1]);
       const riskCode = resolveCode(namePart);
       current = {
         severity: emoji ? EMOJI_SEVERITY[emoji[1]] : severity,
         riskCode,
-        riskName: riskCode ? RISK_CATALOG[riskCode] : namePart.replace(/[[\]]/g, "").trim(),
+        riskName: RISK_CATALOG[riskCode] ?? namePart.replace(/[[\]]/g, "").trim(),
         title,
         symptom: "",
         source: "",
@@ -166,7 +211,10 @@ export function parseFindings(report) {
       continue;
     }
 
-    if (!current) continue;
+    if (!current) {
+      if (FIELD_RE.test(line)) errors.push(`Unparsed finding field: ${line.trim()}`);
+      continue;
+    }
 
     const fieldMatch = line.match(FIELD_RE);
     if (fieldMatch) {
@@ -189,8 +237,61 @@ export function parseFindings(report) {
     const loc = fromSymptom.file ? fromSymptom : extractLocation(`${f.source} ${f.consequence}`);
     f.file = loc.file;
     f.line = loc.line;
+    if (!f.severity) errors.push(`Missing severity for finding: ${f.riskName} — ${f.title}`);
   }
-  return findings;
+  return { findings, errors };
+}
+
+export function parseFindings(report) {
+  return readFindings(report).findings;
+}
+
+/** Read score labels, not incidental numbers in prose or fenced examples. */
+export function readScore(report, mode) {
+  const scores = [];
+  const { lines, errors } = reportContent(report);
+  let present = false;
+  for (const line of lines) {
+    const plain = line.replace(/\*\*/g, "").replace(/^\s*#{1,6}\s+/, "").trim();
+    let match = plain.match(/^(Health Score|Composite Score)(?:\s*[:：]\s*|\s+(?=[+-]?\d))(.*)$/i);
+    if (mode === "sweep" && !match) {
+      const after = plain.match(/(?:^|[→>])\s*After\s*:\s*(.*)$/i);
+      if (after) match = [after[0], "After", after[1]];
+    }
+    if (!match) continue;
+    present = true;
+    const value = match[2].match(/^(\d{1,3})(?:\s*\/\s*100)?\s*$/);
+    if (!value || Number(value[1]) > 100) errors.push(`Invalid ${match[1]}: ${match[2]}`);
+    else scores.push(Number(value[1]));
+  }
+  if (new Set(scores).size > 1) errors.push("Conflicting report scores");
+  return { score: scores.length && !errors.length ? scores[0] : null, present, errors };
+}
+
+/** Strict boundary for machine consumers; tolerant parsing remains available for legacy SARIF. */
+export function parseReport(report, { mode, requireScore = true } = {}) {
+  const { findings, errors } = readFindings(report);
+  const result = readScore(report, mode);
+  errors.push(...result.errors);
+  if (!report?.trim()) errors.push("Empty report");
+  if (requireScore && result.score === null) errors.push("Missing or invalid report score");
+  if (requireScore) {
+    // A score alone is not evidence that a review ran. The shared templates all
+    // identify the mode and the actual scope, including the one-line sweep form.
+    const envelope = reportContent(report).lines.join("\n").replace(/\*\*/g, "");
+    if (!/^\s*Mode\s*:\s*\S/m.test(envelope)) errors.push("Missing report Mode");
+    if (!/(?:^|\|)\s*Scope\s*:\s*\S/m.test(envelope)) errors.push("Missing report Scope");
+  }
+  for (const f of findings) {
+    if (!f.riskCode) errors.push(`Missing or unknown risk code for finding: ${f.riskName} — ${f.title}`);
+    for (const field of ["symptom", "source", "consequence", "remedy"]) {
+      if (!f[field]) errors.push(`Missing ${field} for finding: ${f.riskName} — ${f.title}`);
+    }
+  }
+  if (result.score !== null && result.score < 100 && findings.length === 0) {
+    errors.push("A deducted score requires parsed findings");
+  }
+  return { score: result.score, findings, errors, valid: errors.length === 0 };
 }
 
 /** Count findings by severity. @returns {{critical, warning, suggestion}} */

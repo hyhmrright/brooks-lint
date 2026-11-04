@@ -226,7 +226,7 @@ graph TD
 
 **打分确定性** —— 给定一组固定发现（2 Critical / 3 Warning / 1 Suggestion），三个 strictness 预设产出的分数与其 `common.md` 表的预测分毫不差：strict **34**、balanced **54**、legacy-friendly **74**——且只有 `legacy-friendly` 会优先列出前三高杠杆修复。
 
-**模型质量** —— 模型能否在真实代码上找到*正确的*风险，由 **58 场景 eval 套件**（`evals/evals.json`）衡量：`npm run evals`（结构校验）与 `npm run evals:live`（实测，需 `ANTHROPIC_API_KEY`）。
+**评估约定** —— **64 场景 eval 套件**（`evals/evals.json`）通过 `npm run evals` 检查场景结构，通过 `npm run evals:live` 检查模型报告结构与风险码（需要 `ANTHROPIC_API_KEY`）。这些确定性检查不能证明诊断在语义上正确。API 运行器只对提供的样例执行 `review`、`audit`、`debt`、`test`、`health`；默认运行会明确跳过 `sweep` 并将其排除在通过率之外，显式选择则报错。Full Sweep 需要交互式执行环境。参见[运行器约定](docs/runner-contracts.md)。
 
 > 范围与诚实说明：parser 数字是确定性的、可精确复算；strictness 与 eval 套件的数字是对模型的单次实测，会有轻微跑动差异。parser 基准衡量的是报告解析保真度（工具是否读出了报告里写的每条发现），而非某条发现"是否正确"。严重度计数吻合是完全独立的信号；风险码一致性还反映了 parser 与 grader 共用同一套权威 name→code 映射。
 
@@ -408,7 +408,7 @@ brooks-lint/
 │   └── brooks-sweep/     # 模式 6：全面扫描     → sweep-guide.md
 ├── hooks/                # SessionStart 钩子
 ├── commands/             # 短命令包装（由钩子自动安装）
-├── evals/                # 58 场景评测套件 + 冻结的 parser 保真度语料
+├── evals/                # 64 场景评测套件 + 冻结的 parser 保真度语料
 └── assets/               # logo、banner、demo
 ```
 
@@ -443,7 +443,7 @@ jobs:
 
 该 Action 会把审查结果作为 PR 评论发布，并可在健康分跌破阈值时让检查失败。若仓库中提交了 `.brooks-lint-history.json`，评论还会包含趋势变化（如 "85 → 82（−3），近 3 次运行"）。
 
-**CI 中的 `mode: sweep` 只会诊断，绝不会应用修复。** 该 Action 只发起一次不带工具的 API 调用，因此 Full Sweep 的同意闸门（Step 0）、就地改写文件和迭代循环都无法运行 —— Fix Log 与 Iteration History 两节会是空的，`.brooks-lint.yaml` 里的 `sweep.max_iterations` 在这里同样失效。你拿到的是一次清扫的描述，而不是一次清扫。要让修复真正落地，请在具备文件工具、能回答 Step 0 同意提示的环境中交互式运行 `/brooks-sweep`。五个只读模式 —— `review`、`audit`、`debt`、`test`、`health` —— 在 CI 中的表现与本地完全一致。
+**CI 仅支持 `mode: review`。** 它审核收集到的 diff，不具备读取文件或修改代码的工具。GitHub PR 运行使用事件中的 base/head SHA；保留 `fetch-depth: 0`，确保两个提交及其合并基点可用。空 diff 会标记为跳过且没有分数；引用缺失或 diff 收集失败则报错。`audit`、`debt`、`test`、`health`、`sweep` 仍可在能访问项目的交互式 Agent 中使用。直接运行 CLI 时，可用 `--base-ref <ref> --head-ref <ref>` 指定比较范围；`config-ref: base` 也会从该 base 读取可信配置。参见[运行器约定](docs/runner-contracts.md)。
 
 **质量闸门与 Code Scanning。** 除 `fail-below` 外，该 Action 还提供：
 
@@ -458,7 +458,7 @@ jobs:
 
 `fail-on-regression` 读取 `.brooks-lint-history.json`，因此提交该文件即可强制"无新增回归"。设置 `sarif-file` 会让诊断直接显示在 PR 的 **Files changed** 标签页，并需要 job 具备 `security-events: write` 权限。
 
-**CI 中的项目配置。** action 会应用你的 `.brooks-lint.yaml`（`strictness`、`disable`、`focus`、`severity`、`ignore`、`custom_risks`），并且从 **base 分支**读取，而不是从 PR 的 checkout 读取。因此 pull request 无法削弱审查它自己的策略：若某个 diff 禁用了所有风险，它本会在该配置变更获批之前就拿到 100 分并通过 `fail-below`。同理，PR 首次新增的配置也要等合并后才生效。报告中的 `Config:` 行会写明所用来源（例如 `applied from base (main)`）。这需要克隆中存在 base 侧的对象，所以模板使用 `fetch-depth: 0` 执行 checkout；在 PR 中，如果缺少 base 引用，action 会报错并提示使用 `fetch-depth: 0`，绝不会回退到 PR 自己的策略。在非 PR 场景（包括本地运行）中，如果无法读取 base 引用，则会回退到工作区配置，并明确注明来源。设置 `config-ref: head` 可改用 PR 自己的副本 —— 适用于 `.brooks-lint.yaml` 已受 CODEOWNERS 保护、且希望配置变更在提出它的 PR 中即刻生效的情况：
+**CI 中的项目配置。** action 会应用你的 `.brooks-lint.yaml`（`strictness`、`disable`、`focus`、`severity`、`ignore`、`custom_risks`），并且从选定的 **base 提交**读取，而不是从 PR 的 checkout 读取。因此 pull request 无法削弱审查它自己的策略：若某个 diff 禁用了所有风险，它本会在该配置变更获批之前就拿到 100 分并通过 `fail-below`。同理，PR 首次新增的配置也要等合并后才生效。报告中的 `Config:` 行会写明所用来源（例如 `applied from base (<ref>)`）。这需要克隆中存在 base 侧的对象，所以模板使用 `fetch-depth: 0` 执行 checkout；在 PR 中，如果缺少 base 引用，action 会报错并提示使用 `fetch-depth: 0`，绝不会回退到 PR 自己的策略。本地暂存或未暂存变更审核未显式指定 base 时，如果默认 base 引用不可用，可回退到工作区配置并注明来源；显式指定的 base 缺失则始终报错。设置 `config-ref: head` 可改用 PR 自己的副本 —— 适用于 `.brooks-lint.yaml` 已受 CODEOWNERS 保护、且希望配置变更在提出它的 PR 中即刻生效的情况：
 
 ```yaml
         with:
@@ -483,7 +483,7 @@ brooks-lint 会把你的 diff 发送到这里填写的主机，因此只应指�
 
 **这条路无法评审来自 fork 的 pull request。** GitHub 既不会把仓库 secret、也不会把 `id-token: write` 授予 fork 的 `pull_request` 运行，于是既没有可换取角色的 OIDC 令牌，也没有可回退的已存密钥。要覆盖 fork，需要换用别的触发方式（`pull_request_target`，并付出针对不受信任分支运行所需的全部谨慎），或换一个密钥来源。
 
-**输出上限。** `max-tokens: 8192` 可提高报告的输出 token 上限（默认 4096）。较长的 `sweep` 或 `health` 报告可能触及该上限，而截断会朝错误的方向出错：被截掉的诊断根本不会被统计，于是健康分反而*更高*，`fail-below` 闸门可能放过一次本该失败的运行。这件事不必靠你自己发现：报告被截断的运行会输出 `::warning::` 注解，在 PR 评论中重复该警告，并在 `brooks-lint-report.json` 中写入 `"truncated": true` —— 调高 `max-tokens` 后重新运行即可。运行不会因此失败。
+**输出上限与无效报告。** `max-tokens: 8192` 可提高报告输出上限（默认 4096）。截断或结构无效的报告会使运行失败，不会提供可通过门禁的分数；遇到截断请提高上限后重跑。跳过的运行使用 `score: null`，Action 会跳过分数阈值与 SARIF 上传，不会把缺失分数转换成 0。
 
 **成本：** 每次 PR 运行约 $0.05–0.15，取决于 diff 大小和模型。建议仅在 `pull_request` 事件上运行。
 

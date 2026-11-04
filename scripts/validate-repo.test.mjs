@@ -564,13 +564,13 @@ console.log("\nclassify");
 
 test("returns 'pass' when all expected codes found with Iron Law and Health Score", () => {
   const scenario = { expected_output: "R1" };
-  const aiText = "R1 Symptom: x Source: y Consequence: z Remedy: w Health Score: 85/100";
+  const aiText = "Mode: PR Review\nScope: src/a.js\nHealth Score: 85/100\n### Warning\n**R1 — Mixed concerns**\nSymptom: src/a.js:1 mixes concerns.\nSource: Code Complete — routines.\nConsequence: Changes are difficult.\nRemedy: Separate responsibilities.";
   assert.equal(classify(scenario, aiText), "pass");
 });
 
-test("returns 'partial' when some codes found with Iron Law but Health Score absent", () => {
+test("returns 'partial' when a valid report omits one expected finding", () => {
   const scenario = { expected_output: "R1 R2" };
-  const aiText = "R1 Symptom: x Source: y Consequence: z Remedy: w";
+  const aiText = "Mode: PR Review\nScope: src/a.js\nHealth Score: 85/100\n### Warning\n**R1 — Mixed concerns**\nSymptom: src/a.js:1 mixes concerns.\nSource: Code Complete — routines.\nConsequence: Changes are difficult.\nRemedy: Separate responsibilities.";
   assert.equal(classify(scenario, aiText), "partial");
 });
 
@@ -592,7 +592,7 @@ test("returns 'fail' for no_health_score when Health Score IS present in output"
 
 test("returns 'false-positive-pass' for no_risk_codes when expected code is absent", () => {
   const scenario = { expected_output: "R1", no_risk_codes: true };
-  assert.equal(classify(scenario, "no risk codes here"), "false-positive-pass");
+  assert.equal(classify(scenario, "Mode: PR Review\nScope: src/a.js\nHealth Score: 100/100\nNo findings."), "false-positive-pass");
 });
 
 test("returns 'fail' for no_risk_codes when expected code IS present in output", () => {
@@ -600,10 +600,9 @@ test("returns 'fail' for no_risk_codes when expected code IS present in output",
   assert.equal(classify(scenario, "output mentioning R1"), "fail");
 });
 
-test("returns 'false-positive-pass' for no_risk_codes when only an unrelated code appears", () => {
+test("rejects keyword-only output even when no forbidden code is present", () => {
   const scenario = { expected_output: "R1", no_risk_codes: true };
-  // AI may flag other risks; only the specific tested code failing is a false-positive
-  assert.equal(classify(scenario, "R2 mentioned here"), "false-positive-pass");
+  assert.equal(classify(scenario, "R2 mentioned here"), "fail");
 });
 
 test("returns 'fail' when codes found but Iron Law terms absent", () => {

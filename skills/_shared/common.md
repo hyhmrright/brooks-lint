@@ -102,6 +102,18 @@ Omit this line if no config file was found.
 
 ---
 
+## Runner Capabilities
+
+Follow the runner's declared scope and capabilities before applying auto scope detection.
+A runner that supplies only text cannot read omitted files, run tests, edit code, or
+write history. Do not claim those actions happened. State missing evidence as a
+limitation; an empty input or failed input collection is not a clean review.
+
+The CI runner supports `review` on an actual collected diff only. Other modes need
+an interactive agent with the required project access. API evals may diagnose
+explicitly supplied fixtures with the five read-only modes; they cannot execute
+Full Sweep. All six modes remain available to interactive agents.
+
 ## Auto Scope Detection
 
 When no files or code are specified, detect scope automatically:
@@ -144,6 +156,16 @@ book titles, principle and smell names (e.g. "Shotgun Surgery", "Divergent Chang
 and fixed structural headers from the template below (`Findings`, `Summary`,
 `Module Dependency Graph`, `Critical`, `Warning`, `Suggestion`).
 
+**Machine-readable report contract:** Emit one integer score from 0 through 100 on
+the score line. Use `Health Score` for review/audit/debt/test, `Composite Score` for
+health, and the final `After: N/100` value in sweep's Health Score Delta. Keep those
+labels in English, including when prose is translated. Do not emit a score for
+onboarding, skipped runs, or an incomplete review. Every finding must include its
+risk code in the bold title, an explicit severity, and non-empty Symptom, Source,
+Consequence, and Remedy fields. Use severity headings as below or put the severity
+emoji immediately before the bold title. If no findings remain, say so explicitly;
+do not substitute a score for evidence that the review ran.
+
 ````
 # Brooks-Lint Review
 
@@ -174,7 +196,7 @@ graph TD
 
 ### 🔴 Critical
 
-**[Risk Name] — [Short descriptive title]**
+**[Risk Code] [Risk Name] — [Short descriptive title]**
 Symptom: [exactly what was observed in the code]
 Source: [Book title — Principle or Smell name]
 Consequence: [what breaks or gets worse if this is not fixed]
@@ -182,7 +204,7 @@ Remedy: [concrete, specific action]
 
 ### 🟡 Warning
 
-**[Risk Name] — [Short descriptive title]**
+**[Risk Code] [Risk Name] — [Short descriptive title]**
 Symptom: ...
 Source: ...
 Consequence: ...
@@ -190,7 +212,7 @@ Remedy: ...
 
 ### 🟢 Suggestion
 
-**[Risk Name] — [Short descriptive title]**
+**[Risk Code] [Risk Name] — [Short descriptive title]**
 Symptom: ...
 Source: ...
 Consequence: ...
@@ -259,6 +281,9 @@ downgraded to info in future runs. Entry fields: `risk` (code), `pattern` (file 
 
 **Suppress matching at scan time:** for each `suppress:` entry, match `risk` code and file `pattern` against findings.
 - Both match → downgrade to info (not counted in Health Score, shown under collapsed "Suppressed" section).
+- Render that section as `<details><summary>Suppressed</summary>` followed by the
+  suppressed entries and a closing `</details>`. Do not nest details blocks.
+  After the block, give any active findings their own explicit severity heading.
 - `expires` is past → ignore entry, finding resurfaces. Note in Summary: "N suppressed findings have expired and are now active again."
 
 ## Reference Files

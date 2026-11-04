@@ -227,7 +227,7 @@ Because the parser is deterministic and the corpus is frozen, `npm run benchmark
 
 **Scoring determinism** — for a fixed finding set (2 Critical / 3 Warning / 1 Suggestion), the strictness presets produce exactly the scores their `common.md` table predicts: strict **34**, balanced **54**, legacy-friendly **74** — and only `legacy-friendly` leads with the top-three fixes.
 
-**Model quality** — whether the model finds the *right* risks on real code is measured by the **58-scenario eval suite** (`evals/evals.json`): `npm run evals` (structural) and `npm run evals:live` (live, needs `ANTHROPIC_API_KEY`).
+**Eval contracts** — the **64-scenario eval suite** (`evals/evals.json`) checks scenario structure with `npm run evals` and model report structure/risk codes with `npm run evals:live` (requires `ANTHROPIC_API_KEY`). These deterministic checks do not establish semantic correctness. The API runner evaluates supplied fixtures in `review`, `audit`, `debt`, `test`, and `health`; it explicitly skips `sweep` in default runs, excludes it from pass rates, and rejects explicit selection. Full Sweep needs interactive execution. See [runner contracts](docs/runner-contracts.md).
 
 > Scope & honesty: the parser numbers are deterministic and exactly reproducible. The strictness and eval-suite figures are single-run live measurements against the model and vary slightly run to run. The parser benchmark measures report-parsing fidelity (does the tooling read every finding the report states?), not whether a given finding is "correct." The severity-count match is the fully independent signal; risk-code agreement also reflects the shared canonical name→code legend.
 
@@ -419,7 +419,7 @@ brooks-lint/
 │   └── brooks-sweep/     # Mode 6: Full Sweep         → sweep-guide.md
 ├── hooks/                # SessionStart hook
 ├── commands/             # short-form command wrappers (auto-installed by the hook)
-├── evals/                # 58-scenario eval suite + frozen parser-fidelity corpus
+├── evals/                # 64-scenario eval suite + frozen parser-fidelity corpus
 └── assets/               # logo, banner, demo
 ```
 
@@ -454,7 +454,7 @@ See [`docs/github-action-example.yml`](docs/github-action-example.yml) for the f
 
 The action posts the review as a PR comment and optionally fails the check if the Health Score drops below a threshold. If `.brooks-lint-history.json` is committed to your repo, the comment also includes a trend delta (e.g., "85 → 82 (−3) over last 3 runs").
 
-**`mode: sweep` in CI reports but never applies fixes.** The action makes a single tool-less API call, so Full Sweep's consent gate (Step 0), its in-place file edits, and its iteration loop cannot run — the Fix Log and Iteration History sections come back empty, and `sweep.max_iterations` from `.brooks-lint.yaml` is inert here. What you get is a description of a sweep, not a sweep. For fixes that actually land, run `/brooks-sweep` interactively in a harness that has file tools and can answer the Step 0 consent prompt. The five read-only modes — `review`, `audit`, `debt`, `test`, `health` — behave in CI exactly as they do locally.
+**CI supports `mode: review` only.** It reviews the collected diff without file-reading tools or edits. GitHub PR runs compare the event’s base and head SHAs; keep `fetch-depth: 0` so both commits and their merge base are available. An empty diff is a skipped run with no score, while missing refs or failed collection are errors. `audit`, `debt`, `test`, `health`, and `sweep` remain available through interactive agents with project access. For direct CLI runs, use `--base-ref <ref> --head-ref <ref>` to select the comparison; the base also selects trusted config when `config-ref` is `base`. See [runner contracts](docs/runner-contracts.md).
 
 **Quality gates and Code Scanning.** Beyond `fail-below`, the action exposes:
 
@@ -469,7 +469,7 @@ The action posts the review as a PR comment and optionally fails the check if th
 
 `fail-on-regression` reads `.brooks-lint-history.json`, so commit that file to enforce "no new regressions". Setting `sarif-file` makes findings appear inline on the PR's **Files changed** tab and requires `security-events: write` permission on the job.
 
-**Project config in CI.** The action applies your `.brooks-lint.yaml` — `strictness`, `disable`, `focus`, `severity`, `ignore`, `custom_risks` — and reads it **from the base branch**, not from the PR's checkout. A pull request therefore cannot weaken the policy that reviews it: a diff that disables every risk would otherwise score 100 and sail through `fail-below` before anyone approved the config change. A config a PR adds for the first time takes effect once merged, for the same reason. The report's `Config:` line names the provenance it used (e.g. `applied from base (main)`). This needs the base object in the clone, which is why the template checks out with `fetch-depth: 0`; in a PR, missing base refs stop the action with an error instructing you to use `fetch-depth: 0`. It never falls back to the PR's policy. Outside PRs (including local runs), unavailable base refs fall back to the working-tree config with an explicit provenance note. Set `config-ref: head` to use the PR's own copy instead — appropriate when `.brooks-lint.yaml` is CODEOWNERS-protected and config changes should take effect in the PR that makes them:
+**Project config in CI.** The action applies your `.brooks-lint.yaml` — `strictness`, `disable`, `focus`, `severity`, `ignore`, `custom_risks` — and reads it **from the selected base commit**, not from the PR's checkout. A pull request therefore cannot weaken the policy that reviews it: a diff that disables every risk would otherwise score 100 and sail through `fail-below` before anyone approved the config change. A config a PR adds for the first time takes effect once merged, for the same reason. The report's `Config:` line names the provenance it used (e.g. `applied from base (<ref>)`). This needs the base object in the clone, which is why the template checks out with `fetch-depth: 0`; in a PR, missing base refs stop the action with an error instructing you to use `fetch-depth: 0`. It never falls back to the PR's policy. For local staged/unstaged reviews without an explicit base, unavailable default base refs allow working-tree config with an explicit provenance note. An explicitly selected missing base is always an error. Set `config-ref: head` to use the PR's own copy instead — appropriate when `.brooks-lint.yaml` is CODEOWNERS-protected and config changes should take effect in the PR that makes them:
 
 ```yaml
         with:
@@ -494,7 +494,7 @@ brooks-lint sends your diff to whatever host you name here, so only point it at 
 
 **This path cannot review pull requests from forks.** GitHub grants a forked `pull_request` run neither repository secrets nor `id-token: write`, so there is no OIDC token to exchange for the role and no stored key to fall back on. Fork coverage needs a different trigger (`pull_request_target`, with all the care that running against untrusted branches demands) or a different key source.
 
-**Output ceiling.** `max-tokens: 8192` raises the report's output ceiling (default 4096). A long `sweep` or `health` report can hit that ceiling, and truncation fails in the wrong direction: the findings that were cut off are never counted, so the Health Score comes back *higher* and a `fail-below` gate can pass a run it should have failed. You do not have to notice that yourself: a run whose report was cut off carries a `::warning::` annotation, repeats the warning in the PR comment, and sets `"truncated": true` in `brooks-lint-report.json` — raise `max-tokens` and re-run. The run is not failed over it.
+**Output ceiling and invalid reports.** `max-tokens: 8192` raises the report’s output ceiling (default 4096). Truncated or structurally invalid reports fail the run rather than supplying a passing score. Raise the limit and rerun after truncation. A skipped run has `score: null`; the Action skips score thresholds and SARIF upload instead of converting that absence to zero.
 
 **Cost:** ~$0.05–0.15 per PR run depending on diff size and model. Recommend running on `pull_request` events only.
 

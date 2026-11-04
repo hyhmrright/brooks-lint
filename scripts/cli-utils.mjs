@@ -62,9 +62,8 @@ export const TRUNCATION_NOTICE =
  * commands from a step's stderr too, which makes console.error the one channel
  * that works on both paths.
  *
- * `::warning::` and not `::error::`: a truncated report is still a report, and
- * the call here is to warn and keep reporting rather than fail the run. Raising
- * this to an error would turn a measurement problem into a red build.
+ * This helper emits an annotation only. Callers reject truncated output before
+ * producing a successful CI result or a passing eval verdict.
  *
  * @param {{stop_reason?: string}|null|undefined} message an Anthropic Messages response
  * @returns {boolean} true when the response stopped at the output ceiling
