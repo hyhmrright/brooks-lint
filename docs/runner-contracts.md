@@ -8,6 +8,7 @@ is used by prompt assembly, scenario validation, and runner admission checks.
 |---|---|---|
 | Interactive agent | `review`, `audit`, `debt`, `test`, `health`, `sweep` | Uses the agent's project-reading tools; Full Sweep additionally requires editing and verification tools and its consent gate. |
 | GitHub Action / `scripts/ci-review.mjs` | `review` | Reviews the collected Git diff only. No model-side file access, test execution, or edits. |
+| `scripts/run-codex-evals.mjs` | `review`, `audit`, `test`, plus non-trigger controls | Real isolated Codex sessions with paired skill/no-skill fixtures and a separate semantic judge; see [behavioral evaluation](codex-behavior-evals.md). |
 | `scripts/run-evals-live.mjs` | `review`, `audit`, `debt`, `test`, `health` | Diagnoses the supplied scenario prompt and fixtures only. Does not exercise repository discovery or file edits. |
 
 Unsupported CI modes fail before the model request. The API eval runner explicitly
@@ -91,7 +92,9 @@ proves that evidence is true, that a cited location establishes the diagnosis,
 or that a remedy is appropriate. Those require human or semantic evaluation.
 Maintain the frozen parser corpus separately from model-quality evaluation.
 
-The live runner still uses Anthropic; switching providers is a separate change.
+The historical API live runner still uses Anthropic. The separate opt-in Codex
+behavioral runner exercises discovery, completion, false positives, and severity
+against a no-skill baseline; it does not replace the API or parser benchmarks.
 Routine maintainer verification remains offline validation, tests, structural
 evals, and the parser benchmark, with the repository's Codex-only maintenance
 policy unchanged.

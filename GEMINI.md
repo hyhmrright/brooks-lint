@@ -65,3 +65,11 @@ passing CI is not publication approval. Withdrawn npm versions cannot be reused.
 
 ---
 **Note:** Gemini CLI should prioritize instructions found in `GEMINI.md` when operating in this repository.
+
+## Codex Behavioral Evaluation
+
+The opt-in `npm run evals:codex -- --model <model>` runner compares real Codex
+behavior with and without skills across seven fixtures. It has separate semantic
+judging and does not change the historical Anthropic API runner. Offline checks
+use `npm run evals:codex:validate`; see `docs/codex-behavior-evals.md` for scope,
+isolation, evidence, and limitations.

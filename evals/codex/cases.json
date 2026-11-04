@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "review-rule-drift",
+      "prompt": "Review src/checkout.mjs and src/preview.mjs for maintainability and correctness against CONTRACT.md. These are the complete current implementations; review these files directly, not a Git diff. Give the completed review without changing files.",
+      "expected_skill": "brooks-review",
+      "files": [
+        {
+          "path": "CONTRACT.md",
+          "content": "# Loyalty discount\nBoth checkout and preview must give a 10% discount to members with at least 100 loyalty points. Inputs are already validated nonnegative integer cents and nonnegative integer points. Rounding down to integer cents is intentional. The two entry points serve the same customers under the same pricing policy. This fixture is the whole pricing module; no tests exist elsewhere.\n"
+        },
+        {
+          "path": "src/checkout.mjs",
+          "content": "export function checkoutTotal(subtotalCents, loyaltyPoints) {\n  const rate = loyaltyPoints >= 100 ? 0.1 : 0;\n  return subtotalCents - Math.floor(subtotalCents * rate);\n}\n"
+        },
+        {
+          "path": "src/preview.mjs",
+          "content": "export function previewTotal(subtotalCents, loyaltyPoints) {\n  const rate = loyaltyPoints >= 120 ? 0.1 : 0;\n  return subtotalCents - Math.floor(subtotalCents * rate);\n}\n"
+        }
+      ],
+      "rubric": {
+        "task_kind": "review",
+        "must_find": [
+          {
+            "id": "loyalty-policy-drift",
+            "description": "The same loyalty policy is duplicated and has diverged: preview uses 120 points while checkout and the contract use 100. Customers with 100–119 points see inconsistent totals. Identify both locations or the concrete threshold mismatch; merely saying code is duplicated is insufficient.",
+            "allowed_severities": [
+              "warning"
+            ],
+            "evidence_files": [
+              "src/checkout.mjs",
+              "src/preview.mjs",
+              "CONTRACT.md"
+            ]
+          }
+        ],
+        "must_not_find": [
+          "Do not demand input validation: callers guarantee the documented integer domains.",
+          "Do not call the intentional integer-cent rounding a bug."
+        ],
+        "completion": [
+          "Inspect both named implementations and deliver a substantive review with the threshold mismatch and a concrete consolidation or correction recommendation. A plan to review later is incomplete."
+        ],
+        "severity_policy": "The localized pricing-policy drift warrants warning, not critical. Other supported local maintainability observations may be suggestions."
+      }
+    },
+    {
+      "id": "review-new-behavior-coverage",
+      "prompt": "Review src/shipping.mjs and test/shipping.test.mjs, using CHANGE.md for the new behavior and coverage context. Review the named files as the current code, not a Git diff. Include whether the new behavior has meaningful tests; provide the finished review without edits.",
+      "expected_skill": "brooks-review",
+      "files": [
+        {
+          "path": "CHANGE.md",
+          "content": "# Shipping change\nPreviously all orders cost 500 cents to ship. This revision adds free shipping for orders of at least 5000 cents. subtotalCents is validated by the caller as a nonnegative integer. test/shipping.test.mjs is the complete test inventory for shipping; there are no integration or external tests. Run with node --test if useful; no packages are needed.\n"
+        },
+        {
+          "path": "src/shipping.mjs",
+          "content": "export function shippingCents(subtotalCents) {\n  return subtotalCents >= 5000 ? 0 : 500;\n}\n"
+        },
+        {
+          "path": "test/shipping.test.mjs",
+          "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { shippingCents } from '../src/shipping.mjs';\n\ntest('an ordinary 1000-cent order costs 500 cents to ship', () => {\n  assert.equal(shippingCents(1000), 500);\n});\n"
+        }
+      ],
+      "rubric": {
+        "task_kind": "review",
+        "must_find": [
+          {
+            "id": "free-shipping-untested",
+            "description": "The only test exercises the old paid-shipping path. The newly added free-shipping branch is untested, including the 5000-cent eligibility boundary; existing tests pass even if the new branch is removed. This is a coverage illusion/missing behavioral regression test, not an implementation bug.",
+            "allowed_severities": [
+              "warning"
+            ],
+            "evidence_files": [
+              "src/shipping.mjs",
+              "test/shipping.test.mjs",
+              "CHANGE.md"
+            ]
+          }
+        ],
+        "must_not_find": [
+          "Do not claim the >= 5000 implementation contradicts the contract.",
+          "Do not demand subtotal input validation already guaranteed by the caller."
+        ],
+        "completion": [
+          "Deliver a review that evaluates both production code and actual test coverage and recommends exercising the new free-shipping branch and eligibility boundary."
+        ],
+        "severity_policy": "The missing regression protection for newly introduced behavior is warning. The correct implementation itself must not be called critical or broken."
+      }
+    },
+    {
+      "id": "audit-composition-root",
+      "prompt": "Audit the architecture of src/ using ARCHITECTURE.md as context. Focus on dependency direction and wiring, and give the completed assessment. This directory is the complete application; inspect the current files directly and do not request a diff or make changes.",
+      "expected_skill": "brooks-audit",
+      "files": [
+        {
+          "path": "ARCHITECTURE.md",
+          "content": "# Small catalog service\nsrc/main.mjs is the composition root. It alone chooses and wires concrete adapters. The application receives a repository with list() returning an array of names; it does not know the concrete adapter. The in-memory adapter intentionally contains immutable demo data for this offline command. There is no persistence, HTTP API, authentication, concurrency, or configuration requirement. Run node src/main.mjs to print the catalog.\n"
+        },
+        {
+          "path": "src/main.mjs",
+          "content": "import { createCatalog } from './application/catalog.mjs';\nimport { createMemoryRepository } from './adapters/memory-repository.mjs';\n\nconst catalog = createCatalog(createMemoryRepository(['Tea', 'Coffee']));\nprocess.stdout.write(`${catalog.names().join(', ')}\\n`);\n"
+        },
+        {
+          "path": "src/application/catalog.mjs",
+          "content": "export function createCatalog(repository) {\n  return { names: () => repository.list() };\n}\n"
+        },
+        {
+          "path": "src/adapters/memory-repository.mjs",
+          "content": "export function createMemoryRepository(initialNames) {\n  const names = [...initialNames];\n  return { list: () => [...names] };\n}\n"
+        }
+      ],
+      "rubric": {
+        "task_kind": "review",
+        "must_find": [],
+        "must_not_find": [
+          "Do not flag the composition root importing the concrete adapter as dependency inversion or layering disorder.",
+          "Do not demand a dependency-injection framework, class hierarchy, additional interface files, or an abstraction over the composition root for this small structural contract.",
+          "Do not invent persistence, security, or scale requirements explicitly outside this application."
+        ],
+        "completion": [
+          "Assess the actual import direction and distinguish composition-root wiring from application dependencies. Return a completed architecture assessment, including an explicit conclusion if no material issues are found."
+        ],
+        "severity_policy": "There are no intended architectural defects. Any finding must demonstrate an actual violated contract; optional preferences are not warnings or critical issues."
+      }
+    },
+    {
+      "id": "test-mocked-subject",
+      "prompt": "Review the quality of test/discount.test.mjs against src/discount.mjs and CONTRACT.md. These are the entire module and its entire test suite. Inspect the named files directly and finish the test review without changing files.",
+      "expected_skill": "brooks-test",
+      "files": [
+        {
+          "path": "CONTRACT.md",
+          "content": "# Discount\nDiscountCalculator.total returns 90% of the supplied nonnegative integer subtotal, rounded down to integer cents. It has no I/O or collaborators. The single test in test/discount.test.mjs is intended to verify this calculation, not a consumer or a test-double utility. Run with node --test; no dependencies are required.\n"
+        },
+        {
+          "path": "src/discount.mjs",
+          "content": "export class DiscountCalculator {\n  total(subtotalCents) {\n    return Math.floor(subtotalCents * 0.9);\n  }\n}\n"
+        },
+        {
+          "path": "test/discount.test.mjs",
+          "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { DiscountCalculator } from '../src/discount.mjs';\n\ntest('a 1000-cent subtotal receives the ten-percent discount', (t) => {\n  const calculator = new DiscountCalculator();\n  t.mock.method(calculator, 'total', () => 900);\n  assert.equal(calculator.total(1000), 900);\n});\n"
+        }
+      ],
+      "rubric": {
+        "task_kind": "review",
+        "must_find": [
+          {
+            "id": "mocked-calculation",
+            "description": "The test stubs DiscountCalculator.total, the behavior it claims to verify, then asserts the stubbed constant. The real arithmetic never runs, so a broken total implementation would still pass. Identify this mock-of-subject problem and recommend exercising the real method.",
+            "allowed_severities": [
+              "warning"
+            ],
+            "evidence_files": [
+              "src/discount.mjs",
+              "test/discount.test.mjs",
+              "CONTRACT.md"
+            ]
+          }
+        ],
+        "must_not_find": [
+          "Do not describe the node:test per-test mock as leaking between tests; the test context restores it automatically.",
+          "Do not demand mocking an external collaborator: the calculator has none.",
+          "Do not claim the production 90% calculation violates the contract."
+        ],
+        "completion": [
+          "Finish a test-quality assessment grounded in the mock and assertion, explaining the blind spot and how to test the real calculation."
+        ],
+        "severity_policy": "Mocking the primary behavior creates a warning-level test defect. There is no evidence of a critical production outage. Equivalent mock-abuse and coverage observations describing this same defect count as one underlying issue."
+      }
+    },
+    {
+      "id": "review-local-severity",
+      "prompt": "Review src/label.mjs for maintainability in the context of CONTRACT.md. This is the entire helper; review the current file directly and give a finished assessment without edits. Keep recommendations proportionate to its size and usage.",
+      "expected_skill": "brooks-review",
+      "files": [
+        {
+          "path": "CONTRACT.md",
+          "content": "# Local label helper\nformatLabel is used in one offline display script. Input has already been validated as a string. Empty or whitespace-only strings should display Unknown; all other strings should be trimmed and uppercased. There are no locale-sensitive, performance, API-compatibility, or reuse requirements. The function is correct for this contract.\n"
+        },
+        {
+          "path": "src/label.mjs",
+          "content": "export function formatLabel(value) {\n  const trimmed = value.trim();\n  if (trimmed.length > 0) {\n    const upper = trimmed.toUpperCase();\n    return upper;\n  } else {\n    return 'Unknown';\n  }\n}\n"
+        }
+      ],
+      "rubric": {
+        "task_kind": "review",
+        "must_find": [],
+        "must_not_find": [
+          "Do not report correctness, security, performance, or input-validation defects contradicted by the stated contract.",
+          "Do not call this small isolated helper a critical or warning-level cognitive-load or architectural problem.",
+          "Do not require reuse abstractions or a framework for a single local helper."
+        ],
+        "completion": [
+          "Give a finished assessment of the helper. Either no findings or an optional local simplification such as removing the unnecessary else is acceptable; do not stop at a review plan."
+        ],
+        "severity_policy": "Any supported maintainability suggestion has a suggestion-only ceiling. Reporting no findings is fully acceptable. Warning or critical severity is an overstatement."
+      }
+    },
+    {
+      "id": "nontrigger-nullish-syntax",
+      "prompt": "In example.mjs, what does the ?? operator mean, and why does this print 0 rather than 5? Explain this JavaScript syntax briefly; I only need the language behavior.",
+      "expected_skill": null,
+      "files": [
+        {
+          "path": "example.mjs",
+          "content": "const retries = 0;\nconsole.log(retries ?? 5);\n"
+        }
+      ],
+      "rubric": {
+        "task_kind": "explanation",
+        "must_find": [],
+        "must_not_find": [
+          "Do not turn a language-syntax explanation into a code-quality review, risk diagnosis, health score, or refactoring roadmap."
+        ],
+        "completion": [
+          "Explain that nullish coalescing uses the right operand only when the left operand is null or undefined, and that 0 is preserved."
+        ],
+        "severity_policy": "This is a syntax question, so no review findings or severity labels are appropriate."
+      }
+    },
+    {
+      "id": "nontrigger-new-implementation",
+      "prompt": "Write a new JavaScript ES module function clamp(value, min, max) that returns min when value is below min, max when above max, and otherwise value. Inputs are finite numbers with min <= max. Return only the function code, exported by name. There is no existing implementation to review and no file edits are needed.",
+      "expected_skill": null,
+      "files": [
+        {
+          "path": "REQUEST.txt",
+          "content": "Requested new utility: clamp(value, min, max). Inputs are finite numbers and min <= max. No existing implementation exists.\n"
+        }
+      ],
+      "rubric": {
+        "task_kind": "implementation",
+        "must_find": [],
+        "must_not_find": [
+          "Do not add a code-quality review, risk report, health score, severity labels, or a refactoring plan for this implementation request.",
+          "Do not demand input validation outside the guaranteed finite-number and ordered-bound contract."
+        ],
+        "completion": [
+          "Return an exported named JavaScript function clamp implementing the three specified cases, with only code and no review prose. Markdown code fences around the code are acceptable."
+        ],
+        "severity_policy": "This is new implementation, not review; no findings or severity labels are appropriate."
+      }
+    }
+  ]
+}

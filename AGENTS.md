@@ -124,6 +124,17 @@ from pass-rate denominators; selecting unsupported scenarios explicitly is an er
 Full Sweep needs an interactive execution environment. The CI runner supports only
 `review` on a collected diff. See `docs/runner-contracts.md` for scope and input rules.
 
+## Codex Behavioral Evaluation
+
+`npm run evals:codex -- --model <model> --runs 3` is an opt-in, real Codex CLI
+comparison against a no-skill baseline. Seven independent fixtures cover review,
+audit, test, and non-trigger controls. It measures observed skill reads, semantic
+completion, false positives, recall, and explicit severity calibration. Separate
+model judging is not human validation. `npm run evals:codex:validate` is offline;
+raw runs are ignored. See `docs/codex-behavior-evals.md` for isolation, evidence,
+limitations, and authentication. Never run live evaluation as an implicit offline
+validation step. The historical Anthropic runner remains separate.
+
 ## Parser-Fidelity Benchmark
 
 `evals/benchmark-corpus.json` is a FROZEN corpus of 30 real, model-generated reports (one per curated sample, across all six modes) each paired with an independently-graded finding inventory. `scripts/benchmark.mjs` (`npm run benchmark`) runs the shipped parser (`report-parse.mjs` / `sarif.mjs`) against it and reports severity-count fidelity, risk-code precision/recall, and SARIF validity; `npm test` guards the same as a deterministic regression. This is distinct from the eval suite: it benchmarks the **parser/SARIF plumbing**, not model judgment. The corpus is a frozen artifact — regenerate it only by re-running the generation workflow and hand-checking the new ground truth; do NOT hand-edit `report` or `truth` to make a failing parser pass.
@@ -136,7 +147,9 @@ npm run validate          # Repo consistency: manifests, version refs, changelog
 npm run changelog:audit   # Release-time: account for every commit since the last tag (see Release Process)
 npm test                  # Unit tests for validate-repo helpers
 npm run evals             # Eval structural validation (IDs, fields, risk-code refs)
-npm run evals:live        # Live evals against the AI (requires ANTHROPIC_API_KEY)
+npm run evals:live        # Historical Anthropic evals (requires ANTHROPIC_API_KEY)
+npm run evals:codex:validate # Offline real-Codex fixture validation
+npm run evals:codex -- --model <model> # Opt-in paired Codex behavioral comparison
 npm run benchmark         # Parser-fidelity benchmark on the frozen real-report corpus
 npm run history           # View Health Score trend (.brooks-lint-history.json)
 
