@@ -52,3 +52,9 @@ runner's QA hardening; every recorded catalog, judgment, trace hash, and aggrega
 was subsequently checked with the final validators. The archive records both
 source digests. This preserves the initial observations without rerunning cases
 to select more favorable answers.
+
+The [severity-calibration rerun](../evals/codex/calibration-2026-11-04.md)
+uses the same seven cases, judge schema, judge prompt, model, reasoning, and one
+repetition, with a fresh baseline. See the [prior diagnosis and rule changes](severity-calibration.md).
+The original pilot is retained unchanged. Compare denominators and individual
+findings: severity percentages can change when the number of findings changes.

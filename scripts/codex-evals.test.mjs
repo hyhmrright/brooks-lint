@@ -499,8 +499,8 @@ else {
   assert.equal(existsSync(path.join(destination, 'answer.txt')), false);
 });
 
-test('frozen Codex pilot judgments, paired summary, and observed reads remain reproducible', () => {
-  const pilot = JSON.parse(readFileSync(new URL('../evals/codex/pilot-2026-11-04.json', import.meta.url), 'utf8'));
+for (const archive of ['pilot-2026-11-04', 'calibration-2026-11-04']) test(`frozen Codex ${archive} judgments, paired summary, and observed reads remain reproducible`, () => {
+  const pilot = JSON.parse(readFileSync(new URL(`../evals/codex/${archive}.json`, import.meta.url), 'utf8'));
   const frozenCases = validateCases(pilot.fixture_snapshot);
   const caseById = new Map(frozenCases.map(item => [item.id, item]));
   assert.equal(pilot.records.length, 14, 'This frozen pilot contains seven complete with/without pairs');
@@ -532,4 +532,26 @@ test('frozen Codex pilot judgments, paired summary, and observed reads remain re
   assert.equal(summary.valid_pairs, 7);
   assert.equal(summary.excluded_pairs, 0);
   assert.equal(summary.attempted_pairs, 7);
+});
+
+test('severity calibration rerun preserves the original evaluation criteria and controls', () => {
+  const original = JSON.parse(readFileSync(new URL('../evals/codex/pilot-2026-11-04.json', import.meta.url), 'utf8'));
+  const rerun = JSON.parse(readFileSync(new URL('../evals/codex/calibration-2026-11-04.json', import.meta.url), 'utf8'));
+  assert.deepEqual(rerun.fixture_snapshot, original.fixture_snapshot, 'Tasks, ground truth, allowed severities, and completion criteria must remain fixed');
+  for (const field of ['model', 'reasoning', 'repetitions', 'cases_sha256', 'judge_schema_sha256', 'timeout_seconds']) {
+    assert.equal(rerun[field], original[field], `Comparison control changed: ${field}`);
+  }
+  assert.equal(rerun.evaluator_sha256, original.revalidation_source_sha256['scripts/codex-eval.mjs'], 'Judge instructions and metric logic must remain unchanged');
+  assert.equal(rerun.runner_sha256, original.revalidation_source_sha256['scripts/run-codex-evals.mjs'], 'Runner isolation and execution contract must remain unchanged');
+  assert.equal(rerun.initial_attempt.summary.valid_pairs, 6);
+  assert.equal(rerun.initial_attempt.summary.excluded_pairs, 1);
+  assert.equal(rerun.initial_attempt.failed_records.length, 2);
+  assert.ok(rerun.initial_attempt.failed_records.every(r => r.status === 'failed' && /timeout=true/.test(r.error)));
+  const failedCases = new Set(rerun.initial_attempt.failed_records.map(r => r.case_id));
+  const primary = rerun.records.filter(r => !failedCases.has(r.case_id)).concat(rerun.initial_attempt.failed_records);
+  assert.deepEqual(summarize(primary, rerun.fixture_snapshot.cases), rerun.initial_attempt.summary);
+  assert.deepEqual(summarize(rerun.records.filter(r => r.case_id === rerun.recovery.case_id), rerun.fixture_snapshot.cases), rerun.recovery.summary);
+  assert.equal(rerun.recovery.summary.valid_pairs, 1);
+  assert.equal(rerun.recovery.summary.excluded_pairs, 0);
+  assert.notEqual(rerun.skills_sha256, original.skills_sha256, 'The treatment must contain the revised skill rules');
 });

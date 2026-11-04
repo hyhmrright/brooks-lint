@@ -82,9 +82,12 @@ Look for:
   (test-induced design damage)?
 - Does any single test create more than 3 mock objects?
 
-If mock setup-to-assertion ratio exceeds 3:1 → 🟡 Warning.
-If production methods exist only for test access → 🔴 Critical (architecture is being
-distorted by the test suite).
+Treat a mock setup-to-assertion ratio above 3:1 and production methods used only
+for test access as signals to inspect verification and design consequences.
+Mocking the subject under test normally warrants 🟡 Warning for the demonstrated
+blind spot. Assign 🔴 Critical only when the evidence also establishes serious
+impact and relevant exposure under `common.md` Severity Calibration; neither a
+ratio nor a test-only method alone establishes that tier.
 
 ### Step 3: Scan for Test Duplication
 

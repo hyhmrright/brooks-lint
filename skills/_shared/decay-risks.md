@@ -127,9 +127,16 @@ Multiple copies drift apart silently. DRY is about decisions, not code lines.
 
 ### Severity Guide
 
-- 🔴 Critical: core business logic duplicated across modules, or same domain concept named 3+ different ways
-- 🟡 Warning: utility code duplicated, naming inconsistent within a subsystem
-- 🟢 Suggestion: minor literal duplication, single naming inconsistency
+Apply the shared Severity Calibration in `common.md`; business logic and naming
+counts do not establish impact by themselves.
+
+- 🔴 Critical: duplicated decisions have evidenced widespread, serious consequences
+  across essential workflows, or divergent domain meanings make a high-impact change
+  unsafe; identify the affected workflows and propagation
+- 🟡 Warning: bounded policy drift between implementations, repeated decisions that
+  impose coordinated changes, or meaningful naming inconsistency within a subsystem
+- 🟢 Suggestion: minor literal duplication or a single local naming inconsistency
+  with a concrete but limited maintenance consequence
 
 ### What Not to Flag
 

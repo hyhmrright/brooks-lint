@@ -18,6 +18,40 @@ matter. A finding without a consequence and a remedy is not a finding — it is 
 > - "Post-Report Triage" — only in interactive sessions after the report is output
 > - "History Tracking" — only after the Health Score is computed
 
+## Severity Calibration
+
+After completing each Iron Law diagnosis, choose severity from its evidenced
+consequence and affected scope, before calculating the score. This calibration
+governs every risk-specific severity guide and numeric smell threshold: a pattern,
+ratio, file count, business label, or missing test is a diagnostic signal, not an
+automatic severity assignment.
+
+- **🔴 Critical:** evidence establishes serious impact and relevant exposure, such
+  as data loss, security compromise, a widespread failure of an essential workflow,
+  or an architectural/test barrier that makes a high-impact change unsafe. State
+  the affected behavior, reach, and evidence in the Consequence. A hypothetical
+  worst case or the risk code alone is insufficient.
+- **🟡 Warning:** a demonstrated behavior defect, meaningful protection gap in
+  changed behavior, or recurring change burden needs correction, but the evidence
+  does not establish Critical impact. A bounded business-rule inconsistency or
+  mocking the subject under test normally belongs here.
+- **🟢 Suggestion:** a supported local maintainability or regression-protection
+  improvement with limited evidenced impact. Missing tests in a small, isolated
+  module alone may justify this tier; do not promote it merely because tests could
+  prevent future bugs. Style preferences without a concrete consequence are not
+  findings.
+
+Distinguish a current defect from an additional recommendation to guard against its
+recurrence. Do not inherit the defect's severity for that recommendation. Conversely,
+do not downgrade an evidenced high-impact condition merely because its code is short.
+If impact evidence is missing, state the limitation and use the lowest tier supported
+by what was inspected; do not invent production scale, release exposure, or urgency.
+Check each finding's title, emoji, prose, and score deduction for agreement.
+
+Apply an explicit project `severity` override after this assessment and identify the
+override when it changes the tier. `strictness` changes deduction weights and framing,
+not the evidence threshold for Critical or the finding's severity.
+
 ## Project Config
 
 Before executing the review, attempt to read `.brooks-lint.yaml` from the project root.

@@ -142,12 +142,13 @@ Label the risk as the test decay risk name (e.g., "Coverage Illusion", "Mock Abu
 
 ## Severity Calibration
 
-Apply the Iron Law format from `../_shared/common.md`. Each risk in `../_shared/decay-risks.md` has its own Severity
-Guide with numeric thresholds — use those as the primary reference. When a finding sits
-on the boundary between two tiers, use this as a tiebreaker:
-- 🔴 Critical — actively breaking velocity or creating production risk *today*
-- 🟡 Warning — will if left unaddressed through the next few features
-- 🟢 Suggestion — worth fixing when nearby, not urgent
+Apply the Iron Law and Severity Calibration from `../_shared/common.md` first.
+Use risk-specific guides and numeric thresholds as diagnostic signals, then assign
+severity from the evidenced consequence and affected scope. Current production risk
+or lost velocity alone does not establish Critical: identify serious impact and
+relevant exposure. A bounded defect or meaningful changed-behavior test gap normally
+warrants Warning; a local protection improvement may warrant Suggestion. Do not
+invent future feature pressure or release urgency to promote a finding.
 
 When multiple findings exist, list Critical items first. If there are more than 5 findings,
 add a one-line "Recommended fix order" at the end of the Findings section.

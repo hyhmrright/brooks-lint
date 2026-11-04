@@ -134,9 +134,11 @@ record as T5 (Coverage Illusion). A test scaffold that adds a pure-function test
 
 Re-classify R-findings through a debt lens — same symptoms at accumulation scale:
 repeated duplication, layered workarounds, stale `TODO`/`FIXME` clusters, dead
-flags. Score each with **Pain (1–3) × Spread (1–3)**; total 7–9 = Critical,
-4–6 = Warning, 1–3 = Suggestion. Apply a severity bump for pattern-level
-occurrences (isolated Suggestion → 4+ modules Warning).
+flags. Score each with **Pain (1–3) × Spread (1–3)** to prioritize debt work.
+Use the score and pattern-level occurrences as evidence about burden and reach,
+not as automatic severity conversions or bumps. Assign the final finding severity
+under `common.md` Severity Calibration; Critical still requires serious impact
+and relevant exposure, even when many modules are affected.
 
 Follow the same sub-steps as Step 2. Debt findings often span multiple files
 and are more likely to land in Extended-Safe or Residual than Safe.

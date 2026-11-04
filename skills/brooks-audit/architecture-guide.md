@@ -164,15 +164,18 @@ After the six-risk scan, assess the relationship between architecture and team s
 - Does the module/service structure reflect the team structure?
   (Conway's Law: "Organizations design systems that mirror their communication structure")
 - If yes: is this intentional design or accidental coupling?
-- A mismatch that causes cross-team coordination overhead for every feature is 🔴 Critical.
-- A mismatch that is theoretical but not yet causing pain is 🟡 Warning.
+- A mismatch with demonstrated recurring coordination burden normally warrants
+  🟡 Warning. Escalate to 🔴 Critical only when serious impact and relevant exposure
+  are established under `common.md` Severity Calibration.
+- A theoretical mismatch without an evidenced consequence is not a finding.
 - If team structure is unknown, note this as context missing and skip the check.
 
 **Calibration examples:**
-- 🔴 Critical: the Payments module is owned by Team A but contains auth logic owned by Team B —
-  every Payments change requires a sync meeting with Team B
-- 🟡 Warning: two separate teams own the `utils/` and `helpers/` directories which do the same
-  things — theoretically painful but not yet causing release coordination issues
+- 🟡 Warning: one team's module contains logic owned by another team, and every
+  change requires coordination; the recurring burden is demonstrated, but no serious
+  impact has been established
+- Not a finding: two teams own similarly named utility directories, with no evidence
+  of duplicated decisions or coordination burden
 - Not a finding: a single team owns a monorepo with multiple logical modules — Conway's Law
   misalignment requires *separate teams* to be meaningful
 

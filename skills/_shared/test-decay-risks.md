@@ -148,9 +148,16 @@ Mock abuse produces tests that pass while verifying nothing — production code 
 
 ### Severity Guide
 
-- 🔴 Critical: mock setup > 50% of test code; production class has methods only called from tests
-- 🟡 Warning: mocks consistently > 3 per test; primary assertions are mock call verifications
-- 🟢 Suggestion: isolated Incomplete Mocks; minor Hard-Coded Test Data
+Apply the shared Severity Calibration in `common.md`; mock counts and setup ratios
+are investigation signals, not automatic severity assignments.
+
+- 🔴 Critical: mock abuse or test-induced production interfaces leave an evidenced
+  high-impact workflow unprotected or make a high-impact change unsafe; explain the
+  actual exposure rather than inferring it from mock volume
+- 🟡 Warning: mocking the subject under test creates a local verification blind spot;
+  excessive mocks or test-only interfaces demonstrably obstruct meaningful verification
+- 🟢 Suggestion: an isolated incomplete mock or unrealistic test datum with limited
+  evidenced impact
 
 ### What Not to Flag
 
@@ -187,9 +194,17 @@ Coverage measures execution, not verification. 90% line coverage can still miss 
 
 ### Severity Guide
 
-- 🔴 Critical: legacy code area actively being modified with no tests; error-handling paths entirely absent
-- 🟡 Warning: coverage > 80% but edge and exception paths are systematically absent
-- 🟢 Suggestion: a few non-critical paths missing sad-path tests
+Apply the shared Severity Calibration in `common.md`; neither absent tests nor a
+coverage percentage establishes production impact on its own.
+
+- 🔴 Critical: an evidenced high-impact change or essential failure path has no
+  meaningful verification and serious consequences are exposed; identify the change,
+  missing protection, and impact
+- 🟡 Warning: new or changed behavior lacks tests that distinguish it from the old
+  behavior, or meaningful contract boundaries and error paths remain unprotected
+- 🟢 Suggestion: local regression-protection improvements, including missing tests
+  in a small isolated module when no separate substantial exposure is established;
+  do not elevate this recommendation solely because a nearby defect exists
 
 ### What Not to Flag
 

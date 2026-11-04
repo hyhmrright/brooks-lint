@@ -1,0 +1,1147 @@
+{
+  "version": 1,
+  "started_at": "2026-11-04T06:51:30.243Z",
+  "model": "gpt-6-astra",
+  "reasoning": "high",
+  "cli_version": "codex-cli 0.166.0",
+  "repetitions": 1,
+  "cases_sha256": "c1dffcfd55914bb36eb21a263bff25666d22fb10d9d14d9ebf77a89f92b40f1e",
+  "skills_sha256": "a9c8d5f9ad77076fbd7ed6a6d56c42874aff858621f5abb8c0fe7ba4ae6c0696",
+  "judge_schema_sha256": "81e78aff37e1e5c2a19f61e3ad5467a0130579baae4235d8fd0e7ff9aab3b21b",
+  "records": [
+    {
+      "case_id": "review-rule-drift",
+      "repetition": 1,
+      "arm": "with",
+      "status": "ok",
+      "answer": "**Mode:** PR Review  \n**Scope:** Complete `src/checkout.mjs` and `src/preview.mjs` against `CONTRACT.md`; no Git diff.  \n**Health Score:** 94/100\n\nPreview violates the eligibility threshold; the duplicated pricing policy has drifted.\n\n🟡 **R3 — Warning: Duplicated loyalty policy produces inconsistent totals**\n\n- **Symptom:** [preview.mjs:2](<fixture>/src/preview.mjs:2) requires **120** points, while the contract and [checkout.mjs:2](<fixture>/src/checkout.mjs:2) require **100**. Both independently encode the same pricing policy.\n- **Source:** *The Pragmatic Programmer* — DRY: duplicated decisions.\n- **Consequence:** Customers with 100–119 points see an incorrect preview. Confirmed with 1,000 cents and 100 points: checkout returns **900**, preview returns **1,000**. Policy updates also require coordinated edits.\n- **Remedy:** Correct preview’s threshold to 100 and share one pricing calculation between both entry points, preserving intentional discount rounding.\n\n🟢 **T5 — Suggestion: No automated contract regression checks**\n\n- **Symptom:** The complete module has no tests.\n- **Source:** *The Art of Unit Testing* — test completeness.\n- **Consequence:** Future threshold or rounding changes have no automated regression protection.\n- **Remedy:** Add table-driven tests for both exports with explicit expected totals at 99, 100, 119, and 120 points, zero subtotal, and fractional-cent discounts. Checking only equality between exports could allow both to be wrong.\n\nDirect Node checks reproduced the threshold defect and confirmed that both return 909 cents for a 1,009-cent subtotal at 120 points, preserving the intentional rounding. No files were changed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [
+          {
+            "skill": "brooks-review",
+            "event_index": 4,
+            "command": "/bin/zsh -lc \"pwd; rg --files -g 'AGENTS.md' -g 'CONTRACT.md' -g 'src/checkout.mjs' -g 'src/preview.mjs'; cat .agents/skills/brooks-review/SKILL.md\""
+          }
+        ],
+        "usage": {
+          "input_tokens": 102666,
+          "cached_input_tokens": 80256,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1327,
+          "reasoning_output_tokens": 34
+        },
+        "event_count": 27
+      },
+      "trace_sha256": "7b793d349034dc51348f83cea9d53dc8edd1ab1deb93317a3b6e42d1502df87c",
+      "prompt_sha256": "bfd15c140a3a0de7bc399f3cdba35898de7b6e8788d363f2ab9b3bbff3f410a1",
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "Correct preview’s threshold to 100 and share one pricing calculation between both entry points, preserving intentional discount rounding.",
+        "findings": [
+          {
+            "claim": "Duplicated loyalty policy has diverged: preview requires 120 points while checkout and the contract require 100.",
+            "quote": "Customers with 100–119 points see an incorrect preview. Confirmed with 1,000 cents and 100 points: checkout returns **900**, preview returns **1,000**. Policy updates also require coordinated edits.",
+            "match_id": "loyalty-policy-drift",
+            "classification": "supported",
+            "severity": "warning",
+            "severity_ok": true,
+            "reason": "The implementations use different thresholds, producing the stated totals. Warning matches the rubric’s allowed severity for this localized policy drift."
+          },
+          {
+            "claim": "The module lacks automated contract regression tests.",
+            "quote": "🟢 **T5 — Suggestion: No automated contract regression checks**\n\n- **Symptom:** The complete module has no tests.",
+            "match_id": null,
+            "classification": "supported",
+            "severity": "suggestion",
+            "severity_ok": true,
+            "reason": "CONTRACT.md explicitly states that the fixture is the whole pricing module and no tests exist elsewhere. Suggestion is appropriate for this local maintainability observation."
+          }
+        ],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer substantively reviews both implementations, identifies the exact threshold mismatch and affected customers, and recommends correction and consolidation. It respects guaranteed input validity and intentional rounding. The claimed Node execution cannot be independently verified from the supplied answer, but its reported numerical results agree with the fixture."
+      },
+      "judge_trace_sha256": "4818b290e52d606c73dca4f1767e994c5abcb36a98668c48bacabe556dacb551",
+      "judge_prompt_sha256": "4b71f05c592a6e113a5339f285da6904fd5e57ee884ede8b0a9e8dd972c69147",
+      "read_evidence": [
+        {
+          "event_index": 4,
+          "id": "item_1",
+          "type": "command_execution",
+          "command": "/bin/zsh -lc \"pwd; rg --files -g 'AGENTS.md' -g 'CONTRACT.md' -g 'src/checkout.mjs' -g 'src/preview.mjs'; cat .agents/skills/brooks-review/SKILL.md\"",
+          "aggregated_output": "<fixture>\nsrc/checkout.mjs\nsrc/preview.mjs\nCONTRACT.md\n---\nname: brooks-review\ndescription: >\n  PR code review that surfaces decay risks, design smells, and maintainability\n  issues with concrete Symptom → Source → Consequence → Remedy findings, drawing\n  on twelve classic engineering books.\n  Triggers when: user asks to review code, check a PR, shares a diff or pastes\n  code asking \"does this look right?\" / \"any issues here?\" / \"ready to merge?\",\n  or asks for feedback on a function, class, or file.\n  Also triggers when user mentions: code smells / refactoring / clean architecture /\n  DDD / SOLID principles / Hyrum's Law / deep modules / tactical programming /\n  conceptual integrity / Brooks's Law / Mythical Man-Month / second system effect.\n  Do NOT trigger for: questions about how to write code from scratch, language syntax\n  questions, or framework/tool questions where no existing code is shared.\nmetadata:\n  opencode/slash: \"true\"\n---\n\n# Brooks-Lint — PR Review\n\n## Setup\n\nRead in order:\n\n1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score\n2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs\n3. `../_shared/decay-risks.md` — symptom definitions and source attributions\n4. `../_shared/test-decay-risks.md` — test risk definitions for the Quick Test Check\n5. `pr-review-guide.md` (this directory) — the analysis process\n\n## Process\n\n**Scope:** if the user did not specify files or paste code, apply Auto Scope Detection\n(`../_shared/common.md`) first.\n\n1. Understand the review scope, then scan for each decay risk in the order specified (Steps 1–6 of the guide)\n2. Run the Quick Test Check (Step 7 of the guide) — skip for docs-only or non-production changes\n3. Apply the Iron Law to every finding\n4. Output using the Report Template from common.md\n\n**Mode line in report:** `PR Review`\n",
+          "exit_code": 0,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "case_id": "review-rule-drift",
+      "repetition": 1,
+      "arm": "without",
+      "status": "ok",
+      "answer": "- **Correctness — P2:** [src/preview.mjs:2](<fixture>/src/preview.mjs:2) requires 120 points, but CONTRACT.md requires 100. Customers with 100–119 points receive no preview discount. Verified with a 1,000-cent subtotal: checkout returns 900 cents; preview returns 1,000. Change the preview threshold to 100.\n\n- **Maintainability:** Both entry points independently encode the same eligibility, rate, and rounding policy. The differing thresholds demonstrate the risk of drift. Extract a shared pricing function and add boundary checks for 99, 100, 119, and 120 points, plus fractional-cent discount rounding.\n\nCheckout matches the contract; rounding the discount down is intentional. Reviewed both complete files directly and verified the boundary behavior with Node. No files changed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 45264,
+          "cached_input_tokens": 40960,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 663,
+          "reasoning_output_tokens": 77
+        },
+        "event_count": 15
+      },
+      "trace_sha256": "1dc0cea1b59278d0f48bd55fa3b1cb95f0985e792560089faf9c95793a2b6556",
+      "prompt_sha256": "bfd15c140a3a0de7bc399f3cdba35898de7b6e8788d363f2ab9b3bbff3f410a1",
+      "discovered_skills": [],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "Verified with a 1,000-cent subtotal: checkout returns 900 cents; preview returns 1,000. Change the preview threshold to 100.",
+        "findings": [
+          {
+            "claim": "Preview incorrectly requires 120 loyalty points instead of 100, causing inconsistent totals for customers with 100–119 points.",
+            "quote": "requires 120 points, but CONTRACT.md requires 100. Customers with 100–119 points receive no preview discount.",
+            "match_id": "loyalty-policy-drift",
+            "classification": "supported",
+            "severity": "warning",
+            "severity_ok": true,
+            "reason": "The implementations use thresholds of 120 and 100 respectively, while the contract requires 100. The expressed P2 severity matches the rubric's allowed warning severity."
+          },
+          {
+            "claim": "Duplicated pricing policy creates a maintainability problem demonstrated by the divergent thresholds.",
+            "quote": "Both entry points independently encode the same eligibility, rate, and rounding policy. The differing thresholds demonstrate the risk of drift.",
+            "match_id": null,
+            "classification": "supported",
+            "severity": "unspecified",
+            "severity_ok": null,
+            "reason": "Both files independently implement the same policy, and their eligibility thresholds have diverged. Shared implementation is a concrete consolidation recommendation. No severity is expressed for this observation."
+          }
+        ],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer substantively reviews both complete implementations, identifies the required threshold mismatch, and recommends both correction and consolidation. It does not demand input validation or misidentify intentional rounding as a defect. Completion follows from the delivered analysis, without relying on the unverified claim of running Node."
+      },
+      "judge_trace_sha256": "951993211c177b7781d9f6e2508cdce3645fec0d72e3e6748257dbd1f03ee002",
+      "judge_prompt_sha256": "25d12e47a3e744bbddd2bd762073790f7526b17e34939cf190f856b0869a41a1",
+      "read_evidence": []
+    },
+    {
+      "case_id": "audit-composition-root",
+      "repetition": 1,
+      "arm": "with",
+      "status": "ok",
+      "answer": "**Architecture Audit**  \n**Scope:** All three files in `src/`, inspected directly against `ARCHITECTURE.md`.  \n**Health Score:** 100/100 — no architectural findings.\n\nThe implementation follows the documented dependency direction and wiring.\n\n```mermaid\ngraph TD\n    Root[\"Composition root: src/main.mjs\"]\n    Application[\"application/\"]\n    Adapters[\"adapters/\"]\n    Root --> Application\n    Root --> Adapters\n    classDef clean fill:#51cf66,stroke:#2b8a3e,color:#fff\n    class Root,Application,Adapters clean\n```\n\nArrows represent source imports. Runtime calls through the injected repository do not introduce an application-to-adapter import.\n\n- **Composition:** [main.mjs](<fixture>/src/main.mjs:1) alone selects and constructs the concrete repository, injects it into the catalog, and formats command output. Its concrete imports are appropriate.\n- **Dependency direction:** [catalog.mjs](<fixture>/src/application/catalog.mjs:1) depends only on the documented `list()` contract. Both application and adapter have zero imports; there are no cycles. The root has fan-out two, and each imported module has fan-in one.\n- **Adapter isolation:** [memory-repository.mjs](<fixture>/src/adapters/memory-repository.mjs:1) copies both input and returned arrays, protecting its internal demo data from caller mutation.\n- **Testability and scope:** Repository injection provides a working substitution seam. The thin application boundary is consistent with the documented design. No supported findings emerged for duplication, change propagation, cognitive overload, accidental complexity, or domain distortion.\n\nValidation passed: the command printed `Tea, Coffee`; an injected stub worked; mutations to input and returned arrays left repository contents unchanged. Team ownership information was unavailable, so Conway’s Law alignment was not assessed.\n\nNo changes were made.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [
+          {
+            "skill": "brooks-audit",
+            "event_index": 6,
+            "command": "/bin/zsh -lc 'cat .agents/skills/brooks-audit/SKILL.md'"
+          }
+        ],
+        "usage": {
+          "input_tokens": 74847,
+          "cached_input_tokens": 58624,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1042,
+          "reasoning_output_tokens": 17
+        },
+        "event_count": 23
+      },
+      "trace_sha256": "40485ced35b19e0b3d2f8c6bc2476af8e2b3cf628b671bdfdfc02c9bfbe7555f",
+      "prompt_sha256": "d6d778ad4d720eeef2b48e03e7c1179466b334172e1a414007327061efbf27ea",
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "Arrows represent source imports. Runtime calls through the injected repository do not introduce an application-to-adapter import.",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer completes the architecture assessment, correctly distinguishes composition-root wiring from application dependencies, and explicitly concludes there are no architectural findings. Its dependency and adapter-isolation analysis matches the fixture. It asserts no defects or unnecessary requirements, so there are no findings or severities to evaluate. Reported validation execution is not independently established by the supplied evidence, but the assessment itself satisfies the completion rubric."
+      },
+      "judge_trace_sha256": "e57dde72e0f5125170c12f7b5996cd39cbc3ade77dd8a47b1904634d24b3aa16",
+      "judge_prompt_sha256": "77d32efe39c99c712cacb0ffdf63ecf4a46cb691740e0377ba3ab07f3927a36c",
+      "read_evidence": [
+        {
+          "event_index": 6,
+          "id": "item_2",
+          "type": "command_execution",
+          "command": "/bin/zsh -lc 'cat .agents/skills/brooks-audit/SKILL.md'",
+          "aggregated_output": "---\nname: brooks-audit\ndescription: >\n  Architecture audit that maps module dependencies, checks layering integrity, and\n  flags structural decay across a codebase, drawing on twelve classic engineering books.\n  Triggers when: user asks to audit architecture, review folder/module structure,\n  check for circular imports, understand how the codebase is organized, or asks\n  \"does this follow clean architecture?\" or \"why does everything depend on everything?\".\n  Also triggers for onboarding requests: \"explain this codebase to a new developer\"\n  or \"give me a codebase tour\" (use onboarding mode).\n  Do NOT trigger for: PR-level code review (use brooks-review) or line-level refactoring\n  questions — this skill analyzes structural/module-level concerns, not individual functions.\nmetadata:\n  opencode/slash: \"true\"\n---\n\n# Brooks-Lint — Architecture Audit\n\n## Setup\n\nRead in order:\n\n1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score\n2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs\n3. `../_shared/decay-risks.md` — symptom definitions and source attributions\n4. `architecture-guide.md` (this directory) — the audit framework\n\n## Process\n\n**Onboarding mode:** If the user asks for an onboarding report, codebase tour, or\n\"explain this codebase to a new developer\", read `onboarding-guide.md` from this\ndirectory and follow it instead of `architecture-guide.md`. This mode explains rather\nthan diagnoses — no Health Score, no Iron Law findings.\n\n**Scope:** if the user did not specify files or a directory, apply Auto Scope Detection\n(`../_shared/common.md`) first.\n\n1. Gather codebase context and draw the module dependency graph as Mermaid (Steps 0–1 of the guide)\n2. Scan for each decay risk in the order specified (Steps 2–4 of the guide)\n3. Assign node colors in the Mermaid diagram based on findings (red/yellow/green) — after Step 4\n4. Run the Testability Seam Assessment (Step 5 of the guide)\n5. Run the Conway's Law check (Step 6 of the guide)\n6. Output using the Report Template from common.md — Mermaid graph FIRST, then Findings\n\n**Mode line in report:** `Architecture Audit`\n",
+          "exit_code": 0,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "case_id": "audit-composition-root",
+      "repetition": 1,
+      "arm": "without",
+      "status": "ok",
+      "answer": "No architectural issues found. All three files in `src/` conform to [ARCHITECTURE.md](<fixture>/ARCHITECTURE.md:2).\n\n- **Dependency direction:** [catalog.mjs](<fixture>/src/application/catalog.mjs:1) receives a repository and uses only its `list()` contract. It has no concrete adapter dependency. There are no circular or reverse dependencies.\n- **Wiring:** [main.mjs](<fixture>/src/main.mjs:1) is the sole composition root: it selects and constructs the adapter, injects it into the application, and prints the result.\n- **Adapter boundary:** [memory-repository.mjs](<fixture>/src/adapters/memory-repository.mjs:1) satisfies the synchronous `list()` contract. Copies on input and output protect its internal demo data from external mutation.\n\nVerified that the command prints `Tea, Coffee`, the application accepts a substitute repository, and external array mutations leave repository data unchanged. No changes were made.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 45086,
+          "cached_input_tokens": 29952,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 752,
+          "reasoning_output_tokens": 13
+        },
+        "event_count": 11
+      },
+      "trace_sha256": "9b020ed822bef216d87ca2c342b960bae14f6f8d1446473f9e9042e9665d0c6a",
+      "prompt_sha256": "d6d778ad4d720eeef2b48e03e7c1179466b334172e1a414007327061efbf27ea",
+      "discovered_skills": [],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "No architectural issues found.",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer completes the architecture assessment and explicitly concludes that there are no issues. It correctly distinguishes main.mjs choosing and wiring the concrete adapter from catalog.mjs depending only on the injected repository contract. Its description of defensive array copies matches the fixture. It asserts no defects, invents no requirements, and makes no severity claims requiring calibration."
+      },
+      "judge_trace_sha256": "0ffd9301d95ae9e7b1521dd7dce20f7f4a913dc98a6961822cad49788affb8f9",
+      "judge_prompt_sha256": "2dfc47f5d58f24391b2f072fda50eb0afa60a3442832ed3ea44533c052e1398d",
+      "read_evidence": []
+    },
+    {
+      "case_id": "test-mocked-subject",
+      "repetition": 1,
+      "arm": "without",
+      "status": "ok",
+      "answer": "The suite passes (`node --test`: 1/1), but it does not verify the discount calculation.\n\n- **High — The test replaces the method under test** at [test/discount.test.mjs:7](<fixture>/test/discount.test.mjs:7). It makes `total` return `900`, then asserts that result. The test would still pass if the real implementation returned an incorrect value or threw. Remove the mock and call the real method; the module has no collaborators requiring isolation.\n- **Medium — The only input cannot verify rounding down** at [test/discount.test.mjs:8](<fixture>/test/discount.test.mjs:8). Even after removing the mock, `1000 → 900` passes with rounding omitted or replaced by `Math.round` or `Math.ceil`. Add fractional-result cases such as `1 → 0` and `101 → 90`, plus the valid boundary `0 → 0`.\n\nNo files were changed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 33999,
+          "cached_input_tokens": 29952,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 575,
+          "reasoning_output_tokens": 86
+        },
+        "event_count": 13
+      },
+      "trace_sha256": "220bba9eaad7529796bfcbe91f3830b88aae3c1d35e9ab57a9361be3c42a9742",
+      "prompt_sha256": "44c6553941f0d0d15ba4a6886017b63528febb267dbab7320d962ad2a6dce2f8",
+      "discovered_skills": [],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "The test would still pass if the real implementation returned an incorrect value or threw. Remove the mock and call the real method; the module has no collaborators requiring isolation.",
+        "findings": [
+          {
+            "claim": "The test mocks the calculation it intends to verify, so incorrect production behavior would still pass.",
+            "quote": "**High — The test replaces the method under test**",
+            "match_id": "mocked-calculation",
+            "classification": "supported",
+            "severity": "critical",
+            "severity_ok": false,
+            "reason": "The mock replaces total with a constant-returning function, bypassing the real arithmetic. The answer correctly recommends removing it, but High exceeds the rubric's allowed warning severity."
+          },
+          {
+            "claim": "The sole test input cannot distinguish flooring from other rounding behavior or omitted rounding.",
+            "quote": "Even after removing the mock, `1000 → 900` passes with rounding omitted or replaced by `Math.round` or `Math.ceil`.",
+            "match_id": null,
+            "classification": "supported",
+            "severity": "warning",
+            "severity_ok": true,
+            "reason": "The contract requires rounding down, but 90% of 1000 is already an integer. This is an independent coverage gap that persists after removing the mock; the proposed fractional-result cases expose it. Medium is proportionate to this test-quality defect."
+          }
+        ],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer completes the requested assessment by explaining the mocked assertion's blind spot and recommending exercising the real method. It identifies the required issue and a separate supported rounding-coverage gap, but overstates the required issue's severity."
+      },
+      "judge_trace_sha256": "9d8bea4aa35985b7269f3ca7f4f9d89cc89d4b46afd85b3951d2474eacc6cf01",
+      "judge_prompt_sha256": "a72952614c9fb08d5de39e9a3b063de37381ba7e8021f1cd5d5f57984b003515",
+      "read_evidence": []
+    },
+    {
+      "case_id": "test-mocked-subject",
+      "repetition": 1,
+      "arm": "with",
+      "status": "ok",
+      "answer": "**Mode:** Test Quality Review  \n**Scope:** `test/discount.test.mjs`, `src/discount.mjs`, and `CONTRACT.md`  \n**Health Score:** 94/100\n\nThe test passes, but it never executes the calculation it claims to verify.\n\n**Test Suite Map**\n\n```text\nUnit:        1 file, 1 test\nIntegration: 0\nE2E:         0\nReal calculation exercised by suite: no\n```\n\n🟡 **T4 — Mock Abuse: the subject under test is replaced**  \n**Symptom:** [discount.test.mjs:7](<fixture>/test/discount.test.mjs:7) replaces `calculator.total` with `() => 900`, then asserts that replacement returns `900`. The contract explicitly identifies the calculation as the subject and states it has no collaborators.  \n**Source:** *The Art of Unit Testing* — mock usage guidelines and behavioral verification.  \n**Consequence:** An incorrect return value or exception inside the real method would leave this test passing. The module’s only test provides no protection for its implementation.  \n**Remedy:** Remove `t.mock.method` and assert against the real `DiscountCalculator.total(1000)`.\n\n🟢 **T5 — Coverage Illusion: rounding and zero remain untested**  \n**Symptom:** [discount.test.mjs:8](<fixture>/test/discount.test.mjs:8) uses only `1000`, whose discounted result is already an integer.  \n**Source:** *The Art of Unit Testing* — completeness of edge-path tests.  \n**Consequence:** Even after removing the mock, replacing `Math.floor` with `Math.round`, or omitting rounding, would pass the existing case. The valid zero boundary also lacks regression protection.  \n**Remedy:** Add real-method cases such as `11 → 9`, `1 → 0`, and `0 → 0`, retaining `1000 → 900`. Invalid-input behavior is unspecified, so rejection tests are not required.\n\nThe test name and setup are clear; there is no evidenced duplication or need for integration/E2E tests in this isolated calculation. `node --test test/discount.test.mjs` passed its single test; direct implementation checks returned the expected results for the four inputs above. No files were changed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [
+          {
+            "skill": "brooks-test",
+            "event_index": 4,
+            "command": "/bin/zsh -lc 'cat .agents/skills/brooks-test/SKILL.md'"
+          }
+        ],
+        "usage": {
+          "input_tokens": 71466,
+          "cached_input_tokens": 54144,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1170,
+          "reasoning_output_tokens": 180
+        },
+        "event_count": 17
+      },
+      "trace_sha256": "19263a88d7e22e6132ca4c1f30ec9b14f12dffa8075db4cb6aabb1fa5894d6bc",
+      "prompt_sha256": "44c6553941f0d0d15ba4a6886017b63528febb267dbab7320d962ad2a6dce2f8",
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "**Consequence:** An incorrect return value or exception inside the real method would leave this test passing. The module’s only test provides no protection for its implementation.  \n**Remedy:** Remove `t.mock.method` and assert against the real `DiscountCalculator.total(1000)`.",
+        "findings": [
+          {
+            "claim": "The test replaces the method under test with a constant stub, so it cannot detect broken production arithmetic.",
+            "quote": "replaces `calculator.total` with `() => 900`, then asserts that replacement returns `900`.",
+            "match_id": "mocked-calculation",
+            "classification": "supported",
+            "severity": "unspecified",
+            "severity_ok": null,
+            "reason": "The fixture confirms that the mock bypasses the entire calculation. The answer correctly recommends removing it and exercising the real method. The colored marker has no explicit severity definition."
+          },
+          {
+            "claim": "The sole input does not test rounding behavior or the zero boundary.",
+            "quote": "Even after removing the mock, replacing `Math.floor` with `Math.round`, or omitting rounding, would pass the existing case. The valid zero boundary also lacks regression protection.",
+            "match_id": null,
+            "classification": "supported",
+            "severity": "unspecified",
+            "severity_ok": null,
+            "reason": "The entire suite contains only the 1000-cent case, which produces an integer before rounding. Fractional-result and zero cases are absent. This additional coverage gap persists after fixing the mock and is supported by the contract. No explicit severity is stated."
+          }
+        ],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer completes the requested assessment by explaining the mock, assertion, resulting blind spot, and concrete correction. It identifies the required defect and a supported additional coverage gap without making any prohibited claims. Severity is absent rather than demonstrably miscalibrated; the health score does not establish severity."
+      },
+      "judge_trace_sha256": "27a49dd0a4b8fa0bdc48190800f9c8dbb98c0bf5939c3acc07c291ba22bba805",
+      "judge_prompt_sha256": "532b56f0f67ab6e48b098f353397fa3ef043eb73967b882bda3bf1a1a17f0073",
+      "read_evidence": [
+        {
+          "event_index": 4,
+          "id": "item_1",
+          "type": "command_execution",
+          "command": "/bin/zsh -lc 'cat .agents/skills/brooks-test/SKILL.md'",
+          "aggregated_output": "---\nname: brooks-test\ndescription: >\n  Test quality review drawing on twelve classic engineering books — with primary focus\n  on xUnit Test Patterns, The Art of Unit Testing, How Google Tests Software, and\n  Working Effectively with Legacy Code — that diagnoses structural problems in an\n  existing test suite: brittleness, mock abuse, coverage illusions, slow execution,\n  poor readability.\n  Triggers when: user asks about test quality, shares test files for review, or\n  expresses frustration: \"tests keep breaking whenever I change anything\", \"our tests\n  take forever\", \"tests pass but bugs still reach production\", or \"we have too many mocks\".\n  Do NOT trigger for: writing new tests from scratch (use the regular test-writing\n  workflow) or testing framework/syntax questions — this skill reviews an existing\n  suite for structural quality problems, not individual test authoring.\nmetadata:\n  opencode/slash: \"true\"\n---\n\n# Brooks-Lint — Test Quality Review\n\n## Setup\n\nRead in order:\n\n1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score\n2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs\n3. `../_shared/test-decay-risks.md` — test-space symptom definitions and sources\n4. `test-guide.md` (this directory) — the test quality review framework\n\n## Process\n\n**Scope:** if the user did not share test files or point to a test directory, apply Auto\nScope Detection (`../_shared/common.md`) first.\n\n1. Build the test suite map (guide's \"Before You Start\" section)\n2. Scan for each test decay risk in the order specified (Steps 1–4 of the guide)\n3. Apply the Iron Law and output using the Report Template (Step 5 of the guide)\n\n**Mode line in report:** `Test Quality Review`\n",
+          "exit_code": 0,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "case_id": "review-local-severity",
+      "repetition": 1,
+      "arm": "with",
+      "status": "ok",
+      "answer": "**No maintainability findings. Keep the helper as written.**\n\n**Mode:** PR Review  \n**Scope:** Current [src/label.mjs](<fixture>/src/label.mjs:1), assessed against `CONTRACT.md`  \n**Health Score:** 100/100\n\nThe nine-line function directly expresses the contract: trim the validated string, uppercase nonempty content, otherwise return `'Unknown'`. Its names and control flow are clear, with no dependencies, side effects, or duplicated decisions.\n\nThe `upper` temporary and explicit `else` are reasonable readability choices. Shortening either would be stylistic, with no meaningful maintenance benefit. Additional validation, configuration, or abstractions have no justification for this single offline use.\n\nNo tests were present or run; this assessment is based on direct inspection. Given the small, stable scope and explicit contract, that alone does not warrant a finding. No files were changed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [
+          {
+            "skill": "brooks-review",
+            "event_index": 6,
+            "command": "/bin/zsh -lc 'cat .agents/skills/brooks-review/SKILL.md'"
+          }
+        ],
+        "usage": {
+          "input_tokens": 72529,
+          "cached_input_tokens": 52608,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 685,
+          "reasoning_output_tokens": 30
+        },
+        "event_count": 25
+      },
+      "trace_sha256": "98ad48eb44f7bc30fcdaf39b746cc43b11a52c4163de6b635cb85acd611d136c",
+      "prompt_sha256": "bfce991f406f0aa245bf7e6e06599c06433fea6ff70568350f3f0b995e2defbb",
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "**No maintainability findings. Keep the helper as written.**",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer delivers a finished assessment grounded in the helper and its contract. It correctly treats the temporary variable and explicit else as reasonable stylistic choices and avoids inventing validation, performance, correctness, or architectural defects. No concrete issues are asserted, so there are no findings or severity judgments. The health score does not imply severity."
+      },
+      "judge_trace_sha256": "9b92d1ae988d562f310ab4afb18f6e1bf263a19edc187c7a95baa990c4fe559b",
+      "judge_prompt_sha256": "aad07761efa71aae05ae42e2bc3ad89c35b85b218244573df3d5bad268fa9cf0",
+      "read_evidence": [
+        {
+          "event_index": 6,
+          "id": "item_2",
+          "type": "command_execution",
+          "command": "/bin/zsh -lc 'cat .agents/skills/brooks-review/SKILL.md'",
+          "aggregated_output": "---\nname: brooks-review\ndescription: >\n  PR code review that surfaces decay risks, design smells, and maintainability\n  issues with concrete Symptom → Source → Consequence → Remedy findings, drawing\n  on twelve classic engineering books.\n  Triggers when: user asks to review code, check a PR, shares a diff or pastes\n  code asking \"does this look right?\" / \"any issues here?\" / \"ready to merge?\",\n  or asks for feedback on a function, class, or file.\n  Also triggers when user mentions: code smells / refactoring / clean architecture /\n  DDD / SOLID principles / Hyrum's Law / deep modules / tactical programming /\n  conceptual integrity / Brooks's Law / Mythical Man-Month / second system effect.\n  Do NOT trigger for: questions about how to write code from scratch, language syntax\n  questions, or framework/tool questions where no existing code is shared.\nmetadata:\n  opencode/slash: \"true\"\n---\n\n# Brooks-Lint — PR Review\n\n## Setup\n\nRead in order:\n\n1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score\n2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs\n3. `../_shared/decay-risks.md` — symptom definitions and source attributions\n4. `../_shared/test-decay-risks.md` — test risk definitions for the Quick Test Check\n5. `pr-review-guide.md` (this directory) — the analysis process\n\n## Process\n\n**Scope:** if the user did not specify files or paste code, apply Auto Scope Detection\n(`../_shared/common.md`) first.\n\n1. Understand the review scope, then scan for each decay risk in the order specified (Steps 1–6 of the guide)\n2. Run the Quick Test Check (Step 7 of the guide) — skip for docs-only or non-production changes\n3. Apply the Iron Law to every finding\n4. Output using the Report Template from common.md\n\n**Mode line in report:** `PR Review`\n",
+          "exit_code": 0,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "case_id": "review-local-severity",
+      "repetition": 1,
+      "arm": "without",
+      "status": "ok",
+      "answer": "No actionable maintainability findings in [src/label.mjs](<fixture>/src/label.mjs:1).\n\nThe helper directly expresses the contract: trim once, uppercase nonempty input, and return `'Unknown'` for empty or whitespace-only input. Its names and control flow are easy to follow.\n\nThe `upper` temporary and `else` after a return could be removed, but that would be a stylistic simplification with little practical benefit. Given its single offline use and validated input, additional validation, abstractions, configuration, or locale handling would add unnecessary complexity.\n\n**Recommendation: keep it as written.** Assessment based on reading the complete helper and `CONTRACT.md`; no edits or tests performed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 33281,
+          "cached_input_tokens": 31360,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 464,
+          "reasoning_output_tokens": 47
+        },
+        "event_count": 13
+      },
+      "trace_sha256": "1ca265e9d906e71a6cd8e316a7e9833dfb8c901bd149c60dfc66e84ec258ced2",
+      "prompt_sha256": "bfce991f406f0aa245bf7e6e06599c06433fea6ff70568350f3f0b995e2defbb",
+      "discovered_skills": [],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "**Recommendation: keep it as written.** Assessment based on reading the complete helper and `CONTRACT.md`; no edits or tests performed.",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer delivers a finished, proportionate assessment consistent with the contract. It correctly describes the helper's behavior and recommends retaining it. Removing the temporary variable or else is presented as an optional stylistic change with little benefit, not a concrete defect. No prohibited issues or severity overstatements are asserted, and the rubric requires no findings."
+      },
+      "judge_trace_sha256": "411b550cc4b494339e24e5204738aa16fe32a9c812fbfefbef46fd5133980a1c",
+      "judge_prompt_sha256": "521720ac35cdf8a30659eb42d6dc93bdcd935a2df27dfc114116f3f79bffb783",
+      "read_evidence": []
+    },
+    {
+      "case_id": "nontrigger-nullish-syntax",
+      "repetition": 1,
+      "arm": "without",
+      "status": "ok",
+      "answer": "`??` is JavaScript’s **nullish coalescing operator**. It returns the right operand only when the left operand is `null` or `undefined`.\n\nSince `retries` is `0`, `retries ?? 5` returns `0`. Unlike `||`, `??` preserves falsy values such as `0`, `false`, and `\"\"`.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 21728,
+          "cached_input_tokens": 20224,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 135,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 7
+      },
+      "trace_sha256": "84798ab31c11dd9fb34eccedb1660016116b3bc1d1e7f0be789af41ea8bc2c84",
+      "prompt_sha256": "057330e5aa1e194d5cf6e43bdeff70ada297ddb5c802f2df717bdf17f65fa74a",
+      "discovered_skills": [],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "It returns the right operand only when the left operand is `null` or `undefined`.\n\nSince `retries` is `0`, `retries ?? 5` returns `0`.",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer correctly and briefly explains nullish coalescing and why 0 is preserved. The comparison with || clarifies language behavior without introducing review findings or severity labels."
+      },
+      "judge_trace_sha256": "7d368cc4fbde3412a78dc014cb16f12372dc848cbd28b0755c92c692e1f96f3f",
+      "judge_prompt_sha256": "e0e4eac882c8cc16caf47b7ca52b6cfd579e6798354f7219fb03bc741f308883",
+      "read_evidence": []
+    },
+    {
+      "case_id": "nontrigger-nullish-syntax",
+      "repetition": 1,
+      "arm": "with",
+      "status": "ok",
+      "answer": "`??` is JavaScript’s **nullish coalescing operator**. It returns the right-hand value only when the left-hand value is `null` or `undefined`.\n\nSince `retries` is `0`, `retries ?? 5` evaluates to `0`. Unlike `||`, `??` preserves falsy values such as `0`, `false`, and `\"\"`.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 24063,
+          "cached_input_tokens": 21504,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 138,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 7
+      },
+      "trace_sha256": "632fad2dda7132ac60b0d74972d25479080718df869713ff2aa16a2402bbef7b",
+      "prompt_sha256": "057330e5aa1e194d5cf6e43bdeff70ada297ddb5c802f2df717bdf17f65fa74a",
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "It returns the right-hand value only when the left-hand value is `null` or `undefined`.\n\nSince `retries` is `0`, `retries ?? 5` evaluates to `0`.",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer correctly and briefly explains nullish coalescing and why 0 is preserved. The comparison with || clarifies language behavior without introducing review findings or severity labels."
+      },
+      "judge_trace_sha256": "e1fd73b69f418cc6d5d8f7bd98fbb2c589868cbc6926540dd5a319bf3f01c772",
+      "judge_prompt_sha256": "02a4065e05c5df59880229830f7c9454c8bf5086c7e37c6828596f40adcb196a",
+      "read_evidence": []
+    },
+    {
+      "case_id": "nontrigger-new-implementation",
+      "repetition": 1,
+      "arm": "with",
+      "status": "ok",
+      "answer": "export function clamp(value, min, max) {\n  return Math.min(Math.max(value, min), max);\n}",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 11991,
+          "cached_input_tokens": 9600,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 27,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 4
+      },
+      "trace_sha256": "64f6d46657cbf643b204c41c9273d5ea3d8cbbc9cfa67c8e89ed70de6f1335c9",
+      "prompt_sha256": "f52eaab474e1b5376b24c0d359ceb61e433b4bde72196e7bec4d7089d5bc795d",
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "export function clamp(value, min, max) {\n  return Math.min(Math.max(value, min), max);\n}",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer contains only a named exported JavaScript function that correctly handles all three cases under the guaranteed input contract. It adds no review prose, severity labels, or unnecessary validation demands."
+      },
+      "judge_trace_sha256": "252c3db6cfc53593c0d81e0edc03d2b857496bfd918a299e7eb24c722cfc6fe7",
+      "judge_prompt_sha256": "ce8b1815a4d6a505bfdc56bc07de1f8399ff0e958b6d01855ff9d0770518108f",
+      "read_evidence": []
+    },
+    {
+      "case_id": "nontrigger-new-implementation",
+      "repetition": 1,
+      "arm": "without",
+      "status": "ok",
+      "answer": "export function clamp(value, min, max) {\n  return Math.min(Math.max(value, min), max);\n}",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 10829,
+          "cached_input_tokens": 9600,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 27,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 4
+      },
+      "trace_sha256": "6673823a49f946db2d422ca1c574333adec467f1cac4d2321b9cc88e3680b458",
+      "prompt_sha256": "f52eaab474e1b5376b24c0d359ceb61e433b4bde72196e7bec4d7089d5bc795d",
+      "discovered_skills": [],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "export function clamp(value, min, max) {\n  return Math.min(Math.max(value, min), max);\n}",
+        "findings": [],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer contains only a named exported JavaScript function implementing all three clamp cases under the guaranteed input contract. It adds no review prose, severity labels, or unnecessary validation."
+      },
+      "judge_trace_sha256": "dc90b7ab4588fff14ec76396db4640cc36bef271b487e8d0977a15c868c20e45",
+      "judge_prompt_sha256": "ce8b1815a4d6a505bfdc56bc07de1f8399ff0e958b6d01855ff9d0770518108f",
+      "read_evidence": []
+    },
+    {
+      "case_id": "review-new-behavior-coverage",
+      "repetition": 1,
+      "arm": "with",
+      "status": "ok",
+      "answer": "**Mode:** PR Review  \n**Scope:** Current `src/shipping.mjs` and `test/shipping.test.mjs`, using `CHANGE.md`; no Git diff.  \n**Health Score:** 95/100\n\nThe implementation matches the documented rule, but the new free-shipping behavior has no meaningful test coverage.\n\n🟡 **T5 — Coverage Illusion: tests cannot distinguish the new behavior**\n\n- **Symptom:** The only test, at [shipping.test.mjs:5](<fixture>/test/shipping.test.mjs:5), checks that a 1000-cent order costs 500 cents to ship. CHANGE.md confirms this is the complete shipping test inventory.\n- **Source:** *How Google Tests Software* — change coverage versus line coverage.\n- **Consequence:** Reverting to always returning `500`, or changing `>= 5000` to `> 5000`, would still pass the suite.\n- **Remedy:** Add assertions for `4999 → 500`, `5000 → 0`, and `5001 → 0` to protect the threshold and free-shipping behavior.\n\nNo production defect found under the documented caller-validation contract. Ran `node --test test/shipping.test.mjs`: **1 test passed**. No files changed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [
+          {
+            "skill": "brooks-review",
+            "event_index": 6,
+            "command": "/bin/zsh -lc 'cat .agents/skills/brooks-review/SKILL.md'"
+          }
+        ],
+        "usage": {
+          "input_tokens": 74599,
+          "cached_input_tokens": 56448,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 858,
+          "reasoning_output_tokens": 15
+        },
+        "event_count": 17
+      },
+      "trace_sha256": "e39f4d3f4cab7933dcd474ca054707cfb58d9dcd45a0f4c2dcf7301dbff6879a",
+      "prompt_sha256": "da3a26319accb04bfdad0c8740dcdbef12025912cf69a8e635d07cb6eb3b2d9a",
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "The implementation matches the documented rule, but the new free-shipping behavior has no meaningful test coverage.",
+        "findings": [
+          {
+            "claim": "The sole test covers only paid shipping, leaving the new free-shipping branch and eligibility boundary without regression protection.",
+            "quote": "**Consequence:** Reverting to always returning `500`, or changing `>= 5000` to `> 5000`, would still pass the suite.",
+            "match_id": "free-shipping-untested",
+            "classification": "supported",
+            "severity": "warning",
+            "severity_ok": true,
+            "reason": "The complete test inventory checks only shippingCents(1000). Both described regressions would pass that test. The yellow finding indicator expresses warning severity, matching the rubric."
+          }
+        ],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer delivers the requested current-code review, correctly accepts the implementation and caller-validation contract, and identifies the missing behavioral regression coverage. Its recommended assertions at 4999, 5000, and 5001 exercise both the eligibility boundary and free-shipping behavior. No additional defects are asserted. The reported test execution is not independently verified by the supplied fixture, but completion is established by the delivered analysis."
+      },
+      "judge_trace_sha256": "a3eeca7130d8a770a0ec3ce6c51b18f57ecde470d8897899f1b4d8657152f832",
+      "judge_prompt_sha256": "9fd641e99a3dccf37700eac93b9fce2eab15af4795b0be848bb1bc004b76b38d",
+      "read_evidence": [
+        {
+          "event_index": 6,
+          "id": "item_2",
+          "type": "command_execution",
+          "command": "/bin/zsh -lc 'cat .agents/skills/brooks-review/SKILL.md'",
+          "aggregated_output": "---\nname: brooks-review\ndescription: >\n  PR code review that surfaces decay risks, design smells, and maintainability\n  issues with concrete Symptom → Source → Consequence → Remedy findings, drawing\n  on twelve classic engineering books.\n  Triggers when: user asks to review code, check a PR, shares a diff or pastes\n  code asking \"does this look right?\" / \"any issues here?\" / \"ready to merge?\",\n  or asks for feedback on a function, class, or file.\n  Also triggers when user mentions: code smells / refactoring / clean architecture /\n  DDD / SOLID principles / Hyrum's Law / deep modules / tactical programming /\n  conceptual integrity / Brooks's Law / Mythical Man-Month / second system effect.\n  Do NOT trigger for: questions about how to write code from scratch, language syntax\n  questions, or framework/tool questions where no existing code is shared.\nmetadata:\n  opencode/slash: \"true\"\n---\n\n# Brooks-Lint — PR Review\n\n## Setup\n\nRead in order:\n\n1. `../_shared/common.md` — Iron Law, Project Config, Report Template, Health Score\n2. `../_shared/source-coverage.md` — book coverage, exceptions, tradeoffs\n3. `../_shared/decay-risks.md` — symptom definitions and source attributions\n4. `../_shared/test-decay-risks.md` — test risk definitions for the Quick Test Check\n5. `pr-review-guide.md` (this directory) — the analysis process\n\n## Process\n\n**Scope:** if the user did not specify files or paste code, apply Auto Scope Detection\n(`../_shared/common.md`) first.\n\n1. Understand the review scope, then scan for each decay risk in the order specified (Steps 1–6 of the guide)\n2. Run the Quick Test Check (Step 7 of the guide) — skip for docs-only or non-production changes\n3. Apply the Iron Law to every finding\n4. Output using the Report Template from common.md\n\n**Mode line in report:** `PR Review`\n",
+          "exit_code": 0,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "case_id": "review-new-behavior-coverage",
+      "repetition": 1,
+      "arm": "without",
+      "status": "ok",
+      "answer": "- **[P2] New free-shipping behavior has no test coverage** — [test/shipping.test.mjs:5](test/shipping.test.mjs#L5). The sole test checks the unchanged 1000-cent case and would pass with the previous implementation that always charged 500 cents. Add assertions for 4999 → 500, 5000 → 0, and 5001 → 0 to protect the threshold and free-shipping behavior.\n\nThe current implementation matches CHANGE.md; no correctness issue found. `node --test test/shipping.test.mjs` passes (1 test). No files changed.",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 45503,
+          "cached_input_tokens": 39936,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 487,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 13
+      },
+      "trace_sha256": "4e2ee40d3eb212a781b91279baade640f0af0ee78d526d809944e7ac4784a66a",
+      "prompt_sha256": "da3a26319accb04bfdad0c8740dcdbef12025912cf69a8e635d07cb6eb3b2d9a",
+      "discovered_skills": [],
+      "judgment": {
+        "completed": true,
+        "completion_evidence": "Add assertions for 4999 → 500, 5000 → 0, and 5001 → 0 to protect the threshold and free-shipping behavior.\n\nThe current implementation matches CHANGE.md; no correctness issue found.",
+        "findings": [
+          {
+            "claim": "The only test covers paid shipping, leaving the new free-shipping branch and eligibility boundary without regression protection.",
+            "quote": "**[P2] New free-shipping behavior has no test coverage** — [test/shipping.test.mjs:5](test/shipping.test.mjs#L5). The sole test checks the unchanged 1000-cent case and would pass with the previous implementation that always charged 500 cents. Add assertions for 4999 → 500, 5000 → 0, and 5001 → 0 to protect the threshold and free-shipping behavior.",
+            "match_id": "free-shipping-untested",
+            "classification": "supported",
+            "severity": "warning",
+            "severity_ok": true,
+            "reason": "The complete test inventory checks only shippingCents(1000) === 500. It never exercises free shipping or the 5000-cent boundary and would pass if shipping always cost 500 cents. P2 matches the required warning severity."
+          }
+        ],
+        "missed_expected_ids": [],
+        "unexpected_review": false,
+        "rationale": "The answer delivers a finished review of implementation correctness and actual coverage, with concrete boundary and free-shipping test recommendations. It correctly distinguishes missing regression tests from an implementation bug and asserts no unsupported defects."
+      },
+      "judge_trace_sha256": "24af7910fea0e79a6bdff84a05533f3e1d7b6fafec80f69e936851d13b622196",
+      "judge_prompt_sha256": "f4dc99d9527d23237bc24f3279d0d605b1f940a2cd5328457dca0d9dbc5fc232",
+      "read_evidence": []
+    }
+  ],
+  "runner_sha256": "4f20676c56be3639c970ddc4a868fb4a8fc9f6484986263ce296fd2ec9ffe89c",
+  "evaluator_sha256": "e5ab47fea3f141a87b78b757e6f1f494718cdbb9595caf949f3b648f405209e1",
+  "planned_pairs": 7,
+  "timeout_seconds": 240,
+  "summary": {
+    "attempted_pairs": 7,
+    "valid_pairs": 7,
+    "excluded_pairs": 0,
+    "metrics": {
+      "with": {
+        "samples": 7,
+        "completed": 7,
+        "completion_rate": 1,
+        "expected_findings": 3,
+        "missed_findings": 0,
+        "recall": 1,
+        "findings": 5,
+        "false_positives": 0,
+        "false_positive_fraction": 0,
+        "uncertain_findings": 0,
+        "labeled_findings": 3,
+        "unlabeled_findings": 2,
+        "severity_accuracy": 1,
+        "trigger_rate": 1,
+        "negative_trigger_rate": 0,
+        "unsolicited_reviews": 0
+      },
+      "without": {
+        "samples": 7,
+        "completed": 7,
+        "completion_rate": 1,
+        "expected_findings": 3,
+        "missed_findings": 0,
+        "recall": 1,
+        "findings": 5,
+        "false_positives": 0,
+        "false_positive_fraction": 0,
+        "uncertain_findings": 0,
+        "labeled_findings": 4,
+        "unlabeled_findings": 1,
+        "severity_accuracy": 0.75,
+        "trigger_rate": 0,
+        "negative_trigger_rate": 0,
+        "unsolicited_reviews": 0
+      }
+    },
+    "delta": {
+      "completion_rate": 0,
+      "recall": 0,
+      "false_positive_fraction": 0,
+      "severity_accuracy": 0.25
+    }
+  },
+  "finished_at": "2026-11-04T07:18:02.565Z",
+  "initial_attempt": {
+    "summary": {
+      "attempted_pairs": 7,
+      "valid_pairs": 6,
+      "excluded_pairs": 1,
+      "metrics": {
+        "with": {
+          "samples": 6,
+          "completed": 6,
+          "completion_rate": 1,
+          "expected_findings": 2,
+          "missed_findings": 0,
+          "recall": 1,
+          "findings": 4,
+          "false_positives": 0,
+          "false_positive_fraction": 0,
+          "uncertain_findings": 0,
+          "labeled_findings": 2,
+          "unlabeled_findings": 2,
+          "severity_accuracy": 1,
+          "trigger_rate": 1,
+          "negative_trigger_rate": 0,
+          "unsolicited_reviews": 0
+        },
+        "without": {
+          "samples": 6,
+          "completed": 6,
+          "completion_rate": 1,
+          "expected_findings": 2,
+          "missed_findings": 0,
+          "recall": 1,
+          "findings": 4,
+          "false_positives": 0,
+          "false_positive_fraction": 0,
+          "uncertain_findings": 0,
+          "labeled_findings": 3,
+          "unlabeled_findings": 1,
+          "severity_accuracy": 0.6666666666666666,
+          "trigger_rate": 0,
+          "negative_trigger_rate": 0,
+          "unsolicited_reviews": 0
+        }
+      },
+      "delta": {
+        "completion_rate": 0,
+        "recall": 0,
+        "false_positive_fraction": 0,
+        "severity_accuracy": 0.33333333333333337
+      }
+    },
+    "finished_at": "2026-11-04T07:15:06.517Z",
+    "failed_records": [
+      {
+        "case_id": "review-new-behavior-coverage",
+        "repetition": 1,
+        "arm": "without",
+        "status": "failed",
+        "error": "Codex turn failed (exit=null, timeout=true, interrupted=false): "
+      },
+      {
+        "case_id": "review-new-behavior-coverage",
+        "repetition": 1,
+        "arm": "with",
+        "status": "failed",
+        "error": "Codex turn failed (exit=null, timeout=true, interrupted=false): Reconnecting... 2/5 (workspace routing discovery timed out); Reconnecting... 3/5 (workspace routing discovery timed out); Reconnecting... 4/5 (workspace routing discovery timed out); Reconnecting... 5/5 (workspace routing discovery timed out); Reconnecting... 1/5 (workspace routing discovery timed out)"
+      }
+    ]
+  },
+  "recovery": {
+    "case_id": "review-new-behavior-coverage",
+    "reason": "Both arms exceeded the deadline; treatment logged routing errors; whole pair retried once, without changing model, cases, judging or deadline.",
+    "summary": {
+      "attempted_pairs": 1,
+      "valid_pairs": 1,
+      "excluded_pairs": 0,
+      "metrics": {
+        "with": {
+          "samples": 1,
+          "completed": 1,
+          "completion_rate": 1,
+          "expected_findings": 1,
+          "missed_findings": 0,
+          "recall": 1,
+          "findings": 1,
+          "false_positives": 0,
+          "false_positive_fraction": 0,
+          "uncertain_findings": 0,
+          "labeled_findings": 1,
+          "unlabeled_findings": 0,
+          "severity_accuracy": 1,
+          "trigger_rate": 1,
+          "negative_trigger_rate": null,
+          "unsolicited_reviews": 0
+        },
+        "without": {
+          "samples": 1,
+          "completed": 1,
+          "completion_rate": 1,
+          "expected_findings": 1,
+          "missed_findings": 0,
+          "recall": 1,
+          "findings": 1,
+          "false_positives": 0,
+          "false_positive_fraction": 0,
+          "uncertain_findings": 0,
+          "labeled_findings": 1,
+          "unlabeled_findings": 0,
+          "severity_accuracy": 1,
+          "trigger_rate": 0,
+          "negative_trigger_rate": null,
+          "unsolicited_reviews": 0
+        }
+      },
+      "delta": {
+        "completion_rate": 0,
+        "recall": 0,
+        "false_positive_fraction": 0,
+        "severity_accuracy": 0
+      }
+    },
+    "started_at": "2026-11-04T07:15:20.870Z",
+    "finished_at": "2026-11-04T07:18:02.565Z"
+  },
+  "fixture_snapshot": {
+    "version": 1,
+    "cases": [
+      {
+        "id": "review-rule-drift",
+        "prompt": "Review src/checkout.mjs and src/preview.mjs for maintainability and correctness against CONTRACT.md. These are the complete current implementations; review these files directly, not a Git diff. Give the completed review without changing files.",
+        "expected_skill": "brooks-review",
+        "files": [
+          {
+            "path": "CONTRACT.md",
+            "content": "# Loyalty discount\nBoth checkout and preview must give a 10% discount to members with at least 100 loyalty points. Inputs are already validated nonnegative integer cents and nonnegative integer points. Rounding down to integer cents is intentional. The two entry points serve the same customers under the same pricing policy. This fixture is the whole pricing module; no tests exist elsewhere.\n"
+          },
+          {
+            "path": "src/checkout.mjs",
+            "content": "export function checkoutTotal(subtotalCents, loyaltyPoints) {\n  const rate = loyaltyPoints >= 100 ? 0.1 : 0;\n  return subtotalCents - Math.floor(subtotalCents * rate);\n}\n"
+          },
+          {
+            "path": "src/preview.mjs",
+            "content": "export function previewTotal(subtotalCents, loyaltyPoints) {\n  const rate = loyaltyPoints >= 120 ? 0.1 : 0;\n  return subtotalCents - Math.floor(subtotalCents * rate);\n}\n"
+          }
+        ],
+        "rubric": {
+          "task_kind": "review",
+          "must_find": [
+            {
+              "id": "loyalty-policy-drift",
+              "description": "The same loyalty policy is duplicated and has diverged: preview uses 120 points while checkout and the contract use 100. Customers with 100–119 points see inconsistent totals. Identify both locations or the concrete threshold mismatch; merely saying code is duplicated is insufficient.",
+              "allowed_severities": [
+                "warning"
+              ],
+              "evidence_files": [
+                "src/checkout.mjs",
+                "src/preview.mjs",
+                "CONTRACT.md"
+              ]
+            }
+          ],
+          "must_not_find": [
+            "Do not demand input validation: callers guarantee the documented integer domains.",
+            "Do not call the intentional integer-cent rounding a bug."
+          ],
+          "completion": [
+            "Inspect both named implementations and deliver a substantive review with the threshold mismatch and a concrete consolidation or correction recommendation. A plan to review later is incomplete."
+          ],
+          "severity_policy": "The localized pricing-policy drift warrants warning, not critical. Other supported local maintainability observations may be suggestions."
+        }
+      },
+      {
+        "id": "review-new-behavior-coverage",
+        "prompt": "Review src/shipping.mjs and test/shipping.test.mjs, using CHANGE.md for the new behavior and coverage context. Review the named files as the current code, not a Git diff. Include whether the new behavior has meaningful tests; provide the finished review without edits.",
+        "expected_skill": "brooks-review",
+        "files": [
+          {
+            "path": "CHANGE.md",
+            "content": "# Shipping change\nPreviously all orders cost 500 cents to ship. This revision adds free shipping for orders of at least 5000 cents. subtotalCents is validated by the caller as a nonnegative integer. test/shipping.test.mjs is the complete test inventory for shipping; there are no integration or external tests. Run with node --test if useful; no packages are needed.\n"
+          },
+          {
+            "path": "src/shipping.mjs",
+            "content": "export function shippingCents(subtotalCents) {\n  return subtotalCents >= 5000 ? 0 : 500;\n}\n"
+          },
+          {
+            "path": "test/shipping.test.mjs",
+            "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { shippingCents } from '../src/shipping.mjs';\n\ntest('an ordinary 1000-cent order costs 500 cents to ship', () => {\n  assert.equal(shippingCents(1000), 500);\n});\n"
+          }
+        ],
+        "rubric": {
+          "task_kind": "review",
+          "must_find": [
+            {
+              "id": "free-shipping-untested",
+              "description": "The only test exercises the old paid-shipping path. The newly added free-shipping branch is untested, including the 5000-cent eligibility boundary; existing tests pass even if the new branch is removed. This is a coverage illusion/missing behavioral regression test, not an implementation bug.",
+              "allowed_severities": [
+                "warning"
+              ],
+              "evidence_files": [
+                "src/shipping.mjs",
+                "test/shipping.test.mjs",
+                "CHANGE.md"
+              ]
+            }
+          ],
+          "must_not_find": [
+            "Do not claim the >= 5000 implementation contradicts the contract.",
+            "Do not demand subtotal input validation already guaranteed by the caller."
+          ],
+          "completion": [
+            "Deliver a review that evaluates both production code and actual test coverage and recommends exercising the new free-shipping branch and eligibility boundary."
+          ],
+          "severity_policy": "The missing regression protection for newly introduced behavior is warning. The correct implementation itself must not be called critical or broken."
+        }
+      },
+      {
+        "id": "audit-composition-root",
+        "prompt": "Audit the architecture of src/ using ARCHITECTURE.md as context. Focus on dependency direction and wiring, and give the completed assessment. This directory is the complete application; inspect the current files directly and do not request a diff or make changes.",
+        "expected_skill": "brooks-audit",
+        "files": [
+          {
+            "path": "ARCHITECTURE.md",
+            "content": "# Small catalog service\nsrc/main.mjs is the composition root. It alone chooses and wires concrete adapters. The application receives a repository with list() returning an array of names; it does not know the concrete adapter. The in-memory adapter intentionally contains immutable demo data for this offline command. There is no persistence, HTTP API, authentication, concurrency, or configuration requirement. Run node src/main.mjs to print the catalog.\n"
+          },
+          {
+            "path": "src/main.mjs",
+            "content": "import { createCatalog } from './application/catalog.mjs';\nimport { createMemoryRepository } from './adapters/memory-repository.mjs';\n\nconst catalog = createCatalog(createMemoryRepository(['Tea', 'Coffee']));\nprocess.stdout.write(`${catalog.names().join(', ')}\\n`);\n"
+          },
+          {
+            "path": "src/application/catalog.mjs",
+            "content": "export function createCatalog(repository) {\n  return { names: () => repository.list() };\n}\n"
+          },
+          {
+            "path": "src/adapters/memory-repository.mjs",
+            "content": "export function createMemoryRepository(initialNames) {\n  const names = [...initialNames];\n  return { list: () => [...names] };\n}\n"
+          }
+        ],
+        "rubric": {
+          "task_kind": "review",
+          "must_find": [],
+          "must_not_find": [
+            "Do not flag the composition root importing the concrete adapter as dependency inversion or layering disorder.",
+            "Do not demand a dependency-injection framework, class hierarchy, additional interface files, or an abstraction over the composition root for this small structural contract.",
+            "Do not invent persistence, security, or scale requirements explicitly outside this application."
+          ],
+          "completion": [
+            "Assess the actual import direction and distinguish composition-root wiring from application dependencies. Return a completed architecture assessment, including an explicit conclusion if no material issues are found."
+          ],
+          "severity_policy": "There are no intended architectural defects. Any finding must demonstrate an actual violated contract; optional preferences are not warnings or critical issues."
+        }
+      },
+      {
+        "id": "test-mocked-subject",
+        "prompt": "Review the quality of test/discount.test.mjs against src/discount.mjs and CONTRACT.md. These are the entire module and its entire test suite. Inspect the named files directly and finish the test review without changing files.",
+        "expected_skill": "brooks-test",
+        "files": [
+          {
+            "path": "CONTRACT.md",
+            "content": "# Discount\nDiscountCalculator.total returns 90% of the supplied nonnegative integer subtotal, rounded down to integer cents. It has no I/O or collaborators. The single test in test/discount.test.mjs is intended to verify this calculation, not a consumer or a test-double utility. Run with node --test; no dependencies are required.\n"
+          },
+          {
+            "path": "src/discount.mjs",
+            "content": "export class DiscountCalculator {\n  total(subtotalCents) {\n    return Math.floor(subtotalCents * 0.9);\n  }\n}\n"
+          },
+          {
+            "path": "test/discount.test.mjs",
+            "content": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { DiscountCalculator } from '../src/discount.mjs';\n\ntest('a 1000-cent subtotal receives the ten-percent discount', (t) => {\n  const calculator = new DiscountCalculator();\n  t.mock.method(calculator, 'total', () => 900);\n  assert.equal(calculator.total(1000), 900);\n});\n"
+          }
+        ],
+        "rubric": {
+          "task_kind": "review",
+          "must_find": [
+            {
+              "id": "mocked-calculation",
+              "description": "The test stubs DiscountCalculator.total, the behavior it claims to verify, then asserts the stubbed constant. The real arithmetic never runs, so a broken total implementation would still pass. Identify this mock-of-subject problem and recommend exercising the real method.",
+              "allowed_severities": [
+                "warning"
+              ],
+              "evidence_files": [
+                "src/discount.mjs",
+                "test/discount.test.mjs",
+                "CONTRACT.md"
+              ]
+            }
+          ],
+          "must_not_find": [
+            "Do not describe the node:test per-test mock as leaking between tests; the test context restores it automatically.",
+            "Do not demand mocking an external collaborator: the calculator has none.",
+            "Do not claim the production 90% calculation violates the contract."
+          ],
+          "completion": [
+            "Finish a test-quality assessment grounded in the mock and assertion, explaining the blind spot and how to test the real calculation."
+          ],
+          "severity_policy": "Mocking the primary behavior creates a warning-level test defect. There is no evidence of a critical production outage. Equivalent mock-abuse and coverage observations describing this same defect count as one underlying issue."
+        }
+      },
+      {
+        "id": "review-local-severity",
+        "prompt": "Review src/label.mjs for maintainability in the context of CONTRACT.md. This is the entire helper; review the current file directly and give a finished assessment without edits. Keep recommendations proportionate to its size and usage.",
+        "expected_skill": "brooks-review",
+        "files": [
+          {
+            "path": "CONTRACT.md",
+            "content": "# Local label helper\nformatLabel is used in one offline display script. Input has already been validated as a string. Empty or whitespace-only strings should display Unknown; all other strings should be trimmed and uppercased. There are no locale-sensitive, performance, API-compatibility, or reuse requirements. The function is correct for this contract.\n"
+          },
+          {
+            "path": "src/label.mjs",
+            "content": "export function formatLabel(value) {\n  const trimmed = value.trim();\n  if (trimmed.length > 0) {\n    const upper = trimmed.toUpperCase();\n    return upper;\n  } else {\n    return 'Unknown';\n  }\n}\n"
+          }
+        ],
+        "rubric": {
+          "task_kind": "review",
+          "must_find": [],
+          "must_not_find": [
+            "Do not report correctness, security, performance, or input-validation defects contradicted by the stated contract.",
+            "Do not call this small isolated helper a critical or warning-level cognitive-load or architectural problem.",
+            "Do not require reuse abstractions or a framework for a single local helper."
+          ],
+          "completion": [
+            "Give a finished assessment of the helper. Either no findings or an optional local simplification such as removing the unnecessary else is acceptable; do not stop at a review plan."
+          ],
+          "severity_policy": "Any supported maintainability suggestion has a suggestion-only ceiling. Reporting no findings is fully acceptable. Warning or critical severity is an overstatement."
+        }
+      },
+      {
+        "id": "nontrigger-nullish-syntax",
+        "prompt": "In example.mjs, what does the ?? operator mean, and why does this print 0 rather than 5? Explain this JavaScript syntax briefly; I only need the language behavior.",
+        "expected_skill": null,
+        "files": [
+          {
+            "path": "example.mjs",
+            "content": "const retries = 0;\nconsole.log(retries ?? 5);\n"
+          }
+        ],
+        "rubric": {
+          "task_kind": "explanation",
+          "must_find": [],
+          "must_not_find": [
+            "Do not turn a language-syntax explanation into a code-quality review, risk diagnosis, health score, or refactoring roadmap."
+          ],
+          "completion": [
+            "Explain that nullish coalescing uses the right operand only when the left operand is null or undefined, and that 0 is preserved."
+          ],
+          "severity_policy": "This is a syntax question, so no review findings or severity labels are appropriate."
+        }
+      },
+      {
+        "id": "nontrigger-new-implementation",
+        "prompt": "Write a new JavaScript ES module function clamp(value, min, max) that returns min when value is below min, max when above max, and otherwise value. Inputs are finite numbers with min <= max. Return only the function code, exported by name. There is no existing implementation to review and no file edits are needed.",
+        "expected_skill": null,
+        "files": [
+          {
+            "path": "REQUEST.txt",
+            "content": "Requested new utility: clamp(value, min, max). Inputs are finite numbers and min <= max. No existing implementation exists.\n"
+          }
+        ],
+        "rubric": {
+          "task_kind": "implementation",
+          "must_find": [],
+          "must_not_find": [
+            "Do not add a code-quality review, risk report, health score, severity labels, or a refactoring plan for this implementation request.",
+            "Do not demand input validation outside the guaranteed finite-number and ordered-bound contract."
+          ],
+          "completion": [
+            "Return an exported named JavaScript function clamp implementing the three specified cases, with only code and no review prose. Markdown code fences around the code are acceptable."
+          ],
+          "severity_policy": "This is new implementation, not review; no findings or severity labels are appropriate."
+        }
+      }
+    ]
+  },
+  "execution_source_sha256": {
+    "runner": "4f20676c56be3639c970ddc4a868fb4a8fc9f6484986263ce296fd2ec9ffe89c",
+    "evaluator": "e5ab47fea3f141a87b78b757e6f1f494718cdbb9595caf949f3b648f405209e1"
+  },
+  "revalidation_source_sha256": {
+    "scripts/run-codex-evals.mjs": "4f20676c56be3639c970ddc4a868fb4a8fc9f6484986263ce296fd2ec9ffe89c",
+    "scripts/codex-eval.mjs": "e5ab47fea3f141a87b78b757e6f1f494718cdbb9595caf949f3b648f405209e1"
+  },
+  "evidence_note": "Post-calibration exploratory rerun: same model, reasoning, seven cases, judge schema and judging prompt as the original pilot; one repetition and fresh baseline. No human-certified grades or statistical significance. Every raw catalog, answer, trace hash, judgment and metric was validated before export. Fixture paths are redacted to <fixture>; original hashes refer to local raw artifacts. Original pilot and evaluation criteria are unchanged. An earlier incomplete attempt was stopped after QA found a conflicting review-guide severity rule; final results use a fresh full run after harmonization, with no cases selected for their scores. Initial final-run deadline failures and the one whole-pair recovery are preserved under initial_attempt and recovery; the main table reports recovered complete pairs, not uninterrupted execution success."
+}

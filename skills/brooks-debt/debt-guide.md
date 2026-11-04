@@ -78,6 +78,10 @@ After listing all findings, score each one:
 | 4–6 | Scheduled debt | Plan within quarter |
 | 1–3 | Monitored debt | Log and watch |
 
+These are debt-work priority classifications, not finding severity overrides.
+Assign each finding's severity under `common.md` Severity Calibration; a high
+Pain × Spread score alone does not establish Critical impact.
+
 ### Step 3: Classify Debt Intent
 
 After scoring, classify each finding as intentional or accidental:
