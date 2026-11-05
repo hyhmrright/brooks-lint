@@ -91,7 +91,7 @@ Use the dashboard report template below instead of the standard common.md templa
 [Mermaid graph from architecture scan]
 
 ## Top Findings (max 5 across all dimensions)
-[Standard Iron Law format, sorted by severity]
+[Standard Iron Law format, with Critical / Warning / Suggestion explicitly in each finding title, sorted by severity]
 
 ## Recommendation
 [One paragraph: what to fix first, which dimension needs the most attention,

@@ -58,3 +58,9 @@ uses the same seven cases, judge schema, judge prompt, model, reasoning, and one
 repetition, with a fresh baseline. See the [prior diagnosis and rule changes](severity-calibration.md).
 The original pilot is retained unchanged. Compare denominators and individual
 findings: severity percentages can change when the number of findings changes.
+
+The [three-repetition label comparison](../evals/codex/stability-2026-11-05.md)
+keeps those same seven cases and grading standards. It tests the requirement for
+literal severity words in every finding title and reports each repetition,
+unlabeled findings, primary failures, and any whole-pair recovery separately.
+See the [label convention and repeatability limits](severity-calibration.md#explicit-labels-and-repeated-comparison).

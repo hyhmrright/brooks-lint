@@ -251,7 +251,7 @@ Before: <estimated score>/100  →  After: <estimated score>/100
 (Re-run /brooks-health for an exact recalculation.)
 
 ## Residual Items  (<K> not applied)
-<Iron Law entries, sorted Critical → Suggestion, with "Not applied because: ..." line>
+<Iron Law entries with Critical / Warning / Suggestion explicitly in each finding title, sorted by severity, with "Not applied because: ..." line>
 
 ## Summary
 - Total findings detected: <N>

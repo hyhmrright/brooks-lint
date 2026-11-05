@@ -8,7 +8,8 @@
  *
  * Consumed by sarif.mjs (SARIF export) and ci-review.mjs (severity gates).
  * Best-effort: the report is LLM-authored, so the parser tolerates bracket
- * placeholders, an explicit `(R2)` code, and inline severity emoji.
+ * placeholders, an explicit `(R2)` code, inline severity emoji, and a literal
+ * severity suffix such as `(Warning)` in each finding title.
  */
 
 /** Canonical risk code → display name (decay-risks.md + test-decay-risks.md). */
@@ -38,6 +39,7 @@ const SEVERITY_HEADER_RE =
   /^#{2,6}\s*(?:🔴|🟡|🟢|⚠️?|❗)?\s*(Critical|Warning|Suggestion)s?(?:\s+(?:Issues?|Findings?|Items?))?\s*:?\s*$/i;
 const SECTION_HEADER_RE = /^#{1,6}\s/;
 const BOLD_TITLE_RE = /^\s*(?:🔴|🟡|🟢)?\s*\*\*(.+?)\*\*\s*$/;
+const TITLE_SEVERITY_RE = /\s+\((Critical|Warning|Suggestion)\)\s*$/i;
 const FIELD_RE = /^\s*(?:\*\*)?(Symptom|Source|Consequence|Remedy)(?:\*\*)?\s*[:：](?:\*\*)?\s*(.*)$/i;
 const EMOJI_SEVERITY = { "🔴": "critical", "🟡": "warning", "🟢": "suggestion" };
 
@@ -173,7 +175,7 @@ function readFindings(report) {
         commit();
         customSection = true;
         severity = null;
-        // This heading supplies no severity; require a nested tier or inline emoji.
+        // This heading supplies no severity; require a nested tier or title signal.
         continue;
       }
       // A non-severity header ends the current Findings group (e.g. ## Summary).
@@ -185,18 +187,20 @@ function readFindings(report) {
 
     const titleLine = line.match(BOLD_TITLE_RE);
     const inlineSeverity = line.match(/^\s*(🔴|🟡|🟢)/);
-    const bold = (severity || customSection || inlineSeverity) && titleLine;
+    const titleSeverity = titleLine?.[1].match(TITLE_SEVERITY_RE)?.[1].toLowerCase();
+    const bold = (severity || customSection || inlineSeverity || titleSeverity) && titleLine;
     if (titleLine && !bold && resolveCode(splitTitle(titleLine[1]).namePart)) {
       errors.push(`Finding outside a severity group: ${titleLine[1]}`);
     }
     if (bold) {
       commit();
       const emoji = line.match(/^\s*(🔴|🟡|🟢)/);
-      if (emoji && severity && EMOJI_SEVERITY[emoji[1]] !== severity) errors.push(`Conflicting severity for finding: ${bold[1]}`);
-      const { namePart, title } = splitTitle(bold[1]);
+      const signals = [severity, emoji && EMOJI_SEVERITY[emoji[1]], titleSeverity].filter(Boolean);
+      if (new Set(signals).size > 1) errors.push(`Conflicting severity for finding: ${bold[1]}`);
+      const { namePart, title } = splitTitle(bold[1].replace(TITLE_SEVERITY_RE, ''));
       const riskCode = resolveCode(namePart);
       current = {
-        severity: emoji ? EMOJI_SEVERITY[emoji[1]] : severity,
+        severity: emoji ? EMOJI_SEVERITY[emoji[1]] : titleSeverity ?? severity,
         riskCode,
         riskName: RISK_CATALOG[riskCode] ?? namePart.replace(/[[\]]/g, "").trim(),
         title,

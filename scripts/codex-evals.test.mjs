@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isolatedEnv, runProcess, materialize as materializeRepo, session, discoveredSkills } from './run-codex-evals.mjs';
-import { validateCases, analyzeTrace, judgePrompt, validateJudgment, summarize, renderSummary } from './codex-eval.mjs';
+import { validateCases, analyzeTrace, judgePrompt, validateJudgment, summarize, renderSummary, digest } from './codex-eval.mjs';
 
 const corpus = JSON.parse(readFileSync(new URL('../evals/codex/cases.json', import.meta.url), 'utf8'));
 const judgeSchema = JSON.parse(readFileSync(new URL('../evals/codex/judge-schema.json', import.meta.url), 'utf8'));
@@ -554,4 +554,110 @@ test('severity calibration rerun preserves the original evaluation criteria and 
   assert.equal(rerun.recovery.summary.valid_pairs, 1);
   assert.equal(rerun.recovery.summary.excluded_pairs, 0);
   assert.notEqual(rerun.skills_sha256, original.skills_sha256, 'The treatment must contain the revised skill rules');
+});
+
+test('three-run severity archive preserves fixed criteria, complete attempts, and recovery provenance', () => {
+  const original = JSON.parse(readFileSync(new URL('../evals/codex/pilot-2026-11-04.json', import.meta.url), 'utf8'));
+  const prior = JSON.parse(readFileSync(new URL('../evals/codex/calibration-2026-11-04.json', import.meta.url), 'utf8'));
+  const archive = JSON.parse(readFileSync(new URL('../evals/codex/stability-2026-11-05.json', import.meta.url), 'utf8'));
+  assert.deepEqual(archive.fixture_snapshot, original.fixture_snapshot);
+  assert.deepEqual(archive.fixture_snapshot, corpus, 'The frozen tasks and authored severity targets cannot drift');
+  for (const field of ['model', 'reasoning', 'cli_version', 'cases_sha256', 'judge_schema_sha256', 'timeout_seconds']) assert.equal(archive[field], prior[field], field);
+  assert.equal(archive.repetitions, 3);
+  assert.equal(archive.planned_pairs, corpus.cases.length * 3);
+  for (const [field, file] of [['runner_sha256', 'scripts/run-codex-evals.mjs'], ['evaluator_sha256', 'scripts/codex-eval.mjs']]) {
+    assert.equal(archive[field], prior[field], 'Judging, metrics and runner isolation must remain fixed');
+    assert.equal(archive[field], digest(readFileSync(new URL(`../${file}`, import.meta.url))), 'Archive must identify the actual unchanged evaluator source');
+  }
+  assert.equal(archive.cases_sha256, digest(readFileSync(new URL('../evals/codex/cases.json', import.meta.url))));
+  assert.equal(archive.judge_schema_sha256, digest(readFileSync(new URL('../evals/codex/judge-schema.json', import.meta.url))));
+  assert.notEqual(archive.skills_sha256, prior.skills_sha256);
+  assert.equal(digest(JSON.stringify(archive.skill_inventory)), archive.skills_sha256, 'Archived source inventory identifies the exact frozen skill treatment');
+  const primary = archive.primary_attempt.records;
+  assert.equal(primary.length, archive.planned_pairs * 2);
+  assert.equal(new Set(primary.map(r => `${r.case_id}/${r.repetition}/${r.arm}`)).size, primary.length);
+  for (const scenario of corpus.cases) for (const repetition of [1,2,3]) for (const arm of ['with','without']) assert.ok(primary.some(r => r.case_id === scenario.id && r.repetition === repetition && r.arm === arm));
+  assert.deepEqual(summarize(primary, corpus.cases), archive.primary_attempt.summary);
+  let finalRecords = [...primary];
+  const recovered = new Map();
+  for (const recovery of archive.recoveries) {
+    const key = `${recovery.case_id}/${recovery.repetition}`;
+    const previous = recovered.get(key);
+    assert.ok(recovery.attempt === 1 || recovery.attempt === 2, 'At most two disclosed operational recovery attempts');
+    assert.equal(recovery.attempt, previous ? previous.attempt + 1 : 1, 'Attempts must remain ordered');
+    if (previous) assert.equal(previous.accepted, false, 'Successful recovery pairs may never be retried');
+    recovered.set(key, recovery);
+    const initial = primary.filter(r => r.case_id === recovery.case_id && r.repetition === recovery.repetition);
+    assert.equal(initial.length, 2);
+    assert.ok(initial.some(r => r.status === 'failed'), 'Successful pairs may not be selected for retries');
+    assert.equal(recovery.records.length, 2, 'Retry the whole pair');
+    assert.deepEqual(new Set(recovery.records.map(r => r.arm)), new Set(['with','without']));
+    assert.ok(recovery.records.every(r => r.case_id === recovery.case_id && r.repetition === recovery.repetition));
+    assert.equal(recovery.accepted, recovery.records.every(r => r.status === 'ok'));
+    assert.deepEqual(summarize(recovery.records, corpus.cases), recovery.summary);
+    if (recovery.accepted) finalRecords = finalRecords.filter(r => !(r.case_id === recovery.case_id && r.repetition === recovery.repetition)).concat(recovery.records);
+  }
+  assert.equal(archive.recovery_policy.initially_planned_attempts_per_failed_pair, 1);
+  assert.equal(archive.recovery_policy.maximum_disclosed_attempts_per_failed_pair, 2);
+  assert.equal(archive.recovery_policy.deviation_used, archive.recoveries.some(r => r.attempt === 2));
+  assert.deepEqual(finalRecords, archive.records, 'Final metrics must preserve primary grades and disclose all replacements');
+  assert.deepEqual(summarize(archive.records, corpus.cases), archive.summary);
+  assert.equal(archive.summary.attempted_pairs, archive.planned_pairs);
+  assert.equal(archive.per_repetition.length, 3);
+  for (const repeat of archive.per_repetition) assert.deepEqual(summarize(archive.records.filter(r => r.repetition === repeat.repetition), corpus.cases), repeat.summary);
+  assert.equal(archive.per_case.length, corpus.cases.length);
+  for (const item of archive.per_case) assert.deepEqual(summarize(archive.records.filter(r => r.case_id === item.case_id), corpus.cases), item.summary);
+});
+
+test('three-run archive keeps grounded grades and replayable skill-read evidence', () => {
+  const archive = JSON.parse(readFileSync(new URL('../evals/codex/stability-2026-11-05.json', import.meta.url), 'utf8'));
+  const attempts = [...archive.primary_attempt.records, ...archive.recoveries.flatMap(r => r.records)];
+  assert.deepEqual(archive.all_attempts_execution_accounting, {
+    attempted_arms: attempts.length,
+    successful_arms: attempts.filter(r => r.status === 'ok').length,
+    answer_failed_arms: attempts.filter(r => r.failure_stage === 'answer').length,
+    judge_failed_arms: attempts.filter(r => r.failure_stage === 'judge').length,
+    successful_arms_excluded_by_whole_pair_policy: attempts.filter(r => r.status === 'ok').length - archive.records.filter(r => r.status === 'ok').length,
+  });
+  for (const batch of [archive.primary_attempt, ...archive.recoveries]) {
+    assert.deepEqual(batch.execution_accounting, {
+      attempted_arms: batch.records.length,
+      successful_arms: batch.records.filter(r => r.status === 'ok').length,
+      answer_failed_arms: batch.records.filter(r => r.status === 'failed' && r.failure_stage === 'answer').length,
+      judge_failed_arms: batch.records.filter(r => r.status === 'failed' && r.failure_stage === 'judge').length,
+    });
+    for (const record of batch.records.filter(r => r.status === 'failed')) assert.equal(record.failure_stage, record.answer !== undefined ? 'judge' : 'answer');
+  }
+  for (const record of attempts) {
+    if (record.status === 'failed') { assert.ok(record.error); continue; }
+    assert.equal(record.status, 'ok');
+    const scenario = corpus.cases.find(c => c.id === record.case_id);
+    assert.deepEqual(validateJudgment(record.judgment, scenario, record.answer), record.judgment);
+    assert.equal(record.trace.turn_completed, true);
+    assert.deepEqual(record.trace.errors, []);
+    assert.equal(Object.hasOwn(record, 'error'), false);
+    assert.equal(record.raw_trace_sha256, record.trace_sha256);
+    assert.equal(record.raw_judge_trace_sha256, record.judge_trace_sha256);
+    assert.equal(record.judge_trace.turn_completed, true);
+    assert.deepEqual(record.judge_trace.errors, []);
+    const events = [];
+    for (const evidence of record.read_evidence) {
+      const { event_index: eventIndex, ...item } = evidence;
+      assert.ok(Number.isSafeInteger(eventIndex) && eventIndex >= 0);
+      assert.equal(events[eventIndex], undefined);
+      assert.equal(item.type, 'command_execution');
+      events[eventIndex] = { type: 'item.completed', item };
+    }
+    const replay = Array.from({ length: events.length }, (_, i) => events[i] ?? { type: 'fixture.unrecorded' });
+    replay.push({ type: 'turn.completed' });
+    assert.deepEqual(analyzeTrace(jsonl(replay)).skill_reads, record.trace.skill_reads);
+  }
+  for (const group of [archive, ...archive.per_repetition, ...archive.per_case]) for (const arm of ['with','without']) {
+    const breakdown = group.severity_breakdown[arm];
+    const metric = group.summary.metrics[arm];
+    assert.equal(breakdown.findings, metric.findings);
+    assert.equal(breakdown.unlabeled, metric.unlabeled_findings);
+    assert.equal(breakdown.calibrated, Math.round((metric.severity_accuracy ?? 0) * metric.labeled_findings));
+    assert.equal(breakdown.calibrated + breakdown.unlabeled + breakdown.matched_overgraded + breakdown.matched_undergraded + breakdown.other_miscalibrated, breakdown.findings);
+  }
 });

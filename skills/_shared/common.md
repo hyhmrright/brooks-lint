@@ -46,7 +46,12 @@ recurrence. Do not inherit the defect's severity for that recommendation. Conver
 do not downgrade an evidenced high-impact condition merely because its code is short.
 If impact evidence is missing, state the limitation and use the lowest tier supported
 by what was inspected; do not invent production scale, release exposure, or urgency.
-Check each finding's title, emoji, prose, and score deduction for agreement.
+State the selected tier explicitly in every finding's title using the literal English
+word `Critical`, `Warning`, or `Suggestion`, even when the report is localized.
+Emoji, color, a priority code, or ordering alone is not a severity label. Explain
+the impact and scope supporting that tier in the Consequence; do not infer them
+from the label. Check each finding's title, severity heading, emoji, prose, and
+score deduction for agreement before emitting the report.
 
 Apply an explicit project `severity` override after this assessment and identify the
 override when it changes the tier. `strictness` changes deduction weights and framing,
@@ -196,8 +201,10 @@ health, and the final `After: N/100` value in sweep's Health Score Delta. Keep t
 labels in English, including when prose is translated. Do not emit a score for
 onboarding, skipped runs, or an incomplete review. Every finding must include its
 risk code in the bold title, an explicit severity, and non-empty Symptom, Source,
-Consequence, and Remedy fields. Use severity headings as below or put the severity
-emoji immediately before the bold title. If no findings remain, say so explicitly;
+Consequence, and Remedy fields. Include the literal English severity word in each
+bold finding title as below, including standalone, Top Findings, and residual
+entries. Severity headings and matching emoji may accompany the title, but never
+replace its severity word. If no findings remain, say so explicitly;
 do not substitute a score for evidence that the review ran.
 
 ````
@@ -230,7 +237,7 @@ graph TD
 
 ### 🔴 Critical
 
-**[Risk Code] [Risk Name] — [Short descriptive title]**
+**[Risk Code] [Risk Name] — [Short descriptive title] (Critical)**
 Symptom: [exactly what was observed in the code]
 Source: [Book title — Principle or Smell name]
 Consequence: [what breaks or gets worse if this is not fixed]
@@ -238,7 +245,7 @@ Remedy: [concrete, specific action]
 
 ### 🟡 Warning
 
-**[Risk Code] [Risk Name] — [Short descriptive title]**
+**[Risk Code] [Risk Name] — [Short descriptive title] (Warning)**
 Symptom: ...
 Source: ...
 Consequence: ...
@@ -246,7 +253,7 @@ Remedy: ...
 
 ### 🟢 Suggestion
 
-**[Risk Code] [Risk Name] — [Short descriptive title]**
+**[Risk Code] [Risk Name] — [Short descriptive title] (Suggestion)**
 Symptom: ...
 Source: ...
 Consequence: ...

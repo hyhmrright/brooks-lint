@@ -154,3 +154,30 @@ test('strict parsing rejects contradictory header and inline severity signals', 
   assert.equal(parseReport(report().replace('**R1 —', '🟡 **R1 —')).valid, true);
   assert.equal(parseReport(report().replace('### 🟡 Warning\n', '').replace('**R1 —', '🟡 **R1 —')).valid, true);
 });
+
+test('literal title severity labels preserve tiers through parser and SARIF without headings', () => {
+  const tiers = [['Critical', 'error'], ['Warning', 'warning'], ['Suggestion', 'note']];
+  const entries = tiers.map(([tier], index) => finding(`R${index + 1}`).replace('Mixed concerns**', `Mixed concerns (${tier})**`));
+  const text = `Mode: PR Review\nScope: src/a.js\nHealth Score: 79/100\n## Findings\n${entries.join('\n')}`;
+  const parsed = parseReport(text);
+  assert.equal(parsed.valid, true, JSON.stringify(parsed.errors));
+  assert.deepEqual(parsed.findings.map(f => f.severity), ['critical', 'warning', 'suggestion']);
+  assert.deepEqual(parsed.findings.map(f => f.title), ['Mixed concerns', 'Mixed concerns', 'Mixed concerns']);
+  assert.deepEqual(countFindings(text), { critical: 1, warning: 1, suggestion: 1 });
+  assert.deepEqual(reportToSarif(text).runs[0].results.map(r => r.level), tiers.map(([, level]) => level));
+  assert.equal(parseReport(text.replace('## Findings', '### Project-Specific Risks').replace('R1 —', 'C1 —')).valid, true);
+});
+
+test('literal severity labels must agree with markers and never leak into following findings', () => {
+  for (const marker of ['### Warning\n', '🟡 ']) {
+    for (const tier of ['Critical', 'Suggestion']) {
+      const text = `Mode: PR Review\nScope: src/a.js\nHealth Score: 95/100\n${marker}${finding().replace('Mixed concerns**', `Mixed concerns (${tier})**`)}`;
+      assert(parseReport(text).errors.some(error => /Conflicting severity/.test(error)), text);
+    }
+    assert.equal(parseReport(`Mode: PR Review\nScope: src/a.js\nHealth Score: 95/100\n${marker}${finding().replace('Mixed concerns**', 'Mixed concerns (Warning)**')}`).valid, true);
+  }
+  const explicit = finding().replace('Mixed concerns**', 'Mixed concerns (Warning)**');
+  assert.equal(parseReport(`Mode: PR Review\nScope: src/a.js\nHealth Score: 90/100\n${explicit}\n${finding('R2')}`).valid, false);
+  assert.equal(parseReport(`Mode: PR Review\nScope: src/a.js\nHealth Score: 95/100\n${finding().replace('Mixed concerns', 'Critical path has Warning text')}`).valid, false);
+  assert.deepEqual(countFindings(`${clean}\n\`\`\`markdown\n${explicit}\n\`\`\`\n<details><summary>Suppressed</summary>\n${explicit}\n</details>`), { critical: 0, warning: 0, suggestion: 0 });
+});
