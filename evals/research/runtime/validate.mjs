@@ -4,6 +4,7 @@ import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const fixtureRoot = dirname(fileURLToPath(import.meta.url));
+const expansion = JSON.parse(readFileSync(resolve(fixtureRoot, 'expansion-spec.json'), 'utf8'));
 const nonempty = (value) => typeof value === 'string' && value.trim().length > 0;
 
 /** Structural validation only; does not judge semantic correctness of a report. */
@@ -19,29 +20,32 @@ export function validateManifest(root = fixtureRoot) {
   };
   const manifest = JSON.parse(read('cases.json'));
   assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.revision, 6);
+  assert.equal(manifest.revision, 7);
   assert(nonempty(manifest.provenance));
-  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10', 'RT-11', 'RT-12', 'RT-13', 'RT-14', 'RT-15', 'RT-16']);
+  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10', 'RT-11', 'RT-12', 'RT-13', 'RT-14', 'RT-15', 'RT-16', ...Object.keys(expansion)]);
   for (const entry of manifest.cases) {
     assert.equal(entry.revision, 1);
-    const unresolved = ['RT-07', 'RT-08', 'RT-13', 'RT-16'].includes(entry.id);
+    const extended = expansion[entry.id];
+    const unresolved = ['RT-07', 'RT-08', 'RT-13', 'RT-16'].includes(entry.id) || extended?.kind === 'unresolved';
     const deadline = ['RT-11', 'RT-12', 'RT-13'].includes(entry.id);
     const expiry = ['RT-14', 'RT-15', 'RT-16'].includes(entry.id);
     const batch = entry.id === 'RT-09';
     const syntax = entry.id === 'RT-10';
-    assert.equal(entry.kind, syntax ? 'non-trigger' : unresolved ? 'unresolved' : ['RT-01', 'RT-03', 'RT-05', 'RT-11', 'RT-14'].includes(entry.id) ? 'defect' : 'protected');
+    assert.equal(entry.kind, extended ? extended.kind : syntax ? 'non-trigger' : unresolved ? 'unresolved' : ['RT-01', 'RT-03', 'RT-05', 'RT-11', 'RT-14'].includes(entry.id) ? 'defect' : 'protected');
     assert.equal(entry.task, `${entry.id}/task.md`);
     assert.equal(entry.context, `${entry.id}/context.md`);
     assert.equal(entry.rubric, `${entry.id}/rubric.json`);
     const isolation = ['RT-05', 'RT-06'].includes(entry.id);
     const retries = ['RT-03', 'RT-04'].includes(entry.id);
-    assert.deepEqual(entry.inputs, deadline ? [entry.task, entry.context, `${entry.id}/service.mjs`, 'shared/clock.mjs', 'shared/deadline-stages.mjs'] : expiry ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(entry.id === 'RT-16' ? [] : ['shared/clock.mjs', 'shared/expiring-queue.mjs']), 'shared/worker-pool.mjs', 'shared/optional-work.mjs'] : batch || syntax ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(batch ? ['shared/clock.mjs'] : [])] : unresolved ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(entry.id === 'RT-08' ? ['shared/retry.mjs'] : [])] : [entry.task, entry.context, `${entry.id}/service.mjs`,
+    assert.deepEqual(entry.inputs, extended ? extended.inputs : deadline ? [entry.task, entry.context, `${entry.id}/service.mjs`, 'shared/clock.mjs', 'shared/deadline-stages.mjs'] : expiry ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(entry.id === 'RT-16' ? [] : ['shared/clock.mjs', 'shared/expiring-queue.mjs']), 'shared/worker-pool.mjs', 'shared/optional-work.mjs'] : batch || syntax ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(batch ? ['shared/clock.mjs'] : [])] : unresolved ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(entry.id === 'RT-08' ? ['shared/retry.mjs'] : [])] : [entry.task, entry.context, `${entry.id}/service.mjs`,
       ...(isolation ? ['shared/worker-pool.mjs', 'shared/optional-work.mjs'] : [
         'shared/clock.mjs', 'shared/request-boundary.mjs',
         ...(retries ? ['shared/retry.mjs', 'shared/retry-transport.mjs'] : ['shared/transport.mjs'])])]);
     // This whitelist deliberately excludes answer rubrics, tests, and the manifest.
     for (const input of entry.inputs) assert(nonempty(read(input)), `Empty input: ${input}`);
-    if (deadline || expiry) {
+    if (extended) {
+      assert.deepEqual(entry.expected, extended.expected);
+    } else if (deadline || expiry) {
       const expected = {
         'RT-11': {"atTotalBoundary": {"response": "pending", "active": 1, "timers": 2, "time": 100}, "settled": {"response": "ok", "time": 140, "active": 0, "timers": 0}},
         'RT-12': {"atTotalBoundary": {"response": "timed-out", "active": 0, "timers": 0, "time": 100}, "settled": {"response": "timed-out", "time": 100, "active": 0, "timers": 0}},
@@ -105,7 +109,7 @@ export function validateManifest(root = fixtureRoot) {
     if (entry.kind === 'defect') {
       assert.equal(rubric.expectedFindings.length, 1);
       const finding = rubric.expectedFindings[0];
-      assert.equal(finding.id, deadline ? 'RT-11-deadline-coverage' : expiry ? 'RT-14-expired-queue-work' : isolation ? 'RT-05-shared-capacity-contention' : retries ? 'RT-03-retry-amplification' : 'RT-01-cancellation-gap');
+      assert.equal(finding.id, extended ? extended.findingId : deadline ? 'RT-11-deadline-coverage' : expiry ? 'RT-14-expired-queue-work' : isolation ? 'RT-05-shared-capacity-contention' : retries ? 'RT-03-retry-amplification' : 'RT-01-cancellation-gap');
       assert.deepEqual(finding.allowedSeverities, ['Warning']);
       for (const field of ['symptom', 'source', 'consequence', 'remedy', 'grading']) assert(nonempty(finding[field]));
       assert(Array.isArray(finding.requiredEvidence) && finding.requiredEvidence.length > 0);
@@ -123,7 +127,7 @@ export function validateManifest(root = fixtureRoot) {
       assert.deepEqual(rubric.protectedReasoning, []);
       assert(Array.isArray(rubric.unresolvedReasoning) && rubric.unresolvedReasoning.length >= 3);
       assert(rubric.unresolvedReasoning.every(nonempty));
-      assert.deepEqual(rubric.missingContext.map((item) => item.id), entry.id === 'RT-13' ? ['caller-budget', 'outer-boundary', 'usefulness-contract'] : entry.id === 'RT-16' ? ['work-ownership', 'expiry-policy', 'runtime-trace'] : entry.id === 'RT-07'
+      assert.deepEqual(rubric.missingContext.map((item) => item.id), extended ? extended.missingIds : entry.id === 'RT-13' ? ['caller-budget', 'outer-boundary', 'usefulness-contract'] : entry.id === 'RT-16' ? ['work-ownership', 'expiry-policy', 'runtime-trace'] : entry.id === 'RT-07'
         ? ['caller-contract', 'transport-semantics', 'runtime-evidence']
         : ['outer-owners', 'transport-attempts', 'request-budget']);
       for (const item of rubric.missingContext) {

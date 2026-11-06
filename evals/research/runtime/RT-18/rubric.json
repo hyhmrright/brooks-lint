@@ -1,0 +1,36 @@
+{
+  "revision": 1,
+  "caseId": "RT-18",
+  "assessment": "Manual semantic assessment; structure and anchors do not establish semantic correctness.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is not human review",
+    "bookMapping": "pending; authored contract is the source of truth"
+  },
+  "coreOverlap": "Unmeasured; no incremental benefit is claimed.",
+  "expectedFindings": [],
+  "protectedReasoning": [
+    "A request owns three optional child operations. All must release their owned slots when the parent is cancelled. No child is detached durable work.",
+    "The explicit caller/adapter configuration makes the declared protection checkable from visible inputs: The caller supplies three separate cancellation-aware `OptionalWork` instances as `transports`, and passes one request-owned parent signal as `options.signal`. Each receiver's `open` method is the supplied shared/optional-work.mjs implementation: pending work retains a slot until explicit completion, failure or abort; abort removes its listener and releases the slot. The script starts all three children before cancelling the parent. There is no external controller or independent timeout that cancels the third receiver.",
+    "Protection applies to this declared path and schedule, not arbitrary production workloads."
+  ],
+  "forbiddenClaims": [
+    "Production-wide outage, real data loss or traffic scale not established by the supplied synthetic trace.",
+    "Offline fixture execution establishes model quality, human review or independent holdout validity.",
+    "A public runtime risk code or numeric runtime Health Score is required."
+  ],
+  "evidence": [
+    {
+      "file": "RT-18/service.mjs",
+      "anchor": "run"
+    },
+    {
+      "file": "RT-18/context.md",
+      "anchor": "A request owns three optional child operations"
+    },
+    {
+      "file": "RT-18/context.md",
+      "anchor": "The caller supplies three separate cancellation-aware `OptionalWork` instances"
+    }
+  ]
+}

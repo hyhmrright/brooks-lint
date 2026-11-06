@@ -1,0 +1,54 @@
+{
+  "revision": 1,
+  "caseId": "RT-35",
+  "assessment": "Manual semantic assessment; structure and anchors do not establish semantic correctness.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is not human review",
+    "bookMapping": "pending; authored contract is the source of truth"
+  },
+  "coreOverlap": "Unmeasured; no incremental benefit is claimed.",
+  "expectedFindings": [
+    {
+      "id": "RT-35-degradation",
+      "allowedSeverities": [
+        "Warning"
+      ],
+      "symptom": "Two optional detail calls consume both workers and the essential request is overloaded.",
+      "source": "Optional admission omits the one-worker limit and uses the entire shared pool.",
+      "consequence": "The scripted essential request cannot receive the permitted degraded response.",
+      "remedy": "Shed excess optional work before it consumes the essential reservation and return the declared degraded payload; preserve the same two-worker bound.",
+      "grading": "One bounded causal issue. Require contract, mechanism and observed consequence; no duplicate findings or severity escalation. Match semantic evidence rather than exact wording.",
+      "requiredEvidence": [
+        "There are two total worker slots. Optional details may consume at most one while an essential request must remain serviceable under two optional arrivals followed by one essential arrival. A correct degraded response contains essential=17, detail=null and degraded=true; rejecting all requests is not acceptable. Detail omission is explicitly permitted.",
+        "Optional admission omits the one-worker limit and uses the entire shared pool.",
+        "Two optional detail calls consume both workers and the essential request is overloaded.",
+        "Use the explicit supplied caller/adapter configuration to establish actual starts and settlement behavior; requirements alone do not establish implementation protection."
+      ]
+    }
+  ],
+  "protectedReasoning": [],
+  "forbiddenClaims": [
+    "Production-wide outage, real data loss or traffic scale not established by the supplied synthetic trace.",
+    "Offline fixture execution establishes model quality, human review or independent holdout validity.",
+    "A public runtime risk code or numeric runtime Health Score is required."
+  ],
+  "evidence": [
+    {
+      "file": "RT-35/service.mjs",
+      "anchor": "run"
+    },
+    {
+      "file": "RT-35/context.md",
+      "anchor": "There are two total worker slots"
+    },
+    {
+      "file": "shared/degraded-service.mjs",
+      "anchor": "export "
+    },
+    {
+      "file": "RT-35/context.md",
+      "anchor": "The caller supplies one cancellation-aware `OptionalWork` instance as `detail`"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "revision": 1,
+  "caseId": "RT-29",
+  "assessment": "Manual semantic assessment; structure and anchors do not establish semantic correctness.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is not human review",
+    "bookMapping": "pending; authored contract is the source of truth"
+  },
+  "coreOverlap": "Unmeasured; no incremental benefit is claimed.",
+  "expectedFindings": [
+    {
+      "id": "RT-29-transport-isolation",
+      "allowedSeverities": [
+        "Warning"
+      ],
+      "symptom": "Two optional calls occupy the shared underlying pool and the essential call is overloaded.",
+      "source": "Distinct wrapper objects point to the same two-slot admission pool with no essential reservation.",
+      "consequence": "The essential path cannot start under the scripted optional saturation, despite the declared reservation contract.",
+      "remedy": "Enforce the reservation at the actual transport admission resource within the same aggregate two-slot cap.",
+      "grading": "One bounded causal issue. Require contract, mechanism and observed consequence; no duplicate findings or severity escalation. Match semantic evidence rather than exact wording.",
+      "requiredEvidence": [
+        "Two total underlying transport slots are available. Optional calls must leave one slot available for an essential call. Separate wrapper objects do not change this underlying cap. There is no other essential traffic in the declared schedule.",
+        "Distinct wrapper objects point to the same two-slot admission pool with no essential reservation.",
+        "Two optional calls occupy the shared underlying pool and the essential call is overloaded.",
+        "Use the explicit supplied caller/adapter configuration to establish actual starts and settlement behavior; requirements alone do not establish implementation protection."
+      ]
+    }
+  ],
+  "protectedReasoning": [],
+  "forbiddenClaims": [
+    "Production-wide outage, real data loss or traffic scale not established by the supplied synthetic trace.",
+    "Offline fixture execution establishes model quality, human review or independent holdout validity.",
+    "A public runtime risk code or numeric runtime Health Score is required."
+  ],
+  "evidence": [
+    {
+      "file": "RT-29/service.mjs",
+      "anchor": "run"
+    },
+    {
+      "file": "RT-29/context.md",
+      "anchor": "Two total underlying transport slots are available"
+    },
+    {
+      "file": "shared/transport-isolation.mjs",
+      "anchor": "export "
+    },
+    {
+      "file": "RT-29/context.md",
+      "anchor": "The caller supplies one cancellation-aware `OptionalWork` instance as `work`"
+    }
+  ]
+}

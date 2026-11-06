@@ -1,6 +1,6 @@
-# Runtime research fixtures: RT-01–RT-16
+# Runtime research fixtures: RT-01–RT-37
 
-Manifest revision 6, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
+Manifest revision 7, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
 implement the first three pairs, deadline-coverage and waiting-expiry triplets, four incomplete-context controls, and the finite-batch/syntax controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 The [runtime guidance prototype](prototype/SKILL.md) is research-only and remains
 outside the production skills catalog. No public risk code, runtime score, or model
@@ -155,7 +155,7 @@ checks establish a real model's activation restraint; that remains future evalua
 
 ## Input and grading boundary
 
-[`cases.json`](cases.json) defines schema 1 / manifest revision 6 and sixteen cases. Each entry
+[`cases.json`](cases.json) defines schema 1 / manifest revision 7 and thirty-seven cases. Each entry
 has an explicit `inputs` whitelist: task, context, its service, and shared clock,
 boundary, and transport for the first two pairs; retry cases also include the retry
 helper. The resource pair includes its pool and optional-work implementation instead.
@@ -273,7 +273,7 @@ Use a focused PR against `research/domain-packs` and link the case ID and
 fixture behavior and rubric semantics together. Update the case/rubric revision
 and documented schema contract if expectations change; preserve any future run's
 exact artifact digests rather than rewriting prior results. The present validator
-intentionally accepts only these sixteen cases and revisions, not a general pack schema.
+intentionally accepts only these thirty-seven cases and revisions, not a general pack schema.
 
 ## Research execution and independent contributions
 
@@ -285,3 +285,48 @@ comparison has been run. The production paired runner remains unchanged.
 See [human review and independent holdouts](../../../docs/research/runtime-review-and-holdouts.md)
 for source-verification records, reviewer disclosures, a neutral author brief,
 private custody and digest freezing. Those participation gates remain pending.
+
+## Remaining candidate families: RT-17–RT-37
+
+The development catalog now implements all nine currently cataloged families.
+This is a bounded source-informed inventory, not every possible runtime scenario.
+All new files are original synthetic programs; primary references inform the
+questions, while the context files define the exact numerical and lifecycle
+contracts. The source ledger is in the [candidate catalog](../../../docs/research/runtime-candidate-catalog.md).
+The existing sixteen case revisions and revision-1 prototype are unchanged.
+Recovery probes and degradation are expanded catalog scope; listing and executing
+cases does not demonstrate that frozen prototype guidance diagnoses them.
+
+| Family | Defect / protected / unresolved | Offline observation and judgment boundary |
+| --- | --- | --- |
+| Fan-out cancellation | RT-17 / RT-18 / RT-19 | Cancelling the owning request leaves one child slot versus zero. Detached durable work needs a different lifecycle contract. |
+| Aggregate retry allowance | RT-20 / RT-21 / RT-22 | Ten failing requests start twenty attempts versus twelve under the fixture's shared allowance of two extra attempts per 100-unit window. Local caps alone do not decide an unspecified aggregate policy. |
+| Ambiguous committed write | RT-23 / RT-24 / RT-25 | Lost response followed by retry records two effects versus one. Stable identity needs atomic backend deduplication; cancellation after commit cannot imply rollback. |
+| Correlated retry schedule | RT-26 / RT-27 / RT-28 | Eight simultaneous retries peak at eight versus two per logical slot. This injected schedule is not a statistical jitter or arbitrary-traffic guarantee. |
+| Underlying transport isolation | RT-29 / RT-30 / RT-31 | Distinct wrappers over one saturated pool overload the essential call; a real reservation preserves it under the same aggregate cap of two. |
+| Recovery probe admission | RT-32 / RT-33 / RT-34 | Three post-cooldown callers start three versus one recovery operations. Missing a breaker alone is not a diagnosis; the contract defines transitions and concurrency. |
+| Useful degradation | RT-35 / RT-36 / RT-37 | Optional admission without the reservation overloads the essential request; shedding one optional call preserves the exact permitted degraded payload. Omitting required data can instead be a defect. |
+
+`expansion.test.mjs`, imported by `runtime.test.mjs`, executes every new case.
+It checks contract observations against the manifest, success/failure/cancellation
+and pre-cancel paths, listener/timer/admission cleanup, window/cooldown boundaries,
+concurrent identity deduplication and conflicting payload rejection, commit-before-
+cancel semantics, stale recovery completion, and the actual degraded payload.
+Seven causal mutations replace each protected mechanism with its defective peer;
+the protected criterion must reject the resulting observation. Structural mutation
+tests reject kind/outcome drift, answer/test input leakage, absent uncertainty
+requirements and evidence anchors that do not exist.
+
+Every unresolved case executes private contrasting environments outside the input
+whitelist. They compute contract satisfaction from actual starts, settlements,
+effects, peak counts or payloads. They establish that the visible extract is
+insufficient; they do not disclose or assert an actual hidden production setup.
+`expansion-spec.json` is a private fixed-schema contract used by the validator,
+not model input or a holdout. Changing accepted cases or loading holdouts still
+requires reviewed implementation changes.
+
+All defect rubrics allow one Warning with contract, causal evidence, bounded
+consequence and remedy after diagnosis. Protected rubrics constrain the protection
+to the supplied path. Unresolved rubrics require missing artifacts and prohibit a
+definitive defect, safety or severity verdict. Human review, book mapping and
+independent holdout validation remain pending. No live model evaluation was run.

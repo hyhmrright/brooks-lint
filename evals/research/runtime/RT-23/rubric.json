@@ -1,0 +1,53 @@
+{
+  "revision": 1,
+  "caseId": "RT-23",
+  "assessment": "Manual semantic assessment; structure and anchors do not establish semantic correctness.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is not human review",
+    "bookMapping": "pending; authored contract is the source of truth"
+  },
+  "coreOverlap": "Unmeasured; no incremental benefit is claimed.",
+  "expectedFindings": [
+    {
+      "id": "RT-23-ambiguous-write",
+      "allowedSeverities": [
+        "Warning"
+      ],
+      "symptom": "One lost committed response followed by retry creates two effects for one logical write.",
+      "source": "The retry changes the operation identity by appending the attempt number.",
+      "consequence": "The synthetic backend records two effects rather than the required one; this does not establish production data loss.",
+      "remedy": "Preserve the logical operation identity across retries and retain the explicit atomic deduplication contract; do not assume a timeout rolled back the first write.",
+      "grading": "One bounded causal issue. Require contract, mechanism and observed consequence; no duplicate findings or severity escalation. Match semantic evidence rather than exact wording.",
+      "requiredEvidence": [
+        "Each logical write has one stable caller identity. A write may commit before its response is lost. Duplicate effects for that logical write are forbidden. The supplied backend atomically stores and returns one result per identity for its lifetime.",
+        "The retry changes the operation identity by appending the attempt number.",
+        "One lost committed response followed by retry creates two effects for one logical write."
+      ]
+    }
+  ],
+  "protectedReasoning": [],
+  "forbiddenClaims": [
+    "Production-wide outage, real data loss or traffic scale not established by the supplied synthetic trace.",
+    "Offline fixture execution establishes model quality, human review or independent holdout validity.",
+    "A public runtime risk code or numeric runtime Health Score is required."
+  ],
+  "evidence": [
+    {
+      "file": "RT-23/service.mjs",
+      "anchor": "run"
+    },
+    {
+      "file": "RT-23/context.md",
+      "anchor": "Each logical write has one stable caller identity"
+    },
+    {
+      "file": "shared/ambiguous-write.mjs",
+      "anchor": "export "
+    },
+    {
+      "file": "RT-23/context.md",
+      "anchor": "The caller instantiates the supplied `WriteBackend` implementation"
+    }
+  ]
+}

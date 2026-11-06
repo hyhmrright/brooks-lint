@@ -1,0 +1,36 @@
+{
+  "revision": 1,
+  "caseId": "RT-33",
+  "assessment": "Manual semantic assessment; structure and anchors do not establish semantic correctness.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is not human review",
+    "bookMapping": "pending; authored contract is the source of truth"
+  },
+  "coreOverlap": "Unmeasured; no incremental benefit is claimed.",
+  "expectedFindings": [],
+  "protectedReasoning": [
+    "One non-cancellation failure opens the breaker. Calls are rejected for ten logical units. After cooldown permit at most one concurrent recovery probe. Its failure reopens for another cooldown; its success closes. Cancellation releases a probe and permits a replacement without classifying cancellation as backend failure.",
+    "The explicit caller/adapter configuration makes the declared protection checkable from visible inputs: Recovery operations use the supplied cancellation-aware `OptionalWork` adapter. The caller creates one `ManualClock`, constructs the displayed breaker and first runs a scripted immediate non-cancellation failure to open it at time zero. After advancing to the cooldown boundary, it submits three calls before settling any probe. Each probe operation invokes `OptionalWork.open` with the signal passed by the breaker; pending probes settle only on explicit completion, failure or abort, and remove their listeners on settlement. There is no external admission or retry controller. Additional scripts exercise the declared success/failure/cancellation transition rules with immediate scripted outcomes or cancellation-aware pending work.",
+    "Protection applies to this declared path and schedule, not arbitrary production workloads."
+  ],
+  "forbiddenClaims": [
+    "Production-wide outage, real data loss or traffic scale not established by the supplied synthetic trace.",
+    "Offline fixture execution establishes model quality, human review or independent holdout validity.",
+    "A public runtime risk code or numeric runtime Health Score is required."
+  ],
+  "evidence": [
+    {
+      "file": "RT-33/service.mjs",
+      "anchor": "run"
+    },
+    {
+      "file": "RT-33/context.md",
+      "anchor": "One non-cancellation failure opens the breaker"
+    },
+    {
+      "file": "RT-33/context.md",
+      "anchor": "Recovery operations use the supplied cancellation-aware `OptionalWork` adapter"
+    }
+  ]
+}

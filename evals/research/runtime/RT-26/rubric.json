@@ -1,0 +1,54 @@
+{
+  "revision": 1,
+  "caseId": "RT-26",
+  "assessment": "Manual semantic assessment; structure and anchors do not establish semantic correctness.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is not human review",
+    "bookMapping": "pending; authored contract is the source of truth"
+  },
+  "coreOverlap": "Unmeasured; no incremental benefit is claimed.",
+  "expectedFindings": [
+    {
+      "id": "RT-26-retry-schedule",
+      "allowedSeverities": [
+        "Warning"
+      ],
+      "symptom": "All eight retries start at logical slot ten, exceeding the two-start allowance.",
+      "source": "Every caller uses the same fixed delay instead of the supplied spread schedule.",
+      "consequence": "The authored schedule has a retry burst of eight in one slot; no statistical or production-wide jitter guarantee is demonstrated.",
+      "remedy": "Use the supplied coordinated spread for this contract, or another admission mechanism proven to enforce it; preserve the attempt cap and cancellation cleanup.",
+      "grading": "One bounded causal issue. Require contract, mechanism and observed consequence; no duplicate findings or severity escalation. Match semantic evidence rather than exact wording.",
+      "requiredEvidence": [
+        "Eight clients fail once together at logical time zero. Exactly one retry each is permitted. In the injected deterministic schedule no logical slot may contain more than two retry starts; initial attempts are outside that retry-slot allowance.",
+        "Every caller uses the same fixed delay instead of the supplied spread schedule.",
+        "All eight retries start at logical slot ten, exceeding the two-start allowance.",
+        "Use the explicit supplied caller/adapter configuration to establish actual starts and settlement behavior; requirements alone do not establish implementation protection."
+      ]
+    }
+  ],
+  "protectedReasoning": [],
+  "forbiddenClaims": [
+    "Production-wide outage, real data loss or traffic scale not established by the supplied synthetic trace.",
+    "Offline fixture execution establishes model quality, human review or independent holdout validity.",
+    "A public runtime risk code or numeric runtime Health Score is required."
+  ],
+  "evidence": [
+    {
+      "file": "RT-26/service.mjs",
+      "anchor": "run"
+    },
+    {
+      "file": "RT-26/context.md",
+      "anchor": "Eight clients fail once together at logical time zero"
+    },
+    {
+      "file": "shared/retry-schedule.mjs",
+      "anchor": "export "
+    },
+    {
+      "file": "RT-26/context.md",
+      "anchor": "The eight callers use unique indices 0 through 7"
+    }
+  ]
+}

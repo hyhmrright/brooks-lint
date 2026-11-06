@@ -1,6 +1,6 @@
 # Runtime failure containment: pilot research plan
 
-Status: research in progress, 2026-11-06. The [RT-01–RT-16 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
+Status: research in progress, 2026-11-06. The [RT-01–RT-37 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
 and deterministic tests. A [research-only guidance prototype](../../evals/research/runtime/prototype/SKILL.md)
 and [separate A/B/C runner](runtime-runner.md) are implemented and tested offline.
 Human review, source verification, independent holdouts and actual live results
@@ -16,7 +16,7 @@ context is missing, without using uncertainty to avoid a demonstrated defect?
 
 The implemented cases use small synthetic JavaScript ESM services: three
 request-driven pairs, incomplete-context controls, a finite offline batch, a
-syntax-only task, and two deadline/queue triples. They have explicit input
+syntax-only task, deadline/queue triples, and seven further mechanism triples. They have explicit input
 boundaries and run without transpilation on Node.js 20 or later. This replaces the initial TypeScript candidate for the
 initial pairs so contributors can reproduce it with the repository's existing runtime.
 Deterministic fake transport, scheduling, and resource counters reproduce the
@@ -24,9 +24,10 @@ failure mechanisms offline. TypeScript remains a possible later fixture language
 this is not a claim of cross-language coverage.
 
 Security auditing, distributed transaction correctness, SLO design, broad
-observability reviews, and automatic remediation are outside this pilot. Circuit
-breakers, backpressure, and load shedding remain possible follow-ups rather than
-requirements to add every pattern to every service.
+observability reviews, and automatic remediation are outside this pilot. Bounded recovery probes and contract-permitted degradation are now included as
+controlled research cases. They are not requirements to add every pattern to
+every service. Persistent distributed deduplication remains outside the tested
+in-memory write model.
 
 ## Proposed fixture matrix
 
@@ -52,6 +53,14 @@ configuration, caller context, and expected outcomes before evaluating guidance.
 | RT-15 | Expired queued work is removed; remaining live work retains FIFO ordering and resources are cleaned up. | Recognize the supplied queue-expiry protection without banning queues. |
 | RT-16 | Queue admission is visible but request ownership versus durable-job semantics are unspecified. | Identify the missing lifecycle contract; do not assume all delayed jobs should expire. |
 
+| RT-17/18/19 | Owned fan-out cancellation; forwarding to two children versus all three; ownership unspecified in the unresolved variant. | Diagnose the specific retained child, recognize complete owned cancellation, or withhold verdict pending ownership evidence. |
+| RT-20/21/22 | Local retry limits versus an explicit shared aggregate window budget; budget ownership omitted in the unresolved variant. | Count initial and extra attempts separately; do not invent an aggregate allowance. |
+| RT-23/24/25 | Response lost after a write commits; fresh versus stable identity with explicit atomic deduplication; backend guarantees omitted. | Diagnose duplicate effects, recognize bounded replay protection, or identify missing backend semantics. |
+| RT-26/27/28 | Identical retry delays versus a scripted spread under a declared per-slot bound; arrival/capacity policy omitted. | Evaluate the supplied schedule only; infer no probabilistic jitter guarantee. |
+| RT-29/30/31 | Distinct wrappers sharing scarce transport versus an actual reservation with equal total capacity; backend configuration omitted. | Trace the scarce resource; object separation alone establishes neither protection nor defect. |
+| RT-32/33/34 | Recovery admissions after cooldown versus a bounded probe; intended external recovery controller omitted. | Assess the explicit recovery contract; absence of a breaker alone is not a finding. |
+| RT-35/36/37 | Optional work consuming essential capacity versus permitted degraded essential responses; priority/response semantics omitted. | Verify useful response content and bounded admission; reject-all is not protection. |
+
 For RT-01, distinguish return-time limits from cancellation of underlying work.
 For RT-03, the nine-attempt expectation follows from three total attempts at each
 layer, not three retries plus an initial attempt. RT-05 must demonstrate contention
@@ -72,14 +81,16 @@ The dedicated [`evals/research/runtime/`](../../evals/research/runtime/README.md
 directory now contains three pairs: RT-01/RT-02 timeout/cancellation, RT-03/RT-04
 retry ownership, and RT-05/RT-06 capacity isolation, plus RT-07/RT-08 incomplete-context
 controls and RT-09/RT-10 finite-batch/syntax controls, plus RT-11–RT-13
-deadline-coverage and RT-14–RT-16 queue-expiry triples.
+deadline-coverage and RT-14–RT-16 queue-expiry triples, and RT-17–RT-37
+fan-out cancellation, aggregate retry budget, ambiguous writes, correlated timing,
+underlying resource isolation, recovery probes and useful degradation triples.
 It includes a revisioned manifest,
 semantic rubrics, and offline structural validation/reproduction tests. Run
 `npm run evals:runtime:offline`; the same tests are included in `npm test`. These
 checks verify fixture behavior and artifact structure, not model answers. The separate research runner now supports only this fixed development catalog;
 its execution path is tested with a local fake CLI. The production paired runner,
 structural suite and frozen parser corpus remain unchanged. Human review and book
-source mapping for all sixteen implemented cases remain pending.
+source mapping for all thirty-seven implemented cases remain pending.
 
 RT-03 reproduces nine downstream calls from independent three-total-attempt owners;
 RT-04 stops at the shared request limit of three. Both honor caller cancellation,
@@ -165,7 +176,7 @@ ground truth.
 | --- | --- |
 | Supported-issue recall | Correctly identified expected issues / all expected issues, by case and arm. |
 | Unsupported-finding fraction | Unsupported asserted findings / all asserted findings; show N/A for zero findings and report clean-case counts separately. |
-| Context restraint | Counts of correct unresolved assessments and unsupported certainty on all manifest `unresolved` cases (RT-07/08/13/16), including false claims of safety. |
+| Context restraint | Counts of correct unresolved assessments and unsupported certainty on all manifest `unresolved` cases (RT-07/08/13/16/19/22/25/28/31/34/37), including false claims of safety. |
 | Evidence completeness | Findings whose inspected locations and causal chain support the consequence / asserted findings. |
 | Severity calibration | Findings with explicit severity within the frozen rubric's allowed range / labeled findings; track unlabeled findings separately. |
 | Completion and routing restraint | Completed requested tasks, unsolicited audits on RT-10, and execution/judging failures. |
@@ -207,15 +218,25 @@ Record negative evidence as carefully as positive evidence.
 
 Start in [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45)
 with a case critique, a source reference, or an offer to own a small artifact.
-Useful next PRs include reviewing the implemented RT-01–RT-16 cases and prototype,
+Useful next PRs include reviewing the implemented RT-01–RT-37 cases and prototype,
 verifying source applicability, or authoring an independent counterexample. Follow
 the [human review and holdout procedure](runtime-review-and-holdouts.md) before
 sharing development material with a prospective blind author. Target `research/domain-packs` and link the case ID.
 Review and follow-up implementation roles are open; no work is assigned to the
-discussion author. The RT-01–RT-16 artifacts were agent-authored, with agent
+discussion author. The RT-01–RT-37 artifacts were agent-authored, with agent
 QA kept separate from pending human review.
 
 Before shipping any resulting feature, separately resolve pack discovery, public
 risk identifiers, configuration, score semantics, parser/SARIF compatibility,
 documentation, and maintenance responsibilities. Follow the normal repository
 validation and release process; the research branch grants no release approval.
+
+## Autonomous expansion boundary
+
+All families in the [candidate catalog](runtime-candidate-catalog.md) now have
+runnable development cases. The [source notes](runtime-source-notes.md) document
+primary references and transfer limits. Case/rubric revisions remain 1, manifest
+revision is 7, and prototype revision 1 is unchanged. New cases challenge the
+existing prototype rather than establishing that it diagnoses those mechanisms.
+Offline tests and synthetic judgments are not human review or model measurements.
+Independent review, holdouts and any explicitly authorized live study remain open.

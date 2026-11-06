@@ -47,7 +47,7 @@ export function createPlan({ model, runs = 3, reasoning = 'high', timeout = 240,
   // Include evaluator/transitive runner sources: changed plumbing invalidates a frozen plan.
   const tooling = ['scripts/runtime-research.mjs', 'scripts/run-runtime-research.mjs',
     'scripts/run-codex-evals.mjs', 'scripts/codex-eval.mjs', 'scripts/modes.mjs',
-    'evals/research/runtime/validate.mjs'].map(p => ({ path: p, sha256: digest(readFileSync(path.join(ROOT, p))) }));
+    'evals/research/runtime/validate.mjs', 'evals/research/runtime/expansion-spec.json'].map(p => ({ path: p, sha256: digest(readFileSync(path.join(ROOT, p))) }));
   const study = { model, runs, reasoning, timeout, caseId: caseId ?? null,
     manifest_sha256: digest(read('cases.json')), manifest_revision: manifest.revision,
     core, prototype, cases, tooling };

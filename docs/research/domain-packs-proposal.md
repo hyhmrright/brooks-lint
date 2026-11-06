@@ -131,7 +131,8 @@ link. Unanswered questions remain open rather than silently becoming requirement
 | 2026-11-06 | Add RT-07/RT-08 incomplete-context controls. | Continue offline research with explicit unresolved assessments and private countermodels; no live model evaluation. |
 | 2026-11-06 | Complete RT-09/RT-10, research-only guidance and separate A/B/C tooling. | Maintainer authorized offline implementation and verification; no live model execution. Human review/source verification and independent holdout procedures are prepared, participation pending. |
 | 2026-11-06 | Add RT-11–RT-16 deadline-coverage and queue-expiry triples. | Maintainer authorized defective, protected and unresolved cases with offline reproduction, rubrics and verification; no live model evaluation. |
-| Open | Broader case set and next domain. | All sixteen development cases, a prototype and offline-tested execution tooling are implemented; actual model benefit and independent validation remain unestablished. |
+| 2026-11-06 | Complete C03–C09 as RT-17–RT-37 with offline evidence. | Maintainer authorized completing all autonomous research and case work, including recovery probes and degradation. Original cases and prototype revision 1 remain unchanged; no live evaluation. |
+| Open | Evidence review and next domain. | All thirty-seven development cases, a prototype and offline-tested execution tooling are implemented; actual model benefit and independent validation remain unestablished. |
 | Open | Pack loading and public identifiers. | Defer until a small prototype demonstrates value. |
 | Open | Score composition and compatibility. | Preserve existing score meaning during research. |
 
