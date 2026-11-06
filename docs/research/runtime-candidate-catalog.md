@@ -9,8 +9,10 @@ and guidance prototype revision 1 remain unchanged. No live model evaluation was
 This bounded inventory is not exhaustive. The experiments are original synthetic
 test designs, not copied programs or incident reproductions. References do not prove
 diagnoses, severity or production impact. Authored or inspected cases remain
-exposed development data. Human review, book mapping and independent holdouts
-remain pending; see the [participation procedure](runtime-review-and-holdouts.md).
+exposed development data. The [book chapter ledger](runtime-book-mapping.md) records
+partial source verification and explicit gaps. Human review, complete source
+certification and independent holdouts remain pending; see the
+[participation procedure](runtime-review-and-holdouts.md).
 
 ## Source ledger
 
@@ -109,7 +111,8 @@ question, not a claim that these JavaScript fixtures execute or test gRPC.
 Google SRE's “Missing deadlines” and “Deadline propagation” sections motivate
 checking whether queued request work is still useful when capacity arrives.
 The numerical budgets, finite queues, synthetic traces and rubric severities are
-our authored contracts and judgments; human review and book mapping are pending.
+our authored contracts and judgments. Partial [book chapter checks](runtime-book-mapping.md)
+are recorded separately; human review and complete source certification are pending.
 
 Verification commands for the expanded catalog: `npm run evals:runtime:offline`
 and `npm run evals:runtime:research:validate`, plus the repository QA gate.

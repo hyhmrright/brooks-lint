@@ -4,8 +4,10 @@ Manifest revision 7, case/rubric revisions 1, authored synthetic development cas
 implement the first three pairs, deadline-coverage and waiting-expiry triplets, four incomplete-context controls, and the finite-batch/syntax controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 The [runtime guidance prototype](prototype/SKILL.md) is research-only and remains
 outside the production skills catalog. No public risk code, runtime score, or model
-results are introduced. Human review, book-source mapping, independent holdouts,
-and the actual three-arm model comparison remain pending. Agent QA is not human review.
+results are introduced. Partial [book chapter checks](../../../docs/research/runtime-book-mapping.md)
+now identify inspected passages and unverified mappings. Human review, complete
+source certification, independent holdouts and the actual three-arm model comparison
+remain pending. Agent QA is not human review.
 
 ## Run offline
 
@@ -75,8 +77,9 @@ retry-case outcomes.
 Budget mutants show that the RT-04 oracle rejects nested ownership and an off-by-one
 four-attempt owner. Manifest mutation tests reject changed expected counts, missing
 visible inputs, rubric leakage, and incomplete causal diagnoses. These tests do not
-establish model understanding. There are 68 fixture/prototype tests and 8 separate runner tests using a local fake CLI.
-Both groups are included in the offline command and `npm test`.
+establish model understanding. Fixture/prototype tests and separate runner tests using a local fake CLI
+are included in the offline command and `npm test`; the command output reports
+the current totals.
 
 ## Capacity isolation: RT-05 / RT-06
 

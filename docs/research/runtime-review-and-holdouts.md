@@ -63,6 +63,10 @@ Access/retrieval date where relevant:
 Reviewer sign-off and remaining limitations:
 ```
 
+The [agent-conducted chapter ledger](runtime-book-mapping.md) records partial source
+checks for all 37 cases, including contents-only and unverified connections. It is
+a starting point for review, not a human sign-off or blanket verified status.
+
 Verify editions and precise sections against a copy the reviewer can inspect or
 an authoritative publisher/author source. Record unavailable references as pending
 or unavailable, never invent page numbers or promote a familiar slogan to a

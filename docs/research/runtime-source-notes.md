@@ -2,7 +2,9 @@
 
 Status: primary-source research, 2026-11-06. This ledger records why the remaining
 candidate families deserve controlled experiments. It is not a book inventory,
-verified book-to-finding mapping, human review, incident corpus, or model result.
+complete book-to-finding certification, human review, incident corpus, or model result.
+The [book chapter ledger](runtime-book-mapping.md) now records partial primary-text
+checks, contents-only leads and explicit unverified mappings for all 37 cases.
 All implementations are original synthetic JavaScript; no external code is copied.
 
 ## Sources inspected

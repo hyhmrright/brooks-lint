@@ -3,8 +3,9 @@
 Status: research in progress, 2026-11-06. The [RT-01–RT-37 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
 and deterministic tests. A [research-only guidance prototype](../../evals/research/runtime/prototype/SKILL.md)
 and [separate A/B/C runner](runtime-runner.md) are implemented and tested offline.
-Human review, source verification, independent holdouts and actual live results
-remain pending. See the [domain-pack proposal](domain-packs-proposal.md)
+Partial [book chapter verification](runtime-book-mapping.md) is recorded with explicit
+unverified mappings. Human review, complete source certification, independent
+holdouts and actual live results remain pending. See the [domain-pack proposal](domain-packs-proposal.md)
 and [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45).
 
 ## Research questions
@@ -90,7 +91,8 @@ semantic rubrics, and offline structural validation/reproduction tests. Run
 checks verify fixture behavior and artifact structure, not model answers. The separate research runner now supports only this fixed development catalog;
 its execution path is tested with a local fake CLI. The production paired runner,
 structural suite and frozen parser corpus remain unchanged. Human review and book
-source mapping for all thirty-seven implemented cases remain pending.
+source certification for all thirty-seven implemented cases remain pending;
+[partial chapter checks and gaps](runtime-book-mapping.md) are recorded separately.
 
 RT-03 reproduces nine downstream calls from independent three-total-attempt owners;
 RT-04 stops at the shared request limit of three. Both honor caller cancellation,

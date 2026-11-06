@@ -92,7 +92,10 @@ Discussion #45 suggests *Release It!* and Google's SRE material for runtime
 reliability, alongside sources for other domains. Treat these as candidate sources.
 Before incorporating a principle, verify the edition, availability, relevant
 section, applicability, and exceptions using an authoritative source. This proposal
-does not certify the publication details stated in the discussion.
+does not certify the publication details stated in the discussion. The subsequent
+[runtime book chapter ledger](runtime-book-mapping.md) verifies selected publication
+details and narrow text connections, records edition/access limitations, and leaves
+unsupported mappings explicitly unverified.
 
 The research should capture short references and original diagnostic rules, not
 reproduce copyrighted chapters. Live standards may need retrieval dates and an
