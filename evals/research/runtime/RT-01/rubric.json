@@ -1,0 +1,63 @@
+{
+  "revision": 1,
+  "assessment": "Manual semantic assessment; the offline validator checks structure and evidence anchors only.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is distinct from pending human review",
+    "bookMapping": "pending; fixture contract is the present source of truth"
+  },
+  "forbiddenClaims": [
+    "Production-wide outage, traffic scale, actual memory/sockets, data loss or security impact not established by this fixture.",
+    "A new public risk code or numeric runtime/combined Health Score is required.",
+    "Passing these offline tests establishes model diagnostic quality or production timing.",
+    "The request never returns, there is no outer deadline, or the fake transport cannot honor cancellation.",
+    "Clearing the deadline timer, aborting an unforwarded controller, or resolving a wrapper promise proves underlying work was cancelled."
+  ],
+  "evidence": [
+    {
+      "file": "shared/request-boundary.mjs",
+      "anchor": "startRequest"
+    },
+    {
+      "file": "shared/transport.mjs",
+      "anchor": "fetchQuote"
+    },
+    {
+      "file": "shared/clock.mjs",
+      "anchor": "advanceTo"
+    },
+    {
+      "file": "RT-01/service.mjs",
+      "anchor": "loadQuote"
+    },
+    {
+      "file": "RT-01/context.md",
+      "anchor": "100 logical clock units"
+    },
+    {
+      "file": "shared/transport.mjs",
+      "anchor": "dispose"
+    }
+  ],
+  "coreOverlap": "Possible overlap with core coupling/contract diagnoses must be assessed by a future comparison; no incremental benefit has been measured.",
+  "caseId": "RT-01",
+  "expectedFindings": [
+    {
+      "id": "RT-01-cancellation-gap",
+      "allowedSeverities": [
+        "Warning"
+      ],
+      "symptom": "The response times out at logical time 100, but one dependency operation remains active; the request signal is aborted and the deadline timer is cleared.",
+      "source": "handleQuote uses the shared boundary which supplies an AbortSignal; loadQuote drops it when calling fetchQuote, so the cancellation-capable dependency never receives it.",
+      "consequence": "One synthetic operation retains its slot past the documented request lifetime, violating the supplied cleanup contract. This demonstrates a bounded resource-retention defect, not a production outage.",
+      "remedy": "After establishing that causal chain, propagate the request-owned signal through loadQuote to the transport and verify cancellation releases underlying work, not merely the outward promise. A redundant leaf timer is unnecessary.",
+      "requiredEvidence": [
+        "Trace the request-owned deadline and controller abort.",
+        "Show loadQuote drops the signal and the fake transport only cancels when passed one.",
+        "Distinguish the timed-out response from the still-active operation before artificial dispose teardown."
+      ],
+      "grading": "Match semantic content, not exact wording, headings, risk codes, or citations. Treat timeout and retained work as one causal issue; do not reward duplicate findings. Unlabeled severity is recorded separately; Critical and Suggestion are outside the authored Warning range."
+    }
+  ],
+  "protectedReasoning": []
+}

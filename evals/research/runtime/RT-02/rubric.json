@@ -1,0 +1,48 @@
+{
+  "revision": 1,
+  "assessment": "Manual semantic assessment; the offline validator checks structure and evidence anchors only.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is distinct from pending human review",
+    "bookMapping": "pending; fixture contract is the present source of truth"
+  },
+  "forbiddenClaims": [
+    "Production-wide outage, traffic scale, actual memory/sockets, data loss or security impact not established by this fixture.",
+    "A new public risk code or numeric runtime/combined Health Score is required.",
+    "Passing these offline tests establishes model diagnostic quality or production timing.",
+    "A missing timeout in loadQuote is a defect despite effective caller-owned cancellation.",
+    "The deadline merely returns a response while work remains active in this protected path.",
+    "A circuit breaker, redundant local timer, or another resilience pattern is required without an evidenced failure."
+  ],
+  "evidence": [
+    {
+      "file": "shared/request-boundary.mjs",
+      "anchor": "startRequest"
+    },
+    {
+      "file": "shared/transport.mjs",
+      "anchor": "fetchQuote"
+    },
+    {
+      "file": "shared/clock.mjs",
+      "anchor": "advanceTo"
+    },
+    {
+      "file": "RT-02/service.mjs",
+      "anchor": "loadQuote"
+    },
+    {
+      "file": "RT-02/context.md",
+      "anchor": "100 logical clock units"
+    }
+  ],
+  "coreOverlap": "Possible overlap with core coupling/contract diagnoses must be assessed by a future comparison; no incremental benefit has been measured.",
+  "caseId": "RT-02",
+  "expectedFindings": [],
+  "protectedReasoning": [
+    "The shared caller owns the deadline and aborts its controller at logical time 100.",
+    "loadQuote forwards the signal without installing its own timer.",
+    "The transport removes the abort listener, rejects the pending operation, and releases its slot on abort. The request boundary clears its deadline timer and returns timed-out.",
+    "Successful completion before expiry also releases work and cancels the timer; a pre-aborted request starts no work."
+  ]
+}

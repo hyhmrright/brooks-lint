@@ -1,7 +1,9 @@
 # Runtime failure containment: pilot research plan
 
-Status: proposed study, 2026-11-06. No fixtures, experimental skill, or live results
-are delivered by this document. See the [domain-pack proposal](domain-packs-proposal.md)
+Status: research in progress, 2026-11-06. The first [RT-01/RT-02 offline fixture
+pair](../../evals/research/runtime/README.md) is implemented with authored rubrics
+and deterministic tests. RT-03–RT-10, experimental guidance, and live results
+remain future work. See the [domain-pack proposal](domain-packs-proposal.md)
 and [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45).
 
 ## Research questions
@@ -11,10 +13,13 @@ the current core misses? Does it distinguish effective protection elsewhere in t
 call path from an actual gap? Can it withhold unsupported claims when operating
 context is missing, without using uncertainty to avoid a demonstrated defect?
 
-The first candidate scope is request-driven dependency calls in small synthetic
-TypeScript services. Use deterministic fake transports, scheduling, and resource
-counters so the intended failure mechanisms can be reproduced offline. The language
-is a bounded starting point, not a claim of cross-language coverage.
+The first implemented pair uses request-driven dependency calls in small synthetic
+JavaScript ESM services, with documented contracts and no transpilation dependency
+on Node.js 20 or later. This replaces the initial TypeScript candidate for the
+first pair so contributors can reproduce it with the repository's existing runtime.
+Deterministic fake transport, scheduling, and resource counters reproduce the
+failure mechanisms offline. TypeScript remains a possible later fixture language;
+this is not a claim of cross-language coverage.
 
 Security auditing, distributed transaction correctness, SLO design, broad
 observability reviews, and automatic remediation are outside this pilot. Circuit
@@ -55,11 +60,15 @@ For each case, prepare:
   forbidden claims, and acceptable unresolved assessments for incomplete cases.
 - Verified source references, known exceptions, and overlap with existing core risks.
 
-Store these in a dedicated research fixture directory proposed as
-`evals/research/runtime/`. The directory is not created yet and existing runners
-do not discover or support it. Keep the current structural suite and frozen parser
-corpus unchanged. A subsequent implementation PR must define the schema and offline
-validation before adding experimental execution support.
+The dedicated [`evals/research/runtime/`](../../evals/research/runtime/README.md)
+directory now contains the RT-01/RT-02 pair, a revisioned manifest and semantic
+rubrics, and offline structural validation/reproduction tests. Run
+`npm run evals:runtime:offline`; the same tests are included in `npm test`. These
+checks verify fixture behavior and artifact structure, not model answers. Current
+live runners do not discover or support the research cases. The production
+structural suite and frozen parser corpus remain unchanged; experimental model
+execution support still requires separate implementation. Human review and book
+source mapping for the initial pair remain pending.
 
 A contributor other than the prompt author should review expected outcomes before
 live runs. Record who reviewed them; if independent review is unavailable, disclose
@@ -90,7 +99,7 @@ report experimental runs as supported production-runner coverage.
 
 Before any live run, freeze fixture, rubric, and prototype revisions, choose the
 model and limits explicitly, and record the run plan. Live Codex evaluation is a
-separate opt-in task; this documentation work runs no model sessions or Anthropic
+separate opt-in task; the current fixture work runs no model sessions or Anthropic
 evals. Begin with one exploratory repetition, then use at least three fresh
 repetitions per case and arm for a repeatability study if the pilot warrants it.
 Rotate arm order across repetitions and use clean isolated sessions.
@@ -155,9 +164,11 @@ Record negative evidence as carefully as positive evidence.
 
 Start in [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45)
 with a case critique, a source reference, or an offer to own a small artifact.
-Useful first PRs include an RT-01/02 reproducer pair, an RT-03/04 rubric, or an
-independent counterexample. Target `research/domain-packs` and link the case ID.
-All roles are currently open; no contributor has been assigned work.
+Useful next PRs include reviewing the implemented RT-01/02 pair, an RT-03/04
+reproducer and rubric, or an independent counterexample. Target `research/domain-packs` and link the case ID.
+Review and follow-up implementation roles are open; no work is assigned to the
+discussion author. The initial RT-01/02 artifacts were agent-authored, with agent
+QA kept separate from pending human review.
 
 Before shipping any resulting feature, separately resolve pack discovery, public
 risk identifiers, configuration, score semantics, parser/SARIF compatibility,

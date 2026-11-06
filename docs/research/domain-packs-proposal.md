@@ -125,7 +125,8 @@ link. Unanswered questions remain open rather than silently becoming requirement
 | Date | Decision | Rationale |
 | --- | --- | --- |
 | 2026-11-06 | Start a documentation-only research branch. | Make scope, evidence expectations, and contribution paths reviewable before implementation. |
-| Open | First pilot domain and final case set. | Runtime failure containment is proposed; collaborator feedback may change the selection. |
+| 2026-11-06 | Implement the first RT-01/RT-02 offline fixture pair on the research branch. | Maintainer authorized timeout/cancellation cases, tests, and rubrics; live evaluation remains on hold. |
+| Open | Broader case set and next domain. | The runtime first pair is authorized; further scope remains open to collaborator feedback. |
 | Open | Pack loading and public identifiers. | Defer until a small prototype demonstrates value. |
 | Open | Score composition and compatibility. | Preserve existing score meaning during research. |
 
@@ -137,6 +138,6 @@ requires evidence of added diagnostic value, reviewed false positives, source
 grounding, and an explicit compatibility decision. A negative result should be
 published with the research and can justify narrowing or stopping the proposal.
 
-Merging a useful research document does not authorize enabling packs, changing
+Merging research documents or offline fixtures does not authorize enabling packs, changing
 scores, running live evaluations, or publishing a release. Those are separate
 implementation and evaluation tasks.
