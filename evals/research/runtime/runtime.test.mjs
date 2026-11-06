@@ -16,6 +16,11 @@ import { handleQuote as singleRetry } from './RT-04/service.mjs';
 import { RetryTransport } from './shared/retry-transport.mjs';
 import { retry } from './shared/retry.mjs';
 
+import { WorkerPool } from './shared/worker-pool.mjs';
+import { OptionalWork } from './shared/optional-work.mjs';
+import { createService as sharedCapacity } from './RT-05/service.mjs';
+import { createService as isolatedCapacity } from './RT-06/service.mjs';
+
 const manifest = validateManifest();
 const snapshot = (clock, transport, request) => ({
   response: request.result?.status ?? 'pending',
@@ -159,7 +164,7 @@ for (const [name, handleQuote, Transport] of [
 }
 
 test('manifest keeps model inputs separate from grading artifacts', () => {
-  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04']);
+  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06']);
 });
 
 test('manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics', () => {
@@ -366,6 +371,172 @@ test('retry artifact validation rejects changed budgets, leaked rubrics and inco
     const rubricPath = join(dir, 'RT-03/rubric.json');
     const rubric = JSON.parse(readFileSync(rubricPath, 'utf8'));
     rubric.expectedFindings[0].source = '';
+    writeFileSync(rubricPath, JSON.stringify(rubric));
+    assert.throws(() => validateManifest(dir));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+async function saturate(createService) {
+  const work = new OptionalWork();
+  const service = createService({ work });
+  const callers = Array.from({ length: 5 }, () => new AbortController());
+  const results = [];
+  const requests = callers.map((caller, index) => service.optional({ signal: caller.signal })
+    .then((result) => { results[index] = result; return result; }));
+  await nextTurn();
+  const essentialCaller = new AbortController();
+  const essential = await service.essential({ signal: essentialCaller.signal });
+  const observed = {
+    optionalStarted: work.started, optionalActive: service.optionalPool.active,
+    optionalQueued: service.optionalPool.queued,
+    optionalOverloaded: results.filter((result) => result?.status === 'overloaded').length,
+    essential: essential.status,
+  };
+  return { work, service, callers, requests, essential, observed };
+}
+async function closeSaturation(state) {
+  for (const caller of state.callers) caller.abort(new Error('Driver cancels outstanding work'));
+  await Promise.all(state.requests);
+  await nextTurn();
+  assert.equal(state.work.active, 0);
+  for (const pool of new Set([state.service.optionalPool, state.service.essentialPool])) {
+    assert.equal(pool.active, 0);
+    assert.equal(pool.queued, 0);
+  }
+  for (const caller of state.callers) assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+}
+
+for (const [id, createService] of [['RT-05', sharedCapacity], ['RT-06', isolatedCapacity]]) {
+  test(`${id}: same offered optional saturation exposes essential admission`, async () => {
+    const state = await saturate(createService);
+    try {
+      assert.deepEqual(state.observed, entryFor(id).expected.saturated);
+      const pools = [...new Set([state.service.optionalPool, state.service.essentialPool])];
+      assert.equal(pools.reduce((sum, pool) => sum + pool.capacity, 0), 2);
+      assert.equal(pools.reduce((sum, pool) => sum + pool.maxQueue, 0), 2);
+      if (id === 'RT-06') assert.deepEqual(state.essential, { status: 'ok', value: 17 });
+      assert.equal(state.work.active, state.observed.optionalStarted);
+    } finally { await closeSaturation(state); }
+    // Essential work recovers after optional occupancy ends; no permanent outage inferred.
+    assert.deepEqual(await state.service.essential({ signal: new AbortController().signal }), { status: 'ok', value: 17 });
+  });
+
+  for (const outcome of ['success', 'failure', 'abort']) {
+    test(`${id}: optional ${outcome} releases a worker and admits FIFO successor`, async () => {
+      const work = new OptionalWork();
+      const service = createService({ work });
+      const capacity = service.optionalPool.capacity;
+      const callers = Array.from({ length: capacity + 1 }, () => new AbortController());
+      const requests = callers.map((caller) => service.optional({ signal: caller.signal }));
+      assert.equal(work.started, capacity);
+      assert.equal(service.optionalPool.queued, 1);
+      if (outcome === 'success') work.completeNext(31);
+      else if (outcome === 'failure') work.failNext();
+      else callers[0].abort(new Error('Client abort'));
+      assert.deepEqual(await requests[0], outcome === 'success' ? { status: 'ok', value: 31 } : { status: outcome === 'failure' ? 'error' : 'cancelled' });
+      await until(() => work.started === capacity + 1);
+      assert.equal(service.optionalPool.queued, 0);
+      assert.equal(service.optionalPool.active, capacity);
+      assert.equal(getEventListeners(callers[0].signal, 'abort').length, 0);
+      for (const caller of callers) caller.abort(new Error('Driver cleanup'));
+      await Promise.all(requests);
+      assert.equal(work.active, 0);
+      assert.equal(service.optionalPool.active, 0);
+      for (const caller of callers) assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+    });
+  }
+
+  test(`${id}: queued cancellation removes admission without starting work`, async () => {
+    const work = new OptionalWork();
+    const service = createService({ work });
+    const callers = Array.from({ length: service.optionalPool.capacity + 1 }, () => new AbortController());
+    const requests = callers.map((caller) => service.optional({ signal: caller.signal }));
+    const queued = callers.at(-1);
+    assert.equal(service.optionalPool.queued, 1);
+    queued.abort(new Error('Queue client cancelled'));
+    assert.deepEqual(await requests.at(-1), { status: 'cancelled' });
+    assert.equal(service.optionalPool.queued, 0);
+    assert.equal(getEventListeners(queued.signal, 'abort').length, 0);
+    const started = work.started;
+    for (const caller of callers) caller.abort(new Error('Driver cleanup'));
+    await Promise.all(requests);
+    await nextTurn();
+    assert.equal(work.started, started);
+    assert.equal(work.active, 0);
+    assert.equal(service.optionalPool.active, 0);
+  });
+
+  test(`${id}: pre-aborted optional and essential callers acquire nothing`, async () => {
+    const work = new OptionalWork();
+    const service = createService({ work });
+    const caller = new AbortController();
+    caller.abort(new Error('Already cancelled'));
+    assert.deepEqual(await service.optional({ signal: caller.signal }), { status: 'cancelled' });
+    assert.deepEqual(await service.essential({ signal: caller.signal }), { status: 'cancelled' });
+    assert.equal(work.started, 0);
+    assert.equal(service.optionalPool.active, 0);
+    assert.equal(service.essentialPool.active, 0);
+    assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+  });
+}
+
+test('isolated admission oracle rejects shared-pool wiring', async () => {
+  const state = await saturate(sharedCapacity);
+  try {
+    assert.equal(state.essential.status, 'overloaded');
+    assert.throws(() => assert.deepEqual(state.observed, entryFor('RT-06').expected.saturated));
+  } finally { await closeSaturation(state); }
+});
+
+test('bounded optional admission oracle rejects excessive queue capacity', async () => {
+  const createService = ({ work }) => {
+    const pool = new WorkerPool({ capacity: 1, maxQueue: 99 });
+    return { optionalPool: pool, essentialPool: new WorkerPool({ capacity: 1, maxQueue: 1 }),
+      optional: ({ signal }) => pool.run((signal) => work.open({ signal }), { signal }),
+      essential: ({ signal }) => Promise.resolve({ status: signal.aborted ? 'cancelled' : 'ok', value: 17 }) };
+  };
+  const state = await saturate(createService);
+  try {
+    assert.equal(state.observed.optionalQueued, 4);
+    assert.equal(state.observed.optionalOverloaded, 0);
+    assert.throws(() => assert.deepEqual(state.observed, entryFor('RT-06').expected.saturated));
+  } finally { await closeSaturation(state); }
+});
+
+test('pool exposes own-route overload and releases synchronous task exceptions', async () => {
+  const pool = new WorkerPool({ capacity: 1, maxQueue: 0 });
+  const caller = new AbortController();
+  let complete;
+  const held = pool.run(() => new Promise((resolve) => { complete = resolve; }), { signal: caller.signal });
+  assert.deepEqual(await pool.run(() => 17, { signal: caller.signal }), { status: 'overloaded' });
+  complete(23);
+  assert.deepEqual(await held, { status: 'ok', value: 23 });
+  assert.deepEqual(await pool.run(() => { throw new Error('Task failed synchronously'); }, { signal: caller.signal }), { status: 'error' });
+  assert.equal(pool.active, 0);
+  assert.equal(pool.queued, 0);
+});
+
+test('isolation artifact validation rejects resource tampering and grading leakage', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'brooks-isolation-'));
+  try {
+    cpSync(fixtureRoot, dir, { recursive: true });
+    const path = join(dir, 'cases.json');
+    const original = readFileSync(path, 'utf8');
+    for (const mutate of [
+      (value) => { value.cases[4].expected.saturated.essential = 'ok'; },
+      (value) => { value.cases[5].expected.saturated.optionalQueued = 99; },
+      (value) => { value.cases[5].inputs.push('RT-06/rubric.json'); },
+      (value) => { value.cases[4].inputs.pop(); },
+    ]) {
+      const value = JSON.parse(original); mutate(value);
+      writeFileSync(path, JSON.stringify(value));
+      assert.throws(() => validateManifest(dir));
+    }
+    writeFileSync(path, original);
+    const rubricPath = join(dir, 'RT-05/rubric.json');
+    const rubric = JSON.parse(readFileSync(rubricPath, 'utf8'));
+    rubric.expectedFindings[0].consequence = '';
     writeFileSync(rubricPath, JSON.stringify(rubric));
     assert.throws(() => validateManifest(dir));
   } finally { rmSync(dir, { recursive: true, force: true }); }

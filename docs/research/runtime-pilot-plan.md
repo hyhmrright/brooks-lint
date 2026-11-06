@@ -1,7 +1,7 @@
 # Runtime failure containment: pilot research plan
 
-Status: research in progress, 2026-11-06. The [RT-01–RT-04 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
-and deterministic tests. RT-05–RT-10, experimental guidance, and live results
+Status: research in progress, 2026-11-06. The [RT-01–RT-06 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
+and deterministic tests. RT-07–RT-10, experimental guidance, and live results
 remain future work. See the [domain-pack proposal](domain-packs-proposal.md)
 and [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45).
 
@@ -12,7 +12,7 @@ the current core misses? Does it distinguish effective protection elsewhere in t
 call path from an actual gap? Can it withhold unsupported claims when operating
 context is missing, without using uncertainty to avoid a demonstrated defect?
 
-The first two implemented pairs use request-driven dependency calls in small synthetic
+The first three implemented pairs use request-driven dependency calls in small synthetic
 JavaScript ESM services, with documented contracts and no transpilation dependency
 on Node.js 20 or later. This replaces the initial TypeScript candidate for the
 initial pairs so contributors can reproduce it with the repository's existing runtime.
@@ -60,21 +60,27 @@ For each case, prepare:
 - Verified source references, known exceptions, and overlap with existing core risks.
 
 The dedicated [`evals/research/runtime/`](../../evals/research/runtime/README.md)
-directory now contains the RT-01/RT-02 timeout/cancellation pair and RT-03/RT-04
-retry-ownership pair, a revisioned manifest and semantic
-rubrics, and offline structural validation/reproduction tests. Run
+directory now contains three pairs: RT-01/RT-02 timeout/cancellation, RT-03/RT-04
+retry ownership, and RT-05/RT-06 capacity isolation. It includes a revisioned manifest,
+semantic rubrics, and offline structural validation/reproduction tests. Run
 `npm run evals:runtime:offline`; the same tests are included in `npm test`. These
 checks verify fixture behavior and artifact structure, not model answers. Current
 live runners do not discover or support the research cases. The production
 structural suite and frozen parser corpus remain unchanged; experimental model
 execution support still requires separate implementation. Human review and book
-source mapping for both implemented pairs remain pending.
+source mapping for all three implemented pairs remain pending.
 
 RT-03 reproduces nine downstream calls from independent three-total-attempt owners;
 RT-04 stops at the shared request limit of three. Both honor caller cancellation,
 so the defective case isolates amplification rather than adding a cancellation gap.
 The offline tests cover transient/nonretryable failures, early success, exhausted
 budgets, deadline expiry and cancellation between attempts, with cleanup checks.
+RT-05 reproduces optional saturation rejecting one essential arrival through shared
+admission capacity. RT-06 reserves bounded workers/queues for the essential route
+with the same aggregate two workers and two waiting positions. Five optional arrivals
+and one essential arrival are identical across the pair; optional overload is allowed.
+Tests inspect occupancy before cleanup, verify recovery, success/failure/cancellation
+release and queue removal, and reject shared-pool/excess-queue mutants.
 See the fixture README for exact input boundaries and mutation-sensitive oracles.
 
 A contributor other than the prompt author should review expected outcomes before
@@ -171,10 +177,10 @@ Record negative evidence as carefully as positive evidence.
 
 Start in [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45)
 with a case critique, a source reference, or an offer to own a small artifact.
-Useful next PRs include reviewing the implemented RT-01–RT-04 cases, an RT-05/06
-contention reproducer and rubric, or an independent counterexample. Target `research/domain-packs` and link the case ID.
+Useful next PRs include reviewing the implemented RT-01–RT-06 cases, RT-07/08
+incomplete-context fixtures and rubrics, or an independent counterexample. Target `research/domain-packs` and link the case ID.
 Review and follow-up implementation roles are open; no work is assigned to the
-discussion author. The RT-01–RT-04 artifacts were agent-authored, with agent
+discussion author. The RT-01–RT-06 artifacts were agent-authored, with agent
 QA kept separate from pending human review.
 
 Before shipping any resulting feature, separately resolve pack discovery, public

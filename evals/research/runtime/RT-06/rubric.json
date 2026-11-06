@@ -1,0 +1,49 @@
+{
+  "revision": 1,
+  "assessment": "Manual semantic assessment; the offline validator checks structure and evidence anchors only.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is distinct from pending human review",
+    "bookMapping": "pending; fixture contract is the present source of truth"
+  },
+  "forbiddenClaims": [
+    "Production-wide outage, traffic scale, actual memory/sockets, data loss or security impact not established by this fixture.",
+    "A new public risk code or numeric runtime/combined Health Score is required.",
+    "Passing these offline tests establishes model diagnostic quality or production timing.",
+    "The service demonstrates production-wide starvation, CPU/socket/memory exhaustion, or process failure isolation.",
+    "The protected case succeeds merely by adding workers or aggregate queue capacity; both totals are held constant.",
+    "Every optional request must succeed, queues are unbounded, or excess optional rejection violates this contract.",
+    "Same-process execution alone proves missing isolation, or every service must use separate processes."
+  ],
+  "evidence": [
+    {
+      "file": "RT-06/service.mjs",
+      "anchor": "essentialPool"
+    },
+    {
+      "file": "shared/worker-pool.mjs",
+      "anchor": "maxQueue"
+    },
+    {
+      "file": "shared/worker-pool.mjs",
+      "anchor": "#start"
+    },
+    {
+      "file": "shared/optional-work.mjs",
+      "anchor": "open"
+    },
+    {
+      "file": "RT-06/context.md",
+      "anchor": "five optional requests"
+    }
+  ],
+  "coreOverlap": "Possible overlap with core coupling/contract diagnoses must be assessed by a future comparison; no incremental benefit has been measured.",
+  "caseId": "RT-06",
+  "expectedFindings": [],
+  "protectedReasoning": [
+    "The optional pool has one worker and one waiting slot; excess optional arrivals return overloaded without starting work.",
+    "A distinct essential pool reserves the other worker and waiting slot within the unchanged aggregate totals. The essential request returns ok with value17 while optional work remains active and queued.",
+    "Queued abort removes the request without starting dependency work; active abort/failure/success settles work and releases capacity before the next admitted request.",
+    "No process split, circuit breaker, larger pool, or unlimited essential availability is required by the supplied bounded admission contract."
+  ]
+}

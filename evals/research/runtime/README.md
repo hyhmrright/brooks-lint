@@ -1,7 +1,7 @@
-# Runtime research fixtures: RT-01–RT-04
+# Runtime research fixtures: RT-01–RT-06
 
-Manifest revision 2, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
-implement the first two pairs in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
+Manifest revision 3, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
+implement the first three pairs in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 No experimental skill, public risk code, runtime score, live runner, or model
 results are introduced. Human review, book-source mapping, independent holdouts,
 and the three-arm model comparison remain pending. Agent QA is not human review.
@@ -19,7 +19,7 @@ npm run evals:runtime:offline
 The command validates the manifest/rubric structure and executes deterministic
 Node tests. Failure exits nonzero. It does not grade an AI answer or establish
 model recall, precision, severity calibration, or real-world cancellation timing.
-The first pair uses JavaScript ESM to run on the repository's existing Node runtime
+The fixtures use JavaScript ESM to run on the repository's existing Node runtime
 without adding a TypeScript compiler.
 
 ## Timeout and cancellation: RT-01 / RT-02
@@ -73,13 +73,42 @@ retry-case outcomes.
 Budget mutants show that the RT-04 oracle rejects nested ownership and an off-by-one
 four-attempt owner. Manifest mutation tests reject changed expected counts, missing
 visible inputs, rubric leakage, and incomplete causal diagnoses. These tests do not
-establish model understanding. There are 33 offline tests across all four cases.
+establish model understanding. There are 49 offline tests across all six cases.
+
+## Capacity isolation: RT-05 / RT-06
+
+Both variants have two workers and two waiting positions in aggregate. The same
+controlled arrival sequence submits five slow optional requests without settling
+them, followed by one essential request. Essential work uses no optional dependency;
+the authored contract requires it to succeed under optional saturation when no
+other essential work is present. Optional overload rejection is allowed.
+
+| Case | Optional occupancy before essential arrival | Essential result |
+| --- | --- | --- |
+| RT-05 | Two active, two queued, one rejected; both routes share the same pool. | `overloaded`; no worker or waiting position is available. |
+| RT-06 | One active, one queued, three rejected; the other worker and waiting position are reserved for essential work. | `ok`, value 17, while optional work remains active and queued. |
+
+The protected result follows from capacity reservation within unchanged totals,
+not extra resources. Pools use bounded FIFO admission and immediate overload results.
+Manual dependency success, failure and cancellation drive release and admission on
+promise settlement. Tests verify active and queued cancellation, pre-aborted callers,
+listener cleanup, overload, and essential recovery after optional occupancy ends.
+A signal-aware dependency owns the active cancellation listener; queued entries own
+a pool listener until admission or cancellation. No timers or sleeps are introduced.
+
+The RT-06 oracle rejects a shared-pool wiring mutant and an excessive optional
+queue mutant. The latter can still serve essential work, but violates the authored
+bounded optional admission expectation; checking essential success alone is insufficient.
+Synthetic slots do not demonstrate production CPU, socket or memory exhaustion,
+process failure isolation, or availability under unlimited essential traffic.
 
 ## Input and grading boundary
 
-[`cases.json`](cases.json) defines schema 1 / manifest revision 2 and four cases. Each entry
+[`cases.json`](cases.json) defines schema 1 / manifest revision 3 and six cases. Each entry
 has an explicit `inputs` whitelist: task, context, its service, and shared clock,
-boundary, and transport; retry cases also include the retry helper. Those files are the complete prospective review input.
+boundary, and transport for the first two pairs; retry cases also include the retry
+helper. The resource pair includes its pool and optional-work implementation instead.
+Those files are the complete prospective review input.
 The common context is an authored contract, not production evidence. The task is
 identical within each pair and does not state the expected diagnosis.
 
@@ -107,6 +136,11 @@ source establishes the diagnosis or score answer semantics.
   not three retries plus initial calls. Do not split the same issue by layer.
 - RT-04: no retry-budget or cancellation finding on the complete supplied path.
   A single owner and effective caller cancellation meet the authored contract.
+- RT-05: one supported Warning for optional saturation rejecting an essential
+  request through shared admission capacity. Do not split worker and queue coupling
+  into duplicate findings or infer a whole-process outage.
+- RT-06: no resource-isolation finding on the supplied path. Bounded optional
+  rejection and reserved essential capacity meet this contract in one process.
 
 Manual assessment should compare causal meaning, not exact phrases, public risk
 codes, formatting, citations, or a numeric score. Record unsupported findings,
@@ -120,4 +154,4 @@ Use a focused PR against `research/domain-packs` and link the case ID and
 fixture behavior and rubric semantics together. Update the case/rubric revision
 and documented schema contract if expectations change; preserve any future run's
 exact artifact digests rather than rewriting prior results. The present validator
-intentionally accepts only these four cases and revisions, not a general pack schema.
+intentionally accepts only these six cases and revisions, not a general pack schema.

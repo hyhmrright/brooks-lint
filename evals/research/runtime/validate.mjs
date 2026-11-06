@@ -19,22 +19,31 @@ export function validateManifest(root = fixtureRoot) {
   };
   const manifest = JSON.parse(read('cases.json'));
   assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.revision, 2);
+  assert.equal(manifest.revision, 3);
   assert(nonempty(manifest.provenance));
-  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04']);
+  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06']);
   for (const entry of manifest.cases) {
     assert.equal(entry.revision, 1);
-    assert.equal(entry.kind, ['RT-01', 'RT-03'].includes(entry.id) ? 'defect' : 'protected');
+    assert.equal(entry.kind, ['RT-01', 'RT-03', 'RT-05'].includes(entry.id) ? 'defect' : 'protected');
     assert.equal(entry.task, `${entry.id}/task.md`);
     assert.equal(entry.context, `${entry.id}/context.md`);
     assert.equal(entry.rubric, `${entry.id}/rubric.json`);
+    const isolation = ['RT-05', 'RT-06'].includes(entry.id);
     const retries = ['RT-03', 'RT-04'].includes(entry.id);
     assert.deepEqual(entry.inputs, [entry.task, entry.context, `${entry.id}/service.mjs`,
-      'shared/clock.mjs', 'shared/request-boundary.mjs',
-      ...(retries ? ['shared/retry.mjs', 'shared/retry-transport.mjs'] : ['shared/transport.mjs'])]);
+      ...(isolation ? ['shared/worker-pool.mjs', 'shared/optional-work.mjs'] : [
+        'shared/clock.mjs', 'shared/request-boundary.mjs',
+        ...(retries ? ['shared/retry.mjs', 'shared/retry-transport.mjs'] : ['shared/transport.mjs'])])]);
     // This whitelist deliberately excludes answer rubrics, tests, and the manifest.
     for (const input of entry.inputs) assert(nonempty(read(input)), `Empty input: ${input}`);
-    if (retries) {
+    if (isolation) {
+      const shared = entry.id === 'RT-05';
+      assert.deepEqual(entry.expected, { saturated: {
+        optionalStarted: shared ? 2 : 1, optionalActive: shared ? 2 : 1,
+        optionalQueued: shared ? 2 : 1, optionalOverloaded: shared ? 1 : 3,
+        essential: shared ? 'overloaded' : 'ok',
+      } });
+    } else if (retries) {
       const attempts = entry.id === 'RT-03' ? 9 : 3;
       assert.deepEqual(entry.expected, {
         allTransientFailures: { response: 'error', started: attempts, failed: attempts, active: 0, timers: 0, listeners: 0 },
@@ -67,7 +76,7 @@ export function validateManifest(root = fixtureRoot) {
     if (entry.kind === 'defect') {
       assert.equal(rubric.expectedFindings.length, 1);
       const finding = rubric.expectedFindings[0];
-      assert.equal(finding.id, retries ? 'RT-03-retry-amplification' : 'RT-01-cancellation-gap');
+      assert.equal(finding.id, isolation ? 'RT-05-shared-capacity-contention' : retries ? 'RT-03-retry-amplification' : 'RT-01-cancellation-gap');
       assert.deepEqual(finding.allowedSeverities, ['Warning']);
       for (const field of ['symptom', 'source', 'consequence', 'remedy', 'grading']) assert(nonempty(finding[field]));
       assert(Array.isArray(finding.requiredEvidence) && finding.requiredEvidence.length > 0);
