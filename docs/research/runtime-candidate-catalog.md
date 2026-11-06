@@ -4,7 +4,9 @@ Status: implemented development inventory, 2026-11-06. All nine families in this
 catalog are implemented as 27 authored fixtures, RT-11–RT-37. Together with the
 original baseline, the [runnable development set](../../evals/research/runtime/README.md)
 contains RT-01–RT-37 at manifest revision 7. The original sixteen case revisions
-and guidance prototype revision 1 remain unchanged. No live model evaluation was run.
+and guidance prototype revision 1 remain unchanged. A later [exploratory live
+study](runtime-results/2026-11-06-terra-37/README.md) attempted the full set;
+its semantic judgments and human review are pending.
 
 This bounded inventory is not exhaustive. The experiments are original synthetic
 test designs, not copied programs or incident reproductions. References do not prove
@@ -85,9 +87,11 @@ Before calling a candidate runnable, require:
    only after passing; human semantic review remains separate.
 
 The [runner](runtime-runner.md) supports all thirty-seven registered cases, including every family above.
-Offline fake-CLI tests establish the tooling contract, not model behavior.
+Offline fake-CLI tests establish the tooling contract, not model behavior. The
+[exploratory live study](runtime-results/2026-11-06-terra-37/README.md) records
+model responses and execution failures without adjudicating diagnostic correctness.
 Changed fixtures/guidance invalidate frozen plans: freeze revisions and create a
-new plan. Live evaluation requires separate explicit authorization.
+new plan. Further live evaluation requires separate explicit authorization.
 
 ## Completed scope and next evidence gates
 

@@ -3,11 +3,12 @@
 Manifest revision 7, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
 implement the first three pairs, deadline-coverage and waiting-expiry triplets, four incomplete-context controls, and the finite-batch/syntax controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 The [runtime guidance prototype](prototype/SKILL.md) is research-only and remains
-outside the production skills catalog. No public risk code, runtime score, or model
-results are introduced. Partial [book chapter checks](../../../docs/research/runtime-book-mapping.md)
-now identify inspected passages and unverified mappings. Human review, complete
-source certification, independent holdouts and the actual three-arm model comparison
-remain pending. Agent QA is not human review.
+outside the production skills catalog. No public risk code or runtime score is
+introduced. A later [exploratory three-arm model run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
+records results and execution failures; semantic judgments remain pending. Partial
+[book chapter checks](../../../docs/research/runtime-book-mapping.md) identify
+inspected passages and unverified mappings. Human review, complete source
+certification and independent holdouts remain pending. Agent QA is not human review.
 
 ## Run offline
 
@@ -48,7 +49,7 @@ Three mutants demonstrate that the protected-case oracle rejects dropped signal
 forwarding, a transport that ignores abort, and cancellation of only an outward
 promise while underlying work continues. These are test-local variants, not extra
 model cases. The tests verify causal fixture behavior rather than the quality of
-a future model's reasoning.
+a model's reasoning.
 
 ## Retry ownership: RT-03 / RT-04
 
@@ -154,7 +155,7 @@ It requires completing the explanation without an unsolicited audit, risk findin
 score, remediation or prototype mode line. Separate structural checks verify that
 the prototype description has a negative syntax boundary and that its Process cites
 the sequential guide steps. Neither executable syntax tests nor structural guidance
-checks establish a real model's activation restraint; that remains future evaluation.
+checks establish a real model's activation restraint; semantic evaluation remains pending.
 
 ## Input and grading boundary
 
@@ -282,8 +283,10 @@ intentionally accepts only these thirty-seven cases and revisions, not a general
 
 The [research runner](../../../docs/research/runtime-runner.md) supports offline
 validation, frozen plans, explicitly opt-in A/B/C execution, blind review packets
-and offline judgment import. It is verified with a fake CLI; no actual model
-comparison has been run. The production paired runner remains unchanged.
+and offline judgment import. It was verified offline with a fake CLI. The separate
+[exploratory real-model run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
+contains execution failures and awaits semantic and human review; no comparative
+accuracy result has been established. The production paired runner remains unchanged.
 
 See [human review and independent holdouts](../../../docs/research/runtime-review-and-holdouts.md)
 for source-verification records, reviewer disclosures, a neutral author brief,
@@ -331,5 +334,6 @@ requires reviewed implementation changes.
 All defect rubrics allow one Warning with contract, causal evidence, bounded
 consequence and remedy after diagnosis. Protected rubrics constrain the protection
 to the supplied path. Unresolved rubrics require missing artifacts and prohibit a
-definitive defect, safety or severity verdict. Human review, book mapping and
-independent holdout validation remain pending. No live model evaluation was run.
+definitive defect, safety or severity verdict. Human review, complete book mapping
+and independent holdout validation remain pending. See the [exploratory live run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
+for execution results and limits; semantic judgments have not been completed.

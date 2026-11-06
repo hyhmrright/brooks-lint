@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "description": "Sanitized execution records; temporary local paths replaced. Original answer and trace hashes refer to unredacted data retained locally.",
+  "plan": {
+    "created_at": "2026-11-06T07:17:26.591Z",
+    "source_commit": "3b1257c68380d1a22722462e3ea8c09353514397",
+    "source_dirty": false,
+    "study_sha256": "eb39f290501ba941332f71a4f0e0de2369adef1a8b590df20ff9542e9dceb1f9",
+    "model": "gpt-6.1-terra",
+    "reasoning": "medium",
+    "runs": 1,
+    "timeout": 240,
+    "manifest_sha256": "a022ba18ea4c0534beba1d08c047a89cc4205d203792697ba13b1d4fcade4f5b",
+    "manifest_revision": 7
+  },
+  "started_at": "2026-11-06T07:17:32.529Z",
+  "finished_at": "2026-11-06T07:19:12.243Z",
+  "cli_version": "codex-cli 0.166.0",
+  "interrupted": false,
+  "records": [
+    {
+      "case_id": "RT-01",
+      "repetition": 1,
+      "arm": "A",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [],
+      "trace_sha256": "d5db8eda5250785ce9256826207978f5d58be0a0411aafd65303abe96621ea31",
+      "prompt_sha256": "c9146fab19b0f6c90694d4c1de7aebbc353d0488d7a327f9f42375410c1a968d",
+      "answer": "**Finding — the quote call drops the cancellation signal.** In [service.mjs](<study-repo>/RT-01/service.mjs:3), `loadQuote` receives the boundary’s signal but calls `transport.fetchQuote()` without passing it. The transport only releases pending work on abort when it receives that signal.\n\nAt the default deadline of 100 logical clock units, the [request boundary](<study-repo>/shared/request-boundary.mjs:27) records a `timed-out` response and aborts its controller. Because the dependency never received the signal, its abort handler does not run and its one slot remains occupied when the deadline callback returns. This violates the [fixture contract](<study-repo>/RT-01/context.md:3). The same propagation defect leaves the slot occupied if a parent cancels after the operation starts, although the response becomes `cancelled`.\n\n**Severity: moderate within the supplied fixture.** The deadline returns the required response but fails the explicitly required resource release. The supported impact is one continuing synthetic dependency operation and one occupied slot; the evidence does not establish broader service effects. Passing `{ signal }` to `fetchQuote` would connect the boundary’s synchronous abort to the [transport’s release handler](<study-repo>/shared/transport.mjs:9).\n\nThe other observed paths are bounded: an already-aborted parent prevents the load from starting, and a successful completion before expiry releases the transport slot; once its promise handler runs, the boundary returns the value and removes its deadline timer and parent listener. Later completion or rejection of abandoned work cannot change an already recorded response. Harness `dispose` can release the slot after measurement, but the authored context explicitly excludes it as timely application cleanup.\n\nThese conclusions follow from the supplied code and its deterministic clock and abort semantics; they do not assume production traffic or resource costs.",
+      "answer_sha256": "013b41742d7834132bb5f78da531381e6624459bf63161d40f848602208a4f2e",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 37006,
+          "cached_input_tokens": 20352,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 685,
+          "reasoning_output_tokens": 8
+        },
+        "event_count": 9,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 37001
+    },
+    {
+      "case_id": "RT-01",
+      "repetition": 1,
+      "arm": "B",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "trace_sha256": "19c07df410fee4af4d35a58e757c329f6e6326179aa4502dfce66f445c3960de",
+      "prompt_sha256": "c9146fab19b0f6c90694d4c1de7aebbc353d0488d7a327f9f42375410c1a968d",
+      "answer": "**PR Review — one Warning:** the boundary returns a timeout, but the leaf call drops its cancellation signal, so the dependency slot remains occupied.\n\n**Scope:** the six supplied files. **Health Score:** 95/100.\n\n**R6 — Cancellation signal is not passed to the dependency (Warning)**\n\n- **Symptom:** [loadQuote](<study-repo>/RT-01/service.mjs:3) receives `signal` but calls `transport.fetchQuote()` without it.\n- **Source:** The request boundary’s cancellation contract requires the supplied signal to be propagated through the call path; *Code Complete* — defensive error handling.\n- **Consequence:** At 100 logical clock units, the boundary records `timed-out` and aborts its controller, but the dependency has no abort listener attached. Its slot remains active when the deadline callback returns, contrary to the [fixture contract](<study-repo>/RT-01/context.md:3). Parent cancellation after the call starts likewise returns `cancelled` without releasing the slot. The supported impact is one lingering synthetic dependency operation; the supplied evidence does not establish broader traffic or outage effects.\n- **Remedy:** Call `transport.fetchQuote({ signal })` so the transport’s abort handler releases the slot synchronously.\n\nThe other controls work within their stated scope. An already-aborted parent prevents the load from starting. On a successful completion delivered before expiry, the transport releases the slot, and the boundary removes its parent listener and deadline timer when it processes the result. The boundary also observes a later rejection from abandoned work. None of those controls releases the pending slot at timeout when the signal is omitted; harness `dispose` is teardown, not timely cancellation.\n\nThis assessment is based on the supplied code and authored fixture contract; no production scale or behavior is assumed.",
+      "answer_sha256": "6c63f275767537c3dbf35ced854067f842a5f217028b49ae0920e4c6ac528487",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [
+          {
+            "skill": "brooks-review",
+            "event_index": 4,
+            "command": "/bin/zsh -lc 'cat .agents/skills/brooks-review/SKILL.md'"
+          }
+        ],
+        "usage": {
+          "input_tokens": 46555,
+          "cached_input_tokens": 34176,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 787,
+          "reasoning_output_tokens": 91
+        },
+        "event_count": 11,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 31045
+    },
+    {
+      "case_id": "RT-01",
+      "repetition": 1,
+      "arm": "C",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test",
+        "runtime-research"
+      ],
+      "trace_sha256": "610166e031e8bd6d89971477c6fadaedc599fb105a2f22872ec7ecb755d9ff20",
+      "prompt_sha256": "c9146fab19b0f6c90694d4c1de7aebbc353d0488d7a327f9f42375410c1a968d",
+      "answer": "**Runtime Research (revision 1)**\n\n**Finding — Warning: the leaf call drops the cancellation signal.** The boundary returns a timed-out response at the 100-unit deadline, but the dependency operation remains active.\n\n- **Symptom:** `loadQuote` receives the boundary’s `signal` but calls `transport.fetchQuote()` without it ([service.mjs](<study-repo>/RT-01/service.mjs:3)).\n- **Source:** At expiry, the boundary records `timed-out` and aborts its controller synchronously ([request-boundary.mjs](<study-repo>/shared/request-boundary.mjs:27)). The transport releases an active operation on abort only when it has received a signal ([transport.mjs](<study-repo>/shared/transport.mjs:9)).\n- **Consequence:** In the supplied fixture, the response is timed out, but the one occupied dependency slot is still held when the deadline callback returns. This violates the authored requirement to release it before that callback returns. Parent cancellation after the call starts likewise returns `cancelled` without releasing the slot. Warning is supported by this single-request behavior; the evidence does not establish wider service impact.\n- **Remedy:** Forward the signal with `transport.fetchQuote({ signal })`. The supplied transport’s synchronous abort handler would then release the slot during the boundary’s abort call.\n\nThe other visible controls cover their stated cases: a parent signal already aborted at request start prevents the leaf call from starting; a successful dependency completion releases its slot and listener, and the boundary removes its deadline timer and parent listener when it processes the result. The boundary also observes a later rejection from abandoned work. These controls do not compensate for the missing signal on an active call.\n\nThis conclusion is a **code trace against the authored fixture contract**, not a claim from an executed test or a production observation. The fixture establishes one request and one slot, with no retries or other cleanup; it supplies no evidence of production traffic, starvation, or outage.",
+      "answer_sha256": "d21ba917297e05deb5613bb0af6fcf4a3fa47f928058194ce6358d5e8e91c3fb",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 44137,
+          "cached_input_tokens": 31232,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 767,
+          "reasoning_output_tokens": 27
+        },
+        "event_count": 11,
+        "prototype_reads": [
+          {
+            "event_index": 4,
+            "command": "/bin/zsh -lc 'cat .agents/skills/runtime-research/SKILL.md'"
+          }
+        ]
+      },
+      "elapsed_ms": 31641
+    }
+  ],
+  "execution_counts": {
+    "not-run": 0,
+    "running": 0,
+    "failed": 0,
+    "executed": 3
+  },
+  "execution_costs": [
+    {
+      "case_id": "RT-01",
+      "arm": "A",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 37001,
+      "usage": {
+        "input_tokens": 37006,
+        "cached_input_tokens": 20352,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 685,
+        "reasoning_output_tokens": 8
+      }
+    },
+    {
+      "case_id": "RT-01",
+      "arm": "B",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 31045,
+      "usage": {
+        "input_tokens": 46555,
+        "cached_input_tokens": 34176,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 787,
+        "reasoning_output_tokens": 91
+      }
+    },
+    {
+      "case_id": "RT-01",
+      "arm": "C",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 31641,
+      "usage": {
+        "input_tokens": 44137,
+        "cached_input_tokens": 31232,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 767,
+        "reasoning_output_tokens": 27
+      }
+    }
+  ]
+}

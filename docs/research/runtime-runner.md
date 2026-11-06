@@ -1,7 +1,10 @@
 # Runtime research runner
 
-Status: implemented research tooling, 2026-11-06. Verified with deterministic
-fixtures and a local fake CLI only. No real model evaluation has been run.
+Status: implemented research tooling, 2026-11-06. Deterministic fixtures and a
+local fake CLI verified the tooling offline. A subsequent [real-model exploratory
+study](runtime-results/2026-11-06-terra-37/README.md) records execution outcomes
+and unresolved human review; the earlier [RT-01 pilot](runtime-results/2026-11-06-terra-pilot/README.md)
+is reported separately.
 See the [pilot plan](runtime-pilot-plan.md), [thirty-seven development cases](../../evals/research/runtime/README.md),
 and [human review and independent holdouts procedure](runtime-review-and-holdouts.md).
 
@@ -60,8 +63,8 @@ does not establish live CLI compatibility or model behavior.
 
 ## Live execution contract — a separate opt-in action
 
-The following command is documented for a future authorized study. Do not include
-it in routine verification, CI or offline npm scripts.
+The following command is for an explicitly authorized study. Do not include it in
+routine verification, CI or offline npm scripts.
 
 ```bash
 npm run evals:runtime:research -- --live \
@@ -83,8 +86,9 @@ CLI help was version 0.166.0. Live execution records the actual CLI version and
 fails closed on incompatible preflight/catalog output. The official
 [non-interactive documentation](https://learn.chatgpt.com/docs/non-interactive-mode)
 and [CLI reference](https://learn.chatgpt.com/docs/developer-commands?surface=cli)
-describe JSON events, ephemeral execution and read-only sandbox options; support
-for the complete isolation contract still needs verification on the chosen CLI.
+describe JSON events, ephemeral execution and read-only sandbox options. The
+2026-11-06 study exercised this CLI path; its failures and the isolation limits
+below remain part of the evidence, not proof of a hermetic environment.
 
 Each turn gets fresh HOME/CODEX_HOME, a temporary Git repository with only the
 input whitelist and selected catalog, approval mode `never`, read-only sandbox,

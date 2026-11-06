@@ -56,9 +56,12 @@ Keep the original guidance prototype at revision 1 while expanding the challenge
 set. Adding fixtures is not evidence of prototype coverage or a reason to tune to
 all expected answers. Any later guidance change must record a new revision and
 freeze a new study plan. Existing development cases remain exposed; do not rename
-them as independent holdouts. No live run or judging model is part of this work.
+them as independent holdouts. A later [exploratory live run](runtime-results/2026-11-06-terra-37/README.md)
+recorded model responses and execution failures. No judging model was invoked;
+semantic judgments and human review remain pending.
 
 Autonomous offline work can continue when a concrete new mechanism, source-backed
 question, counterexample or failing invariant is identified. External human review,
-independent custody of holdouts and an explicitly authorized model study remain
-separate gates; synthetic validator judgments cannot satisfy them.
+independent custody of holdouts and review of model-study evidence remain separate
+gates; synthetic validator judgments cannot satisfy them. Any further live study
+requires separate explicit authorization.
