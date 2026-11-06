@@ -1,0 +1,44 @@
+{
+  "revision": 1,
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is distinct from pending human review",
+    "bookMapping": "pending; no new source claims"
+  },
+  "coreOverlap": "Core overlap and incremental diagnostic benefit remain unmeasured.",
+  "expectedFindings": [],
+  "caseId": "RT-09",
+  "assessment": "Manual semantic assessment; offline tests check the finite authored job, not model reasoning.",
+  "protectedReasoning": [
+    "The standalone offline job has five records and two workers; no request-serving deadline or shared request pool is required by its contract.",
+    "Every operation settles after a finite logical interval and releases its slot on success or failure. At most two operations/timers are active; all five finish after three rounds.",
+    "An item failure is recorded without retry and the remaining records finish; the observed long duration alone establishes no timeout/cancellation defect.",
+    "Protection is limited to this supplied finite job, not a blanket claim that all batch jobs are safe or never need deadlines."
+  ],
+  "forbiddenClaims": [
+    "Long duration or absence of a request timer proves a timeout defect despite the finite offline contract.",
+    "An interactive request SLO, external traffic contention, unbounded dependency or cancellation requirement exists.",
+    "The job must add a request timeout, circuit breaker or process split without a supported diagnosis.",
+    "A selected item failure means capacity is leaked or remaining records never finish.",
+    "This fixture proves universal production safety, real wall-clock duration, model quality or measured incremental benefit.",
+    "A public runtime risk code or numeric runtime/combined Health Score is required."
+  ],
+  "evidence": [
+    {
+      "file": "RT-09/context.md",
+      "anchor": "no request deadline"
+    },
+    {
+      "file": "RT-09/service.mjs",
+      "anchor": "Promise.all([worker(), worker()])"
+    },
+    {
+      "file": "RT-09/service.mjs",
+      "anchor": "stats.active--"
+    },
+    {
+      "file": "shared/clock.mjs",
+      "anchor": "advanceTo"
+    }
+  ]
+}

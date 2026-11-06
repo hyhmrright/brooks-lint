@@ -1,8 +1,10 @@
 # Runtime failure containment: pilot research plan
 
-Status: research in progress, 2026-11-06. The [RT-01–RT-08 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
-and deterministic tests. RT-09/RT-10, experimental guidance, and live results
-remain future work. See the [domain-pack proposal](domain-packs-proposal.md)
+Status: research in progress, 2026-11-06. The [RT-01–RT-10 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
+and deterministic tests. A [research-only guidance prototype](../../evals/research/runtime/prototype/SKILL.md)
+and [separate A/B/C runner](runtime-runner.md) are implemented and tested offline.
+Human review, source verification, independent holdouts and actual live results
+remain pending. See the [domain-pack proposal](domain-packs-proposal.md)
 and [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45).
 
 ## Research questions
@@ -12,8 +14,9 @@ the current core misses? Does it distinguish effective protection elsewhere in t
 call path from an actual gap? Can it withhold unsupported claims when operating
 context is missing, without using uncertainty to avoid a demonstrated defect?
 
-The first three implemented pairs and the incomplete-context controls use request-driven dependency calls in small synthetic
-JavaScript ESM services, with documented contracts and no transpilation dependency
+The implemented cases use small synthetic JavaScript ESM services: three
+request-driven pairs, incomplete-context controls, a finite offline batch and a
+syntax-only task. They have explicit input boundaries and no transpilation dependency
 on Node.js 20 or later. This replaces the initial TypeScript candidate for the
 initial pairs so contributors can reproduce it with the repository's existing runtime.
 Deterministic fake transport, scheduling, and resource counters reproduce the
@@ -61,15 +64,15 @@ For each case, prepare:
 
 The dedicated [`evals/research/runtime/`](../../evals/research/runtime/README.md)
 directory now contains three pairs: RT-01/RT-02 timeout/cancellation, RT-03/RT-04
-retry ownership, and RT-05/RT-06 capacity isolation, plus RT-07/RT-08 incomplete-context controls.
+retry ownership, and RT-05/RT-06 capacity isolation, plus RT-07/RT-08 incomplete-context
+controls and RT-09/RT-10 finite-batch/syntax controls.
 It includes a revisioned manifest,
 semantic rubrics, and offline structural validation/reproduction tests. Run
 `npm run evals:runtime:offline`; the same tests are included in `npm test`. These
-checks verify fixture behavior and artifact structure, not model answers. Current
-live runners do not discover or support the research cases. The production
-structural suite and frozen parser corpus remain unchanged; experimental model
-execution support still requires separate implementation. Human review and book
-source mapping for all eight implemented cases remain pending.
+checks verify fixture behavior and artifact structure, not model answers. The separate research runner now supports only this fixed development catalog;
+its execution path is tested with a local fake CLI. The production paired runner,
+structural suite and frozen parser corpus remain unchanged. Human review and book
+source mapping for all ten implemented cases remain pending.
 
 RT-03 reproduces nine downstream calls from independent three-total-attempt owners;
 RT-04 stops at the shared request limit of three. Both honor caller cancellation,
@@ -89,6 +92,10 @@ completions execute those same leaves with differing transport cancellation,
 outer retry ownership and request budgets. Different measured outcomes demonstrate
 underdetermination; no completion is asserted to be the actual hidden environment.
 The completion code is excluded from each case's visible input whitelist.
+RT-09 completes five finite batch records with two workers and per-item failure
+handling, with no request deadline requirement. RT-10 verifies syntax behavior
+and carries a task-only/non-trigger rubric; these offline checks do not establish
+actual model routing restraint.
 See the fixture README for exact input boundaries and mutation-sensitive oracles.
 
 A contributor other than the prompt author should review expected outcomes before
@@ -114,9 +121,11 @@ RT-10 separately checks restraint when no audit was requested.
 
 The existing [Codex behavioral runner](../codex-behavior-evals.md) has a fixed
 six-skill/empty-catalog isolation contract and paired execution. It cannot run this
-three-arm study unchanged. A later PR must add and test separate research execution
-support or a clearly isolated harness; do not bypass its catalog validation or
-report experimental runs as supported production-runner coverage.
+three-arm study unchanged. The [separate research runner](runtime-runner.md) implements the A/B/C contract
+without changing that catalog validation. It freezes inputs and rubrics, rotates
+serial turns, preserves failures and generates arm-hidden semantic review packets.
+Judgments are imported offline; no judging model is launched automatically.
+Do not report its fake-CLI checks as live production-runner coverage.
 
 Before any live run, freeze fixture, rubric, and prototype revisions, choose the
 model and limits explicitly, and record the run plan. Live Codex evaluation is a
@@ -134,7 +143,8 @@ a new study revision rather than retroactively improving an old result.
 ## Measures and interpretation
 
 Report per-case and per-arm results, denominators, disagreement, and run failures.
-Use the same separate semantic judge across arms, hide arm labels where practical,
+Use the same separate human reviewer or explicitly authorized semantic judging
+procedure across arms, hide arm labels where practical,
 and have a human inspect every finding and abstention in this small pilot. A judge
 using the same model can share its mistakes; model judgments are not independent
 ground truth.
@@ -185,10 +195,12 @@ Record negative evidence as carefully as positive evidence.
 
 Start in [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45)
 with a case critique, a source reference, or an offer to own a small artifact.
-Useful next PRs include reviewing the implemented RT-01–RT-08 cases,
-finite-batch/syntax controls RT-09/RT-10, or an independent counterexample. Target `research/domain-packs` and link the case ID.
+Useful next PRs include reviewing the implemented RT-01–RT-10 cases and prototype,
+verifying source applicability, or authoring an independent counterexample. Follow
+the [human review and holdout procedure](runtime-review-and-holdouts.md) before
+sharing development material with a prospective blind author. Target `research/domain-packs` and link the case ID.
 Review and follow-up implementation roles are open; no work is assigned to the
-discussion author. The RT-01–RT-08 artifacts were agent-authored, with agent
+discussion author. The RT-01–RT-10 artifacts were agent-authored, with agent
 QA kept separate from pending human review.
 
 Before shipping any resulting feature, separately resolve pack discovery, public

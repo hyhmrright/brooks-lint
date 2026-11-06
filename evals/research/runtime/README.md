@@ -1,10 +1,11 @@
-# Runtime research fixtures: RT-01–RT-08
+# Runtime research fixtures: RT-01–RT-10
 
-Manifest revision 4, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
-implement the first three pairs and two incomplete-context controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
-No experimental skill, public risk code, runtime score, live runner, or model
+Manifest revision 5, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
+implement the first three pairs, two incomplete-context controls, and the finite-batch/syntax controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
+The [runtime guidance prototype](prototype/SKILL.md) is research-only and remains
+outside the production skills catalog. No public risk code, runtime score, or model
 results are introduced. Human review, book-source mapping, independent holdouts,
-and the three-arm model comparison remain pending. Agent QA is not human review.
+and the actual three-arm model comparison remain pending. Agent QA is not human review.
 
 ## Run offline
 
@@ -13,6 +14,7 @@ wall-clock sleeps, or model calls are used.
 
 ```bash
 npm run evals:runtime:offline
+npm run evals:runtime:research:validate
 # Also included in the repository's npm test command.
 ```
 
@@ -73,7 +75,8 @@ retry-case outcomes.
 Budget mutants show that the RT-04 oracle rejects nested ownership and an off-by-one
 four-attempt owner. Manifest mutation tests reject changed expected counts, missing
 visible inputs, rubric leakage, and incomplete causal diagnoses. These tests do not
-establish model understanding. There are 56 offline tests across all eight cases.
+establish model understanding. There are 68 fixture/prototype tests and 8 separate runner tests using a local fake CLI.
+Both groups are included in the offline command and `npm test`.
 
 ## Capacity isolation: RT-05 / RT-06
 
@@ -123,24 +126,53 @@ Tests also verify countermodel cancellation, cleanup, and rejection of metadata
 mutations that erase missing-context obligations, invent certainty, or leak private
 completion helpers into visible inputs. They do not grade a model's abstention.
 
+## Finite offline batch: RT-09
+
+The authored contract supplies a standalone five-record archive, two workers and
+no interactive request SLO. Each operation settles after 1000 logical units; three
+rounds finish the job at time 3000. No timer bounds the entire job, intentionally.
+Long duration alone is no supported timeout/cancellation defect in this context.
+
+Tests inspect the two-operation/timer bound through every transition, verify ordered
+results and no residual work after completion, and select first/middle/last record
+failures to show capacity is released and the remaining records still finish.
+An unbounded five-at-once mutant is rejected even though it also completes finitely.
+Logical duration is synthetic, not elapsed milliseconds or production evidence.
+
+## Syntax task and routing restraint: RT-10
+
+The task asks how `async`, `await` and an object-destructuring default behave in a
+networking snippet. Tests verify that the returned promise waits for transport,
+passes the signal, yields 17/zero/zero/null for the four stated examples, and
+propagates the original rejection rather than substituting the default.
+
+The rubric is `task-only`, with kind `non-trigger`, not a runtime protection verdict.
+It requires completing the explanation without an unsolicited audit, risk finding,
+score, remediation or prototype mode line. Separate structural checks verify that
+the prototype description has a negative syntax boundary and that its Process cites
+the sequential guide steps. Neither executable syntax tests nor structural guidance
+checks establish a real model's activation restraint; that remains future evaluation.
+
 ## Input and grading boundary
 
-[`cases.json`](cases.json) defines schema 1 / manifest revision 4 and eight cases. Each entry
+[`cases.json`](cases.json) defines schema 1 / manifest revision 5 and ten cases. Each entry
 has an explicit `inputs` whitelist: task, context, its service, and shared clock,
 boundary, and transport for the first two pairs; retry cases also include the retry
 helper. The resource pair includes its pool and optional-work implementation instead.
 RT-07 includes only its task, context and leaf; RT-08 additionally includes the
-retry helper. The countermodel callers/transports remain test-only.
+retry helper. The countermodel callers/transports remain test-only. RT-09 includes
+its task, context, service and logical clock; RT-10 only its task, context and snippet.
 Those files are the complete prospective review input.
 The common context is an authored contract, not production evidence. The task is
 identical within each pair and does not state the expected diagnosis.
 
 Keep case metadata, kinds, expected snapshots, rubrics, tests, this README, and the
 manifest out of any future model input. Case IDs remain visible in fixture paths;
-this is not a blinding guarantee. A future harness can normalize paths if needed. In particular, never expose the whole
-research directory as a model workspace. A future isolated runner must copy only
-the selected input whitelist, preserving relative imports; that runner is not
-implemented here. Ordinary service code differences remain visible by design.
+this is not a blinding guarantee. The separate [research runner](../../../docs/research/runtime-runner.md)
+copies only this whitelist, preserving relative imports, and the selected A/B/C
+skill catalog. It never exposes the entire research directory, hidden completions
+or rubrics in a review workspace. Ordinary service code differences remain visible
+by design. Input isolation is not a hermetic host filesystem boundary.
 
 Rubrics contain expected issue IDs, severity, the full
 **Symptom → Source → Consequence → Remedy** diagnosis, forbidden claims, and
@@ -171,6 +203,10 @@ source establishes the diagnosis or score answer semantics.
 - RT-08: unresolved whole-request amplification/budget assessment; request outer
   owners, transport attempt behavior, request budget and attempt evidence. Visible
   local retry bounds alone establish neither a violation nor global protection.
+- RT-09: no request-deadline finding from the finite offline job's long duration.
+  Two workers, finite item settlement and per-item error handling meet its contract.
+- RT-10: complete the requested syntax explanation without runtime activation.
+  This is a task boundary control, not a claim that the unseen production path is safe.
 
 Manual assessment should compare causal meaning, not exact phrases, public risk
 codes, formatting, citations, or a numeric score. Record unsupported findings,
@@ -184,4 +220,15 @@ Use a focused PR against `research/domain-packs` and link the case ID and
 fixture behavior and rubric semantics together. Update the case/rubric revision
 and documented schema contract if expectations change; preserve any future run's
 exact artifact digests rather than rewriting prior results. The present validator
-intentionally accepts only these eight cases and revisions, not a general pack schema.
+intentionally accepts only these ten cases and revisions, not a general pack schema.
+
+## Research execution and independent contributions
+
+The [research runner](../../../docs/research/runtime-runner.md) supports offline
+validation, frozen plans, explicitly opt-in A/B/C execution, blind review packets
+and offline judgment import. It is verified with a fake CLI; no actual model
+comparison has been run. The production paired runner remains unchanged.
+
+See [human review and independent holdouts](../../../docs/research/runtime-review-and-holdouts.md)
+for source-verification records, reviewer disclosures, a neutral author brief,
+private custody and digest freezing. Those participation gates remain pending.

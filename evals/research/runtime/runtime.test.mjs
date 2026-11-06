@@ -164,7 +164,7 @@ for (const [name, handleQuote, Transport] of [
 }
 
 test('manifest keeps model inputs separate from grading artifacts', () => {
-  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08']);
+  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10']);
 });
 
 test('manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics', () => {
@@ -650,4 +650,161 @@ test('incomplete-context artifacts reject certainty, omitted obligations and pri
       writeFileSync(path, originalRubric);
     }
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+import { startArchive } from './RT-09/service.mjs';
+import { getPrice } from './RT-10/service.mjs';
+
+async function finishArchive(job, clock) {
+  for (const time of [1000, 2000, 3000]) {
+    assert(job.stats.active <= 2);
+    assert.equal(clock.pendingTimers, job.stats.active);
+    clock.advanceTo(time);
+    // Scheduled operations release their slots before promise continuations.
+    assert.equal(job.stats.active, 0);
+    await nextTurn();
+    assert(job.stats.active <= 2);
+    assert.equal(clock.pendingTimers, job.stats.active);
+  }
+  return job.done;
+}
+
+test('RT-09: finite long-running archive respects two-worker bound and completes in order', async () => {
+  const clock = new ManualClock();
+  const job = startArchive({ clock });
+  let finished = false;
+  job.done.then(() => { finished = true; });
+  assert.equal(job.stats.started, 2);
+  clock.advanceTo(999);
+  await nextTurn();
+  assert.equal(finished, false);
+  assert.equal(job.stats.active, 2);
+  assert.equal(clock.pendingTimers, 2);
+  const outcomes = await finishArchive(job, clock);
+  assert.deepEqual(outcomes, ['a', 'b', 'c', 'd', 'e'].map((record) => ({ status: 'ok', value: `archived:${record}` })));
+  assert.deepEqual({ response: 'completed', processed: job.stats.completed, failed: job.stats.failed,
+    maxActive: job.stats.maxActive, active: job.stats.active, timers: clock.pendingTimers,
+    logicalTime: clock.now }, entryFor('RT-09').expected.finiteBatch);
+  clock.advanceTo(1000000);
+  assert.equal(job.stats.started, 5);
+  assert.equal(clock.pendingTimers, 0);
+});
+
+for (const failRecord of ['a', 'c', 'e']) {
+  test(`RT-09: failure of ${failRecord} releases capacity and remaining finite work completes`, async () => {
+    const clock = new ManualClock();
+    const job = startArchive({ clock, failRecord });
+    const outcomes = await finishArchive(job, clock);
+    assert.deepEqual(outcomes, ['a', 'b', 'c', 'd', 'e'].map((record) => record === failRecord
+      ? { status: 'error' } : { status: 'ok', value: `archived:${record}` }));
+    assert.deepEqual(job.stats, { started: 5, completed: 4, failed: 1, active: 0, maxActive: 2 });
+    assert.equal(clock.pendingTimers, 0);
+    clock.advanceTo(1000000);
+    assert.equal(job.stats.started, 5);
+  });
+}
+
+test('RT-09: occupancy oracle rejects concurrent unbounded launch despite finite completion', async () => {
+  const clock = new ManualClock();
+  let active = 0;
+  let maxActive = 0;
+  const work = ['a', 'b', 'c', 'd', 'e'].map(() => new Promise((resolve) => {
+    maxActive = Math.max(maxActive, ++active);
+    clock.schedule(1000, () => { active--; resolve(); });
+  }));
+  assert.equal(maxActive, 5);
+  assert.throws(() => assert.equal(maxActive, entryFor('RT-09').expected.finiteBatch.maxActive));
+  clock.advanceTo(1000);
+  await Promise.all(work);
+  assert.equal(active, 0);
+  assert.equal(clock.pendingTimers, 0);
+});
+
+for (const [name, object] of [['priced', { price: 17 }], ['missing', {}], ['undefined', { price: undefined }], ['null', { price: null }]]) {
+  test(`RT-10: await/destructuring example ${name} returns the specified value`, async () => {
+    const caller = new AbortController();
+    let suppliedSignal;
+    let resolve;
+    const transport = { fetchQuote: ({ signal }) => {
+      suppliedSignal = signal;
+      return new Promise((done) => { resolve = done; });
+    } };
+    const answer = getPrice({ transport, signal: caller.signal });
+    assert(answer instanceof Promise);
+    assert.equal(suppliedSignal, caller.signal);
+    let finished = false;
+    answer.then(() => { finished = true; });
+    await nextTurn();
+    assert.equal(finished, false);
+    resolve(object);
+    assert.equal(await answer, entryFor('RT-10').expected.examples[name]);
+    assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+  });
+}
+
+test('RT-10: transport rejection propagates through async without applying the default', async () => {
+  const expected = new Error('Example transport rejection');
+  const answer = getPrice({ transport: { fetchQuote: () => Promise.reject(expected) } });
+  await assert.rejects(answer, (error) => error === expected);
+});
+
+test('batch/syntax artifacts reject changed contract, activation, answer leakage and missing completion', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'brooks-batch-syntax-'));
+  try {
+    cpSync(fixtureRoot, dir, { recursive: true });
+    const casesPath = join(dir, 'cases.json');
+    const original = readFileSync(casesPath, 'utf8');
+    for (const mutate of [
+      (value) => { value.cases[8].expected.finiteBatch.maxActive = 5; },
+      (value) => { value.cases[8].expected.finiteBatch.response = 'timed-out'; },
+      (value) => { value.cases[9].kind = 'protected'; },
+      (value) => { value.cases[9].expected.assessment = 'unresolved'; },
+      (value) => { value.cases[9].expected.examples.null = 0; },
+      (value) => { value.cases[9].inputs.push('RT-10/rubric.json'); },
+      (value) => { value.cases[8].inputs.push('runtime.test.mjs'); },
+      (value) => { value.cases[8].inputs.pop(); },
+    ]) {
+      const value = JSON.parse(original); mutate(value);
+      writeFileSync(casesPath, JSON.stringify(value));
+      assert.throws(() => validateManifest(dir));
+    }
+    writeFileSync(casesPath, original);
+    for (const id of ['RT-09', 'RT-10']) {
+      const rubricPath = join(dir, id, 'rubric.json');
+      const originalRubric = readFileSync(rubricPath, 'utf8');
+      const mutations = id === 'RT-09'
+        ? [(value) => { value.protectedReasoning = []; }]
+        : [(value) => { value.completionReasoning = []; },
+          (value) => { value.completionReasoning[0] = ''; },
+          (value) => { value.routing = 'activate'; },
+          (value) => { value.assessment = 'defect'; },
+          (value) => { value.expectedFindings.push({ id: 'unsolicited-audit' }); },
+          (value) => { value.protectedReasoning.push('Runtime audit completed'); }];
+      for (const mutate of mutations) {
+        const value = JSON.parse(originalRubric); mutate(value);
+        writeFileSync(rubricPath, JSON.stringify(value));
+        assert.throws(() => validateManifest(dir));
+      }
+      writeFileSync(rubricPath, originalRubric);
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('research prototype has explicit negative task boundary and sequential guide references', () => {
+  const skill = readFileSync(join(fixtureRoot, 'prototype/SKILL.md'), 'utf8');
+  const guide = readFileSync(join(fixtureRoot, 'prototype/runtime-guide.md'), 'utf8');
+  assert.match(skill, /^name: runtime-research$/m);
+  assert.match(skill, /Do NOT trigger for: syntax explanations/);
+  assert.match(skill, /opencode\/slash: "true"/);
+  assert.match(skill, /research\/revision: "1"/);
+  assert.match(skill, /^## Setup$/m);
+  assert.match(skill, /^## Process$/m);
+  assert.deepEqual([...guide.matchAll(/^### Step (\d+)/gm)].map((match) => Number(match[1])), [1, 2, 3, 4, 5, 6, 7]);
+  assert.match(skill, /Steps 1–2/);
+  assert.match(skill, /Steps 3–5/);
+  assert.match(skill, /Step 6/);
+  assert.match(skill, /Step 7/);
+  assert(!/RT-\d{2}/.test(skill + guide), 'Generic prototype must not enumerate development answers');
+  // Structural coverage cannot establish a future model's actual activation behavior.
 });

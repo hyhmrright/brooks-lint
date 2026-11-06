@@ -19,25 +19,33 @@ export function validateManifest(root = fixtureRoot) {
   };
   const manifest = JSON.parse(read('cases.json'));
   assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.revision, 4);
+  assert.equal(manifest.revision, 5);
   assert(nonempty(manifest.provenance));
-  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08']);
+  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10']);
   for (const entry of manifest.cases) {
     assert.equal(entry.revision, 1);
     const unresolved = ['RT-07', 'RT-08'].includes(entry.id);
-    assert.equal(entry.kind, unresolved ? 'unresolved' : ['RT-01', 'RT-03', 'RT-05'].includes(entry.id) ? 'defect' : 'protected');
+    const batch = entry.id === 'RT-09';
+    const syntax = entry.id === 'RT-10';
+    assert.equal(entry.kind, syntax ? 'non-trigger' : unresolved ? 'unresolved' : ['RT-01', 'RT-03', 'RT-05'].includes(entry.id) ? 'defect' : 'protected');
     assert.equal(entry.task, `${entry.id}/task.md`);
     assert.equal(entry.context, `${entry.id}/context.md`);
     assert.equal(entry.rubric, `${entry.id}/rubric.json`);
     const isolation = ['RT-05', 'RT-06'].includes(entry.id);
     const retries = ['RT-03', 'RT-04'].includes(entry.id);
-    assert.deepEqual(entry.inputs, unresolved ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(entry.id === 'RT-08' ? ['shared/retry.mjs'] : [])] : [entry.task, entry.context, `${entry.id}/service.mjs`,
+    assert.deepEqual(entry.inputs, batch || syntax ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(batch ? ['shared/clock.mjs'] : [])] : unresolved ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(entry.id === 'RT-08' ? ['shared/retry.mjs'] : [])] : [entry.task, entry.context, `${entry.id}/service.mjs`,
       ...(isolation ? ['shared/worker-pool.mjs', 'shared/optional-work.mjs'] : [
         'shared/clock.mjs', 'shared/request-boundary.mjs',
         ...(retries ? ['shared/retry.mjs', 'shared/retry-transport.mjs'] : ['shared/transport.mjs'])])]);
     // This whitelist deliberately excludes answer rubrics, tests, and the manifest.
     for (const input of entry.inputs) assert(nonempty(read(input)), `Empty input: ${input}`);
-    if (unresolved) {
+    if (batch) {
+      assert.deepEqual(entry.expected, { finiteBatch: {
+        response: 'completed', processed: 5, failed: 0, maxActive: 2, active: 0, timers: 0, logicalTime: 3000,
+      } });
+    } else if (syntax) {
+      assert.deepEqual(entry.expected, { assessment: 'task-only', examples: { priced: 17, missing: 0, undefined: 0, null: null }, rejection: 'propagated' });
+    } else if (unresolved) {
       assert.deepEqual(entry.expected, { assessment: 'unresolved', countermodels: entry.id === 'RT-07' ? {
         cancellable: { response: 'timed-out', active: 0 }, ignoresAbort: { response: 'timed-out', active: 1 },
       } : {
@@ -90,6 +98,13 @@ export function validateManifest(root = fixtureRoot) {
       for (const field of ['symptom', 'source', 'consequence', 'remedy', 'grading']) assert(nonempty(finding[field]));
       assert(Array.isArray(finding.requiredEvidence) && finding.requiredEvidence.length > 0);
       assert(finding.requiredEvidence.every(nonempty));
+    } else if (syntax) {
+      assert.equal(rubric.assessment, 'task-only');
+      assert.equal(rubric.routing, 'do-not-activate');
+      assert.deepEqual(rubric.expectedFindings, []);
+      assert.deepEqual(rubric.protectedReasoning, []);
+      assert(Array.isArray(rubric.completionReasoning) && rubric.completionReasoning.length >= 4);
+      assert(rubric.completionReasoning.every(nonempty));
     } else if (unresolved) {
       assert.equal(rubric.assessment, 'unresolved');
       assert.deepEqual(rubric.expectedFindings, []);
