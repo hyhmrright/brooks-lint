@@ -156,3 +156,13 @@ saves a frozen all-nine, 27-turn simulated exercise, separately injected boundar
 scenarios, reviewer packets and actual offline CLI validation. `npm run
 evals:runtime:drill` verifies its generated artifacts. All answers and labels are
 authored simulations, not responding-model outputs or independent validation.
+
+## Reviewer exchange and unresolved disagreements
+
+The separate [synthetic reviewer workflow](../../../../docs/research/runtime-results/2026-11-06-hc-review-workflow/README.md)
+provides packet-bound editable forms, two-submission comparison and explicit
+adjudication without changing this frozen adapter. Both original submissions and
+previous source reviews remain in a new revision's audit. Missing reviews and
+unresolved conflicts stay ungraded; no reviewer is selected automatically.
+`npm run evals:runtime:reviews:validate` verifies the scripted offline archive.
+These supplied annotations are not human calibration or independent validation.
