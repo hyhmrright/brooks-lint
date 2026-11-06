@@ -1,0 +1,54 @@
+{
+  "revision": 1,
+  "caseId": "RT-14",
+  "assessment": "Manual semantic assessment; offline validation checks structure and evidence anchors only.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored; agent QA is distinct from pending human review",
+    "bookMapping": "pending; fixture contract is the present source of truth"
+  },
+  "coreOverlap": "Possible core overlap remains unmeasured; no incremental benefit is claimed.",
+  "expectedFindings": [
+    {
+      "id": "RT-14-expired-queue-work",
+      "allowedSeverities": [
+        "Warning"
+      ],
+      "grading": "Match semantic evidence, not exact wording, formatting or risk codes. One bounded causal issue only; no duplicate findings. Record unlabeled severity separately; Critical and Suggestion are outside the authored range.",
+      "symptom": "Request B expires at time5 while queued, but starts dependency work after the blocker releases at time10.",
+      "source": "createService configures checkExpiry false; the queue therefore admits B without honoring its absolute waiting expiry.",
+      "consequence": "One dependency operation starts after its result is no longer useful under the explicit request-owned contract, delaying live request C. Capacity remains bounded; this does not demonstrate an unbounded queue or outage.",
+      "remedy": "After diagnosis, expire or filter waiting request work before admission, preserve live FIFO order and release expiry timers and listeners.",
+      "requiredEvidence": [
+        "Identify request-owned usefulness contract and expiry5.",
+        "Trace B queued behind blocker and started at10 after expiry.",
+        "Distinguish waiting expiry from active cancellation, durable jobs, and finite capacity."
+      ]
+    }
+  ],
+  "protectedReasoning": [],
+  "forbiddenClaims": [
+    "Production-wide outage, traffic scale, actual memory/sockets or data loss not established by this fixture.",
+    "A public risk code or numeric runtime/combined Health Score is required.",
+    "Offline checks establish model reasoning quality, independent holdout quality or human validation.",
+    "Every queue requires expiry even for durable jobs."
+  ],
+  "evidence": [
+    {
+      "file": "RT-14/service.mjs",
+      "anchor": "createService"
+    },
+    {
+      "file": "RT-14/context.md",
+      "anchor": "Expired waiting entries"
+    },
+    {
+      "file": "shared/expiring-queue.mjs",
+      "anchor": "expiresAt <= this.clock.now"
+    },
+    {
+      "file": "shared/worker-pool.mjs",
+      "anchor": "#start(entry)"
+    }
+  ]
+}

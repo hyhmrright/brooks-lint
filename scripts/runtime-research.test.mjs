@@ -56,13 +56,13 @@ test('default validation and plan mode never require Codex or credentials', t =>
     assert.equal(run.status, 0, run.stderr); assert.match(run.stdout, /offline/);
   }
   const plan = JSON.parse(readFileSync(path.join(dir, 'plan/plan.json'), 'utf8'));
-  assert.equal(schedule(plan).length, 30);
-  assert.equal(plan.study.cases.length, 10);
+  assert.equal(schedule(plan).length, 48);
+  assert.equal(plan.study.cases.length, 16);
 });
 
 test('plans freeze exact artifacts, reject edits and invalid settings, and rotate three arms', () => {
   const plan = createPlan({ model: 'fixture-model', runs: 3 });
-  assert.equal(schedule(plan).length, 90);
+  assert.equal(schedule(plan).length, 144);
   assert.deepEqual(schedule(plan).slice(0, 3).map(r => r.arm), ['A', 'B', 'C']);
   assert.deepEqual(schedule(plan).filter(r => r.case_id === 'RT-01' && r.repetition === 2).map(r => r.arm), ['B', 'C', 'A']);
   assert.equal(expectedCatalog('A').length, 0); assert.equal(expectedCatalog('B').length, 6); assert.equal(expectedCatalog('C').length, 7);
@@ -154,6 +154,39 @@ test('trace read proxy excludes echo/search claims and failed commands', () => {
   const event = (command, exit_code = 0) => JSON.stringify({ type: 'item.completed', item: { type: 'command_execution', exit_code, command, aggregated_output: body } });
   assert.equal(researchTrace(event('cat .agents/skills/runtime-research/SKILL.md')).prototype_reads.length, 1);
   for (const line of [event('echo runtime-research SKILL.md'), event('rg runtime-research SKILL.md'), event('cat runtime-research/SKILL.md', 1)]) assert.equal(researchTrace(line).prototype_reads.length, 0);
+});
+
+test('expanded deadline and queue cases freeze visible inputs and count unresolved controls by manifest kind', () => {
+  const plan = createPlan({ model: 'offline-fixture', runs: 1 });
+  const newCases = plan.study.cases.filter(c => Number(c.id.slice(3)) >= 11);
+  assert.deepEqual(newCases.map(c => [c.id, c.kind]), [
+    ['RT-11', 'defect'], ['RT-12', 'protected'], ['RT-13', 'unresolved'],
+    ['RT-14', 'defect'], ['RT-15', 'protected'], ['RT-16', 'unresolved'],
+  ]);
+  for (const c of newCases) {
+    assert(c.inputs.every(f => !/rubric|cases\.json|test|README|prototype|countermodel/i.test(f.path)));
+    assert(!c.prompt.includes('rubric.json'));
+    assert.equal(c.revision, 1);
+  }
+  const records = schedule(plan).map(k => ({ ...k, status: 'executed', answer: 'Fixture answer.' }));
+  const packets = reviewPackets(plan, records);
+  const judgments = packets.map(p => judgment(p));
+  const summary = summarize(plan, records, judgments);
+  assert.equal(summary.complete_triplets, 16);
+  assert.equal(summary.arm_metrics.C.unresolved_controls, 4);
+  assert.equal(summary.arm_metrics.C.correct_unresolved, 4);
+  for (const id of ['RT-07', 'RT-08', 'RT-13', 'RT-16']) {
+    assert.equal(summary.case_metrics[id].C.comparable.correct_unresolved, 1);
+  }
+  // A protected case is not an unresolved control even if a supplied judge says so.
+  assert.equal(summary.case_metrics['RT-12'].C.comparable.unresolved_controls, 0);
+  const cPacket = packets.find(p => p.case_id === 'RT-16' && p.packet_id === digest(`${plan.study_sha256}/RT-16/1/C`).slice(0, 24));
+  const failedRestraint = judgments.map(j => j.packet_id === cPacket.packet_id ? { ...j, unsupported_certainty: true } : j);
+  assert.equal(summarize(plan, records, failedRestraint).arm_metrics.C.correct_unresolved, 3);
+  const incomplete = judgments.map(j => j.packet_id === cPacket.packet_id ? { ...j, completed: false } : j);
+  assert.equal(summarize(plan, records, incomplete).arm_metrics.C.correct_unresolved, 3);
+  const inventedSafety = judgments.map(j => j.packet_id === cPacket.packet_id ? { ...j, assessment: 'protected' } : j);
+  assert.equal(summarize(plan, records, inventedSafety).arm_metrics.C.correct_unresolved, 3);
 });
 
 test('pre-aborted execution records interruption without starting fake CLI', async t => {

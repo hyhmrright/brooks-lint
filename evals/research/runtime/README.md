@@ -1,7 +1,7 @@
-# Runtime research fixtures: RT-01–RT-10
+# Runtime research fixtures: RT-01–RT-16
 
-Manifest revision 5, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
-implement the first three pairs, two incomplete-context controls, and the finite-batch/syntax controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
+Manifest revision 6, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
+implement the first three pairs, deadline-coverage and waiting-expiry triplets, four incomplete-context controls, and the finite-batch/syntax controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 The [runtime guidance prototype](prototype/SKILL.md) is research-only and remains
 outside the production skills catalog. No public risk code, runtime score, or model
 results are introduced. Human review, book-source mapping, independent holdouts,
@@ -155,14 +155,17 @@ checks establish a real model's activation restraint; that remains future evalua
 
 ## Input and grading boundary
 
-[`cases.json`](cases.json) defines schema 1 / manifest revision 5 and ten cases. Each entry
+[`cases.json`](cases.json) defines schema 1 / manifest revision 6 and sixteen cases. Each entry
 has an explicit `inputs` whitelist: task, context, its service, and shared clock,
 boundary, and transport for the first two pairs; retry cases also include the retry
 helper. The resource pair includes its pool and optional-work implementation instead.
 RT-07 includes only its task, context and leaf; RT-08 additionally includes the
 retry helper. The countermodel callers/transports remain test-only. RT-09 includes
 its task, context, service and logical clock; RT-10 only its task, context and snippet.
-Those files are the complete prospective review input.
+RT-11–RT-13 include the staged deadline helper and logical clock. RT-14/RT-15
+include the expiring-queue adapter, pool, work adapter and clock; RT-16 supplies
+only its bounded queue and work adapter, not the private lifecycle contracts.
+Those files are the complete prospective review input for their respective cases.
 The common context is an authored contract, not production evidence. The task is
 identical within each pair and does not state the expected diagnosis.
 
@@ -213,6 +216,56 @@ codes, formatting, citations, or a numeric score. Record unsupported findings,
 missed issues, unlabeled or miscalibrated severity, and review disagreements
 separately. Possible overlap with core findings remains unmeasured.
 
+## End-to-end deadline coverage: RT-11 / RT-12 / RT-13
+
+The explicit total100 contract includes setup80 and work60. RT-11 arms a fresh
+100-unit timer only after setup: it remains active at total100, succeeds at140,
+and cancels its unused local timer (which otherwise expires at180). This is a
+bounded coverage violation, not absence of a timer. RT-12 arms the total boundary
+at entry and releases work at100 after80 setup and20 work. Both retain early
+success, phase-failure and parent-cancellation cleanup.
+
+RT-13 supplies only a leaf with a local60 limit. Private tests run that identical
+leaf after80 setup: without an outer boundary it reaches its local timeout at140,
+violating a privately supplied total100 contract but satisfying a permitted160
+budget. A third caller supplies an effective total100 boundary. The test clock
+orders equal-time callbacks by registration: the local deadline precedes the
+work-completion callback at140. None of these private completions is the hidden
+case truth. The correct assessment requests caller start/budget, outer cancellation
+and usefulness evidence without assigning a defect, safety verdict or severity.
+
+Tests assert at-boundary response, actual active phases, final logical time,
+parent listeners and timers, including pre-abort, setup/work failure, early success
+and setup/work cancellation. A reset-after-setup mutant fails the protected
+boundary even though its work eventually finishes. Rubrics permit one Warning
+for RT-11, protect RT-12 only on the supplied path, and require abstention for RT-13.
+
+## Waiting expiry: RT-14 / RT-15 / RT-16
+
+One worker and two waiting slots are fixed in both full-path variants. At0 a
+blocker starts, B queues with expiresAt5, and C queues with expiresAt30. The driver
+advances to10 and releases the blocker. RT-14 ignores expiry: B starts at10,
+delaying C despite B's expired usefulness. RT-15 removes B at5 without starting
+dependency work, so C starts at10. The contract concerns waiting admission;
+running work retains its separately owned cancellation lifetime. Bounded overload
+is allowed, and finite queueing is not itself a finding.
+
+RT-16 exposes only finite FIFO admission. Private countermodels run the same code
+and observe B's start at10 and completion: an expiring request contract with
+usefulUntil5 is violated; a durable accepted-job contract requiring exactly-once
+completion is satisfied by that trace. The tests derive those judgments from the
+recorded start/completion and separately supplied contracts. Missing ownership,
+expiry policy and upstream context prevent either definitive diagnosis for the
+visible case. Durable jobs are not automatically required to expire with callers.
+
+Offline tests cover early/at-boundary and multiple waiting expirations, FIFO among
+live entries, finite overload, active success/failure/cancellation, queued and
+pre-aborted cancellation, cleanup, and an ignore-expiry mutant rejected by the
+protected oracle. No result is inferred solely from an outward promise: starts,
+queued/active occupancy and cleanup are measured. Rubrics allow one Warning for
+RT-14, protect RT-15's waiting-admission behavior and require unresolved RT-16.
+Input whitelists exclude tests, rubrics and private countermodels for all six cases.
+
 ## Changing the artifacts
 
 Use a focused PR against `research/domain-packs` and link the case ID and
@@ -220,7 +273,7 @@ Use a focused PR against `research/domain-packs` and link the case ID and
 fixture behavior and rubric semantics together. Update the case/rubric revision
 and documented schema contract if expectations change; preserve any future run's
 exact artifact digests rather than rewriting prior results. The present validator
-intentionally accepts only these ten cases and revisions, not a general pack schema.
+intentionally accepts only these sixteen cases and revisions, not a general pack schema.
 
 ## Research execution and independent contributions
 

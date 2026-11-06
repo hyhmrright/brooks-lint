@@ -1,0 +1,3 @@
+# RT-14: supplied context
+
+This synthetic queue has one worker and two waiting slots. The standard trace starts one blocking operation at time 0, queues request B with expiresAt 5 and request C with expiresAt 30, advances to time 10, then releases the blocking operation. B and C are request-owned work; queued work is useful only strictly before its absolute expiresAt. Expired waiting entries must not start dependency work, and must leave admission so live entries retain FIFO order. Running work has a separately owned cancellation lifetime: this exercise concerns waiting expiry. Queue rejection is permitted. No durable side effects or must-finish jobs exist on this supplied path.

@@ -1,12 +1,13 @@
 # Runtime research: candidate case catalog
 
-Status: first-pass research inventory, 2026-11-06. **All 27 candidates below are
-proposals, not implemented or runnable fixtures.** The runnable development set
-remains [RT-01–RT-10](../../evals/research/runtime/README.md); its manifest, rubrics
-and prototype are unchanged by this catalog. No live model evaluation was run.
+Status: research inventory, 2026-11-06. C01/C02 are implemented as six authored
+development fixtures, RT-11–RT-16; 21 candidates in C03–C09 remain proposals, not
+runnable fixtures. The [runnable development set](../../evals/research/runtime/README.md)
+now contains RT-01–RT-16 at manifest revision 6. The original ten case revisions
+and the guidance prototype are unchanged. No live model evaluation was run.
 
 This bounded inventory is not exhaustive. The experiments are original synthetic
-proposals, not copied programs or incident reproductions. References do not prove
+test designs, not copied programs or incident reproductions. References do not prove
 diagnoses, severity or production impact. Authored or inspected cases remain
 exposed development data. Human review, book mapping and independent holdouts
 remain pending; see the [participation procedure](runtime-review-and-holdouts.md).
@@ -31,7 +32,8 @@ review, sanitization and recorded local execution; an article URL is insufficien
 ## Candidate matrix
 
 Planning IDs `Cxx-D/P/U` mean defective/protected/unresolved, not risk codes or
-registered RT fixtures. Protection is path-specific. Unresolved variants need
+registered RT fixtures. C01 maps D/P/U to RT-11/12/13, and C02 to RT-14/15/16.
+Other planning IDs are unimplemented. Protection is path-specific. Unresolved variants need
 private contrasting countermodels outside visible inputs. Numbers are proposed
 fixture contracts, not universal defaults.
 
@@ -71,22 +73,40 @@ Before calling a candidate runnable, require:
    cleanup: zero owned resources, listeners and timers. Use fake clocks and
    scripted transports; no network, real sleeps or live models.
 4. Private countermodels proving unresolved visible inputs permit different outcomes.
-5. Reviewed integration: the current validator accepts exactly ten cases. New IDs
+5. Reviewed integration: the current validator accepts exactly sixteen cases. New IDs
    or holdout loading require implementation review; never bypass the validator.
 6. Applicable offline checks and QA, then commit/push. Record implemented status
    only after passing; human semantic review remains separate.
 
-The [runner](runtime-runner.md) supports the existing catalog, not these proposals.
+The [runner](runtime-runner.md) supports all sixteen registered cases, including C01/C02.
+It does not execute the remaining proposals.
 Changed fixtures/guidance invalidate frozen plans: freeze revisions and create a
 new plan. Live evaluation requires separate explicit authorization.
 
 ## Suggested implementation order
 
-Keep RT-01–RT-10 as the baseline. First implement C01/C02 offline for deadline/queue
-boundaries, then C04/C05 for aggregate attempts/duplicate effects. Consider C03/C06/C07
+RT-01–RT-10 remain the original baseline; C01/C02 are now implemented and checked
+offline. Next consider C04/C05 for aggregate attempts/duplicate effects, then C03/C06/C07
 after review. Reserve C08/C09 for explicit scope expansion.
 
 Seek human review of an existing pair in parallel. Commission holdouts through
 the custody procedure before exposing authors to this catalog where practical;
 already exposed contributors remain useful with disclosure. Public research and
 offline tests cannot satisfy independent validation by themselves.
+
+## C01/C02 implementation research notes
+
+Original deterministic JavaScript fixtures implement these designs; no external
+program or incident trace was copied. [gRPC's Deadlines guide](https://grpc.io/docs/guides/deadlines/),
+“Deadline Propagation,” was also inspected on 2026-11-06: it describes deducting
+elapsed time when propagating a timeout. That supports the remaining-budget
+question, not a claim that these JavaScript fixtures execute or test gRPC.
+Google SRE's “Missing deadlines” and “Deadline propagation” sections motivate
+checking whether queued request work is still useful when capacity arrives.
+The numerical budgets, finite queues, synthetic traces and rubric severities are
+our authored contracts and judgments; human review and book mapping are pending.
+
+Verification commands for the expanded catalog: `npm run evals:runtime:offline`
+and `npm run evals:runtime:research:validate`, plus the repository QA gate.
+Offline execution demonstrates fixture behavior; it supplies no model performance
+result or independent holdout evidence.

@@ -2,7 +2,7 @@
 
 Status: implemented research tooling, 2026-11-06. Verified with deterministic
 fixtures and a local fake CLI only. No real model evaluation has been run.
-See the [pilot plan](runtime-pilot-plan.md), [ten development cases](../../evals/research/runtime/README.md),
+See the [pilot plan](runtime-pilot-plan.md), [sixteen development cases](../../evals/research/runtime/README.md),
 and [human review and independent holdouts procedure](runtime-review-and-holdouts.md).
 
 ## Scope and arms
@@ -45,7 +45,7 @@ npm run evals:runtime:research -- --plan --model MODEL --runs 1 \
   --out evals/research/runtime/runs/plan-01
 ```
 
-`--case RT-09` selects one case during planning; otherwise all ten are planned.
+`--case RT-09` selects one case during planning; otherwise all sixteen are planned.
 `--reasoning high` and `--timeout 240` are defaults. `--runs` accepts 1–100.
 Plans record the source commit and dirty-worktree flag, exact natural prompts,
 whitelisted inputs, private rubrics, core/prototype contents, manifest revision,
@@ -179,3 +179,10 @@ cannot count as wins. Judgments and reviewer disagreements remain inspectable.
 
 No summary automatically promotes the prototype. Source verification, human case
 review, independent holdouts and an evidence-based decision remain outstanding.
+
+The revision-6 development manifest includes RT-11–RT-13 (deadline coverage) and
+RT-14–RT-16 (queue expiry). Plans include 48 turns for one repetition of all
+sixteen cases, or 144 for three repetitions; planning runs no models. Context
+restraint metrics select every manifest case with `kind: unresolved`, including
+RT-13 and RT-16, rather than a fixed pair of case identifiers. Existing frozen
+plans remain historical artifacts; freeze a new plan for the expanded catalog.

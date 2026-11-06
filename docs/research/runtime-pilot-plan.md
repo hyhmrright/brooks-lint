@@ -1,6 +1,6 @@
 # Runtime failure containment: pilot research plan
 
-Status: research in progress, 2026-11-06. The [RT-01–RT-10 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
+Status: research in progress, 2026-11-06. The [RT-01–RT-16 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
 and deterministic tests. A [research-only guidance prototype](../../evals/research/runtime/prototype/SKILL.md)
 and [separate A/B/C runner](runtime-runner.md) are implemented and tested offline.
 Human review, source verification, independent holdouts and actual live results
@@ -15,9 +15,9 @@ call path from an actual gap? Can it withhold unsupported claims when operating
 context is missing, without using uncertainty to avoid a demonstrated defect?
 
 The implemented cases use small synthetic JavaScript ESM services: three
-request-driven pairs, incomplete-context controls, a finite offline batch and a
-syntax-only task. They have explicit input boundaries and no transpilation dependency
-on Node.js 20 or later. This replaces the initial TypeScript candidate for the
+request-driven pairs, incomplete-context controls, a finite offline batch, a
+syntax-only task, and two deadline/queue triples. They have explicit input
+boundaries and run without transpilation on Node.js 20 or later. This replaces the initial TypeScript candidate for the
 initial pairs so contributors can reproduce it with the repository's existing runtime.
 Deterministic fake transport, scheduling, and resource counters reproduce the
 failure mechanisms offline. TypeScript remains a possible later fixture language;
@@ -45,6 +45,12 @@ configuration, caller context, and expected outcomes before evaluating guidance.
 | RT-08 | Retry code is visible, but outer retry ownership and permitted request budget are unspecified. | Record the unresolved amplification question without inventing an outer retry layer or limit. |
 | RT-09 | An offline, finite batch task has an explicit long-running contract, bounded concurrency, and no request-serving availability requirement. | No request-deadline defect inferred from long duration alone. |
 | RT-10 | A user requests a syntax explanation for a networking snippet. | Answer the request without unsolicited runtime auditing or pack activation. |
+| RT-11 | Setup consumes 80 units of a 100-unit end-to-end request budget; the operation gets a fresh timeout and finishes at 140. | Diagnose the demonstrated total-budget coverage gap, not an absence of all timeouts. |
+| RT-12 | The same setup consumes budget; the operation receives only the remaining time and is released at 100. | Recognize effective end-to-end coverage without demanding redundant leaf timers. |
+| RT-13 | Only a locally timed operation is visible; caller budget and setup coverage are unspecified. | Request the missing caller contract and coverage evidence; withhold both defect and safety verdicts. |
+| RT-14 | Request-owned queued work expires before capacity is available but still starts later, against its supplied contract. | Diagnose the evidenced expired start and bounded wasted work. |
+| RT-15 | Expired queued work is removed; remaining live work retains FIFO ordering and resources are cleaned up. | Recognize the supplied queue-expiry protection without banning queues. |
+| RT-16 | Queue admission is visible but request ownership versus durable-job semantics are unspecified. | Identify the missing lifecycle contract; do not assume all delayed jobs should expire. |
 
 For RT-01, distinguish return-time limits from cancellation of underlying work.
 For RT-03, the nine-attempt expectation follows from three total attempts at each
@@ -65,14 +71,15 @@ For each case, prepare:
 The dedicated [`evals/research/runtime/`](../../evals/research/runtime/README.md)
 directory now contains three pairs: RT-01/RT-02 timeout/cancellation, RT-03/RT-04
 retry ownership, and RT-05/RT-06 capacity isolation, plus RT-07/RT-08 incomplete-context
-controls and RT-09/RT-10 finite-batch/syntax controls.
+controls and RT-09/RT-10 finite-batch/syntax controls, plus RT-11–RT-13
+deadline-coverage and RT-14–RT-16 queue-expiry triples.
 It includes a revisioned manifest,
 semantic rubrics, and offline structural validation/reproduction tests. Run
 `npm run evals:runtime:offline`; the same tests are included in `npm test`. These
 checks verify fixture behavior and artifact structure, not model answers. The separate research runner now supports only this fixed development catalog;
 its execution path is tested with a local fake CLI. The production paired runner,
 structural suite and frozen parser corpus remain unchanged. Human review and book
-source mapping for all ten implemented cases remain pending.
+source mapping for all sixteen implemented cases remain pending.
 
 RT-03 reproduces nine downstream calls from independent three-total-attempt owners;
 RT-04 stops at the shared request limit of three. Both honor caller cancellation,
@@ -96,6 +103,11 @@ RT-09 completes five finite batch records with two workers and per-item failure
 handling, with no request deadline requirement. RT-10 verifies syntax behavior
 and carries a task-only/non-trigger rubric; these offline checks do not establish
 actual model routing restraint.
+RT-11–RT-13 distinguish a timer that starts after setup from an end-to-end
+budget, including a private alternative completion for unknown caller contracts.
+RT-14–RT-16 distinguish request expiry from legitimate durable queued work.
+Only visible evidence may justify a finding; private countermodels establish
+underdetermination and are not assertions about a hidden production environment.
 See the fixture README for exact input boundaries and mutation-sensitive oracles.
 
 A contributor other than the prompt author should review expected outcomes before
@@ -153,7 +165,7 @@ ground truth.
 | --- | --- |
 | Supported-issue recall | Correctly identified expected issues / all expected issues, by case and arm. |
 | Unsupported-finding fraction | Unsupported asserted findings / all asserted findings; show N/A for zero findings and report clean-case counts separately. |
-| Context restraint | Counts of correct unresolved assessments and unsupported certainty on RT-07/08, including false claims of safety. |
+| Context restraint | Counts of correct unresolved assessments and unsupported certainty on all manifest `unresolved` cases (RT-07/08/13/16), including false claims of safety. |
 | Evidence completeness | Findings whose inspected locations and causal chain support the consequence / asserted findings. |
 | Severity calibration | Findings with explicit severity within the frozen rubric's allowed range / labeled findings; track unlabeled findings separately. |
 | Completion and routing restraint | Completed requested tasks, unsolicited audits on RT-10, and execution/judging failures. |
@@ -195,12 +207,12 @@ Record negative evidence as carefully as positive evidence.
 
 Start in [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45)
 with a case critique, a source reference, or an offer to own a small artifact.
-Useful next PRs include reviewing the implemented RT-01–RT-10 cases and prototype,
+Useful next PRs include reviewing the implemented RT-01–RT-16 cases and prototype,
 verifying source applicability, or authoring an independent counterexample. Follow
 the [human review and holdout procedure](runtime-review-and-holdouts.md) before
 sharing development material with a prospective blind author. Target `research/domain-packs` and link the case ID.
 Review and follow-up implementation roles are open; no work is assigned to the
-discussion author. The RT-01–RT-10 artifacts were agent-authored, with agent
+discussion author. The RT-01–RT-16 artifacts were agent-authored, with agent
 QA kept separate from pending human review.
 
 Before shipping any resulting feature, separately resolve pack discovery, public

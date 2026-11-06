@@ -146,7 +146,7 @@ function metrics(rows, cases) {
   const expected = rows.reduce((n, r) => n + cases.find(c => c.id === r.case_id).rubric.expectedFindings.length, 0);
   const missed = rows.reduce((n, r) => n + r.judgment.missing_expected_ids.length, 0);
   const labeled = findings.filter(f => f.severity !== 'unspecified');
-  const controls = rows.filter(r => ['RT-07', 'RT-08'].includes(r.case_id));
+  const controls = rows.filter(r => cases.find(c => c.id === r.case_id).kind === 'unresolved');
   return { samples: rows.length, completed: rows.filter(r => r.judgment.completed).length,
     expected_issues: expected, missed_issues: missed, recall: rate(expected - missed, expected),
     findings: findings.length, unsupported_findings: findings.filter(f => f.support === 'unsupported').length,

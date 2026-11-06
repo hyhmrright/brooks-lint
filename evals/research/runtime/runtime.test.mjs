@@ -164,7 +164,7 @@ for (const [name, handleQuote, Transport] of [
 }
 
 test('manifest keeps model inputs separate from grading artifacts', () => {
-  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10']);
+  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10', 'RT-11', 'RT-12', 'RT-13', 'RT-14', 'RT-15', 'RT-16']);
 });
 
 test('manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics', () => {
@@ -807,4 +807,308 @@ test('research prototype has explicit negative task boundary and sequential guid
   assert.match(skill, /Step 7/);
   assert(!/RT-\d{2}/.test(skill + guide), 'Generic prototype must not enumerate development answers');
   // Structural coverage cannot establish a future model's actual activation behavior.
+});
+
+import { handleRequest as uncoveredDeadline } from './RT-11/service.mjs';
+import { handleRequest as coveredDeadline } from './RT-12/service.mjs';
+import { startLeaf as partialDeadline } from './RT-13/service.mjs';
+import { createService as staleQueue } from './RT-14/service.mjs';
+import { createService as liveQueue } from './RT-15/service.mjs';
+import { createService as partialQueue } from './RT-16/service.mjs';
+
+for (const [id, handleRequest] of [['RT-11', uncoveredDeadline], ['RT-12', coveredDeadline]]) {
+  test(`${id}: setup and work share the stated total boundary only when covered`, async () => {
+    const clock = new ManualClock();
+    const caller = new AbortController();
+    const request = handleRequest({ clock, signal: caller.signal });
+    clock.advanceTo(80);
+    assert.equal(request.stats.setupStarted, 1);
+    assert.equal(request.stats.workStarted, 1);
+    clock.advanceTo(100);
+    assert.deepEqual({ response: request.result?.status ?? 'pending', active: request.stats.active,
+      timers: clock.pendingTimers, time: clock.now }, entryFor(id).expected.atTotalBoundary);
+    clock.advanceTo(140);
+    const answer = await request.response;
+    assert.deepEqual({ response: answer.status, time: answer.at, active: request.stats.active,
+      timers: clock.pendingTimers }, entryFor(id).expected.settled);
+    assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+    clock.advanceTo(1000);
+    assert.equal(clock.pendingTimers, 0);
+  });
+  test(`${id}: early completion clears both phase and deadline`, async () => {
+    const clock = new ManualClock();
+    const caller = new AbortController();
+    const request = handleRequest({ clock, signal: caller.signal, setupDuration: 10, workDuration: 20 });
+    clock.advanceTo(30);
+    assert.deepEqual(await request.response, { status: 'ok', at: 30 });
+    assert.equal(request.stats.active, 0);
+    assert.equal(clock.pendingTimers, 0);
+    assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+  });
+  for (const [phase, time] of [['setup', 80], ['work', 90]]) {
+    test(`${id}: ${phase} failure clears owned resources`, async () => {
+      const clock = new ManualClock();
+      const caller = new AbortController();
+      const request = handleRequest({ clock, signal: caller.signal, failPhase: phase, workDuration: 10 });
+      clock.advanceTo(time);
+      assert.deepEqual(await request.response, { status: 'error', at: time });
+      assert.equal(request.stats.active, 0);
+      assert.equal(clock.pendingTimers, 0);
+      assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+    });
+  }
+  for (const time of [0, 30, 90]) {
+    test(`${id}: parent cancellation at ${time} starts no later phases`, async () => {
+      const clock = new ManualClock();
+      const caller = new AbortController();
+      if (!time) caller.abort(new Error('Already cancelled'));
+      const request = handleRequest({ clock, signal: caller.signal });
+      if (time) { clock.advanceTo(time); caller.abort(new Error('Parent cancelled')); }
+      assert.deepEqual(await request.response, { status: 'cancelled', at: time });
+      assert.equal(request.stats.active, 0);
+      assert.equal(request.stats.setupStarted, time ? 1 : 0);
+      const started = request.stats.workStarted;
+      clock.advanceTo(1000);
+      assert.equal(request.stats.workStarted, started);
+      assert.equal(clock.pendingTimers, 0);
+      assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+    });
+  }
+}
+
+test('total deadline oracle rejects reset-after-setup mutant despite eventual bounded completion', async () => {
+  const clock = new ManualClock();
+  const request = uncoveredDeadline({ clock });
+  clock.advanceTo(100);
+  assert.throws(() => assert.deepEqual({ response: request.result?.status ?? 'pending', active: request.stats.active,
+    timers: clock.pendingTimers, time: clock.now }, entryFor('RT-12').expected.atTotalBoundary));
+  clock.advanceTo(140);
+  assert.equal((await request.response).status, 'ok');
+  assert.equal(clock.pendingTimers, 0);
+});
+
+for (const [name, total, outer] of [['uncovered', 100, false], ['permitted', 160, false], ['outerBounded', 100, true]]) {
+  test(`RT-13: identical local leaf permits ${name} caller completion`, async () => {
+    const clock = new ManualClock();
+    let leaf;
+    let resolve;
+    const completion = new Promise(done => { resolve = done; });
+    const load = ({ signal } = {}) => {
+      const onAbort = () => { cancelSetup(); resolve({ status: 'cancelled', at: clock.now }); };
+      const cancelSetup = clock.schedule(80, () => {
+        signal?.removeEventListener('abort', onAbort);
+        leaf = partialDeadline({ clock, signal });
+        leaf.response.then(resolve);
+      });
+      signal?.addEventListener('abort', onAbort, { once: true });
+      return completion;
+    };
+    const request = outer ? startRequest({ clock, load, deadline: total }) : (load(), null);
+    clock.advanceTo(80);
+    clock.advanceTo(100);
+    await nextTurn();
+    if (!outer) clock.advanceTo(140);
+    const answer = outer ? await request.response : await completion;
+    const time = outer ? 100 : answer.at;
+    assert.deepEqual({ response: answer.status, time, withinBudget: time <= total }, entryFor('RT-13').expected.countermodels[name]);
+    assert.equal(leaf.stats.active, 0);
+    assert.equal(clock.pendingTimers, 0);
+    if (outer) assert.equal(getEventListeners(request.signal, 'abort').length, 0);
+  });
+}
+
+async function queueTrace(createService, { record = false } = {}) {
+  const clock = new ManualClock();
+  const work = new OptionalWork();
+  const starts = [];
+  const completions = [];
+  if (record) {
+    const open = work.open.bind(work);
+    work.open = options => {
+      starts.push({ at: clock.now });
+      return open(options).then(value => { completions.push(value); return value; });
+    };
+  }
+  const service = createService({ clock, work });
+  const callers = Array.from({ length: 3 }, () => new AbortController());
+  const requests = callers.map((caller, index) => service.submit({ signal: caller.signal, expiresAt: [100, 5, 30][index] }));
+  clock.advanceTo(10);
+  await nextTurn();
+  const afterExpiry = { queued: service.queue.queued, started: work.started };
+  work.completeNext('A');
+  await requests[0];
+  await nextTurn();
+  return { clock, work, service, callers, requests, afterExpiry, starts, completions };
+}
+async function closeQueue(state) {
+  for (const caller of state.callers) caller.abort(new Error('Driver cleanup'));
+  await Promise.all(state.requests);
+  await nextTurn();
+  assert.equal(state.work.active, 0);
+  assert.equal(state.service.queue.active, 0);
+  assert.equal(state.service.queue.queued, 0);
+  assert.equal(state.clock.pendingTimers, 0);
+  for (const caller of state.callers) assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+}
+for (const [id, createService] of [['RT-14', staleQueue], ['RT-15', liveQueue]]) {
+  test(`${id}: queued expiry changes admission, not merely outward result`, async () => {
+    const state = await queueTrace(createService);
+    try {
+      assert.deepEqual(state.afterExpiry, entryFor(id).expected.afterExpiry);
+      let bSettled = false;
+      state.requests[1].then(() => { bSettled = true; });
+      await nextTurn();
+      const expiredStarted = !bSettled;
+      assert.deepEqual({ started: state.work.started, expiredStarted, next: expiredStarted ? 'B' : 'C' }, entryFor(id).expected.afterRelease);
+      assert.equal(state.service.queue.active, 1);
+      state.work.completeNext('next');
+      assert.deepEqual(await state.requests[id === 'RT-14' ? 1 : 2], { status: 'ok', value: 'next' });
+      if (id === 'RT-14') { await nextTurn(); state.work.completeNext('C'); assert.deepEqual(await state.requests[2], { status: 'ok', value: 'C' }); }
+      else assert.deepEqual(await state.requests[1], { status: 'expired' });
+    } finally { await closeQueue(state); }
+  });
+  for (const outcome of ['success', 'failure', 'abort']) {
+    test(`${id}: active ${outcome} admits live FIFO successors and cleans listeners`, async () => {
+      const clock = new ManualClock();
+      const work = new OptionalWork();
+      const service = createService({ clock, work });
+      const callers = Array.from({ length: 3 }, () => new AbortController());
+      const requests = callers.map(c => service.submit({ signal: c.signal, expiresAt: 100 }));
+      if (outcome === 'success') work.completeNext('A');
+      else if (outcome === 'failure') work.failNext();
+      else callers[0].abort(new Error('Cancel active'));
+      assert.equal((await requests[0]).status, outcome === 'success' ? 'ok' : outcome === 'failure' ? 'error' : 'cancelled');
+      await nextTurn();
+      work.completeNext('B');
+      assert.deepEqual(await requests[1], { status: 'ok', value: 'B' });
+      await nextTurn();
+      work.completeNext('C');
+      assert.deepEqual(await requests[2], { status: 'ok', value: 'C' });
+      await closeQueue({ clock, work, service, callers, requests });
+    });
+  }
+  test(`${id}: finite overload, queued cancellation and pre-abort start no extra work`, async () => {
+    const clock = new ManualClock();
+    const work = new OptionalWork();
+    const service = createService({ clock, work });
+    const callers = Array.from({ length: 5 }, () => new AbortController());
+    const requests = callers.slice(0, 4).map(c => service.submit({ signal: c.signal, expiresAt: 100 }));
+    assert.deepEqual(await requests[3], { status: 'overloaded' });
+    callers[4].abort(new Error('Already cancelled'));
+    requests.push(service.submit({ signal: callers[4].signal, expiresAt: 100 }));
+    assert.deepEqual(await requests[4], { status: 'cancelled' });
+    callers[1].abort(new Error('Queued client cancelled'));
+    assert.deepEqual(await requests[1], { status: 'cancelled' });
+    assert.equal(work.started, 1);
+    assert.equal(service.queue.queued, 1);
+    await closeQueue({ clock, work, service, callers, requests });
+  });
+}
+
+test('RT-15: already expired submissions do not enter empty admission or acquire timers', async () => {
+  const clock = new ManualClock(); clock.advanceTo(10);
+  const work = new OptionalWork();
+  const service = liveQueue({ clock, work });
+  const caller = new AbortController();
+  assert.deepEqual(await service.submit({ signal: caller.signal, expiresAt: 10 }), { status: 'expired' });
+  assert.equal(work.started, 0);
+  assert.equal(clock.pendingTimers, 0);
+  assert.equal(getEventListeners(caller.signal, 'abort').length, 0);
+});
+
+test('waiting-expiry oracle rejects ignore-expiry mutant under identical finite capacity', async () => {
+  const state = await queueTrace(staleQueue);
+  try { assert.throws(() => assert.deepEqual(state.afterExpiry, entryFor('RT-15').expected.afterExpiry)); }
+  finally { await closeQueue(state); }
+});
+
+for (const [name, privateContract] of [
+  ['requestOwned', { ownership: 'request', usefulUntil: 5 }],
+  ['durableJob', { ownership: 'durable', mustCompleteExactlyOnce: true }],
+]) {
+  test(`RT-16: identical visible admission permits ${name} completion with different usefulness contract`, async () => {
+    const state = await queueTrace(partialQueue, { record: true });
+    try {
+      const startedAt = state.starts[1].at;
+      const started = state.work.started;
+      state.work.completeNext('B');
+      assert.deepEqual(await state.requests[1], { status: 'ok', value: 'B' });
+      const completedExactlyOnce = state.completions.filter(value => value === 'B').length === 1;
+      const withinContract = privateContract.ownership === 'request'
+        ? startedAt < privateContract.usefulUntil
+        : privateContract.mustCompleteExactlyOnce && completedExactlyOnce;
+      assert.deepEqual({ started, lateStart: startedAt > 5, withinContract }, entryFor('RT-16').expected.countermodels[name]);
+      await nextTurn(); state.work.completeNext('C');
+      assert.deepEqual(await state.requests[2], { status: 'ok', value: 'C' });
+    } finally { await closeQueue(state); }
+  });
+}
+
+test('deadline/queue artifacts reject modified outcomes, private leakage and uncertainty omissions', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'brooks-deadline-queue-'));
+  try {
+    cpSync(fixtureRoot, dir, { recursive: true });
+    const casesPath = join(dir, 'cases.json');
+    const original = readFileSync(casesPath, 'utf8');
+    for (const mutate of [
+      v => { v.cases[10].expected.atTotalBoundary.active = 0; },
+      v => { v.cases[11].expected.settled.time = 140; },
+      v => { v.cases[12].expected.countermodels.uncovered.withinBudget = true; },
+      v => { v.cases[13].expected.afterRelease.expiredStarted = false; },
+      v => { v.cases[14].inputs.push('RT-15/rubric.json'); },
+      v => { v.cases[15].inputs.push('runtime.test.mjs'); },
+      v => { v.cases[12].inputs.push('shared/request-boundary.mjs'); },
+      v => { v.cases[15].kind = 'protected'; },
+    ]) {
+      const value = JSON.parse(original); mutate(value);
+      writeFileSync(casesPath, JSON.stringify(value));
+      assert.throws(() => validateManifest(dir));
+    }
+    writeFileSync(casesPath, original);
+    for (const id of ['RT-11', 'RT-12', 'RT-13', 'RT-14', 'RT-15', 'RT-16']) {
+      const path = join(dir, id, 'rubric.json');
+      const source = readFileSync(path, 'utf8');
+      const mutations = ['RT-13', 'RT-16'].includes(id) ? [
+        v => { v.assessment = 'protected'; }, v => { v.missingContext.pop(); },
+        v => { v.unresolvedReasoning = []; }, v => { v.expectedFindings.push({ id: 'invented' }); },
+      ] : ['RT-11', 'RT-14'].includes(id) ? [v => { v.expectedFindings[0].consequence = ''; }]
+        : [v => { v.protectedReasoning = []; }];
+      for (const mutate of mutations) {
+        const value = JSON.parse(source); mutate(value); writeFileSync(path, JSON.stringify(value));
+        assert.throws(() => validateManifest(dir));
+      }
+      writeFileSync(path, source);
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('RT-15: waiting expiry at the exact release boundary removes work before admission', async () => {
+  const clock = new ManualClock();
+  const work = new OptionalWork();
+  const service = liveQueue({ clock, work });
+  const callers = [new AbortController(), new AbortController()];
+  const requests = [service.submit({ signal: callers[0].signal, expiresAt: 100 }),
+    service.submit({ signal: callers[1].signal, expiresAt: 5 })];
+  clock.advanceTo(5);
+  work.completeNext('A');
+  assert.deepEqual(await requests[1], { status: 'expired' });
+  await requests[0]; await nextTurn();
+  assert.equal(work.started, 1);
+  await closeQueue({ clock, work, service, callers, requests });
+});
+
+test('RT-15: multiple expired entries release timers and admission without later dependency starts', async () => {
+  const clock = new ManualClock();
+  const work = new OptionalWork();
+  const service = liveQueue({ clock, work });
+  const callers = Array.from({ length: 3 }, () => new AbortController());
+  const requests = callers.map((caller, i) => service.submit({ signal: caller.signal, expiresAt: i ? 5 : 100 }));
+  clock.advanceTo(5);
+  assert.deepEqual(await Promise.all(requests.slice(1)), [{ status: 'expired' }, { status: 'expired' }]);
+  assert.equal(service.queue.queued, 0);
+  assert.equal(clock.pendingTimers, 0);
+  work.completeNext('A'); await requests[0]; await nextTurn();
+  clock.advanceTo(1000);
+  assert.equal(work.started, 1);
+  await closeQueue({ clock, work, service, callers, requests });
 });
