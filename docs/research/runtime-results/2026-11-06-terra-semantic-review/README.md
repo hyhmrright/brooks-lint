@@ -1,5 +1,12 @@
 # Model semantic review of the runtime development study
 
+**Interpretation addendum (2026-11-06):** the subsequent
+[RT-02 / RT-12 dispute audit](../../runtime-dispute-audit-v1.md) reproduces a real
+completion/delivery ordering counterexample in RT-02 and conditional exception
+cleanup behavior in RT-12. The counts below remain the original frozen-rubric
+results; they must not be read as adjudicated accuracy or a demonstrated C-over-B
+benefit. Original judgments and metrics are preserved, not rescored by the audit.
+
 On 2026-11-06 a separate Codex model reviewer assessed every successfully
 executed answer against its frozen case rubric. This is **model judgment, not
 human review**. For the 30 original cases with complete A/B/C triplets, the

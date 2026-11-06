@@ -1115,3 +1115,107 @@ test('RT-15: multiple expired entries release timers and admission without later
 
 // Additional authored development cases. Private countermodels stay outside inputs.
 await import('./expansion.test.mjs');
+
+// Supplemental dispute audit v1. These characterize frozen fixtures; they do not
+// replace revision-1 rubrics or turn the development catalog into a new study.
+test('dispute RT-02: transport completion before expiry can lose to synchronous clock advancement', async () => {
+  const clock = new ManualClock();
+  const transport = new FakeTransport();
+  const parent = new AbortController();
+  const request = protectedPath({ clock, transport, signal: parent.signal });
+  clock.advanceTo(99);
+  transport.completeAll(42);
+  assert.equal(transport.completed, 1);
+  assert.equal(transport.active, 0);
+  assert.equal(request.result, undefined);
+  assert.equal(clock.pendingTimers, 1);
+  assert.equal(getEventListeners(request.signal, 'abort').length, 0);
+  clock.advanceTo(100); // Deliberately no Promise checkpoint between these calls.
+  assert.deepEqual(await request.response, { status: 'timed-out' });
+  assert.equal(transport.aborted, 0); // The slot was already released, not leaked.
+  assert.equal(clock.pendingTimers, 0);
+  assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
+});
+
+test('dispute RT-02: observing success before advancing the clock preserves the value', async () => {
+  const clock = new ManualClock();
+  const transport = new FakeTransport();
+  const request = protectedPath({ clock, transport });
+  clock.advanceTo(99);
+  transport.completeAll(42);
+  assert.deepEqual(await request.response, { status: 'ok', value: 42 });
+  assert.equal(clock.now, 99);
+  assert.equal(clock.pendingTimers, 0);
+  clock.advanceTo(100);
+  assert.deepEqual(request.result, { status: 'ok', value: 42 });
+  assert.equal(request.signal.aborted, false);
+  assert.equal(transport.active, 0);
+});
+
+for (const duration of [-1, NaN, Infinity]) {
+  test(`dispute RT-12: rejected setup duration ${duration} retains deadline and parent listener until expiry`, () => {
+    const clock = new ManualClock();
+    const parent = new AbortController();
+    assert.throws(() => coveredDeadline({ clock, signal: parent.signal, setupDuration: duration }), /Invalid delay/);
+    assert.equal(clock.pendingTimers, 1);
+    assert.equal(getEventListeners(parent.signal, 'abort').length, 1);
+    clock.advanceTo(99);
+    assert.equal(clock.pendingTimers, 1);
+    clock.advanceTo(100);
+    assert.equal(clock.pendingTimers, 0);
+    assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
+  });
+}
+
+test('dispute RT-12: parent abort releases resources left after setup scheduling throws', () => {
+  const clock = new ManualClock();
+  const parent = new AbortController();
+  assert.throws(() => coveredDeadline({ clock, signal: parent.signal, setupDuration: -1 }), /Invalid delay/);
+  parent.abort();
+  assert.equal(clock.pendingTimers, 0);
+  assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
+});
+
+test('dispute RT-12: invalid work duration throws during advancement and the original deadline still cleans up', async () => {
+  const clock = new ManualClock();
+  const parent = new AbortController();
+  const request = coveredDeadline({ clock, signal: parent.signal, workDuration: -1 });
+  assert.throws(() => clock.advanceTo(80), /Invalid delay/);
+  assert.equal(clock.now, 80);
+  assert.equal(request.result, undefined);
+  assert.equal(request.stats.active, 1);
+  assert.equal(clock.pendingTimers, 1);
+  assert.equal(getEventListeners(parent.signal, 'abort').length, 1);
+  clock.advanceTo(100);
+  assert.deepEqual(await request.response, { status: 'timed-out', at: 100 });
+  assert.equal(request.stats.active, 0);
+  assert.equal(clock.pendingTimers, 0);
+  assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
+});
+
+test('dispute RT-12: validating durations before acquisition avoids the exception cleanup path', () => {
+  // Proposed adapter control only; the frozen service is deliberately unchanged.
+  const checkedRequest = options => {
+    const { setupDuration = 80, workDuration = 60 } = options;
+    for (const duration of [setupDuration, workDuration]) {
+      if (!Number.isFinite(duration) || duration < 0) throw new Error('Invalid duration');
+    }
+    return coveredDeadline(options);
+  };
+  for (const field of ['setupDuration', 'workDuration']) {
+    for (const duration of [-1, NaN, Infinity]) {
+      const clock = new ManualClock();
+      const parent = new AbortController();
+      assert.throws(() => checkedRequest({ clock, signal: parent.signal, [field]: duration }), /Invalid duration/);
+      assert.equal(clock.pendingTimers, 0);
+      assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
+    }
+  }
+  const clock = new ManualClock();
+  const parent = new AbortController();
+  const request = checkedRequest({ clock, signal: parent.signal, setupDuration: 0, workDuration: 0 });
+  clock.advanceTo(0);
+  assert.deepEqual(request.result, { status: 'ok', at: 0 });
+  assert.equal(clock.pendingTimers, 0);
+  assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
+});

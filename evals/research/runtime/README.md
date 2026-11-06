@@ -6,7 +6,9 @@ The [runtime guidance prototype](prototype/SKILL.md) is research-only and remain
 outside the production skills catalog. No public risk code or runtime score is
 introduced. A later [exploratory three-arm model run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
 records results and execution failures; a later [model semantic review](../../../docs/research/runtime-results/2026-11-06-terra-semantic-review/README.md)
-assessed the recorded answers. Human adjudication remains pending. Partial
+assessed the recorded answers. A subsequent [RT-02 / RT-12 dispute audit](../../../docs/research/runtime-dispute-audit-v1.md)
+reproduces contract ambiguities and designs separately versioned follow-up probes;
+the historical rubrics and metrics remain unchanged. Human adjudication remains pending. Partial
 [book chapter checks](../../../docs/research/runtime-book-mapping.md) identify
 inspected passages and unverified mappings. Human review, complete source
 certification and independent holdouts remain pending. Agent QA is not human review.
