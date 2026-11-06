@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "description": "Sanitized execution records; temporary local paths replaced. Original answer and trace hashes refer to unredacted data retained locally.",
+  "plan": {
+    "created_at": "2026-11-06T09:07:34.405Z",
+    "source_commit": "9dc5cc4e77f52ad894043f0c639afd2ad531f2a3",
+    "source_dirty": false,
+    "study_sha256": "9438ba7fdd67bcc6cc37b804f59dbaa25cc941737a13206a02f65238e56b04df",
+    "model": "gpt-6.1-terra",
+    "reasoning": "medium",
+    "runs": 1,
+    "timeout": 240,
+    "manifest_sha256": "a022ba18ea4c0534beba1d08c047a89cc4205d203792697ba13b1d4fcade4f5b",
+    "manifest_revision": 7
+  },
+  "started_at": "2026-11-06T09:07:36.564Z",
+  "finished_at": "2026-11-06T09:09:34.500Z",
+  "cli_version": "codex-cli 0.166.0",
+  "interrupted": false,
+  "records": [
+    {
+      "case_id": "RT-09",
+      "repetition": 1,
+      "arm": "A",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [],
+      "trace_sha256": "54db2005a6e4099fd108af19b89c3d346a5c53ce45e2efb0662ab29237c4173c",
+      "prompt_sha256": "7b12dedb95e8d6776ca4b033ac95ca68ef87f07756ac97b9092aad6a6cded0b9",
+      "answer": "No runtime failure-containment defect is supported under the supplied operating contract.\n\n- **Concurrency:** [service.mjs](<study-repo>/RT-09/service.mjs:25) starts two workers. Each claims one index before awaiting its operation, so each has at most one operation in flight and no record is claimed twice. At most two operations and two timers are active.\n- **Finite completion:** With the specified external clock advancement and promise continuations drained between steps, `a` and `b` settle at logical time 1000, `c` and `d` at 2000, and `e` at 3000. The clock removes each timer before invoking its callback ([clock.mjs](<study-repo>/shared/clock.mjs:14)). Both workers then finish and `done` resolves with the outcomes.\n- **Record failures:** The timer callback decrements `active` before either resolving or rejecting. A selected failure increments `failed`; the worker catches the rejection, stores an error outcome at that record’s index, and continues. Successful outcomes are also stored by index, preserving input order. On completion, `started` is five, `active` is zero, and `completed + failed` is five.\n\nThis is a finite offline job, with no shared request-serving pool or request deadline. Waiting for all five records and resolving only when both workers finish is expressly intended by [context.md](<study-repo>/RT-09/context.md:3); the logical duration does not establish a request-serving availability defect. These conclusions depend on the supplied clock-driving conditions and fixture, not on assumptions about external transports or other workloads.",
+      "answer_sha256": "1d06437de2061abcf2a0ee56977e51e1006857d61ae3c0f2b17945e669acfa77",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 36646,
+          "cached_input_tokens": 32512,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 695,
+          "reasoning_output_tokens": 10
+        },
+        "event_count": 19,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 49866
+    },
+    {
+      "case_id": "RT-09",
+      "repetition": 1,
+      "arm": "B",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "trace_sha256": "5dd1a3c6a7c42680e255105cd60144a8c9c6747d33e7373dc9c0b046afb2ae3f",
+      "prompt_sha256": "7b12dedb95e8d6776ca4b033ac95ca68ef87f07756ac97b9092aad6a6cded0b9",
+      "answer": "**No runtime containment defect is supported by the supplied finite contract.** The job limits concurrency to two, completes all five records when the clock is advanced as specified, and contains a selected record failure.\n\n- **Concurrency:** [service.mjs](<study-repo>/RT-09/service.mjs:26) starts two workers. Each claims one index before awaiting its archive operation, so each can have at most one operation outstanding. The shared index advances synchronously, preventing duplicate claims; at most two operations and timers are active.\n- **Finite completion:** With promise continuations drained between clock steps, `a` and `b` settle at logical time 1000, `c` and `d` at 2000, and `e` at 3000. The clock removes each timer before invoking its callback ([clock.mjs](<study-repo>/shared/clock.mjs:15)). Completion depends on the specified external clock advancement.\n- **Per-record failure:** The callback decrements `active` before either resolving or rejecting. The worker catches a rejection, records an error at that record’s input index, and continues to the next record. Once both workers finish, `done` resolves with outcomes in input order ([service.mjs](<study-repo>/RT-09/service.mjs:13)).\n\nThe wait for the entire batch is intentional under [context.md](<study-repo>/RT-09/context.md:3). This is an offline job with no request deadline or shared request-serving admission pool, so its duration does not establish a request-availability defect. These conclusions are limited to the supplied fixture and its clock-driving assumptions.",
+      "answer_sha256": "86985b2fa164969c05789f53e48c6f833d78b580cbf234729d0167314d7867f6",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 25326,
+          "cached_input_tokens": 21632,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 658,
+          "reasoning_output_tokens": 43
+        },
+        "event_count": 13,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 33760
+    },
+    {
+      "case_id": "RT-09",
+      "repetition": 1,
+      "arm": "C",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test",
+        "runtime-research"
+      ],
+      "trace_sha256": "005c29f0f7a1245b35482ca1dec675c90489cd2bf350a209098c94ab6594cc55",
+      "prompt_sha256": "7b12dedb95e8d6776ca4b033ac95ca68ef87f07756ac97b9092aad6a6cded0b9",
+      "answer": "**Runtime Research (revision 1)**\n\nNo runtime failure-containment defect is supported against the supplied offline-job contract. The code provides the stated concurrency, completion, and per-record failure behavior, subject to the contract’s external clock advancement.\n\n- **Concurrency:** [startArchive](<study-repo>/RT-09/service.mjs:25) starts two workers. Each claims one index before awaiting its operation, so there are at most two active operations and two scheduled timers. The shared index gives each record to one worker.\n- **Finite completion:** Each operation schedules settlement after 1,000 logical units. With continuations drained between clock steps, two records settle at 1,000, two at 2,000, and the last at 3,000. The clock removes each timer before invoking its callback ([clock.mjs](<study-repo>/shared/clock.mjs:14)). `done` resolves after both workers finish.\n- **Per-record failure:** The callback decrements `active` before either resolving or rejecting. A rejection increments `failed`; the worker catches it, writes an error outcome at that record’s index, and continues. Successful outcomes are also stored by index, preserving input order ([service.mjs](<study-repo>/RT-09/service.mjs:12)).\n\nThis is a finite offline job, with no interactive request deadline or shared request-serving admission pool under the [authored contract](<study-repo>/RT-09/context.md:3). Its lack of a request timeout or cancellation mechanism is therefore not a supported defect. The conclusion is a code trace of the supplied deterministic fixture, not a claim about external transports, production workloads, or other batch designs.",
+      "answer_sha256": "64385138091f255b43d42a914df10e7309aa5105b0e230fadb5e1a5cd8af5869",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 62324,
+          "cached_input_tokens": 49280,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 740,
+          "reasoning_output_tokens": 8
+        },
+        "event_count": 13,
+        "prototype_reads": [
+          {
+            "event_index": 4,
+            "command": "/bin/zsh -lc 'cat .agents/skills/runtime-research/SKILL.md'"
+          }
+        ]
+      },
+      "elapsed_ms": 34285
+    }
+  ],
+  "execution_counts": {
+    "not-run": 0,
+    "running": 0,
+    "failed": 0,
+    "executed": 3
+  },
+  "execution_costs": [
+    {
+      "case_id": "RT-09",
+      "arm": "A",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 49866,
+      "usage": {
+        "input_tokens": 36646,
+        "cached_input_tokens": 32512,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 695,
+        "reasoning_output_tokens": 10
+      }
+    },
+    {
+      "case_id": "RT-09",
+      "arm": "B",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 33760,
+      "usage": {
+        "input_tokens": 25326,
+        "cached_input_tokens": 21632,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 658,
+        "reasoning_output_tokens": 43
+      }
+    },
+    {
+      "case_id": "RT-09",
+      "arm": "C",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 34285,
+      "usage": {
+        "input_tokens": 62324,
+        "cached_input_tokens": 49280,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 740,
+        "reasoning_output_tokens": 8
+      }
+    }
+  ]
+}

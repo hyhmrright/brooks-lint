@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "description": "Sanitized execution records; temporary local paths replaced. Original answer and trace hashes refer to unredacted data retained locally.",
+  "plan": {
+    "created_at": "2026-11-06T09:07:35.930Z",
+    "source_commit": "9dc5cc4e77f52ad894043f0c639afd2ad531f2a3",
+    "source_dirty": false,
+    "study_sha256": "08704143909ad4e8a88e831430a6e5fbc1912dae0ae80e6f3e994738d9102240",
+    "model": "gpt-6.1-terra",
+    "reasoning": "medium",
+    "runs": 1,
+    "timeout": 240,
+    "manifest_sha256": "a022ba18ea4c0534beba1d08c047a89cc4205d203792697ba13b1d4fcade4f5b",
+    "manifest_revision": 7
+  },
+  "started_at": "2026-11-06T09:15:29.127Z",
+  "finished_at": "2026-11-06T09:17:00.526Z",
+  "cli_version": "codex-cli 0.166.0",
+  "interrupted": false,
+  "records": [
+    {
+      "case_id": "RT-29",
+      "repetition": 1,
+      "arm": "A",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [],
+      "trace_sha256": "c831590c13a6f5171544e48632cc5f4b4fd729c68460ae9a0b543024de76e023",
+      "prompt_sha256": "36763751bed18cff310891e21e066ede6d11cb9745ed57eb56e5af33cdad941f",
+      "answer": "The supplied route violates the contract under the declared schedule. [service.mjs](<study-repo>/RT-29/service.mjs) forces `reserved: false`, so [transport-isolation.mjs](<study-repo>/shared/transport-isolation.mjs) gives both wrappers the same pool with capacity two and no queue.\n\nThe two optional calls occupy both workers while their operations remain pending. The subsequent essential call therefore receives `{ status: 'overloaded' }` immediately. The separate wrapper objects do not reserve a slot.\n\nThe route factory’s `reserved: true` configuration provides the relevant protection: it limits optional work to one pool slot and gives essential work a separate one-slot pool, within the stated two-slot underlying cap. The supplied service does not enable that configuration.",
+      "answer_sha256": "1cdce3a0a64e2cd96275b7a5346dc6c49800e770e7af87ef62de719f7d69a392",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 22991,
+          "cached_input_tokens": 20352,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 354,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 17,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 26464
+    },
+    {
+      "case_id": "RT-29",
+      "repetition": 1,
+      "arm": "B",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "trace_sha256": "93785c32a9ac333a216a223a264b0f74b4efe9a26e42deac6aa681555ab1889c",
+      "prompt_sha256": "36763751bed18cff310891e21e066ede6d11cb9745ed57eb56e5af33cdad941f",
+      "answer": "The runtime path **violates the reservation contract** for the declared schedule: two pending optional calls can occupy both transport slots, so the essential call is rejected as overloaded.\n\n[service.mjs](<study-repo>/RT-29/service.mjs:2) forces `reserved: false`. With that setting, [transport-isolation.mjs](<study-repo>/shared/transport-isolation.mjs:4) assigns both wrappers to the same capacity-two pool. The two optional operations remain pending under the supplied schedule, and a full pool with `maxQueue: 0` returns `overloaded` for the essential call ([worker-pool.mjs](<study-repo>/shared/worker-pool.mjs:14)).\n\nThe existing `reserved: true` configuration provides a concrete protection for this schedule: it limits optional admission to one slot and gives essential calls a separate one-slot pool, for two slots total. Cancellation or completion can also release a slot, but the declared schedule does not rely on either happening before the essential call.",
+      "answer_sha256": "4f81fa7d0cf08ff17ebd02f906d34b40f64da997f9b8dcc5afab9ffcac4e7884",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 40000,
+          "cached_input_tokens": 34688,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 497,
+          "reasoning_output_tokens": 10
+        },
+        "event_count": 9,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 30264
+    },
+    {
+      "case_id": "RT-29",
+      "repetition": 1,
+      "arm": "C",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test",
+        "runtime-research"
+      ],
+      "trace_sha256": "3cc00535e17d904afdc5ae12d276618e8ffc744ed76c559c17d9243afa369d57",
+      "prompt_sha256": "36763751bed18cff310891e21e066ede6d11cb9745ed57eb56e5af33cdad941f",
+      "answer": "**Runtime Research (revision 1)**\n\n**Warning — Optional work can occupy both transport slots.**\n\n- **Symptom:** In the declared schedule, both optional calls are admitted and remain pending. The subsequent essential call receives `{ status: 'overloaded' }`.\n- **Source:** [service.mjs](<study-repo>/RT-29/service.mjs:2) forces `reserved: false`. Consequently, [transport-isolation.mjs](<study-repo>/shared/transport-isolation.mjs:4) gives both wrappers the same two-worker pool with no queue. [worker-pool.mjs](<study-repo>/shared/worker-pool.mjs:14) rejects a call when that pool is full.\n- **Consequence:** This violates the [contract](<study-repo>/RT-29/context.md:3) that optional calls leave one slot available for essential work. The demonstrated scope is the supplied synthetic schedule; the files do not establish production exposure.\n- **Remedy:** Enable the existing reserved configuration for this path: it limits optional work to one worker and gives essential work one separate worker, for two workers in total. Under the declared schedule, the second optional call would be overloaded and the essential call could start.\n\nThe pool releases a worker when its operation settles, and the supplied work implementation settles on completion, failure, or abort. That supports recovery after settlement, but does not preserve the required slot while both optional operations remain pending. This assessment follows the supplied code and contract; it is not a production observation.",
+      "answer_sha256": "2b46eaf3dcdea6bfa3457fcbbe2d53ed4385fcb06b3daf4218dc4c0f541dcd1f",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 45876,
+          "cached_input_tokens": 35328,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 713,
+          "reasoning_output_tokens": 21
+        },
+        "event_count": 11,
+        "prototype_reads": [
+          {
+            "event_index": 4,
+            "command": "/bin/zsh -lc 'cat .agents/skills/runtime-research/SKILL.md RT-29/task.md RT-29/context.md RT-29/service.mjs shared/transport-isolation.mjs shared/worker-pool.mjs shared/optional-work.mjs'"
+          }
+        ]
+      },
+      "elapsed_ms": 34642
+    }
+  ],
+  "execution_counts": {
+    "not-run": 0,
+    "running": 0,
+    "failed": 0,
+    "executed": 3
+  },
+  "execution_costs": [
+    {
+      "case_id": "RT-29",
+      "arm": "A",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 26464,
+      "usage": {
+        "input_tokens": 22991,
+        "cached_input_tokens": 20352,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 354,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "case_id": "RT-29",
+      "arm": "B",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 30264,
+      "usage": {
+        "input_tokens": 40000,
+        "cached_input_tokens": 34688,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 497,
+        "reasoning_output_tokens": 10
+      }
+    },
+    {
+      "case_id": "RT-29",
+      "arm": "C",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 34642,
+      "usage": {
+        "input_tokens": 45876,
+        "cached_input_tokens": 35328,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 713,
+        "reasoning_output_tokens": 21
+      }
+    }
+  ]
+}

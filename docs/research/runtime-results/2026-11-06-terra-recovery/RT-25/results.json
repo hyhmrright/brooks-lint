@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "description": "Sanitized execution records; temporary local paths replaced. Original answer and trace hashes refer to unredacted data retained locally.",
+  "plan": {
+    "created_at": "2026-11-06T09:07:35.625Z",
+    "source_commit": "9dc5cc4e77f52ad894043f0c639afd2ad531f2a3",
+    "source_dirty": false,
+    "study_sha256": "53731a6f12a29a0690291dd065345c529ccaa819b921b69a1a34100625ee3801",
+    "model": "gpt-6.1-terra",
+    "reasoning": "medium",
+    "runs": 1,
+    "timeout": 240,
+    "manifest_sha256": "a022ba18ea4c0534beba1d08c047a89cc4205d203792697ba13b1d4fcade4f5b",
+    "manifest_revision": 7
+  },
+  "started_at": "2026-11-06T09:13:50.664Z",
+  "finished_at": "2026-11-06T09:15:28.807Z",
+  "cli_version": "codex-cli 0.166.0",
+  "interrupted": false,
+  "records": [
+    {
+      "case_id": "RT-25",
+      "repetition": 1,
+      "arm": "A",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [],
+      "trace_sha256": "f0101e2d31d012cd20368999b3cfa2549027ce60731f08f3a02e7ebbd7f39ec8",
+      "prompt_sha256": "51434151892953752f9a93b01f8d5210bd6b36127b526b2f5dd940fc861b18ed",
+      "answer": "The runtime implements the visible retry contract: after a first error with a truthy `ambiguous` property, it attempts the write once more using the same supplied `identity` as the key. It checks for cancellation before each attempt and returns an error after a non-ambiguous failure or any second failure. See [service.mjs](<study-repo>/RT-25/service.mjs:2).\n\nReusing the identity does **not by itself establish that the write happens only once**. If the first write commits but reports an ambiguous error, the retry could cause another effect unless the backend deduplicates that identity or provides an equivalent guarantee. The supplied [contract](<study-repo>/RT-25/context.md:3) explicitly leaves identity ownership, backend deduplication, and commit guarantees unspecified, so the files do not establish whether duplication can occur.\n\nThe cancellation check prevents a retry when the signal is already aborted before that attempt. The files do not establish whether passing the signal to `backend.write` can stop an in-flight write or prevent it from committing.",
+      "answer_sha256": "faca816dd38a57a9428c6d65d2d03d28ce7ac33886c3a0e78797a4ee4001ef96",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 33386,
+          "cached_input_tokens": 29952,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 453,
+          "reasoning_output_tokens": 39
+        },
+        "event_count": 9,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 28416
+    },
+    {
+      "case_id": "RT-25",
+      "repetition": 1,
+      "arm": "B",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "trace_sha256": "855d452c3c863dd6b8bbda40960dc57bbfd84e45b2449e7eb5476c13bbcb9f6b",
+      "prompt_sha256": "51434151892953752f9a93b01f8d5210bd6b36127b526b2f5dd940fc861b18ed",
+      "answer": "The runtime retries an ambiguous write once using the same supplied `identity` as its key. That preserves the identity across attempts, but the files do not establish that the second attempt cannot produce a duplicate effect.\n\nIf the first write commits but returns an ambiguous error, the retry may reach `backend.write` again. Whether that causes a duplicate depends on backend deduplication and commit guarantees, neither of which is supplied. The files also do not say who owns or reuses identities, so they do not establish whether the key uniquely identifies a logical write.\n\nThe loop checks cancellation before each attempt and passes the signal to the backend. It does not establish what happens if cancellation occurs during a write; that depends on the backend’s handling of the signal.",
+      "answer_sha256": "d2e1ceb2bdb64db540974bea12c6e0acdd1c8edc6c9a6be967da93d0cbafaf22",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 24328,
+          "cached_input_tokens": 21504,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 270,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 11,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 37527
+    },
+    {
+      "case_id": "RT-25",
+      "repetition": 1,
+      "arm": "C",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test",
+        "runtime-research"
+      ],
+      "trace_sha256": "85ce84e159676687231786f30e5cf68856463a3ced1511ee91b235009c7bdf2c",
+      "prompt_sha256": "51434151892953752f9a93b01f8d5210bd6b36127b526b2f5dd940fc861b18ed",
+      "answer": "**Runtime Research (revision 1)**\n\nThe visible code follows the stated retry contract locally: after a first ambiguous error, `run` calls `backend.write` again with the same supplied `identity` as the key. It makes at most two calls itself, stops on a non-ambiguous error, and checks for cancellation before each attempt ([service.mjs](<study-repo>/RT-25/service.mjs:2)).\n\n**Whether the retry is safe is unresolved.** An ambiguous first error could leave the write’s outcome unknown. If it committed, a second call could duplicate its effect unless the backend deduplicates appropriately; the supplied contract explicitly leaves identity ownership, deduplication and commit guarantees unspecified ([context.md](<study-repo>/RT-25/context.md:3)). Deciding requires those guarantees, including whether an identity is stable and unique for the intended logical write.\n\nThe code also forwards the signal to the backend, but the supplied files do not show whether the backend honors it or releases resources on cancellation. The two-attempt limit applies to this function; any retries inside the backend are unknown. The extract is synthetic and supplies no production observations.",
+      "answer_sha256": "7fa1d3f1a36f818f9ce0a17ea1aa32ed1de6432e1be6e4a92936d7450deda65e",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 42774,
+          "cached_input_tokens": 31232,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 550,
+          "reasoning_output_tokens": 9
+        },
+        "event_count": 13,
+        "prototype_reads": [
+          {
+            "event_index": 4,
+            "command": "/bin/zsh -lc 'cat .agents/skills/runtime-research/SKILL.md && cat RT-25/task.md && cat RT-25/context.md && cat RT-25/service.mjs'"
+          }
+        ]
+      },
+      "elapsed_ms": 32172
+    }
+  ],
+  "execution_counts": {
+    "not-run": 0,
+    "running": 0,
+    "failed": 0,
+    "executed": 3
+  },
+  "execution_costs": [
+    {
+      "case_id": "RT-25",
+      "arm": "A",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 28416,
+      "usage": {
+        "input_tokens": 33386,
+        "cached_input_tokens": 29952,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 453,
+        "reasoning_output_tokens": 39
+      }
+    },
+    {
+      "case_id": "RT-25",
+      "arm": "B",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 37527,
+      "usage": {
+        "input_tokens": 24328,
+        "cached_input_tokens": 21504,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 270,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "case_id": "RT-25",
+      "arm": "C",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 32172,
+      "usage": {
+        "input_tokens": 42774,
+        "cached_input_tokens": 31232,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 550,
+        "reasoning_output_tokens": 9
+      }
+    }
+  ]
+}

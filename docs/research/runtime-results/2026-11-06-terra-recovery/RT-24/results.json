@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "description": "Sanitized execution records; temporary local paths replaced. Original answer and trace hashes refer to unredacted data retained locally.",
+  "plan": {
+    "created_at": "2026-11-06T09:07:35.324Z",
+    "source_commit": "9dc5cc4e77f52ad894043f0c639afd2ad531f2a3",
+    "source_dirty": false,
+    "study_sha256": "0aa04332450d236a3e0a88fc56eddd499d595b983003ab4be172636a8e3f54e5",
+    "model": "gpt-6.1-terra",
+    "reasoning": "medium",
+    "runs": 1,
+    "timeout": 240,
+    "manifest_sha256": "a022ba18ea4c0534beba1d08c047a89cc4205d203792697ba13b1d4fcade4f5b",
+    "manifest_revision": 7
+  },
+  "started_at": "2026-11-06T09:12:22.574Z",
+  "finished_at": "2026-11-06T09:13:50.351Z",
+  "cli_version": "codex-cli 0.166.0",
+  "interrupted": false,
+  "records": [
+    {
+      "case_id": "RT-24",
+      "repetition": 1,
+      "arm": "A",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [],
+      "trace_sha256": "980fb09834043c25e81798abe5c21beb10e844a78744b7f20b470df96828b8cc",
+      "prompt_sha256": "111833af499b9a2394e0c894d13f972f0be67d9f417a64b9513f48f28a6e0add",
+      "answer": "The supplied path protects against duplicate effects when a committed response is lost. [service.mjs](<study-repo>/RT-24/service.mjs:2) forces identity preservation, so both attempts use `write-A`. On the first attempt, the backend records the result and then throws an ambiguous response-loss error. The retry finds the retained result and returns it without incrementing `effects` again. For the standard configuration, the result is `{ status: 'ok', value: 1 }` with one effect. See [ambiguous-write.mjs](<study-repo>/shared/ambiguous-write.mjs:5).\n\nThe same backend rejects a different payload for an existing identity before creating another effect. Cancellation before admission prevents the write; cancellation observed after a commit can return `cancelled` even though the effect remains, consistent with the [runtime contract](<study-repo>/RT-24/context.md:3). This protection depends on retaining the same backend and identity, as the supplied configuration specifies.",
+      "answer_sha256": "8767279b663df8bf1a52c7a3c0e2fcc2a55f60a2c158c40467ffc14b312eb051",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 35352,
+          "cached_input_tokens": 29952,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 530,
+          "reasoning_output_tokens": 10
+        },
+        "event_count": 19,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 29886
+    },
+    {
+      "case_id": "RT-24",
+      "repetition": 1,
+      "arm": "B",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "trace_sha256": "452104bdd442251e362a8fb188b311581531a316d88257b3b597f3980edbdf7a",
+      "prompt_sha256": "111833af499b9a2394e0c894d13f972f0be67d9f417a64b9513f48f28a6e0add",
+      "answer": "The supplied runtime path protects against duplicate effects when the first response is lost. `run` forces `preserveIdentity: true`, so both attempts use `write-A` as the backend key. The first call commits and loses its response; the retry finds the retained result and returns it without incrementing `effects` again. The standard path therefore returns `{ status: 'ok', value: 1 }` with one effect.\n\nThe backend also rejects reuse of `write-A` with a different payload before creating another effect. Cancellation before admission prevents the write; cancellation observed after a commit can produce a `cancelled` status, but does not undo that effect. The protection depends on the supplied backend retaining its result map for its lifetime, as stated in the contract.",
+      "answer_sha256": "e10152f87817c97195bed5370e140a4ddd78725695311fa737408c253d72d6dd",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 25011,
+          "cached_input_tokens": 21504,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 302,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 13,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 24423
+    },
+    {
+      "case_id": "RT-24",
+      "repetition": 1,
+      "arm": "C",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test",
+        "runtime-research"
+      ],
+      "trace_sha256": "8b930cf938745c962df7a92e13a81c16307875c3cb7898a9f50b874429cb2667",
+      "prompt_sha256": "111833af499b9a2394e0c894d13f972f0be67d9f417a64b9513f48f28a6e0add",
+      "answer": "**Runtime Research (revision 1)**\n\nThe supplied path protects against duplicate effects when the first response is lost. [service.mjs](<study-repo>/RT-24/service.mjs:2) forces `preserveIdentity: true`, so both attempts use `write-A`. In the configured scenario, the first call stores the result and loses its response; the retry retrieves that same result without incrementing `effects` again. The backend also rejects the same identity with a different payload before creating another effect ([ambiguous-write.mjs](<study-repo>/shared/ambiguous-write.mjs:5)).\n\nThe caller makes at most two attempts and retries only an ambiguous error. Cancellation is checked before each attempt and by the backend before admission. If cancellation is observed after a commit, the caller can return `cancelled` even though the effect remains, consistent with the stated contract.\n\nThis conclusion is limited to the supplied in-memory backend and its lifetime: the retained result map is essential to the protection. The files describe a synthetic fixture and do not establish behavior across backend replacement or in production.",
+      "answer_sha256": "ab7fe88edcf468e510cfe2d7bf9fd6a190604b5e5afe43d6faa0705fcf81378f",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 44084,
+          "cached_input_tokens": 31232,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 534,
+          "reasoning_output_tokens": 0
+        },
+        "event_count": 15,
+        "prototype_reads": [
+          {
+            "event_index": 5,
+            "command": "/bin/zsh -lc 'cat .agents/skills/runtime-research/SKILL.md'"
+          }
+        ]
+      },
+      "elapsed_ms": 33440
+    }
+  ],
+  "execution_counts": {
+    "not-run": 0,
+    "running": 0,
+    "failed": 0,
+    "executed": 3
+  },
+  "execution_costs": [
+    {
+      "case_id": "RT-24",
+      "arm": "A",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 29886,
+      "usage": {
+        "input_tokens": 35352,
+        "cached_input_tokens": 29952,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 530,
+        "reasoning_output_tokens": 10
+      }
+    },
+    {
+      "case_id": "RT-24",
+      "arm": "B",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 24423,
+      "usage": {
+        "input_tokens": 25011,
+        "cached_input_tokens": 21504,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 302,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "case_id": "RT-24",
+      "arm": "C",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 33440,
+      "usage": {
+        "input_tokens": 44084,
+        "cached_input_tokens": 31232,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 534,
+        "reasoning_output_tokens": 0
+      }
+    }
+  ]
+}

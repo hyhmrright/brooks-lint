@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "description": "Sanitized execution records; temporary local paths replaced. Original answer and trace hashes refer to unredacted data retained locally.",
+  "plan": {
+    "created_at": "2026-11-06T09:07:35.008Z",
+    "source_commit": "9dc5cc4e77f52ad894043f0c639afd2ad531f2a3",
+    "source_dirty": false,
+    "study_sha256": "a33dbe85de0055e89dd02b7adf61dfd30c46bb2d46f8857c5f74eeeffe9ad712",
+    "model": "gpt-6.1-terra",
+    "reasoning": "medium",
+    "runs": 1,
+    "timeout": 240,
+    "manifest_sha256": "a022ba18ea4c0534beba1d08c047a89cc4205d203792697ba13b1d4fcade4f5b",
+    "manifest_revision": 7
+  },
+  "started_at": "2026-11-06T09:10:54.723Z",
+  "finished_at": "2026-11-06T09:12:22.259Z",
+  "cli_version": "codex-cli 0.166.0",
+  "interrupted": false,
+  "records": [
+    {
+      "case_id": "RT-18",
+      "repetition": 1,
+      "arm": "A",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [],
+      "trace_sha256": "225ede323b1df53a0f8d59c627a7f5361592a658779a6e5f718eb91e6fd72a57",
+      "prompt_sha256": "69fa10d6cdfe08e31d8bc427d02eee73c2a1b2927fd5136c064047e445a06b26",
+      "answer": "The supplied path satisfies the cancellation contract for the stated configuration. `run` sets `forwardThird: true` after spreading the caller’s options, so the caller cannot override it. Consequently, `startChildren` passes the request’s parent signal to all three operations.\n\nWhen the parent is cancelled, each `OptionalWork` abort handler removes its listener, deletes its pending entry, and rejects its promise. That releases all three owned slots. Since all three promises settle, `Promise.allSettled` can then resolve with their rejection results.\n\nThe alternate branch in `startChildren` would give the third child a separate signal when `forwardThird` is false, leaving it pending after parent cancellation under the supplied configuration. The exported `run` path prevents that branch from being selected.",
+      "answer_sha256": "9f4439297520593c35ef6170a1c795ab865befea291bad77e4a30d7b76717bc1",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 22364,
+          "cached_input_tokens": 20224,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 281,
+          "reasoning_output_tokens": 31
+        },
+        "event_count": 7,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 23185
+    },
+    {
+      "case_id": "RT-18",
+      "repetition": 1,
+      "arm": "B",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test"
+      ],
+      "trace_sha256": "8b96c8ef8acdf7b7f7d633728ec87def80e94922fe1c48cf425d72aaca43cb81",
+      "prompt_sha256": "69fa10d6cdfe08e31d8bc427d02eee73c2a1b2927fd5136c064047e445a06b26",
+      "answer": "The supplied runtime path satisfies the cancellation contract: all three children receive the parent signal and release their slots when it is aborted.\n\n[service.mjs](<study-repo>/RT-18/service.mjs:2) sets `forwardThird: true`, so the conditional in [fanout.mjs](<study-repo>/shared/fanout.mjs:4) passes the parent signal to the third child as well as the first two. On abort, each `OptionalWork` listener removes itself and deletes its pending entry, releasing the slot; each promise then rejects and `Promise.allSettled` can settle once all three have responded ([optional-work.mjs](<study-repo>/shared/optional-work.mjs:10)).\n\nThe shared fanout helper does have a path that substitutes an independent signal for the third child when `forwardThird` is false. Under the supplied caller configuration, that would leave the third slot pending after parent cancellation, but **that path is not selected by this service**.",
+      "answer_sha256": "84af83fa1d5677985a5d2509f137e55cf13d0d3fb860982a7fe4ea000f25f025",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 38187,
+          "cached_input_tokens": 31104,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 472,
+          "reasoning_output_tokens": 10
+        },
+        "event_count": 9,
+        "prototype_reads": []
+      },
+      "elapsed_ms": 30087
+    },
+    {
+      "case_id": "RT-18",
+      "repetition": 1,
+      "arm": "C",
+      "status": "executed",
+      "exit_code": 0,
+      "timed_out": false,
+      "aborted": false,
+      "discovered_skills": [
+        "brooks-audit",
+        "brooks-debt",
+        "brooks-health",
+        "brooks-review",
+        "brooks-sweep",
+        "brooks-test",
+        "runtime-research"
+      ],
+      "trace_sha256": "47bb1b3f8391a2852b274bc48740390bfbc85fa797e4f971564eb11c5a386b69",
+      "prompt_sha256": "69fa10d6cdfe08e31d8bc427d02eee73c2a1b2927fd5136c064047e445a06b26",
+      "answer": "**Runtime Research (revision 1)**\n\nThe supplied path satisfies the cancellation contract for all three children. [service.mjs](<study-repo>/RT-18/service.mjs:2) forces `forwardThird: true` after spreading the caller’s options. Consequently, [fanout.mjs](<study-repo>/shared/fanout.mjs:3) passes the request-owned parent signal to every transport, including the third.\n\nUnder the supplied caller configuration, all three operations have started when the parent is cancelled. Each [OptionalWork](<study-repo>/shared/optional-work.mjs:4) abort listener removes itself, deletes its pending entry, and rejects its promise. Thus each owned slot is released, and `Promise.allSettled` can resolve after the three rejections settle.\n\nThis conclusion is limited to the authored fixture and its stated receiver configuration; the supplied files do not establish production behavior or exposure.",
+      "answer_sha256": "1d864581b56b3fc9892f80b806cf054a156e5f8c88031731e8201bd261116831",
+      "trace": {
+        "turn_completed": true,
+        "errors": [],
+        "skill_reads": [],
+        "usage": {
+          "input_tokens": 43236,
+          "cached_input_tokens": 32256,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 452,
+          "reasoning_output_tokens": 9
+        },
+        "event_count": 9,
+        "prototype_reads": [
+          {
+            "event_index": 4,
+            "command": "/bin/zsh -lc 'cat .agents/skills/runtime-research/SKILL.md RT-18/task.md RT-18/context.md RT-18/service.mjs shared/fanout.mjs shared/optional-work.mjs'"
+          }
+        ]
+      },
+      "elapsed_ms": 34238
+    }
+  ],
+  "execution_counts": {
+    "not-run": 0,
+    "running": 0,
+    "failed": 0,
+    "executed": 3
+  },
+  "execution_costs": [
+    {
+      "case_id": "RT-18",
+      "arm": "A",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 23185,
+      "usage": {
+        "input_tokens": 22364,
+        "cached_input_tokens": 20224,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 281,
+        "reasoning_output_tokens": 31
+      }
+    },
+    {
+      "case_id": "RT-18",
+      "arm": "B",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 30087,
+      "usage": {
+        "input_tokens": 38187,
+        "cached_input_tokens": 31104,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 472,
+        "reasoning_output_tokens": 10
+      }
+    },
+    {
+      "case_id": "RT-18",
+      "arm": "C",
+      "repetition": 1,
+      "status": "executed",
+      "elapsed_ms": 34238,
+      "usage": {
+        "input_tokens": 43236,
+        "cached_input_tokens": 32256,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 452,
+        "reasoning_output_tokens": 9
+      }
+    }
+  ]
+}
