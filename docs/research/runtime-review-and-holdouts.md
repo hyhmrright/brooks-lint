@@ -155,3 +155,14 @@ from the [RT-02/RT-12 dispute audit](runtime-dispute-audit-v1.md). The book chec
 in this document cover the original RT-01–RT-37 only. Specific chapter support
 for the six follow-ups is **unverified**; their authored contracts and offline
 traces do not substitute for book verification or independent human review.
+
+## Prospective scoring and exposed candidate preparation
+
+The [revision-1 scoring protocol](runtime-scoring-protocol.md) separates assessment,
+issue misses, false assertions, evidence and execution coverage. Its public authored
+[calibration examples](../../evals/research/runtime/calibration/README.md) are not
+model outputs or completed human calibration. The separately prepared
+[candidate cases](../../evals/research/runtime/candidate-holdouts/README.md) are
+exposed, agent-authored development candidates with no independent custody; they
+do not satisfy the independent-holdout gate or alter the 43-case runner catalog.
+No live run is authorized or performed by this preparation.

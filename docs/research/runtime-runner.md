@@ -196,3 +196,14 @@ The six dispute follow-up cases can be planned separately with `--case RT-38`
 through `--case RT-43`; see the [revision-8 study handoff](runtime-dispute-audit-v1.md#implementation-follow-up-manifest-revision-8). Earlier revision-7 frozen plans
 are historical artifacts and will fail current-source live validation; freeze a
 new plan rather than altering their hashes or reusing their output directories.
+
+## Prospective scoring and exposed candidate preparation
+
+The [revision-1 scoring protocol](runtime-scoring-protocol.md) separates assessment,
+issue misses, false assertions, evidence and execution coverage. Its public authored
+[calibration examples](../../evals/research/runtime/calibration/README.md) are not
+model outputs or completed human calibration. The separately prepared
+[candidate cases](../../evals/research/runtime/candidate-holdouts/README.md) are
+exposed, agent-authored development candidates with no independent custody; they
+do not satisfy the independent-holdout gate or alter the 43-case runner catalog.
+No live run is authorized or performed by this preparation.
