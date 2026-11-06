@@ -166,3 +166,15 @@ previous source reviews remain in a new revision's audit. Missing reviews and
 unresolved conflicts stay ungraded; no reviewer is selected automatically.
 `npm run evals:runtime:reviews:validate` verifies the scripted offline archive.
 These supplied annotations are not human calibration or independent validation.
+
+## Prepared human fixture pair and next-study design
+
+The [human participation preparation](../../../../docs/research/runtime-preparations/2026-11-06-hc-human-review/README.md)
+contains a matched pair, exact participant inputs, a blank first-pass fixture
+review form and separate facilitator criteria. The invitation is an unsent draft;
+no human review is claimed. It also freezes an 81-turn, all-nine-candidate design
+with balanced execution positions, a common prompt, exact material snapshots and
+public digest anchors. Model/reasoning registration and the reviewed live executor
+remain unbound; no execution is authorized or implemented by this preparation.
+`human-preparation.test.mjs` checks this frozen archive offline and is included in
+`npm test` and `npm run evals:runtime:prepared`.
