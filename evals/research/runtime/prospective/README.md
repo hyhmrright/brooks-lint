@@ -148,3 +148,11 @@ scorer, external trust anchors, prohibited independence promotion, duplicate and
 unplanned turns, partial failed text, pending review, wholly absent triplets,
 executed incomplete pairing, annotation provenance, packet omissions and exclusive
 CLI output creation. They invoke only this offline CLI, never a model/provider.
+
+## Saved nine-candidate synthetic drill
+
+The [offline end-to-end archive](../../../../docs/research/runtime-results/2026-11-06-hc-offline-drill/README.md)
+saves a frozen all-nine, 27-turn simulated exercise, separately injected boundary
+scenarios, reviewer packets and actual offline CLI validation. `npm run
+evals:runtime:drill` verifies its generated artifacts. All answers and labels are
+authored simulations, not responding-model outputs or independent validation.

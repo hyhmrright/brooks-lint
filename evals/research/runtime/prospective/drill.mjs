@@ -1,0 +1,105 @@
+/** Reproducible synthetic offline drill. No model/provider is executed. */
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { createPlan, validatePlan, responseTemplate, reviewPackets, summarize, turnInputs, repo } from './study.mjs';
+import { sha256 } from '../candidate-holdouts/validate.mjs';
+import { reproduce } from '../candidate-holdouts/reproduce.mjs';
+const clone = x => JSON.parse(JSON.stringify(x));
+const encode = x => `${JSON.stringify(x, null, 2)}\n`;
+export const archive = path.join(repo, 'docs/research/runtime-results/2026-11-06-hc-offline-drill');
+const sourceCommit = 'a52bc8ddd466c11f7d5fb9ddac07ab460132b6da'; // Parent commit providing frozen candidate/scorer/guidance bytes.
+const exposure = 'Synthetic author and annotations share exposed public candidates, prior answers, rubrics and guidance. No independent author, private custody or human calibration.';
+const config = { study_id: 'hc-nine-synthetic-offline-drill-v1', intended_model: 'NOT-A-MODEL-scripted-simulation', reasoning: 'not-applicable-no-inference', author: 'Exposed Codex agent; original authored synthetic snippets, not responding-model tests', exposure, repetitions: 1 };
+const answers = [
+  'Warning. Symptom: abort during the awaited setup gate still permits one start and one occupied slot. Source: aborted is checked before await and the listener is registered only after the missed event. Consequence: cancelled work retains the synthetic slot until explicit completion. Remedy: recheck aborted after setup before acquisition. In contrast, uncancelled admission starts normally and running cancellation releases the slot/listener; pre-abort starts nothing. Explicit teardown clears the retained slot; this is not proof of permanent leakage.',
+  'Bounded protection: after abort during setup the post-await check prevents admission: zero starts, slots and listeners. Uncancelled admission acquires normally and completion releases; running cancellation also releases the slot and listener. This meets the supplied cancellation/admission contract, without a universal safety claim.',
+  'Unresolved: abort during the awaited gate occurs before listener registration; opening the gate still starts work and retains a slot until completion. The cancellation/admission policy during preparation is missing. If cancellation invalidates later admission, this start violates that rule. If cancellation applies only once work begins, the same start can be allowed. Neither unseen policy is established.',
+  'Warning. Symptom: asynchronous child rejection settles the response with one slot still held and the next acquisition rejected. Source: release occurs only after a successful await. Consequence: capacity stays occupied until explicit teardown, violating this function\'s release-before-settlement ownership contract. Remedy: release in finally while preserving the original error identity. Normal child success releases; failure teardown restores capacity but does not satisfy cleanup before response settlement. This does not establish a permanent leak.',
+  'Bounded protection: awaiting the child inside try/finally releases the slot before the response settles on success and rejection, including an AbortError-shaped rejection. Rejection preserves the original error object. Next admission is available after rejection, and the explicit release hook is idempotent teardown rather than required recovery. Normal success also releases. This meets only the supplied lifecycle contract.',
+  'Unresolved: child rejection bypasses success-only release, preserves the error and leaves one slot until the release hook is invoked; child success releases locally. The missing artifact is failure-cleanup ownership and timing in the outer scope. If execute owns release before rejection delivery, retention violates that contract. If the outer scope owns and invokes the hook on failure, the same local retention is permitted. No unseen caller cleanup or permanent leak is established.',
+  'Warning. Symptom: old completion after replacement removes the replacement reservation and admits another same-key handle. Source: completion deletes by key without verifying generation identity. Consequence: replacement and newly admitted work coexist despite the supplied exclusion rule. Remedy: delete only if the completing entry still owns the key. Current-generation completion should remove its own reservation and then permit admission; old completion must leave that reservation intact. Superseded live work is separately tracked, not assumed forcibly stopped.',
+  'Bounded protection: completion checks entry identity. Old completion after replacement leaves one reservation and rejects a further same-key start while the replacement is pending. Completing the current replacement removes its reservation and permits the next start. The older handle may finish separately; this establishes the supplied generation-local admission protection only.',
+  'Unresolved: completing an old handle deletes the key even after replacement, enabling a new start while replacement work remains. The missing artifact is whether this map is authoritative exclusion or a diagnostic index. If it enforces generation-local exclusion, that deletion violates the rule. If diagnostic omissions are permitted and it makes no admission guarantee, the same deletion can be allowed. Local behavior alone establishes neither an outage nor unconditional safety.'
+].map(answer => `SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\n${answer}`);
+function annotation(c) {
+  const r = JSON.parse(c.rubric.content);
+  return { completed: true, assessment: c.kind, matched_issue_ids: r.expectedFindings.map(f => f.id), unsupported_defect_claims: [], unsupported_safety: false, unsolicited_audit: false, evidence: r.evidenceRequirements.map(e => ({ id: e.id, met: true })), severity: r.expectedFindings.map(f => ({ issue_id: f.id, label: 'Warning', allowed: f.allowedSeverity })), supplementary_concerns: [] };
+}
+function bind(row, answer, status, a) {
+  row.answer = answer; row.answer_sha256 = sha256(answer); row.execution_status = status;
+  row.model_report = { model: config.intended_model, reasoning: config.reasoning, source: 'synthetic-events.json; scripted simulation only, no CLI/model run' };
+  row.execution_evidence = { source: 'synthetic-events.json', artifact_sha256: '', status_basis: `Scripted ${status} simulation; NOT evidence of a real execution.` };
+  row.review = a === null ? null : { reviewer: 'Same exposed synthetic-answer author', method: 'Injected authored annotation for offline plumbing exercise; not independent semantic validation', exposure, rationale: 'Authored labels intentionally exercise the declared scenario; no inference about model behavior.', answer_sha256: row.answer_sha256, annotation: a };
+}
+function eventsFor(data, stage) { return { status: 'SIMULATED-DATA-NOT-MODEL-EVENTS', stage, independent: false, records: data.records.map(r => ({ case_id: r.case_id, repetition: r.repetition, arm: r.arm, simulated_status: r.execution_status, authored_answer: r.answer, answer_sha256: r.answer_sha256 })) }; }
+function bindEvents(data, events, file) { for (const row of data.records) { row.execution_evidence.source = file; row.execution_evidence.artifact_sha256 = sha256(encode(events)); row.model_report.source = `${file}; scripted simulation, no real model run`; } }
+export async function artifacts(plan = createPlan(config)) {
+  validatePlan(plan); const anchor = plan.study_sha256;
+  const template = responseTemplate(plan, anchor), responses = clone(template);
+  for (const row of responses.records) { const c = plan.study.cases.find(c => c.id === row.case_id); bind(row, answers[Number(c.id.slice(3))-1], 'executed', annotation(c)); }
+  const baseEvents = eventsFor(responses, 'complete-27-authored-responses'); bindEvents(responses, baseEvents, 'synthetic-events.json');
+  const boundary = clone(responses);
+  const get = (id,arm) => boundary.records.find(r => r.case_id === id && r.arm === arm);
+  let row = get('HC-01','A'); bind(row, '', 'executed', { ...row.review.annotation, completed: false, assessment: 'incomplete', matched_issue_ids: [], severity: [], evidence: row.review.annotation.evidence.map(e => ({...e,met:false})) });
+  row = get('HC-02','B'); bind(row, 'SIMULATED incorrect assertion: This implementation always leaks a slot.', 'executed', { ...row.review.annotation, assessment: 'defect', unsupported_defect_claims: ['This implementation always leaks a slot.'], evidence: row.review.annotation.evidence.map(e => ({...e,met:false})) });
+  get('HC-03','C').review = null;
+  bind(get('HC-04','B'), 'SIMULATED partial answer before invented transport failure.', 'failed', null);
+  bind(get('HC-05','C'), 'SIMULATED partial answer before invented interruption.', 'interrupted', null);
+  boundary.records = boundary.records.filter(r => r.case_id !== 'HC-06');
+  row = get('HC-07','A'); bind(row, 'SIMULATED missed issue: No admission defect is established.', 'executed', { ...row.review.annotation, assessment: 'protected', matched_issue_ids: [], severity: [], evidence: row.review.annotation.evidence.map(e => ({...e,met:false})) });
+  row = get('HC-08','B'); row.review.annotation.evidence[1].met = false; bind(row, 'SIMULATED incomplete evidence: identity-checked completion preserves the replacement reservation.', 'executed', row.review.annotation);
+  row = get('HC-09','C'); bind(row, 'SIMULATED unsupported assurance: The registry is unconditionally safe.', 'executed', { ...row.review.annotation, unsupported_safety: true, unsupported_safety_quote: 'The registry is unconditionally safe.', evidence: row.review.annotation.evidence.map(e => ({...e,met:false})) });
+  const boundaryEvents = eventsFor(boundary, 'separate-injected-boundary-scenarios'); bindEvents(boundary, boundaryEvents, 'boundary-synthetic-events.json');
+  const summary = summarize(plan,responses,anchor), bs = summarize(plan,boundary,anchor);
+  assert.equal(summary.complete_triplets,9); assert.equal(bs.complete_triplets,5); assert.equal(bs.absent_turns,3);
+  for(const arm of ['A','B','C']) { assert.equal(summary.paired[arm].assessment_correctness.numerator,9); assert.equal(summary.paired[arm].issue_recall.numerator,3); }
+  assert.equal(bs.individual.A.issue_false_negatives.numerator,2); assert.equal(bs.individual.B.protected_false_defects.numerator,1); assert.equal(bs.individual.C.unresolved_certainty_errors.numerator,1);
+  const evidence = await reproduce(); assert.deepEqual(evidence,JSON.parse(readFileSync(path.join(repo,'evals/research/runtime/candidate-holdouts/offline-evidence.json'),'utf8')));
+  const result = {
+    'config.json': config, 'plan.json': plan,
+    'recipe-source.json': { status: 'New drill recipe authored after base commit; frozen here for provenance, not executed from archive', base_commit: sourceCommit, path: 'evals/research/runtime/prospective/drill.mjs', sha256: sha256(readFileSync(fileURLToPath(import.meta.url))), content: readFileSync(fileURLToPath(import.meta.url),'utf8') },
+    'plan-anchor.json': { study_sha256: anchor, source_commit: sourceCommit, status: 'Synthetic drill trust anchor saved alongside archive; public same-author custody, not an independent out-of-band authenticator.', independent:false },
+    'responses-template.json':template, 'synthetic-events.json':baseEvents, 'responses.json':responses,
+    'review-packets.json':reviewPackets(plan,responses,anchor), 'reviews.json':{status:'Authored synthetic annotations; no human or independent review',records:responses.records.map(r=>({case_id:r.case_id,repetition:r.repetition,arm:r.arm,review:r.review}))}, 'summary.json':summary,
+    'boundary-responses.json':boundary, 'boundary-synthetic-events.json':boundaryEvents, 'boundary-summary.json':bs,
+    'offline-evidence.json':evidence,
+  };
+  return result;
+}
+/** Exercises actual offline CLI entry points; never calls a model executable. */
+export function cliRoundTrip(files) {
+  const dir = mkdtempSync(path.join(tmpdir(),'hc-offline-drill-'));
+  try {
+    for(const name of ['plan.json','responses.json']) writeFileSync(path.join(dir,name),encode(files[name]));
+    const plan = files['plan.json'], anchor=plan.study_sha256;
+    const steps=[];
+    const configPath=path.join(dir,'config.json'), planOut=path.join(dir,'cli-plan.json');writeFileSync(configPath,encode(config));
+    const planned=spawnSync(process.execPath,[path.join(repo,'evals/research/runtime/prospective/cli.mjs'),'plan',configPath,planOut],{encoding:'utf8'});assert.equal(planned.status,0,planned.stderr);assert.deepEqual(JSON.parse(readFileSync(planOut,'utf8')),createPlan(config));steps.push({command:'plan',exit_code:planned.status,output_matches_expected:true});
+    function call(command,args,expected){const out=path.join(dir,`${steps.length}.json`); const run=spawnSync(process.execPath,[path.join(repo,'evals/research/runtime/prospective/cli.mjs'),command,path.join(dir,'plan.json'),anchor,...args,out],{encoding:'utf8'});assert.equal(run.status,0,run.stderr);assert.deepEqual(JSON.parse(readFileSync(out,'utf8')),expected); steps.push({command,exit_code:run.status,output_matches_expected:true});}
+    call('validate',[],{validated:anchor,live_execution:false});call('template',[],files['responses-template.json']);
+    call('packets',[path.join(dir,'responses.json')],files['review-packets.json']);call('summary',[path.join(dir,'responses.json')],files['summary.json']);
+    for(const arm of ['A','B','C']){ const turn={case_id:'HC-01',repetition:1,arm};const name=path.join(dir,`turn-${arm}.json`);writeFileSync(name,encode(turn));call('turn',[name],turnInputs(plan,turn,anchor)); }
+    return {status:'Executed offline Node CLI round trips; no model executable/network called',steps};
+  } finally {rmSync(dir,{recursive:true,force:true});}
+}
+export async function writeDrill(out, frozenPlan) {
+  const files=await artifacts(frozenPlan);files['validation.json']={revision:1,status:'offline-synthetic-drill-only',independent:false,live_model_calls:0,base:{cases:9,turns:27,complete_triplets:9,authored_answers_per_case_identical_across_arms:true},boundary:{supplied_turns:24,absent_turns:3,complete_triplets:5,excluded_triplets:4},candidate_reproduction_matches_committed:true,cli:cliRoundTrip(files)};
+  mkdirSync(out,{recursive:false});for(const [name,data]of Object.entries(files))writeFileSync(path.join(out,name),encode(data),{flag:'wx'});
+  writeFileSync(path.join(out,'artifacts.sha256.json'),encode(Object.fromEntries(Object.entries(files).map(([name,data])=>[name,sha256(encode(data))]))),{flag:'wx'});
+  return files;
+}
+export async function validateDrill(dir=archive) {
+  const read=n=>JSON.parse(readFileSync(path.join(dir,n),'utf8'));
+  const inventory=read('artifacts.sha256.json');
+  for(const [name,hash]of Object.entries(inventory)){assert(/^[a-z][a-z0-9.-]*\.json$/.test(name),'Unsafe inventory path');assert.equal(sha256(readFileSync(path.join(dir,name))),hash,`Artifact drift: ${name}`);}
+  const plan=read('plan.json');assert.equal(plan.study_sha256,read('plan-anchor.json').study_sha256);
+  const rebuilt=await artifacts(plan);rebuilt['validation.json']={revision:1,status:'offline-synthetic-drill-only',independent:false,live_model_calls:0,base:{cases:9,turns:27,complete_triplets:9,authored_answers_per_case_identical_across_arms:true},boundary:{supplied_turns:24,absent_turns:3,complete_triplets:5,excluded_triplets:4},candidate_reproduction_matches_committed:true,cli:cliRoundTrip(rebuilt)};
+  assert.deepEqual(Object.keys(inventory).sort(),Object.keys(rebuilt).sort(),'Inventory mismatch');
+  for(const [name,data]of Object.entries(rebuilt))assert.equal(readFileSync(path.join(dir,name),'utf8'),encode(data),`Reproduction mismatch: ${name}`);
+  return {status:'PASS',files_verified:Object.keys(inventory).length,cases:9,synthetic_turns:27,live_model_calls:0};
+}
+if(process.argv[1]&&import.meta.url===new URL(process.argv[1],'file:').href){const [mode,out]=process.argv.slice(2);if(mode==='generate'){assert(out,'New output directory required');await writeDrill(out);console.log('Created synthetic offline drill; no model run.');}else{assert(!mode||mode==='validate','Use generate NEW_DIRECTORY or validate');console.log(JSON.stringify(await validateDrill(),null,2));}}

@@ -1,0 +1,735 @@
+{
+  "plan_sha256": "6473d3d49657d462fb7a8471de5bfdb0253e32f5e9144b7bf07c3f831f386e0c",
+  "masking": "partial; public answers/mapping accessible; no independence claim",
+  "packets": [
+    {
+      "packet_id": "0a73e076d96ec90daf3b5cac",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: after abort during setup the post-await check prevents admission: zero starts, slots and listeners. Uncancelled admission acquires normally and completion releases; running cancellation also releases the slot and listener. This meets the supplied cancellation/admission contract, without a universal safety claim.",
+      "answer_sha256": "a60fda78fff536b6895f5289c6784bcf72dd5996c8e34e1abb5ed51e49a1fe99",
+      "inputs": [
+        {
+          "path": "HC-02/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "c09db6b2ab788c0b3adf507e56ca1177e901a10ec3de01e5d804c7848b50b22f"
+        },
+        {
+          "path": "HC-02/context.md",
+          "content": "# HC-02: visible contract\n\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\n",
+          "sha256": "fec73bbba71b26443bdd2d1df9c5a535dc8663a9ce16739bba2faf3a696f5aed"
+        },
+        {
+          "path": "HC-02/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "1161526bce6dc9d15618ecbd",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: completion checks entry identity. Old completion after replacement leaves one reservation and rejects a further same-key start while the replacement is pending. Completing the current replacement removes its reservation and permits the next start. The older handle may finish separately; this establishes the supplied generation-local admission protection only.",
+      "answer_sha256": "ab809e6fdbf18c42ef919dd629f464f51bf9176db51dda66c11e6f2313830e10",
+      "inputs": [
+        {
+          "path": "HC-08/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      if (entries.get(key) === entry) entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "6286e8df187cc18833e47f0e08765ddf90c2983d0edcd8866f8578080d7c5e34"
+        },
+        {
+          "path": "HC-08/context.md",
+          "content": "# HC-08: visible contract\n\nThe registry is the admission authority for each key. start must reject while the current generation is pending. replace explicitly supersedes the tracked generation while the older handle may finish later. Completion releases only its own generation: an older completion must not remove the replacement reservation. A further start must remain rejected until that replacement completes. At most one current generation per key is admitted; the superseded handle is separately observed, not assumed forcibly stopped.\n",
+          "sha256": "7f3acecce67dd5f4fc3d29709e5b1064a4c34a0f58f16ffd1fb2eebb94d9d13c"
+        },
+        {
+          "path": "HC-08/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "2602d94cba9c13c4c056ac6b",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: completing an old handle deletes the key even after replacement, enabling a new start while replacement work remains. The missing artifact is whether this map is authoritative exclusion or a diagnostic index. If it enforces generation-local exclusion, that deletion violates the rule. If diagnostic omissions are permitted and it makes no admission guarantee, the same deletion can be allowed. Local behavior alone establishes neither an outage nor unconditional safety.",
+      "answer_sha256": "8e2135acc62a433276fd8caa2fd084d8ba520b500411d328209812713e3b54ab",
+      "inputs": [
+        {
+          "path": "HC-09/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "2d838095579916c33e1b03441b430e5d29903c321203b5235c81262efbbfe7ae"
+        },
+        {
+          "path": "HC-09/context.md",
+          "content": "# HC-09: visible contract\n\nThe registry tracks handles by key, permits replacement while older handles are live, and permits start only when its map lacks the key. A prior handle can complete after replacement. The caller has not supplied whether this map is an authoritative exclusion reservation or a diagnostic index whose omissions are permitted; no external admission contract or capacity guarantee is provided. Do not infer either absent protection or full safety from the local map alone.\n",
+          "sha256": "5100ea1041e606ee9db6ec480635ce4691cd08676e4e182817e2a7d7360009ca"
+        },
+        {
+          "path": "HC-09/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "3388631ea86e4958a68c50ed",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: old completion after replacement removes the replacement reservation and admits another same-key handle. Source: completion deletes by key without verifying generation identity. Consequence: replacement and newly admitted work coexist despite the supplied exclusion rule. Remedy: delete only if the completing entry still owns the key. Current-generation completion should remove its own reservation and then permit admission; old completion must leave that reservation intact. Superseded live work is separately tracked, not assumed forcibly stopped.",
+      "answer_sha256": "f5ebb9e7b7aa11c8cbd019f30b4bd63b3727cc956fba09c144d3027e6acb1a6a",
+      "inputs": [
+        {
+          "path": "HC-07/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "2d838095579916c33e1b03441b430e5d29903c321203b5235c81262efbbfe7ae"
+        },
+        {
+          "path": "HC-07/context.md",
+          "content": "# HC-07: visible contract\n\nThe registry is the admission authority for each key. start must reject while the current generation is pending. replace explicitly supersedes the tracked generation while the older handle may finish later. Completion releases only its own generation: an older completion must not remove the replacement reservation. A further start must remain rejected until that replacement completes. At most one current generation per key is admitted; the superseded handle is separately observed, not assumed forcibly stopped.\n",
+          "sha256": "f42c7e1a02f6857ec4184059c81e134542180209386c477304b9742f4b9331cb"
+        },
+        {
+          "path": "HC-07/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "3f8cbb68d72c64e0bca1def1",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: asynchronous child rejection settles the response with one slot still held and the next acquisition rejected. Source: release occurs only after a successful await. Consequence: capacity stays occupied until explicit teardown, violating this function's release-before-settlement ownership contract. Remedy: release in finally while preserving the original error identity. Normal child success releases; failure teardown restores capacity but does not satisfy cleanup before response settlement. This does not establish a permanent leak.",
+      "answer_sha256": "a8a9051b50e76bc1c77991d960e47caf72eb895bc6f8c1b33ef5681ec47184e8",
+      "inputs": [
+        {
+          "path": "HC-04/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    const value = await child;\n    release(); return value;\n  })();\n  return { response, release };\n}\n",
+          "sha256": "7b7fa26664daa91357a8c93d909c160587f2a0023eb8b99c2ba1025ba5747467"
+        },
+        {
+          "path": "HC-04/context.md",
+          "content": "# HC-04: visible contract\n\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\n",
+          "sha256": "3ceb8581cc842ceb184107093212791c280c9a14782dcf9ef023cc4c9e3f1b1d"
+        },
+        {
+          "path": "HC-04/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "4455befbf6c278cbd86f8a40",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: completion checks entry identity. Old completion after replacement leaves one reservation and rejects a further same-key start while the replacement is pending. Completing the current replacement removes its reservation and permits the next start. The older handle may finish separately; this establishes the supplied generation-local admission protection only.",
+      "answer_sha256": "ab809e6fdbf18c42ef919dd629f464f51bf9176db51dda66c11e6f2313830e10",
+      "inputs": [
+        {
+          "path": "HC-08/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      if (entries.get(key) === entry) entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "6286e8df187cc18833e47f0e08765ddf90c2983d0edcd8866f8578080d7c5e34"
+        },
+        {
+          "path": "HC-08/context.md",
+          "content": "# HC-08: visible contract\n\nThe registry is the admission authority for each key. start must reject while the current generation is pending. replace explicitly supersedes the tracked generation while the older handle may finish later. Completion releases only its own generation: an older completion must not remove the replacement reservation. A further start must remain rejected until that replacement completes. At most one current generation per key is admitted; the superseded handle is separately observed, not assumed forcibly stopped.\n",
+          "sha256": "7f3acecce67dd5f4fc3d29709e5b1064a4c34a0f58f16ffd1fb2eebb94d9d13c"
+        },
+        {
+          "path": "HC-08/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "4486ab4873af955a9e33ce9d",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: child rejection bypasses success-only release, preserves the error and leaves one slot until the release hook is invoked; child success releases locally. The missing artifact is failure-cleanup ownership and timing in the outer scope. If execute owns release before rejection delivery, retention violates that contract. If the outer scope owns and invokes the hook on failure, the same local retention is permitted. No unseen caller cleanup or permanent leak is established.",
+      "answer_sha256": "02fcebff4d1520f784bf3dd75c2d319221d02b220f0754640e9de45f5434f8b5",
+      "inputs": [
+        {
+          "path": "HC-06/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    const value = await child;\n    release(); return value;\n  })();\n  return { response, release };\n}\n",
+          "sha256": "7b7fa26664daa91357a8c93d909c160587f2a0023eb8b99c2ba1025ba5747467"
+        },
+        {
+          "path": "HC-06/context.md",
+          "content": "# HC-06: visible contract\n\nThe execute function acquires a lease, exposes a response and an explicit release hook, and releases after child success. Child failure is an asynchronous rejection. The caller contract does not identify whether this function or an outer scope owns release after rejection, nor when failure cleanup is required. The outer scope is unavailable. A local retained lease can be observed; absent ownership does not prove permanent leakage.\n",
+          "sha256": "7af96cf3b36c4861db0c69043c8742bd381b56f02ae2543c801128be0d862d3e"
+        },
+        {
+          "path": "HC-06/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "46d8e322e046becf0825387e",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: completing an old handle deletes the key even after replacement, enabling a new start while replacement work remains. The missing artifact is whether this map is authoritative exclusion or a diagnostic index. If it enforces generation-local exclusion, that deletion violates the rule. If diagnostic omissions are permitted and it makes no admission guarantee, the same deletion can be allowed. Local behavior alone establishes neither an outage nor unconditional safety.",
+      "answer_sha256": "8e2135acc62a433276fd8caa2fd084d8ba520b500411d328209812713e3b54ab",
+      "inputs": [
+        {
+          "path": "HC-09/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "2d838095579916c33e1b03441b430e5d29903c321203b5235c81262efbbfe7ae"
+        },
+        {
+          "path": "HC-09/context.md",
+          "content": "# HC-09: visible contract\n\nThe registry tracks handles by key, permits replacement while older handles are live, and permits start only when its map lacks the key. A prior handle can complete after replacement. The caller has not supplied whether this map is an authoritative exclusion reservation or a diagnostic index whose omissions are permitted; no external admission contract or capacity guarantee is provided. Do not infer either absent protection or full safety from the local map alone.\n",
+          "sha256": "5100ea1041e606ee9db6ec480635ce4691cd08676e4e182817e2a7d7360009ca"
+        },
+        {
+          "path": "HC-09/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "478d49395fb0a2165cba3841",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: asynchronous child rejection settles the response with one slot still held and the next acquisition rejected. Source: release occurs only after a successful await. Consequence: capacity stays occupied until explicit teardown, violating this function's release-before-settlement ownership contract. Remedy: release in finally while preserving the original error identity. Normal child success releases; failure teardown restores capacity but does not satisfy cleanup before response settlement. This does not establish a permanent leak.",
+      "answer_sha256": "a8a9051b50e76bc1c77991d960e47caf72eb895bc6f8c1b33ef5681ec47184e8",
+      "inputs": [
+        {
+          "path": "HC-04/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    const value = await child;\n    release(); return value;\n  })();\n  return { response, release };\n}\n",
+          "sha256": "7b7fa26664daa91357a8c93d909c160587f2a0023eb8b99c2ba1025ba5747467"
+        },
+        {
+          "path": "HC-04/context.md",
+          "content": "# HC-04: visible contract\n\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\n",
+          "sha256": "3ceb8581cc842ceb184107093212791c280c9a14782dcf9ef023cc4c9e3f1b1d"
+        },
+        {
+          "path": "HC-04/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "63831bbfbafcdcc6d482c51f",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: after abort during setup the post-await check prevents admission: zero starts, slots and listeners. Uncancelled admission acquires normally and completion releases; running cancellation also releases the slot and listener. This meets the supplied cancellation/admission contract, without a universal safety claim.",
+      "answer_sha256": "a60fda78fff536b6895f5289c6784bcf72dd5996c8e34e1abb5ed51e49a1fe99",
+      "inputs": [
+        {
+          "path": "HC-02/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "c09db6b2ab788c0b3adf507e56ca1177e901a10ec3de01e5d804c7848b50b22f"
+        },
+        {
+          "path": "HC-02/context.md",
+          "content": "# HC-02: visible contract\n\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\n",
+          "sha256": "fec73bbba71b26443bdd2d1df9c5a535dc8663a9ce16739bba2faf3a696f5aed"
+        },
+        {
+          "path": "HC-02/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "69540590238b8a9c98e5bae7",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: after abort during setup the post-await check prevents admission: zero starts, slots and listeners. Uncancelled admission acquires normally and completion releases; running cancellation also releases the slot and listener. This meets the supplied cancellation/admission contract, without a universal safety claim.",
+      "answer_sha256": "a60fda78fff536b6895f5289c6784bcf72dd5996c8e34e1abb5ed51e49a1fe99",
+      "inputs": [
+        {
+          "path": "HC-02/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "c09db6b2ab788c0b3adf507e56ca1177e901a10ec3de01e5d804c7848b50b22f"
+        },
+        {
+          "path": "HC-02/context.md",
+          "content": "# HC-02: visible contract\n\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\n",
+          "sha256": "fec73bbba71b26443bdd2d1df9c5a535dc8663a9ce16739bba2faf3a696f5aed"
+        },
+        {
+          "path": "HC-02/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "6d8f8d77233b531d9635cb03",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: completing an old handle deletes the key even after replacement, enabling a new start while replacement work remains. The missing artifact is whether this map is authoritative exclusion or a diagnostic index. If it enforces generation-local exclusion, that deletion violates the rule. If diagnostic omissions are permitted and it makes no admission guarantee, the same deletion can be allowed. Local behavior alone establishes neither an outage nor unconditional safety.",
+      "answer_sha256": "8e2135acc62a433276fd8caa2fd084d8ba520b500411d328209812713e3b54ab",
+      "inputs": [
+        {
+          "path": "HC-09/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "2d838095579916c33e1b03441b430e5d29903c321203b5235c81262efbbfe7ae"
+        },
+        {
+          "path": "HC-09/context.md",
+          "content": "# HC-09: visible contract\n\nThe registry tracks handles by key, permits replacement while older handles are live, and permits start only when its map lacks the key. A prior handle can complete after replacement. The caller has not supplied whether this map is an authoritative exclusion reservation or a diagnostic index whose omissions are permitted; no external admission contract or capacity guarantee is provided. Do not infer either absent protection or full safety from the local map alone.\n",
+          "sha256": "5100ea1041e606ee9db6ec480635ce4691cd08676e4e182817e2a7d7360009ca"
+        },
+        {
+          "path": "HC-09/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "7231de67189668937259ab50",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: awaiting the child inside try/finally releases the slot before the response settles on success and rejection, including an AbortError-shaped rejection. Rejection preserves the original error object. Next admission is available after rejection, and the explicit release hook is idempotent teardown rather than required recovery. Normal success also releases. This meets only the supplied lifecycle contract.",
+      "answer_sha256": "2d80973822f929e5205d419fcd39f6f35de105dd4ccfad149830dcd6a37174f8",
+      "inputs": [
+        {
+          "path": "HC-05/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    try { return await child; } finally { release(); }\n  })();\n  return { response, release };\n}\n",
+          "sha256": "62ef7b38746484d90d7da05e0ec3a956f9b6c70ce97fc90b2b3e8f79d8500ba4"
+        },
+        {
+          "path": "HC-05/context.md",
+          "content": "# HC-05: visible contract\n\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\n",
+          "sha256": "10515b19aeec0b706c8c4dc21d10600a4ca9056b2fc44e9dee9a227d9386a2cf"
+        },
+        {
+          "path": "HC-05/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "7cd1571b4380d91afc0c956c",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: child rejection bypasses success-only release, preserves the error and leaves one slot until the release hook is invoked; child success releases locally. The missing artifact is failure-cleanup ownership and timing in the outer scope. If execute owns release before rejection delivery, retention violates that contract. If the outer scope owns and invokes the hook on failure, the same local retention is permitted. No unseen caller cleanup or permanent leak is established.",
+      "answer_sha256": "02fcebff4d1520f784bf3dd75c2d319221d02b220f0754640e9de45f5434f8b5",
+      "inputs": [
+        {
+          "path": "HC-06/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    const value = await child;\n    release(); return value;\n  })();\n  return { response, release };\n}\n",
+          "sha256": "7b7fa26664daa91357a8c93d909c160587f2a0023eb8b99c2ba1025ba5747467"
+        },
+        {
+          "path": "HC-06/context.md",
+          "content": "# HC-06: visible contract\n\nThe execute function acquires a lease, exposes a response and an explicit release hook, and releases after child success. Child failure is an asynchronous rejection. The caller contract does not identify whether this function or an outer scope owns release after rejection, nor when failure cleanup is required. The outer scope is unavailable. A local retained lease can be observed; absent ownership does not prove permanent leakage.\n",
+          "sha256": "7af96cf3b36c4861db0c69043c8742bd381b56f02ae2543c801128be0d862d3e"
+        },
+        {
+          "path": "HC-06/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "7e4aa57b599d6b6aa7aa0349",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: asynchronous child rejection settles the response with one slot still held and the next acquisition rejected. Source: release occurs only after a successful await. Consequence: capacity stays occupied until explicit teardown, violating this function's release-before-settlement ownership contract. Remedy: release in finally while preserving the original error identity. Normal child success releases; failure teardown restores capacity but does not satisfy cleanup before response settlement. This does not establish a permanent leak.",
+      "answer_sha256": "a8a9051b50e76bc1c77991d960e47caf72eb895bc6f8c1b33ef5681ec47184e8",
+      "inputs": [
+        {
+          "path": "HC-04/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    const value = await child;\n    release(); return value;\n  })();\n  return { response, release };\n}\n",
+          "sha256": "7b7fa26664daa91357a8c93d909c160587f2a0023eb8b99c2ba1025ba5747467"
+        },
+        {
+          "path": "HC-04/context.md",
+          "content": "# HC-04: visible contract\n\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\n",
+          "sha256": "3ceb8581cc842ceb184107093212791c280c9a14782dcf9ef023cc4c9e3f1b1d"
+        },
+        {
+          "path": "HC-04/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "8b6510d9b6d055d15ca0678a",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: abort during the awaited setup gate still permits one start and one occupied slot. Source: aborted is checked before await and the listener is registered only after the missed event. Consequence: cancelled work retains the synthetic slot until explicit completion. Remedy: recheck aborted after setup before acquisition. In contrast, uncancelled admission starts normally and running cancellation releases the slot/listener; pre-abort starts nothing. Explicit teardown clears the retained slot; this is not proof of permanent leakage.",
+      "answer_sha256": "9846527287afeb53fa01f0aa17cf8e5e0e3b07d111c110ac34b0a079380937fe",
+      "inputs": [
+        {
+          "path": "HC-01/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  // Cancellation is subscribed only after preparation.\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "5322b7080a0c5a05c234f52b277772080d4ccebaad0b83f4eab8f51fc7810c40"
+        },
+        {
+          "path": "HC-01/context.md",
+          "content": "# HC-01: visible contract\n\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\n",
+          "sha256": "79e5d8f63f6382cf3c6cac2f754d2ee11f459d9922dfb730f69a12ef3f7f5d75"
+        },
+        {
+          "path": "HC-01/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "8fe0d1df901f7c5dd4a18315",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: abort during the awaited gate occurs before listener registration; opening the gate still starts work and retains a slot until completion. The cancellation/admission policy during preparation is missing. If cancellation invalidates later admission, this start violates that rule. If cancellation applies only once work begins, the same start can be allowed. Neither unseen policy is established.",
+      "answer_sha256": "fd59a43703305c2c5abb9ba5617da1a801e49ab826fc1a91211fba9b37f48da9",
+      "inputs": [
+        {
+          "path": "HC-03/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  // Cancellation is subscribed only after preparation.\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "5322b7080a0c5a05c234f52b277772080d4ccebaad0b83f4eab8f51fc7810c40"
+        },
+        {
+          "path": "HC-03/context.md",
+          "content": "# HC-03: visible contract\n\nThe supplied launch function yields during preparation and may acquire a slot afterward. A signal can abort while the gate is pending. The caller has not supplied whether cancellation during preparation invalidates later admission, or is only a notification that applies after work starts. Slot count and listener behavior are observable, but the accepted-work ownership and cancellation policy are absent. No unseen caller contract is a supplied fact.\n",
+          "sha256": "04c4f67c1361f9c65f2a5b1bcdbb339bb663460095636780d02ae0fd59e188f9"
+        },
+        {
+          "path": "HC-03/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "b1d88fe190dcfa181c0b8428",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: child rejection bypasses success-only release, preserves the error and leaves one slot until the release hook is invoked; child success releases locally. The missing artifact is failure-cleanup ownership and timing in the outer scope. If execute owns release before rejection delivery, retention violates that contract. If the outer scope owns and invokes the hook on failure, the same local retention is permitted. No unseen caller cleanup or permanent leak is established.",
+      "answer_sha256": "02fcebff4d1520f784bf3dd75c2d319221d02b220f0754640e9de45f5434f8b5",
+      "inputs": [
+        {
+          "path": "HC-06/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    const value = await child;\n    release(); return value;\n  })();\n  return { response, release };\n}\n",
+          "sha256": "7b7fa26664daa91357a8c93d909c160587f2a0023eb8b99c2ba1025ba5747467"
+        },
+        {
+          "path": "HC-06/context.md",
+          "content": "# HC-06: visible contract\n\nThe execute function acquires a lease, exposes a response and an explicit release hook, and releases after child success. Child failure is an asynchronous rejection. The caller contract does not identify whether this function or an outer scope owns release after rejection, nor when failure cleanup is required. The outer scope is unavailable. A local retained lease can be observed; absent ownership does not prove permanent leakage.\n",
+          "sha256": "7af96cf3b36c4861db0c69043c8742bd381b56f02ae2543c801128be0d862d3e"
+        },
+        {
+          "path": "HC-06/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "b4cd7ec3fb07e62c9f782dd8",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: abort during the awaited gate occurs before listener registration; opening the gate still starts work and retains a slot until completion. The cancellation/admission policy during preparation is missing. If cancellation invalidates later admission, this start violates that rule. If cancellation applies only once work begins, the same start can be allowed. Neither unseen policy is established.",
+      "answer_sha256": "fd59a43703305c2c5abb9ba5617da1a801e49ab826fc1a91211fba9b37f48da9",
+      "inputs": [
+        {
+          "path": "HC-03/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  // Cancellation is subscribed only after preparation.\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "5322b7080a0c5a05c234f52b277772080d4ccebaad0b83f4eab8f51fc7810c40"
+        },
+        {
+          "path": "HC-03/context.md",
+          "content": "# HC-03: visible contract\n\nThe supplied launch function yields during preparation and may acquire a slot afterward. A signal can abort while the gate is pending. The caller has not supplied whether cancellation during preparation invalidates later admission, or is only a notification that applies after work starts. Slot count and listener behavior are observable, but the accepted-work ownership and cancellation policy are absent. No unseen caller contract is a supplied fact.\n",
+          "sha256": "04c4f67c1361f9c65f2a5b1bcdbb339bb663460095636780d02ae0fd59e188f9"
+        },
+        {
+          "path": "HC-03/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "b5e243c67e8f27da35643464",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: completion checks entry identity. Old completion after replacement leaves one reservation and rejects a further same-key start while the replacement is pending. Completing the current replacement removes its reservation and permits the next start. The older handle may finish separately; this establishes the supplied generation-local admission protection only.",
+      "answer_sha256": "ab809e6fdbf18c42ef919dd629f464f51bf9176db51dda66c11e6f2313830e10",
+      "inputs": [
+        {
+          "path": "HC-08/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      if (entries.get(key) === entry) entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "6286e8df187cc18833e47f0e08765ddf90c2983d0edcd8866f8578080d7c5e34"
+        },
+        {
+          "path": "HC-08/context.md",
+          "content": "# HC-08: visible contract\n\nThe registry is the admission authority for each key. start must reject while the current generation is pending. replace explicitly supersedes the tracked generation while the older handle may finish later. Completion releases only its own generation: an older completion must not remove the replacement reservation. A further start must remain rejected until that replacement completes. At most one current generation per key is admitted; the superseded handle is separately observed, not assumed forcibly stopped.\n",
+          "sha256": "7f3acecce67dd5f4fc3d29709e5b1064a4c34a0f58f16ffd1fb2eebb94d9d13c"
+        },
+        {
+          "path": "HC-08/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "bd476d2f14ad19064a48f950",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: old completion after replacement removes the replacement reservation and admits another same-key handle. Source: completion deletes by key without verifying generation identity. Consequence: replacement and newly admitted work coexist despite the supplied exclusion rule. Remedy: delete only if the completing entry still owns the key. Current-generation completion should remove its own reservation and then permit admission; old completion must leave that reservation intact. Superseded live work is separately tracked, not assumed forcibly stopped.",
+      "answer_sha256": "f5ebb9e7b7aa11c8cbd019f30b4bd63b3727cc956fba09c144d3027e6acb1a6a",
+      "inputs": [
+        {
+          "path": "HC-07/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "2d838095579916c33e1b03441b430e5d29903c321203b5235c81262efbbfe7ae"
+        },
+        {
+          "path": "HC-07/context.md",
+          "content": "# HC-07: visible contract\n\nThe registry is the admission authority for each key. start must reject while the current generation is pending. replace explicitly supersedes the tracked generation while the older handle may finish later. Completion releases only its own generation: an older completion must not remove the replacement reservation. A further start must remain rejected until that replacement completes. At most one current generation per key is admitted; the superseded handle is separately observed, not assumed forcibly stopped.\n",
+          "sha256": "f42c7e1a02f6857ec4184059c81e134542180209386c477304b9742f4b9331cb"
+        },
+        {
+          "path": "HC-07/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "d2b4202c31bcdd7aa7d0a361",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: abort during the awaited setup gate still permits one start and one occupied slot. Source: aborted is checked before await and the listener is registered only after the missed event. Consequence: cancelled work retains the synthetic slot until explicit completion. Remedy: recheck aborted after setup before acquisition. In contrast, uncancelled admission starts normally and running cancellation releases the slot/listener; pre-abort starts nothing. Explicit teardown clears the retained slot; this is not proof of permanent leakage.",
+      "answer_sha256": "9846527287afeb53fa01f0aa17cf8e5e0e3b07d111c110ac34b0a079380937fe",
+      "inputs": [
+        {
+          "path": "HC-01/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  // Cancellation is subscribed only after preparation.\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "5322b7080a0c5a05c234f52b277772080d4ccebaad0b83f4eab8f51fc7810c40"
+        },
+        {
+          "path": "HC-01/context.md",
+          "content": "# HC-01: visible contract\n\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\n",
+          "sha256": "79e5d8f63f6382cf3c6cac2f754d2ee11f459d9922dfb730f69a12ef3f7f5d75"
+        },
+        {
+          "path": "HC-01/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "d40750a7cb293d51f274fed3",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: awaiting the child inside try/finally releases the slot before the response settles on success and rejection, including an AbortError-shaped rejection. Rejection preserves the original error object. Next admission is available after rejection, and the explicit release hook is idempotent teardown rather than required recovery. Normal success also releases. This meets only the supplied lifecycle contract.",
+      "answer_sha256": "2d80973822f929e5205d419fcd39f6f35de105dd4ccfad149830dcd6a37174f8",
+      "inputs": [
+        {
+          "path": "HC-05/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    try { return await child; } finally { release(); }\n  })();\n  return { response, release };\n}\n",
+          "sha256": "62ef7b38746484d90d7da05e0ec3a956f9b6c70ce97fc90b2b3e8f79d8500ba4"
+        },
+        {
+          "path": "HC-05/context.md",
+          "content": "# HC-05: visible contract\n\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\n",
+          "sha256": "10515b19aeec0b706c8c4dc21d10600a4ca9056b2fc44e9dee9a227d9386a2cf"
+        },
+        {
+          "path": "HC-05/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "d69ba87a307ecf9023f3c9de",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: abort during the awaited setup gate still permits one start and one occupied slot. Source: aborted is checked before await and the listener is registered only after the missed event. Consequence: cancelled work retains the synthetic slot until explicit completion. Remedy: recheck aborted after setup before acquisition. In contrast, uncancelled admission starts normally and running cancellation releases the slot/listener; pre-abort starts nothing. Explicit teardown clears the retained slot; this is not proof of permanent leakage.",
+      "answer_sha256": "9846527287afeb53fa01f0aa17cf8e5e0e3b07d111c110ac34b0a079380937fe",
+      "inputs": [
+        {
+          "path": "HC-01/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  // Cancellation is subscribed only after preparation.\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "5322b7080a0c5a05c234f52b277772080d4ccebaad0b83f4eab8f51fc7810c40"
+        },
+        {
+          "path": "HC-01/context.md",
+          "content": "# HC-01: visible contract\n\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\n",
+          "sha256": "79e5d8f63f6382cf3c6cac2f754d2ee11f459d9922dfb730f69a12ef3f7f5d75"
+        },
+        {
+          "path": "HC-01/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "e994bcd4ce4f23cd2638e58d",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nUnresolved: abort during the awaited gate occurs before listener registration; opening the gate still starts work and retains a slot until completion. The cancellation/admission policy during preparation is missing. If cancellation invalidates later admission, this start violates that rule. If cancellation applies only once work begins, the same start can be allowed. Neither unseen policy is established.",
+      "answer_sha256": "fd59a43703305c2c5abb9ba5617da1a801e49ab826fc1a91211fba9b37f48da9",
+      "inputs": [
+        {
+          "path": "HC-03/service.mjs",
+          "content": "/** Cancellation can occur while preparation yields to its caller. */\nexport async function launch({ signal, gate, pool }) {\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\n  await gate;\n  // Cancellation is subscribed only after preparation.\n  const lease = pool.acquire();\n  const operation = { status: 'pending', complete: () => finish('ok') };\n  function finish(status) {\n    if (operation.status !== 'pending') return;\n    operation.status = status; pool.release(lease);\n    signal.removeEventListener('abort', cancel);\n  }\n  function cancel() { finish('cancelled'); }\n  signal.addEventListener('abort', cancel, { once: true });\n  return operation;\n}\n",
+          "sha256": "5322b7080a0c5a05c234f52b277772080d4ccebaad0b83f4eab8f51fc7810c40"
+        },
+        {
+          "path": "HC-03/context.md",
+          "content": "# HC-03: visible contract\n\nThe supplied launch function yields during preparation and may acquire a slot afterward. A signal can abort while the gate is pending. The caller has not supplied whether cancellation during preparation invalidates later admission, or is only a notification that applies after work starts. Slot count and listener behavior are observable, but the accepted-work ownership and cancellation policy are absent. No unseen caller contract is a supplied fact.\n",
+          "sha256": "04c4f67c1361f9c65f2a5b1bcdbb339bb663460095636780d02ae0fd59e188f9"
+        },
+        {
+          "path": "HC-03/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "ea63510373c6a14209eda501",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nWarning. Symptom: old completion after replacement removes the replacement reservation and admits another same-key handle. Source: completion deletes by key without verifying generation identity. Consequence: replacement and newly admitted work coexist despite the supplied exclusion rule. Remedy: delete only if the completing entry still owns the key. Current-generation completion should remove its own reservation and then permit admission; old completion must leave that reservation intact. Superseded live work is separately tracked, not assumed forcibly stopped.",
+      "answer_sha256": "f5ebb9e7b7aa11c8cbd019f30b4bd63b3727cc956fba09c144d3027e6acb1a6a",
+      "inputs": [
+        {
+          "path": "HC-07/service.mjs",
+          "content": "/** Entries are replaceable while older handles may still complete. */\nexport function makeRegistry() {\n  const entries = new Map(), live = new Set();\n  function create(key) {\n    const entry = { key, done: false, complete() {\n      if (entry.done) return;\n      entry.done = true; live.delete(entry);\n      entries.delete(key);\n    } };\n    entries.set(key, entry); live.add(entry); return entry;\n  }\n  return {\n    start(key) { return entries.has(key) ? null : create(key); },\n    replace(key) { return create(key); },\n    get reserved() { return entries.size; },\n    get active() { return live.size; },\n  };\n}\n",
+          "sha256": "2d838095579916c33e1b03441b430e5d29903c321203b5235c81262efbbfe7ae"
+        },
+        {
+          "path": "HC-07/context.md",
+          "content": "# HC-07: visible contract\n\nThe registry is the admission authority for each key. start must reject while the current generation is pending. replace explicitly supersedes the tracked generation while the older handle may finish later. Completion releases only its own generation: an older completion must not remove the replacement reservation. A further start must remain rejected until that replacement completes. At most one current generation per key is admitted; the superseded handle is separately observed, not assumed forcibly stopped.\n",
+          "sha256": "f42c7e1a02f6857ec4184059c81e134542180209386c477304b9742f4b9331cb"
+        },
+        {
+          "path": "HC-07/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    },
+    {
+      "packet_id": "f3bb5dada787921064f6f382",
+      "answer": "SIMULATED AUTHOR-WRITTEN ANSWER; NOT MODEL OUTPUT.\nBounded protection: awaiting the child inside try/finally releases the slot before the response settles on success and rejection, including an AbortError-shaped rejection. Rejection preserves the original error object. Next admission is available after rejection, and the explicit release hook is idempotent teardown rather than required recovery. Normal success also releases. This meets only the supplied lifecycle contract.",
+      "answer_sha256": "2d80973822f929e5205d419fcd39f6f35de105dd4ccfad149830dcd6a37174f8",
+      "inputs": [
+        {
+          "path": "HC-05/service.mjs",
+          "content": "/** A lease is acquired synchronously and its operation settles asynchronously. */\nexport function execute({ pool, child }) {\n  const lease = pool.acquire();\n  const release = () => pool.release(lease);\n  const response = (async () => {\n    try { return await child; } finally { release(); }\n  })();\n  return { response, release };\n}\n",
+          "sha256": "62ef7b38746484d90d7da05e0ec3a956f9b6c70ce97fc90b2b3e8f79d8500ba4"
+        },
+        {
+          "path": "HC-05/context.md",
+          "content": "# HC-05: visible contract\n\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\n",
+          "sha256": "10515b19aeec0b706c8c4dc21d10600a4ca9056b2fc44e9dee9a227d9386a2cf"
+        },
+        {
+          "path": "HC-05/task.md",
+          "content": "# Task\n\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n",
+          "sha256": "52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044"
+        },
+        {
+          "path": "shared/controls.mjs",
+          "content": "/** Original deterministic controls; no wall clock, network or model calls. */\nexport function deferred() {\n  let resolve, reject;\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\n  return { promise, resolve, reject };\n}\nexport class SlotPool {\n  #leases = new Set();\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\n  acquire() {\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\n  }\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\n  get active() { return this.#leases.size; }\n}\n",
+          "sha256": "59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658"
+        }
+      ]
+    }
+  ]
+}
