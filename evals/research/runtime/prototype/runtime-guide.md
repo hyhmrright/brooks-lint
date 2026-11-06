@@ -1,6 +1,6 @@
 # Runtime research guide
 
-Revision 1. These are experimental diagnostic rules. Book-source verification,
+Revision 2. These are experimental diagnostic rules. Book-source verification,
 independent human review, and evidence of model benefit remain pending.
 
 ### Step 1 — Respect the requested task
@@ -37,6 +37,21 @@ teardown. Measure before artificial cleanup if a supplied reproducer permits it.
 Do not require request-serving deadlines for a finite offline job whose documented
 contract permits long execution and bounds concurrency. Long duration alone does
 not establish a deadline failure.
+
+When outcome depends on scheduling, separate underlying settlement, boundary
+observation, caller delivery, and resource release. Trace the relevant event order
+and a contrasting permitted order; do not infer a resource leak from a response
+that loses arbitration after work has released its resources. State which event
+the contract calls success and how exact-boundary ties and intervening
+cancellation are resolved. If those rules are missing, show how at least two
+compatible rules produce different judgments of the same observation.
+
+Trace rejection as well as normal completion. Establish which inputs are valid,
+when validation occurs relative to timer/listener/slot acquisition, and which
+owner cleans up a synchronous throw or asynchronous rejection. A resource retained
+until an observed deadline is temporary retention, not proof of a permanent leak.
+If accepted inputs or rejection behavior are unspecified, report that missing
+contract before calling the observed rejection path a defect.
 
 ### Step 4 — Trace attempt ownership across the whole path
 
@@ -82,7 +97,11 @@ local behavior, the specific missing artifacts and why they matter, and the
 conditional alternatives. Withhold a definitive defect, clean verdict, and
 severity when the missing evidence prevents them. In a fixed-input experiment,
 record this unresolved assessment; in an interactive review, ask a focused
-question. A hypothetical repair is not an established finding.
+question. A hypothetical repair is not an established finding. For each unresolved issue,
+make the alternatives explicit: under rule A, the observed result meets or
+violates the contract; under rule B, explain how that judgment changes. Identify
+the smallest missing artifact that would decide between them. Distinguish this
+reasoning from simply listing two observed schedules.
 
 ### Step 7 — Report the research result and its limits
 
@@ -90,7 +109,10 @@ Keep experimental runtime observations in a labeled research artifact. Report
 supported findings, bounded protection, or unresolved questions according to the
 evidence; do not demand findings in every review. Include no numeric runtime or
 combined Health Score and invent no public risk identifiers or book citations.
-Verified source mapping remains separate from a causal code trace.
+Verified source mapping remains separate from a causal code trace. Do not map a
+runtime issue to a core risk merely to attach a code; demonstrate that core
+risk's defining mechanism separately. A bounded runtime protection alone cannot
+justify a whole-codebase Health Score.
 
 Compare any runtime observation with core findings already produced. Describe
 overlap once and do not duplicate the same underlying failure, affected resource,

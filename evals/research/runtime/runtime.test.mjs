@@ -797,7 +797,11 @@ test('research prototype has explicit negative task boundary and sequential guid
   assert.match(skill, /^name: runtime-research$/m);
   assert.match(skill, /Do NOT trigger for: syntax explanations/);
   assert.match(skill, /opencode\/slash: "true"/);
-  assert.match(skill, /research\/revision: "1"/);
+  const revision = skill.match(/research\/revision: "(\d+)"/)[1];
+  assert.equal(revision, '2');
+  assert.match(skill, new RegExp(`Revision ${revision}\\.`));
+  assert.match(skill, new RegExp(`Runtime Research \\(revision ${revision}\\)`));
+  assert.match(guide, new RegExp(`Revision ${revision}\\.`));
   assert.match(skill, /^## Setup$/m);
   assert.match(skill, /^## Process$/m);
   assert.deepEqual([...guide.matchAll(/^### Step (\d+)/gm)].map((match) => Number(match[1])), [1, 2, 3, 4, 5, 6, 7]);

@@ -19,7 +19,7 @@ extension. No public risk code, score, production skill, or package release is a
 | --- | --- | --- |
 | A | Empty | Selected case's exact visible-input whitelist and natural task |
 | B | Six unchanged core skills and shared framework | Same case and task |
-| C | Same core plus `runtime-research` revision 1 | Same case and task |
+| C | Same core plus `runtime-research` revision 2 | Same case and task |
 
 The operator's explicit selection of C opts into making the experimental guidance
 available. The natural task is identical across arms; no case answer, forced skill
@@ -189,8 +189,7 @@ repetition of all forty-three cases, or 387 for three repetitions; planning runs
 no models. Context restraint metrics select every manifest case with
 `kind: unresolved`: RT-07/08/13/16/19/22/25/28/31/34/37/40/43. Thirteen controls distinguish
 missing context from both demonstrated defects and bounded protection. The
-prototype remains revision 1; expanding a challenge set does not assert guidance
-coverage. Existing plans remain historical artifacts; freeze a new plan for the
+prototype is now revision 2 following the [RT-40 review](runtime-results/2026-11-06-terra-rt40-recheck/README.md); its revised guidance has not been live-tested. Expanding a challenge set does not assert guidance coverage. Existing plans remain historical artifacts; freeze a new plan for the
 expanded catalog.
 
 The six dispute follow-up cases can be planned separately with `--case RT-38`

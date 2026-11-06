@@ -1,5 +1,7 @@
 # Runtime failure containment: pilot research plan
 
+2026-11-06 guidance update: the [RT-40 reassessment](runtime-results/2026-11-06-terra-rt40-recheck/README.md) advances the current research prototype to revision 2. References below to an unchanged revision-1 prototype describe the earlier fixture-expansion and frozen-study stage; historical plans and book-certification states remain unchanged.
+
 Status: research in progress, 2026-11-06. The [RT-01–RT-43 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
 and deterministic tests. A [research-only guidance prototype](../../evals/research/runtime/prototype/SKILL.md)
 and [separate A/B/C runner](runtime-runner.md) are implemented and tested offline.

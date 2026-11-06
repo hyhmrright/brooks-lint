@@ -1,5 +1,7 @@
 # RT-38–RT-43 model comparison and semantic review
 
+2026-11-06 follow-up: the [RT-40 reassessment](../2026-11-06-terra-rt40-recheck/README.md) found an inconsistent explicit-evidence threshold affecting A/2, B/1 and C/3. All nine RT-40 answers correctly diagnosed uncertainty. Supplemental sensitivities and prototype revision 2 are recorded separately; the historical results below remain unchanged.
+
 On 2026-11-06 the six revision-8 dispute cases were tested with `gpt-6.1-terra`,
 medium reasoning, Codex CLI 0.167.0, three repetitions in each of three arms.
 Of 54 planned turns, 53 executed and one failed. A separate model reviewer

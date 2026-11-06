@@ -1,5 +1,7 @@
 # Runtime research: candidate case catalog
 
+2026-11-06 guidance update: the [RT-40 reassessment](runtime-results/2026-11-06-terra-rt40-recheck/README.md) advances the current research prototype to revision 2. References below to an unchanged revision-1 prototype describe the earlier fixture-expansion and frozen-study stage; historical plans and book-certification states remain unchanged.
+
 Status: implemented development inventory, 2026-11-06. All nine families in this
 catalog are implemented as 27 authored fixtures, RT-11–RT-37. Together with the
 original baseline, the [runnable development set](../../evals/research/runtime/README.md)

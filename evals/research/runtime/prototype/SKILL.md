@@ -9,12 +9,12 @@ description: >
   security audits, or unsolicited analysis merely because networking code appears.
 metadata:
   opencode/slash: "true"
-  research/revision: "1"
+  research/revision: "2"
 ---
 
 # Runtime failure containment — research prototype
 
-Revision 1. Research guidance with unverified source mapping; no shipped risk
+Revision 2. Research guidance with unverified source mapping; no shipped risk
 codes, runtime score, or integration claim. Availability in a skill catalog is not
 permission to expand the user's task.
 
@@ -41,5 +41,5 @@ or neighboring research artifacts to complete missing review evidence.
 4. Report evidence, calibrated severity, overlap, and limitations separately from
    core findings and scores (Step 7 of the guide).
 
-**Mode line in an eligible research artifact:** `Runtime Research (revision 1)`.
+**Mode line in an eligible research artifact:** `Runtime Research (revision 2)`.
 Do not add this artifact or mode line to a syntax-only answer.

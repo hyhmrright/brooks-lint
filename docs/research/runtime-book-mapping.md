@@ -1,5 +1,7 @@
 # Runtime research: book chapter verification
 
+2026-11-06 guidance update: the [RT-40 reassessment](runtime-results/2026-11-06-terra-rt40-recheck/README.md) advances the current research prototype to revision 2. References below to an unchanged revision-1 prototype describe the earlier fixture-expansion and frozen-study stage; historical plans and book-certification states remain unchanged.
+
 Status: agent-conducted primary-source check, 2026-11-06. This ledger accounts for
 RT-01–RT-37 at manifest revision 7. Some mechanisms have inspected book-text
 support; others have only a related heading or no verified book support. These
