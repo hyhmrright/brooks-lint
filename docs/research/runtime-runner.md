@@ -207,3 +207,13 @@ model outputs or completed human calibration. The separately prepared
 exposed, agent-authored development candidates with no independent custody; they
 do not satisfy the independent-holdout gate or alter the 43-case runner catalog.
 No live run is authorized or performed by this preparation.
+
+## Separate HC candidate offline preparation
+
+The [prospective offline adapter](../../evals/research/runtime/prospective/README.md)
+freezes the exposed HC-01–HC-09 candidate materials and scoring protocol v1 in
+separate plans. Its CLI creates templates, reviewer packets and annotation-based
+summaries without invoking any model. It does not extend this RT runner, change
+historical imports, or authorize future live execution. Follow its trusted-digest,
+reported model provenance, exact-answer and partial-masking limitations; none of
+these public development candidates is an independent holdout.

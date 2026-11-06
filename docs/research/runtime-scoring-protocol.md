@@ -135,5 +135,17 @@ candidate inventories and executable controls without model calls. The
 [calibration helper](../../evals/research/runtime/calibration/README.md#offline-commands-and-pairing-api)
 accepts a complete planned-triplet schedule to expose wholly absent executions.
 Its record-only mode cannot infer missing whole triplets. It remains separate
-from the historical importer; a future study needs a reviewed adapter pinning
-this protocol and its annotation schema before these prospective metrics apply.
+from the historical importer. The separate prospective adapter below pins this
+protocol and its annotation schema; future live use still requires a reviewed
+execution path and explicit authorization.
+
+## Separate prospective offline adapter
+
+The [candidate study adapter](../../evals/research/runtime/prospective/README.md)
+now freezes HC candidate inputs/rubrics, protocol/schema, scorer implementation,
+core guidance and revision-2 prototype into a separate offline plan. It validates
+recorded responses and reviewer provenance against a trusted plan digest, then
+uses the complete schedule for the axes above. It has no live execution capability
+or automatic authorization, and leaves the historical runner/importer unchanged.
+Its synthetic selftests are arithmetic/ingestion checks, not model evaluations.
+Candidate independence, human review and book verification remain unsatisfied.
