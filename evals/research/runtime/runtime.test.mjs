@@ -164,7 +164,7 @@ for (const [name, handleQuote, Transport] of [
 }
 
 test('manifest keeps model inputs separate from grading artifacts', () => {
-  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10', 'RT-11', 'RT-12', 'RT-13', 'RT-14', 'RT-15', 'RT-16', ...Array.from({ length: 21 }, (_, i) => `RT-${i + 17}`)]);
+  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10', 'RT-11', 'RT-12', 'RT-13', 'RT-14', 'RT-15', 'RT-16', ...Array.from({ length: 27 }, (_, i) => `RT-${i + 17}`)]);
 });
 
 test('manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics', () => {
@@ -1219,3 +1219,6 @@ test('dispute RT-12: validating durations before acquisition avoids the exceptio
   assert.equal(clock.pendingTimers, 0);
   assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
 });
+
+// Revision-8 follow-up probes derived from exposed RT-02/RT-12 answer disputes.
+await import('./dispute-cases.test.mjs');

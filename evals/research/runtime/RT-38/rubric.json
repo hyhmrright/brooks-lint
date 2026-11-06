@@ -1,0 +1,55 @@
+{
+  "revision": 1,
+  "caseId": "RT-38",
+  "assessment": "Manual semantic assessment; offline structure and traces do not establish model quality.",
+  "reviewStatus": {
+    "human": "pending",
+    "agent": "agent-authored from exposed RT-02/RT-12 model-answer disputes; agent QA is not human review",
+    "bookMapping": "unverified for this case; authored contract is the present source of truth"
+  },
+  "coreOverlap": "Unmeasured; no incremental benefit claimed.",
+  "expectedFindings": [
+    {
+      "id": "RT-38-completion-arbitration",
+      "allowedSeverities": [
+        "Warning"
+      ],
+      "symptom": "Transport settles at 99, but synchronous advance to 100 yields timed-out instead of the required value.",
+      "source": "Success is recorded only by a Promise reaction; synchronous deadline advancement runs before it.",
+      "consequence": "One synthetic response violates the explicit completion-time contract; the slot is already released, so this is not a cancellation leak.",
+      "remedy": "Observe synchronous settlement or its time at the boundary so pre-deadline completion wins; preserve cancellation and the deadline tie rule. Merely flushing the harness or redefining the contract does not fix this contract.",
+      "grading": "Require the contract, both event times, Promise mechanism and bounded wrong-response consequence. One causal issue; no duplicate cancellation finding.",
+      "requiredEvidence": [
+        "Completion at 99 precedes deadline100 under the explicit settlement-time contract.",
+        "Same-turn advance invokes deadline before the boundary Promise success reaction.",
+        "Response timed-out even though transport.completed=1 and active=0.",
+        "Awaiting before advancing instead returns42; this does not eliminate the permitted failing schedule."
+      ]
+    }
+  ],
+  "protectedReasoning": [],
+  "forbiddenClaims": [
+    "Production outage, real memory/socket leakage, traffic scale or security impact absent from the synthetic evidence.",
+    "Passing offline tests establishes model quality, human validation or independent holdout status.",
+    "A public runtime risk code or numeric runtime Health Score is required.",
+    "Conditional reasoning about a missing contract is itself a false positive."
+  ],
+  "evidence": [
+    {
+      "file": "RT-38/service.mjs",
+      "anchor": "handleQuote"
+    },
+    {
+      "file": "RT-38/context.md",
+      "anchor": "logical"
+    },
+    {
+      "file": "shared/clock.mjs",
+      "anchor": "schedule"
+    },
+    {
+      "file": "shared/request-boundary.mjs",
+      "anchor": "finish"
+    }
+  ]
+}

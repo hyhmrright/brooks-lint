@@ -64,7 +64,7 @@ Reviewer sign-off and remaining limitations:
 ```
 
 The [agent-conducted chapter ledger](runtime-book-mapping.md) records partial source
-checks for all 37 cases, including contents-only and unverified connections. It is
+checks for the original 37 cases, including contents-only and unverified connections. It is
 a starting point for review, not a human sign-off or blanket verified status.
 
 Verify editions and precise sections against a copy the reviewer can inspect or
@@ -149,3 +149,9 @@ Use [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45)
 to coordinate scope and volunteers. Avoid linking a prospective blind holdout
 author directly to development answers before choosing a track. Actual messages,
 reviewer participation and live evaluation each remain separate actions.
+
+Scope update: the catalog now includes RT-38–RT-43 (manifest revision 8), derived
+from the [RT-02/RT-12 dispute audit](runtime-dispute-audit-v1.md). The book checks
+in this document cover the original RT-01–RT-37 only. Specific chapter support
+for the six follow-ups is **unverified**; their authored contracts and offline
+traces do not substitute for book verification or independent human review.

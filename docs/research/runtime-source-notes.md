@@ -4,7 +4,7 @@ Status: primary-source research, 2026-11-06. This ledger records why the remaini
 candidate families deserve controlled experiments. It is not a book inventory,
 complete book-to-finding certification, human review, incident corpus, or model result.
 The [book chapter ledger](runtime-book-mapping.md) now records partial primary-text
-checks, contents-only leads and explicit unverified mappings for all 37 cases.
+checks, contents-only leads and explicit unverified mappings for the original 37 cases.
 All implementations are original synthetic JavaScript; no external code is copied.
 
 ## Sources inspected
@@ -67,3 +67,9 @@ question, counterexample or failing invariant is identified. External human revi
 independent custody of holdouts and review of model-study evidence remain separate
 gates; synthetic validator judgments cannot satisfy them. Any further live study
 requires separate explicit authorization.
+
+Scope update: the catalog now includes RT-38–RT-43 (manifest revision 8), derived
+from the [RT-02/RT-12 dispute audit](runtime-dispute-audit-v1.md). The book checks
+in this document cover the original RT-01–RT-37 only. Specific chapter support
+for the six follow-ups is **unverified**; their authored contracts and offline
+traces do not substitute for book verification or independent human review.

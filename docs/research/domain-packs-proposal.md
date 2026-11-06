@@ -135,7 +135,7 @@ link. Unanswered questions remain open rather than silently becoming requirement
 | 2026-11-06 | Complete RT-09/RT-10, research-only guidance and separate A/B/C tooling. | Maintainer authorized offline implementation and verification; no live model execution. Human review/source verification and independent holdout procedures are prepared, participation pending. |
 | 2026-11-06 | Add RT-11–RT-16 deadline-coverage and queue-expiry triples. | Maintainer authorized defective, protected and unresolved cases with offline reproduction, rubrics and verification; no live model evaluation. |
 | 2026-11-06 | Complete C03–C09 as RT-17–RT-37 with offline evidence. | Maintainer authorized completing all autonomous research and case work, including recovery probes and degradation. Original cases and prototype revision 1 remain unchanged; no live evaluation. |
-| Open | Evidence review and next domain. | All thirty-seven development cases, a prototype and offline-tested execution tooling are implemented; actual model benefit and independent validation remain unestablished. |
+| Open | Evidence review and next domain. | All forty-three development cases, a prototype and offline-tested execution tooling are implemented; actual model benefit and independent validation remain unestablished. |
 | Open | Pack loading and public identifiers. | Defer until a small prototype demonstrates value. |
 | Open | Score composition and compatibility. | Preserve existing score meaning during research. |
 
@@ -158,3 +158,7 @@ input/catalog isolation, preserved failures and separate semantic judgments.
 The [review and holdout procedure](runtime-review-and-holdouts.md) provides source
 verification and contribution templates. Tooling availability does not complete
 human review, independent holdouts, live evaluation or a promotion decision.
+
+The six [RT-38–RT-43 dispute follow-ups](runtime-dispute-audit-v1.md#implementation-follow-up-manifest-revision-8) are registered in manifest revision 8. Their contracts
+were refined using exposed model-answer disputes; original study artifacts remain
+preserved and these cases must not be presented as independent holdouts.

@@ -94,10 +94,11 @@ composite case scores or replace the historical uncertain judgment.
 
 ## Proposed next-study contracts and grading
 
-These six designs are **not registered runner cases**. Their identifiers below
-are design labels, not RT IDs. None may be passed to the current `--case` option.
-Prepare and version their visible inputs and private rubrics before freezing a
-live plan. They are exposed development probes, never independent holdouts.
+At the time of this revision-1 audit, these six designs were **not registered
+runner cases**. See the [revision-8 implementation follow-up](#implementation-follow-up-manifest-revision-8)
+for their later registration. The identifiers in the original table below remain
+design labels, not RT IDs.
+Use the registered RT IDs listed in the implementation follow-up for `--case`. They are exposed development probes, never independent holdouts.
 
 | Design | Explicit visible contract | Expected judgment and evidence |
 | --- | --- | --- |
@@ -118,9 +119,10 @@ Required offline coverage before registering those variants: both RT-02 ordering
 completion exactly at 100 with a stated tie rule; no completion before timeout;
 parent cancellation and successful cleanup; negative, nonfinite and zero durations
 in both phases; normal setup/work success and total timeout; rejection with no
-resources; insufficient-context cases retaining their missing information. Existing
-characterizations cover the disputed paths and controls but do not implement this
-entire proposed six-case catalog.
+resources; insufficient-context cases retaining their missing information. At the
+initial audit, the characterization tests covered disputed paths and
+controls but did not implement the entire proposed six-case catalog. The later
+implementation below supplies that coverage.
 
 Grade diagnosis separately from completion, evidence, severity and formatting.
 For each arm, report expected-issue recall on the two defect designs, false positives
@@ -151,9 +153,10 @@ npm run evals:runtime:offline
 npm run evals:runtime:research:validate
 ```
 
-The current runner can freeze a new plan for the **unchanged 37-case catalog**
-with an explicit model name. The new six-design study first requires registered,
-versioned fixtures/rubrics and corresponding runner validation. Do not present a
+At the time of the initial audit, the runner could freeze a new plan for the **unchanged 37-case catalog**
+with an explicit model name. The six-design study initially required registered,
+versioned fixtures/rubrics and corresponding runner validation; that offline
+implementation is now complete as recorded below. Do not present a
 37-case repeat as a test of these new contracts. See the
 [runner contract](runtime-runner.md) for supported plan/live commands. No model
 name is chosen and no live command is executed by this audit; the maintainer will
@@ -166,3 +169,53 @@ store new judgments with provenance and revised expected-issue denominators, the
 publish a sensitivity comparison alongside the original. New-contract answers
 must be analyzed as a separate study. Neither this audit nor a later model score
 establishes human validation, real-world benefit or readiness to ship the skill.
+
+## Implementation follow-up: manifest revision 8
+
+The six designs are now registered as revision-1 cases: RT-38 completion defect,
+RT-39 delivery protected, RT-40 arbitration unresolved, RT-41 rejection defect,
+RT-42 rejection protected, and RT-43 validity unresolved. The current catalog has
+43 cases: 14 defect, 15 protected, 13 unresolved and one non-trigger. The original
+37 case contracts/rubrics/implementations and recorded judgments/metrics remain
+unchanged. RT-38–RT-43 derive from exposed model answers and are development
+probes, not independent holdouts. Their specific book mappings are unverified.
+
+Completion exactly at 100 loses to the deadline in RT-38/39, including when the
+transport completion timer was inserted first; RT-40 deliberately leaves that
+contract unknown. RT-41/42 require invalid setup or work duration to reject before
+acquisition even for a pre-aborted parent. RT-42 validates both effective arguments
+before entering the resource owner. RT-43 leaves the input and rejection policy
+unknown. Tests privately show contrasting compatible contracts for RT-40/43;
+no private policy/rubric/test enters the runner's visible inputs.
+
+Run all new cases offline:
+
+```bash
+node --test evals/research/runtime/dispute-cases.test.mjs
+npm run evals:runtime:offline
+npm run evals:runtime:research:validate
+```
+
+After selecting a model, freeze six separate plans with the existing single-case
+selector (planning itself never launches a model). Replace `MODEL` and use a fresh
+study directory. Three repetitions per case produce nine planned turns each,
+54 in total. Each plan rotates A/B/C across repetitions; these are six separate
+case plans, not one interleaved multi-case schedule.
+
+```bash
+for case_id in RT-38 RT-39 RT-40 RT-41 RT-42 RT-43; do
+  npm run evals:runtime:research -- --plan --case "$case_id" \
+    --model MODEL --reasoning medium --runs 3 \
+    --out "evals/research/runtime/runs/dispute-v8-$case_id-plan"
+done
+```
+
+The offline runner regression executes this planning path using a dummy model
+label, nonexistent CLI and missing credentials; it checks all six selected IDs,
+manifest revision, private-input exclusion and the total 54 turns. These dummy
+plans are temporary test artifacts, not a selected model or a live-study plan.
+Freeze real plans from the committed checkout only after the maintainer switches
+models. Execution and semantic judging remain separate authorized later work.
+Use the per-kind grading and complete-triplet denominators described above;
+aggregate separate case plans with provenance and never mix them into historical
+37-case rates. No live evaluation has been run for the new cases.

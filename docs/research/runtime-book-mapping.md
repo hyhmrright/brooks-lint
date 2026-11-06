@@ -112,3 +112,9 @@ ledger records subsequent partial source checks without rewriting their study
 inputs, revisions or digests. Before any source-derived guidance change, review the
 applicability and exceptions, record a new revision and freeze a new plan. The
 current live-evaluation hold, independent-holdout gate and human-review gate remain.
+
+Scope update: the catalog now includes RT-38–RT-43 (manifest revision 8), derived
+from the [RT-02/RT-12 dispute audit](runtime-dispute-audit-v1.md). The book checks
+in this document cover the original RT-01–RT-37 only. Specific chapter support
+for the six follow-ups is **unverified**; their authored contracts and offline
+traces do not substitute for book verification or independent human review.

@@ -1,6 +1,6 @@
 # Runtime failure containment: pilot research plan
 
-Status: research in progress, 2026-11-06. The [RT-01–RT-37 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
+Status: research in progress, 2026-11-06. The [RT-01–RT-43 offline fixtures](../../evals/research/runtime/README.md) are implemented with authored rubrics
 and deterministic tests. A [research-only guidance prototype](../../evals/research/runtime/prototype/SKILL.md)
 and [separate A/B/C runner](runtime-runner.md) are implemented and tested offline.
 Partial [book chapter verification](runtime-book-mapping.md) is recorded with explicit
@@ -91,7 +91,7 @@ semantic rubrics, and offline structural validation/reproduction tests. Run
 checks verify fixture behavior and artifact structure, not model answers. The separate research runner now supports only this fixed development catalog;
 its execution path is tested with a local fake CLI. The production paired runner,
 structural suite and frozen parser corpus remain unchanged. Human review and book
-source certification for all thirty-seven implemented cases remain pending;
+source certification for all forty-three implemented cases remain pending;
 [partial chapter checks and gaps](runtime-book-mapping.md) are recorded separately.
 
 RT-03 reproduces nine downstream calls from independent three-total-attempt owners;
@@ -178,7 +178,7 @@ ground truth.
 | --- | --- |
 | Supported-issue recall | Correctly identified expected issues / all expected issues, by case and arm. |
 | Unsupported-finding fraction | Unsupported asserted findings / all asserted findings; show N/A for zero findings and report clean-case counts separately. |
-| Context restraint | Counts of correct unresolved assessments and unsupported certainty on all manifest `unresolved` cases (RT-07/08/13/16/19/22/25/28/31/34/37), including false claims of safety. |
+| Context restraint | Counts of correct unresolved assessments and unsupported certainty on all manifest `unresolved` cases (RT-07/08/13/16/19/22/25/28/31/34/37/40/43), including false claims of safety. |
 | Evidence completeness | Findings whose inspected locations and causal chain support the consequence / asserted findings. |
 | Severity calibration | Findings with explicit severity within the frozen rubric's allowed range / labeled findings; track unlabeled findings separately. |
 | Completion and routing restraint | Completed requested tasks, unsolicited audits on RT-10, and execution/judging failures. |
@@ -220,7 +220,7 @@ Record negative evidence as carefully as positive evidence.
 
 Start in [Discussion #45](https://github.com/hyhmrright/brooks-lint/discussions/45)
 with a case critique, a source reference, or an offer to own a small artifact.
-Useful next PRs include reviewing the implemented RT-01–RT-37 cases and prototype,
+Useful next PRs include reviewing the implemented RT-01–RT-43 cases and prototype,
 verifying source applicability, or authoring an independent counterexample. Follow
 the [human review and holdout procedure](runtime-review-and-holdouts.md) before
 sharing development material with a prospective blind author. Target `research/domain-packs` and link the case ID.
@@ -238,7 +238,13 @@ validation and release process; the research branch grants no release approval.
 All families in the [candidate catalog](runtime-candidate-catalog.md) now have
 runnable development cases. The [source notes](runtime-source-notes.md) document
 primary references and transfer limits. Case/rubric revisions remain 1, manifest
-revision is 7, and prototype revision 1 is unchanged. New cases challenge the
+revision is 8, and prototype revision 1 is unchanged. New cases challenge the
 existing prototype rather than establishing that it diagnoses those mechanisms.
 Offline tests and synthetic judgments are not human review or model measurements.
 Independent review, holdouts and any explicitly authorized live study remain open.
+
+Manifest revision 8 adds the [RT-38–RT-43 dispute follow-ups](runtime-dispute-audit-v1.md#implementation-follow-up-manifest-revision-8): two defect/protected/unresolved
+triples with explicit completion and rejection contracts. They derive from exposed
+model-answer disputes; original-case revisions and historical metrics are preserved.
+New-case book mappings and human adjudication remain pending. No new live study
+was run while implementing these cases.

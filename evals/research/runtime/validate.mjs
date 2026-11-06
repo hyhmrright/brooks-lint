@@ -20,7 +20,7 @@ export function validateManifest(root = fixtureRoot) {
   };
   const manifest = JSON.parse(read('cases.json'));
   assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.revision, 7);
+  assert.equal(manifest.revision, 8);
   assert(nonempty(manifest.provenance));
   assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08', 'RT-09', 'RT-10', 'RT-11', 'RT-12', 'RT-13', 'RT-14', 'RT-15', 'RT-16', ...Object.keys(expansion)]);
   for (const entry of manifest.cases) {

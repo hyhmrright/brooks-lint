@@ -1,6 +1,6 @@
-# Runtime research fixtures: RT-01–RT-37
+# Runtime research fixtures: RT-01–RT-43
 
-Manifest revision 7, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
+Manifest revision 8, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
 implement the first three pairs, deadline-coverage and waiting-expiry triplets, four incomplete-context controls, and the finite-batch/syntax controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 The [runtime guidance prototype](prototype/SKILL.md) is research-only and remains
 outside the production skills catalog. No public risk code or runtime score is
@@ -163,7 +163,7 @@ reports the observed non-trigger responses, with human review pending.
 
 ## Input and grading boundary
 
-[`cases.json`](cases.json) defines schema 1 / manifest revision 7 and thirty-seven cases. Each entry
+[`cases.json`](cases.json) defines schema 1 / manifest revision 8 and forty-three cases. Each entry
 has an explicit `inputs` whitelist: task, context, its service, and shared clock,
 boundary, and transport for the first two pairs; retry cases also include the retry
 helper. The resource pair includes its pool and optional-work implementation instead.
@@ -281,7 +281,7 @@ Use a focused PR against `research/domain-packs` and link the case ID and
 fixture behavior and rubric semantics together. Update the case/rubric revision
 and documented schema contract if expectations change; preserve any future run's
 exact artifact digests rather than rewriting prior results. The present validator
-intentionally accepts only these thirty-seven cases and revisions, not a general pack schema.
+intentionally accepts only these forty-three cases and revisions, not a general pack schema.
 
 ## Research execution and independent contributions
 
@@ -343,3 +343,32 @@ definitive defect, safety or severity verdict. Human review, complete book mappi
 and independent holdout validation remain pending. See the [exploratory live run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
 for execution results and limits, and the linked model review for judgments;
 human adjudication remains pending.
+
+## Dispute follow-up contracts: RT-38–RT-43
+
+Manifest revision 8 adds six exposed development probes derived from the recorded
+RT-02/RT-12 model-answer disputes. They are not independent holdouts. Original
+RT-01–RT-37 case files and historical study answers/metrics remain unchanged.
+
+| Cases | Contract and expected assessment |
+| --- | --- |
+| RT-38 / RT-39 / RT-40 | Settlement-time success reveals the wrong response; explicit Promise-delivery success permits it; omitted arbitration requires conditional reasoning. |
+| RT-41 / RT-42 / RT-43 | Required rejection before acquisition exposes missing validation; prevalidation protects the same contract; omitted validity/rejection policy requires restraint. |
+
+Each triplet has one defect, one protected control and one unresolved control.
+The completion pair deliberately changes the contract while retaining the same
+code; the rejection pair retains the contract while changing prevalidation. This
+is a contract-sensitivity study, not six independent random samples. The two
+unresolved cases contain real visible mechanisms; their alternative policy
+countermodels live only in `dispute-cases.test.mjs`, never the runner whitelist.
+
+Offline tests cover same-turn and awaited completion, both timer insertion orders
+at exactly 100, pending timeout, cancellation, invalid durations in both phases,
+zero/default durations, valid success, deadline ties and exception cleanup. A
+passing defect characterization documents the violation rather than certifying
+correct behavior. Rubrics separate supported causal findings from conditional
+reasoning and forbid unbounded-leak or production claims. New book-chapter
+mappings remain unverified; the supplied contracts ground these judgments.
+
+See the [implementation and next-study handoff](../../../docs/research/runtime-dispute-audit-v1.md#implementation-follow-up-manifest-revision-8)
+for offline planning commands. No new live model study has been run.

@@ -1,0 +1,4 @@
+# RT-38: supplied context
+
+This is one synthetic request starting at logical time 0 with a deadline at 100. Use the supplied ManualClock, FakeTransport and service. Clock advancement is synchronous; Promise reactions run only after the current JavaScript turn yields. The harness may complete the transport at 99 and advance to 100 in the same turn, or await the response before advancing. Pending work must be cancelled at the deadline or parent cancellation; success must release its slot, listeners and deadline timer. No deployment, real sockets, traffic scale or production event-loop ordering is supplied.
+Success is defined by synchronous transport settlement strictly before 100, even when the boundary receives the Promise reaction later. A completion exactly at 100 loses to the deadline. After a pending deadline or parent cancellation has won, later completion cannot replace the response.

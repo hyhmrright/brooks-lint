@@ -5,7 +5,7 @@ local fake CLI verified the tooling offline. A subsequent [real-model explorator
 study](runtime-results/2026-11-06-terra-37/README.md) records execution outcomes
 and unresolved human review; the earlier [RT-01 pilot](runtime-results/2026-11-06-terra-pilot/README.md)
 is reported separately.
-See the [pilot plan](runtime-pilot-plan.md), [thirty-seven development cases](../../evals/research/runtime/README.md),
+See the [pilot plan](runtime-pilot-plan.md), [forty-three development cases](../../evals/research/runtime/README.md),
 and [human review and independent holdouts procedure](runtime-review-and-holdouts.md).
 
 ## Scope and arms
@@ -48,7 +48,7 @@ npm run evals:runtime:research -- --plan --model MODEL --runs 1 \
   --out evals/research/runtime/runs/plan-01
 ```
 
-`--case RT-09` selects one case during planning; otherwise all thirty-seven are planned.
+`--case RT-09` selects one case during planning; otherwise all forty-three are planned.
 `--reasoning high` and `--timeout 240` are defaults. `--runs` accepts 1–100.
 Plans record the source commit and dirty-worktree flag, exact natural prompts,
 whitelisted inputs, private rubrics, core/prototype contents, manifest revision,
@@ -184,11 +184,16 @@ cannot count as wins. Judgments and reviewer disagreements remain inspectable.
 No summary automatically promotes the prototype. Source verification, human case
 review, independent holdouts and an evidence-based decision remain outstanding.
 
-The revision-7 manifest registers RT-01–RT-37. Plans contain 111 turns for one
-repetition of all thirty-seven cases, or 333 for three repetitions; planning runs
+The revision-8 manifest registers RT-01–RT-43. Plans contain 129 turns for one
+repetition of all forty-three cases, or 387 for three repetitions; planning runs
 no models. Context restraint metrics select every manifest case with
-`kind: unresolved`: RT-07/08/13/16/19/22/25/28/31/34/37. Eleven controls distinguish
+`kind: unresolved`: RT-07/08/13/16/19/22/25/28/31/34/37/40/43. Thirteen controls distinguish
 missing context from both demonstrated defects and bounded protection. The
 prototype remains revision 1; expanding a challenge set does not assert guidance
 coverage. Existing plans remain historical artifacts; freeze a new plan for the
 expanded catalog.
+
+The six dispute follow-up cases can be planned separately with `--case RT-38`
+through `--case RT-43`; see the [revision-8 study handoff](runtime-dispute-audit-v1.md#implementation-follow-up-manifest-revision-8). Earlier revision-7 frozen plans
+are historical artifacts and will fail current-source live validation; freeze a
+new plan rather than altering their hashes or reusing their output directories.

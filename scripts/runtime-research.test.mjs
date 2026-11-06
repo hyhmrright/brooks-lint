@@ -56,13 +56,13 @@ test('default validation and plan mode never require Codex or credentials', t =>
     assert.equal(run.status, 0, run.stderr); assert.match(run.stdout, /offline/);
   }
   const plan = JSON.parse(readFileSync(path.join(dir, 'plan/plan.json'), 'utf8'));
-  assert.equal(schedule(plan).length, 111);
-  assert.equal(plan.study.cases.length, 37);
+  assert.equal(schedule(plan).length, 129);
+  assert.equal(plan.study.cases.length, 43);
 });
 
 test('plans freeze exact artifacts, reject edits and invalid settings, and rotate three arms', () => {
   const plan = createPlan({ model: 'fixture-model', runs: 3 });
-  assert.equal(schedule(plan).length, 333);
+  assert.equal(schedule(plan).length, 387);
   const schemaContract = plan.study.tooling.find(f => f.path === 'evals/research/runtime/expansion-spec.json');
   assert(schemaContract, 'Freeze the private schema consumed by manifest validation');
   assert.equal(schemaContract.sha256, digest(readFileSync(path.join(ROOT, schemaContract.path))));
@@ -169,7 +169,7 @@ test('all expanded cases freeze visible inputs and count unresolved controls by 
   assert.deepEqual(newCases.map(c => [c.id, c.kind]), [
     ['RT-11', 'defect'], ['RT-12', 'protected'], ['RT-13', 'unresolved'],
     ['RT-14', 'defect'], ['RT-15', 'protected'], ['RT-16', 'unresolved'],
-    ...Array.from({ length: 21 }, (_, i) => [`RT-${17 + i}`, ['defect', 'protected', 'unresolved'][i % 3]]),
+    ...Array.from({ length: 27 }, (_, i) => [`RT-${17 + i}`, ['defect', 'protected', 'unresolved'][i % 3]]),
   ]);
   for (const c of newCases) {
     assert(c.inputs.every(f => !/rubric|cases\.json|test|README|prototype|countermodel/i.test(f.path)));
@@ -187,21 +187,21 @@ test('all expanded cases freeze visible inputs and count unresolved controls by 
   const packets = reviewPackets(plan, records);
   const judgments = packets.map(p => judgment(p));
   const summary = summarize(plan, records, judgments);
-  assert.equal(summary.complete_triplets, 37);
-  assert.equal(summary.arm_metrics.C.unresolved_controls, 11);
-  assert.equal(summary.arm_metrics.C.correct_unresolved, 11);
-  for (const id of ['RT-07', 'RT-08', 'RT-13', 'RT-16', 'RT-19', 'RT-22', 'RT-25', 'RT-28', 'RT-31', 'RT-34', 'RT-37']) {
+  assert.equal(summary.complete_triplets, 43);
+  assert.equal(summary.arm_metrics.C.unresolved_controls, 13);
+  assert.equal(summary.arm_metrics.C.correct_unresolved, 13);
+  for (const id of ['RT-07', 'RT-08', 'RT-13', 'RT-16', 'RT-19', 'RT-22', 'RT-25', 'RT-28', 'RT-31', 'RT-34', 'RT-37', 'RT-40', 'RT-43']) {
     assert.equal(summary.case_metrics[id].C.comparable.correct_unresolved, 1);
   }
   // A protected case is not an unresolved control even if a supplied judge says so.
   assert.equal(summary.case_metrics['RT-12'].C.comparable.unresolved_controls, 0);
   const cPacket = packets.find(p => p.case_id === 'RT-16' && p.packet_id === digest(`${plan.study_sha256}/RT-16/1/C`).slice(0, 24));
   const failedRestraint = judgments.map(j => j.packet_id === cPacket.packet_id ? { ...j, unsupported_certainty: true } : j);
-  assert.equal(summarize(plan, records, failedRestraint).arm_metrics.C.correct_unresolved, 10);
+  assert.equal(summarize(plan, records, failedRestraint).arm_metrics.C.correct_unresolved, 12);
   const incomplete = judgments.map(j => j.packet_id === cPacket.packet_id ? { ...j, completed: false } : j);
-  assert.equal(summarize(plan, records, incomplete).arm_metrics.C.correct_unresolved, 10);
+  assert.equal(summarize(plan, records, incomplete).arm_metrics.C.correct_unresolved, 12);
   const inventedSafety = judgments.map(j => j.packet_id === cPacket.packet_id ? { ...j, assessment: 'protected' } : j);
-  assert.equal(summarize(plan, records, inventedSafety).arm_metrics.C.correct_unresolved, 10);
+  assert.equal(summarize(plan, records, inventedSafety).arm_metrics.C.correct_unresolved, 12);
 });
 
 test('pre-aborted execution records interruption without starting fake CLI', async t => {
@@ -209,4 +209,22 @@ test('pre-aborted execution records interruption without starting fake CLI', asy
   const result = await executePlan({ plan: createPlan({ model: 'fixture', runs: 1, caseId: 'RT-07' }), out: path.join(f.dir, 'run'), codex: f.executable, auth: f.auth, signal: controller.signal });
   assert.equal(result.interrupted, true); assert.equal(result.records.length, 0);
   assert.equal(existsSync(f.capture), false); assert(result.run_error);
+});
+
+test('six dispute cases plan independently without a model process and keep private policies outside inputs', t => {
+  const dir = temporary(t); let turns = 0;
+  for (let n = 38; n <= 43; n++) {
+    const id = `RT-${n}`, out = path.join(dir, id);
+    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-runtime-research.mjs'), '--plan', '--case', id,
+      '--model', 'offline-fixture-not-a-selected-model', '--runs', '3', '--out', out,
+      '--codex', '/nonexistent/codex', '--auth-file', path.join(dir, 'missing')], { encoding: 'utf8', timeout: 15000 });
+    assert.equal(run.status, 0, run.stderr);
+    const plan = JSON.parse(readFileSync(path.join(out, 'plan.json'), 'utf8'));
+    validatePlan(plan); assert.equal(plan.study.manifest_revision, 8);
+    assert.deepEqual(plan.study.cases.map(c => c.id), [id]);
+    assert.equal(plan.study.cases[0].kind, ['defect', 'protected', 'unresolved'][(n - 38) % 3]);
+    assert(plan.study.cases[0].inputs.every(f => !/spec|rubric|test|countermodel|cases\.json/.test(f.path)));
+    turns += schedule(plan).length;
+  }
+  assert.equal(turns, 54);
 });

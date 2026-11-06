@@ -3,9 +3,9 @@
 Status: implemented development inventory, 2026-11-06. All nine families in this
 catalog are implemented as 27 authored fixtures, RT-11–RT-37. Together with the
 original baseline, the [runnable development set](../../evals/research/runtime/README.md)
-contains RT-01–RT-37 at manifest revision 7. The original sixteen case revisions
+contains RT-01–RT-43 at manifest revision 8 (including six dispute follow-ups). The original sixteen case revisions
 and guidance prototype revision 1 remain unchanged. A later [exploratory live
-study](runtime-results/2026-11-06-terra-37/README.md) attempted the full set;
+study](runtime-results/2026-11-06-terra-37/README.md) attempted the original 37-case set;
 a later [model semantic review](runtime-results/2026-11-06-terra-semantic-review/README.md)
 assessed executed answers, while human review remains pending.
 
@@ -82,12 +82,12 @@ Before calling a candidate runnable, require:
    cleanup: zero owned resources, listeners and timers. Use fake clocks and
    scripted transports; no network, real sleeps or live models.
 4. Private countermodels proving unresolved visible inputs permit different outcomes.
-5. Reviewed integration: the current validator accepts exactly thirty-seven cases. New IDs
+5. Reviewed integration: the current validator accepts exactly forty-three cases. New IDs
    or holdout loading require implementation review; never bypass the validator.
 6. Applicable offline checks and QA, then commit/push. Record implemented status
    only after passing; human semantic review remains separate.
 
-The [runner](runtime-runner.md) supports all thirty-seven registered cases, including every family above.
+The [runner](runtime-runner.md) supports all forty-three registered cases, including every family above.
 Offline fake-CLI tests establish the tooling contract, not model behavior. The
 [exploratory live study](runtime-results/2026-11-06-terra-37/README.md) records
 model responses and execution failures without adjudicating diagnostic correctness.
@@ -135,6 +135,10 @@ not establish probabilistic jitter safety; separate wrappers do not establish
 resource reservations. Recovery probes and degraded responses are assessed only
 against supplied contracts. Missing mechanisms alone are never findings.
 
-All 37 cases are exposed development artifacts. Human relevance/severity review,
+All 43 cases are exposed development artifacts. Human relevance/severity review,
 independent holdouts and model benefit remain unestablished. No production skill,
 score, risk code, parser corpus or twelve-book inventory changes in this batch.
+
+The [RT-38–RT-43 follow-ups](runtime-dispute-audit-v1.md#implementation-follow-up-manifest-revision-8) extend this catalog with explicit completion/rejection contracts
+and unresolved variants. They were derived from exposed answers and are not a new
+independent candidate family or holdout set. Their book mappings are unverified.
