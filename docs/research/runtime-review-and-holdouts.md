@@ -5,6 +5,14 @@ and independent holdouts remain pending. Agent authorship and agent QA do not
 fulfill them. See the [pilot plan](runtime-pilot-plan.md) and
 [research fixtures](../../evals/research/runtime/README.md).
 
+The [public-source candidate catalog](runtime-candidate-catalog.md) organizes
+further development proposals. Prospective blind holdout authors should defer
+reading it until their contribution track and exposure boundary are agreed.
+
+A [progress update and invitation](https://github.com/hyhmrright/brooks-lint/discussions/45#discussioncomment-19433722)
+was posted on 2026-11-06. Reviewer participation and independent holdout delivery
+remain pending; an invitation does not establish either.
+
 ## Two contribution tracks
 
 | Track | Who and what | Deliverable |
@@ -119,9 +127,10 @@ Status: reserved / exposed / evaluated / retired
 Reason for status changes and next independent set needed:
 ```
 
-## Invitation draft
+## Invitation template
 
-This is a draft for the maintainer to send; no invitation is sent by adding it.
+This historical draft remains a reusable template. The actual invitation is
+linked above; adding or editing this template sends no message.
 
 > We have an offline runtime research branch and would welcome your help. Would
 > you prefer to review one diagnosis/protected pair and its source grounding, or
