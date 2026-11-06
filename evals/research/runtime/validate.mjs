@@ -19,24 +19,33 @@ export function validateManifest(root = fixtureRoot) {
   };
   const manifest = JSON.parse(read('cases.json'));
   assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.revision, 3);
+  assert.equal(manifest.revision, 4);
   assert(nonempty(manifest.provenance));
-  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06']);
+  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08']);
   for (const entry of manifest.cases) {
     assert.equal(entry.revision, 1);
-    assert.equal(entry.kind, ['RT-01', 'RT-03', 'RT-05'].includes(entry.id) ? 'defect' : 'protected');
+    const unresolved = ['RT-07', 'RT-08'].includes(entry.id);
+    assert.equal(entry.kind, unresolved ? 'unresolved' : ['RT-01', 'RT-03', 'RT-05'].includes(entry.id) ? 'defect' : 'protected');
     assert.equal(entry.task, `${entry.id}/task.md`);
     assert.equal(entry.context, `${entry.id}/context.md`);
     assert.equal(entry.rubric, `${entry.id}/rubric.json`);
     const isolation = ['RT-05', 'RT-06'].includes(entry.id);
     const retries = ['RT-03', 'RT-04'].includes(entry.id);
-    assert.deepEqual(entry.inputs, [entry.task, entry.context, `${entry.id}/service.mjs`,
+    assert.deepEqual(entry.inputs, unresolved ? [entry.task, entry.context, `${entry.id}/service.mjs`, ...(entry.id === 'RT-08' ? ['shared/retry.mjs'] : [])] : [entry.task, entry.context, `${entry.id}/service.mjs`,
       ...(isolation ? ['shared/worker-pool.mjs', 'shared/optional-work.mjs'] : [
         'shared/clock.mjs', 'shared/request-boundary.mjs',
         ...(retries ? ['shared/retry.mjs', 'shared/retry-transport.mjs'] : ['shared/transport.mjs'])])]);
     // This whitelist deliberately excludes answer rubrics, tests, and the manifest.
     for (const input of entry.inputs) assert(nonempty(read(input)), `Empty input: ${input}`);
-    if (isolation) {
+    if (unresolved) {
+      assert.deepEqual(entry.expected, { assessment: 'unresolved', countermodels: entry.id === 'RT-07' ? {
+        cancellable: { response: 'timed-out', active: 0 }, ignoresAbort: { response: 'timed-out', active: 1 },
+      } : {
+        singleOwner: { started: 3, budget: 3, withinBudget: true },
+        nestedOwners: { started: 9, budget: 3, withinBudget: false },
+        permittedNestedOwners: { started: 9, budget: 9, withinBudget: true },
+      } });
+    } else if (isolation) {
       const shared = entry.id === 'RT-05';
       assert.deepEqual(entry.expected, { saturated: {
         optionalStarted: shared ? 2 : 1, optionalActive: shared ? 2 : 1,
@@ -81,6 +90,18 @@ export function validateManifest(root = fixtureRoot) {
       for (const field of ['symptom', 'source', 'consequence', 'remedy', 'grading']) assert(nonempty(finding[field]));
       assert(Array.isArray(finding.requiredEvidence) && finding.requiredEvidence.length > 0);
       assert(finding.requiredEvidence.every(nonempty));
+    } else if (unresolved) {
+      assert.equal(rubric.assessment, 'unresolved');
+      assert.deepEqual(rubric.expectedFindings, []);
+      assert.deepEqual(rubric.protectedReasoning, []);
+      assert(Array.isArray(rubric.unresolvedReasoning) && rubric.unresolvedReasoning.length >= 3);
+      assert(rubric.unresolvedReasoning.every(nonempty));
+      assert.deepEqual(rubric.missingContext.map((item) => item.id), entry.id === 'RT-07'
+        ? ['caller-contract', 'transport-semantics', 'runtime-evidence']
+        : ['outer-owners', 'transport-attempts', 'request-budget']);
+      for (const item of rubric.missingContext) {
+        assert(nonempty(item.artifact) && nonempty(item.whyItMatters));
+      }
     } else {
       assert.equal(rubric.expectedFindings.length, 0);
       assert(rubric.protectedReasoning.length > 0 && rubric.protectedReasoning.every(nonempty));

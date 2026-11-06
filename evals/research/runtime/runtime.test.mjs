@@ -164,7 +164,7 @@ for (const [name, handleQuote, Transport] of [
 }
 
 test('manifest keeps model inputs separate from grading artifacts', () => {
-  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06']);
+  assert.deepEqual(validateManifest().cases.map((entry) => entry.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04', 'RT-05', 'RT-06', 'RT-07', 'RT-08']);
 });
 
 test('manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics', () => {
@@ -539,5 +539,115 @@ test('isolation artifact validation rejects resource tampering and grading leaka
     rubric.expectedFindings[0].consequence = '';
     writeFileSync(rubricPath, JSON.stringify(rubric));
     assert.throws(() => validateManifest(dir));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+// Countermodels are test-only completions, never facts about RT-07/08's hidden
+// environment. Every completion executes the same imported visible leaf.
+import { loadQuote as partialCall } from './RT-07/service.mjs';
+import { loadQuote as partialRetry } from './RT-08/service.mjs';
+
+for (const [name, Transport] of [['cancellable', FakeTransport], ['ignoresAbort', IgnoringAbortTransport]]) {
+  test(`RT-07: same leaf permits ${name} completion; no completion is the case truth`, async () => {
+    const clock = new ManualClock();
+    const transport = new Transport();
+    const parent = new AbortController();
+    const request = startRequest({ clock, transport, signal: parent.signal, load: partialCall });
+    try {
+      assert.equal(transport.active, 1);
+      clock.advanceTo(100);
+      const response = await request.response;
+      assert.deepEqual({ response: response.status, active: transport.active }, entryFor('RT-07').expected.countermodels[name]);
+      assert.equal(clock.pendingTimers, 0);
+      assert.equal(getEventListeners(parent.signal, 'abort').length, 0);
+      assert.equal(getEventListeners(request.signal, 'abort').length, 0);
+      clock.advanceTo(1000);
+      assert.equal(transport.active, name === 'cancellable' ? 0 : 1);
+    } finally {
+      // Only explicit driver teardown releases the ignoring transport's work.
+      transport.dispose();
+      await nextTurn();
+      assert.equal(transport.active, 0);
+    }
+  });
+}
+
+for (const [name, owners, budget] of [['singleOwner', 1, 3], ['nestedOwners', 3, 3], ['permittedNestedOwners', 3, 9]]) {
+  test(`RT-08: same leaf permits ${name} completion with separately supplied budget`, async () => {
+    const clock = new ManualClock();
+    const transport = new RetryTransport();
+    const parent = new AbortController();
+    const request = startRequest({ clock, transport, signal: parent.signal,
+      load: (options) => retry(() => partialRetry(options), { maxAttempts: owners, signal: options.signal }) });
+    const attempts = owners * 3;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      assert.equal(transport.started, attempt);
+      transport.failNext();
+      await until(() => transport.started > attempt || request.result);
+    }
+    assert.deepEqual(await request.response, { status: 'error' });
+    assert.deepEqual({ started: transport.started, budget, withinBudget: transport.started <= budget }, entryFor('RT-08').expected.countermodels[name]);
+    assertRetryCleanup(clock, transport, request, parent);
+    await nextTurn();
+    assert.equal(transport.started, attempts);
+  });
+}
+
+test('RT-08: private nested completion cancels without further attempts or leaked resources', async () => {
+  const clock = new ManualClock();
+  const transport = new RetryTransport();
+  const parent = new AbortController();
+  const request = startRequest({ clock, transport, signal: parent.signal,
+    load: (options) => retry(() => partialRetry(options), { maxAttempts: 3, signal: options.signal }) });
+  transport.failNext();
+  await until(() => transport.started === 2);
+  parent.abort(new Error('Driver cancels countermodel'));
+  assert.deepEqual(await request.response, { status: 'cancelled' });
+  await nextTurn();
+  assert.equal(transport.started, 2);
+  assertRetryCleanup(clock, transport, request, parent);
+});
+
+test('incomplete-context artifacts reject certainty, omitted obligations and private input leaks', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'brooks-context-'));
+  try {
+    cpSync(fixtureRoot, dir, { recursive: true });
+    const casesPath = join(dir, 'cases.json');
+    const original = readFileSync(casesPath, 'utf8');
+    for (const mutate of [
+      (value) => { value.cases[6].kind = 'protected'; },
+      (value) => { value.cases[7].kind = 'defect'; },
+      (value) => { value.cases[6].inputs.push('runtime.test.mjs'); },
+      (value) => { value.cases[7].inputs.push('shared/request-boundary.mjs'); },
+      (value) => { value.cases[6].inputs.push('RT-07/rubric.json'); },
+      (value) => { value.cases[7].expected.assessment = 'protected'; },
+      (value) => { value.cases[7].expected.countermodels.nestedOwners.started = 3; },
+    ]) {
+      const value = JSON.parse(original); mutate(value);
+      writeFileSync(casesPath, JSON.stringify(value));
+      assert.throws(() => validateManifest(dir));
+    }
+    writeFileSync(casesPath, original);
+    for (const id of ['RT-07', 'RT-08']) {
+      const path = join(dir, id, 'rubric.json');
+      const originalRubric = readFileSync(path, 'utf8');
+      for (const mutate of [
+        (value) => { value.assessment = 'protected'; },
+        (value) => { value.expectedFindings.push({ id: 'invented-defect' }); },
+        (value) => { value.protectedReasoning.push('Fully protected'); },
+        (value) => { value.unresolvedReasoning = []; },
+        (value) => { value.unresolvedReasoning[0] = ''; },
+        (value) => { value.missingContext.pop(); },
+        (value) => { value.missingContext[0].artifact = ''; },
+        (value) => { value.missingContext[0].whyItMatters = ''; },
+        (value) => { value.evidence.push({ file: 'shared/transport.mjs', anchor: 'FakeTransport' }); },
+      ]) {
+        const value = JSON.parse(originalRubric); mutate(value);
+        writeFileSync(path, JSON.stringify(value));
+        assert.throws(() => validateManifest(dir));
+      }
+      writeFileSync(path, originalRubric);
+    }
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });

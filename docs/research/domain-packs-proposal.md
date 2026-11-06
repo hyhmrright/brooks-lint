@@ -128,7 +128,8 @@ link. Unanswered questions remain open rather than silently becoming requirement
 | 2026-11-06 | Implement the first RT-01/RT-02 offline fixture pair on the research branch. | Maintainer authorized timeout/cancellation cases, tests, and rubrics; live evaluation remains on hold. |
 | 2026-11-06 | Add the RT-03/RT-04 offline retry-ownership pair. | Maintainer authorized amplification/single-owner cases, tests, and rubrics; no live model evaluation. |
 | 2026-11-06 | Add the RT-05/RT-06 offline capacity-isolation pair. | Maintainer authorized shared contention/isolation cases, tests, and rubrics; no live model evaluation. |
-| Open | Broader case set and next domain. | The first six runtime cases are implemented; further scope remains open to collaborator feedback. |
+| 2026-11-06 | Add RT-07/RT-08 incomplete-context controls. | Continue offline research with explicit unresolved assessments and private countermodels; no live model evaluation. |
+| Open | Broader case set and next domain. | The first eight runtime cases are implemented; further scope remains open to collaborator feedback. |
 | Open | Pack loading and public identifiers. | Defer until a small prototype demonstrates value. |
 | Open | Score composition and compatibility. | Preserve existing score meaning during research. |
 

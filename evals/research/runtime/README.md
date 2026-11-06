@@ -1,7 +1,7 @@
-# Runtime research fixtures: RT-01–RT-06
+# Runtime research fixtures: RT-01–RT-08
 
-Manifest revision 3, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
-implement the first three pairs in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
+Manifest revision 4, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
+implement the first three pairs and two incomplete-context controls in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 No experimental skill, public risk code, runtime score, live runner, or model
 results are introduced. Human review, book-source mapping, independent holdouts,
 and the three-arm model comparison remain pending. Agent QA is not human review.
@@ -73,7 +73,7 @@ retry-case outcomes.
 Budget mutants show that the RT-04 oracle rejects nested ownership and an off-by-one
 four-attempt owner. Manifest mutation tests reject changed expected counts, missing
 visible inputs, rubric leakage, and incomplete causal diagnoses. These tests do not
-establish model understanding. There are 49 offline tests across all six cases.
+establish model understanding. There are 56 offline tests across all eight cases.
 
 ## Capacity isolation: RT-05 / RT-06
 
@@ -102,12 +102,35 @@ bounded optional admission expectation; checking essential success alone is insu
 Synthetic slots do not demonstrate production CPU, socket or memory exhaustion,
 process failure isolation, or availability under unlimited essential traffic.
 
+## Incomplete context: RT-07 / RT-08
+
+These controls are `unresolved`, distinct from both `defect` and `protected`.
+RT-07 supplies only a signal-forwarding leaf; the caller contract, deadline owner,
+and transport cancellation semantics are unavailable. RT-08 supplies a local
+three-total-attempt owner and its helper, with no outer owners, transport retry
+implementation, whole-request budget, or attempt trace. Their rubrics require
+specific missing artifacts, why they matter, conditional reasoning, and withholding
+both a definitive defect and a clean verdict. No severity is established.
+
+Test-only countermodels execute the same imported visible leaf under different
+completions. RT-07 uses the same deadline with a cancellation-capable transport
+(active slots zero at expiry) or one ignoring abort (one slot retained). RT-08
+produces three calls under one owner and nine under nested owners; nine violates a
+separately supplied budget of three but respects a budget of nine. These completions
+show that missing context can change the assessment. They do not select an actual
+hidden environment or supply evidence to a future reviewer of the partial extract.
+Tests also verify countermodel cancellation, cleanup, and rejection of metadata
+mutations that erase missing-context obligations, invent certainty, or leak private
+completion helpers into visible inputs. They do not grade a model's abstention.
+
 ## Input and grading boundary
 
-[`cases.json`](cases.json) defines schema 1 / manifest revision 3 and six cases. Each entry
+[`cases.json`](cases.json) defines schema 1 / manifest revision 4 and eight cases. Each entry
 has an explicit `inputs` whitelist: task, context, its service, and shared clock,
 boundary, and transport for the first two pairs; retry cases also include the retry
 helper. The resource pair includes its pool and optional-work implementation instead.
+RT-07 includes only its task, context and leaf; RT-08 additionally includes the
+retry helper. The countermodel callers/transports remain test-only.
 Those files are the complete prospective review input.
 The common context is an authored contract, not production evidence. The task is
 identical within each pair and does not state the expected diagnosis.
@@ -121,7 +144,8 @@ implemented here. Ordinary service code differences remain visible by design.
 
 Rubrics contain expected issue IDs, severity, the full
 **Symptom → Source → Consequence → Remedy** diagnosis, forbidden claims, and
-file/symbol evidence anchors. They are authored before any model run. Structural
+file/symbol evidence anchors. Unresolved controls instead have no expected findings
+or protected verdict; their rubrics specify missing-context and reasoning obligations. They are authored before any model run. Structural
 validation checks that referenced files and anchors exist; it does not prove a
 source establishes the diagnosis or score answer semantics.
 
@@ -142,6 +166,12 @@ source establishes the diagnosis or score answer semantics.
 - RT-06: no resource-isolation finding on the supplied path. Bounded optional
   rejection and reserved essential capacity meet this contract in one process.
 
+- RT-07: unresolved timeout/cancellation assessment; request the caller contract,
+  deadline wiring, transport cancellation semantics and runtime observations.
+- RT-08: unresolved whole-request amplification/budget assessment; request outer
+  owners, transport attempt behavior, request budget and attempt evidence. Visible
+  local retry bounds alone establish neither a violation nor global protection.
+
 Manual assessment should compare causal meaning, not exact phrases, public risk
 codes, formatting, citations, or a numeric score. Record unsupported findings,
 missed issues, unlabeled or miscalibrated severity, and review disagreements
@@ -154,4 +184,4 @@ Use a focused PR against `research/domain-packs` and link the case ID and
 fixture behavior and rubric semantics together. Update the case/rubric revision
 and documented schema contract if expectations change; preserve any future run's
 exact artifact digests rather than rewriting prior results. The present validator
-intentionally accepts only these six cases and revisions, not a general pack schema.
+intentionally accepts only these eight cases and revisions, not a general pack schema.
