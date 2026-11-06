@@ -6,7 +6,8 @@ original baseline, the [runnable development set](../../evals/research/runtime/R
 contains RT-01–RT-37 at manifest revision 7. The original sixteen case revisions
 and guidance prototype revision 1 remain unchanged. A later [exploratory live
 study](runtime-results/2026-11-06-terra-37/README.md) attempted the full set;
-its semantic judgments and human review are pending.
+a later [model semantic review](runtime-results/2026-11-06-terra-semantic-review/README.md)
+assessed executed answers, while human review remains pending.
 
 This bounded inventory is not exhaustive. The experiments are original synthetic
 test designs, not copied programs or incident reproductions. References do not prove

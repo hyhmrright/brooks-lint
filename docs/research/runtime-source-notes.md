@@ -57,8 +57,10 @@ set. Adding fixtures is not evidence of prototype coverage or a reason to tune t
 all expected answers. Any later guidance change must record a new revision and
 freeze a new study plan. Existing development cases remain exposed; do not rename
 them as independent holdouts. A later [exploratory live run](runtime-results/2026-11-06-terra-37/README.md)
-recorded model responses and execution failures. No judging model was invoked;
-semantic judgments and human review remain pending.
+recorded model responses and execution failures. A subsequent separate Codex
+model reviewer assessed those answers and the recovery runs; see the
+[semantic review](runtime-results/2026-11-06-terra-semantic-review/README.md).
+Human review remains pending.
 
 Autonomous offline work can continue when a concrete new mechanism, source-backed
 question, counterexample or failing invariant is identified. External human review,

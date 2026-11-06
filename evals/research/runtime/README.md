@@ -5,7 +5,8 @@ implement the first three pairs, deadline-coverage and waiting-expiry triplets, 
 The [runtime guidance prototype](prototype/SKILL.md) is research-only and remains
 outside the production skills catalog. No public risk code or runtime score is
 introduced. A later [exploratory three-arm model run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
-records results and execution failures; semantic judgments remain pending. Partial
+records results and execution failures; a later [model semantic review](../../../docs/research/runtime-results/2026-11-06-terra-semantic-review/README.md)
+assessed the recorded answers. Human adjudication remains pending. Partial
 [book chapter checks](../../../docs/research/runtime-book-mapping.md) identify
 inspected passages and unverified mappings. Human review, complete source
 certification and independent holdouts remain pending. Agent QA is not human review.
@@ -155,7 +156,8 @@ It requires completing the explanation without an unsolicited audit, risk findin
 score, remediation or prototype mode line. Separate structural checks verify that
 the prototype description has a negative syntax boundary and that its Process cites
 the sequential guide steps. Neither executable syntax tests nor structural guidance
-checks establish a real model's activation restraint; semantic evaluation remains pending.
+checks establish a real model's activation restraint; the later model assessment
+reports the observed non-trigger responses, with human review pending.
 
 ## Input and grading boundary
 
@@ -285,8 +287,9 @@ The [research runner](../../../docs/research/runtime-runner.md) supports offline
 validation, frozen plans, explicitly opt-in A/B/C execution, blind review packets
 and offline judgment import. It was verified offline with a fake CLI. The separate
 [exploratory real-model run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
-contains execution failures and awaits semantic and human review; no comparative
-accuracy result has been established. The production paired runner remains unchanged.
+contains execution failures. A later [model semantic review](../../../docs/research/runtime-results/2026-11-06-terra-semantic-review/README.md)
+provides descriptive comparisons, while human review and validated comparative
+accuracy remain outstanding. The production paired runner remains unchanged.
 
 See [human review and independent holdouts](../../../docs/research/runtime-review-and-holdouts.md)
 for source-verification records, reviewer disclosures, a neutral author brief,
@@ -336,4 +339,5 @@ consequence and remedy after diagnosis. Protected rubrics constrain the protecti
 to the supplied path. Unresolved rubrics require missing artifacts and prohibit a
 definitive defect, safety or severity verdict. Human review, complete book mapping
 and independent holdout validation remain pending. See the [exploratory live run](../../../docs/research/runtime-results/2026-11-06-terra-37/README.md)
-for execution results and limits; semantic judgments have not been completed.
+for execution results and limits, and the linked model review for judgments;
+human adjudication remains pending.

@@ -3,9 +3,10 @@
 On 2026-11-06, a real Codex CLI run attempted all 37 public, agent-authored
 runtime development cases once in each of three arms. **102 of 111 calls
 executed; nine failed**, leaving 30 cases with all three execution records
-complete. Execution is not semantic correctness: no study-wide semantic judgments
-or human review have been completed. No accuracy, recall, false-positive rate,
-incremental benefit or production-readiness conclusion follows from these counts.
+complete. Execution is not semantic correctness. A subsequent [model semantic
+review](../2026-11-06-terra-semantic-review/README.md) assessed the successful
+answers; human review remains pending. Execution counts alone do not establish
+accuracy, recall, false-positive rate, incremental benefit or production readiness.
 
 ## Reproduction and scope
 
@@ -52,7 +53,7 @@ available recorded usage and are not a complete cost calculation.
 
 ## Illustrative observations pending review
 
-These observations describe answers, not adjudicated outcomes. All three RT-01
+These historical observations describe answers before the later model review, not human-adjudicated outcomes. All three RT-01
 answers identify a cancellation signal dropped before the dependency call. All
 three RT-07 answers describe missing caller/transport information and decline to
 establish a cancellation defect. On RT-02, A and C say the supplied cancellation
@@ -60,7 +61,7 @@ controls establish no supported defect, while B reports an additional ordering
 case in which the clock advances before the Promise handler runs. The fixture
 says successful completion before expiry should return its value and says Promise
 delivery is observed through `await`; whether B's reproduction is admissible under
-that contract requires human review. These three examples do not represent a
+that contract requires human review. These three examples do not by themselves represent a
 study-wide semantic assessment.
 
 The runner's conservative read detection is a proxy for observed file reads, not

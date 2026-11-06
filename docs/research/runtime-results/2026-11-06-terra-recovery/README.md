@@ -4,9 +4,9 @@ On 2026-11-06, seven separately planned recovery runs re-executed the cases
 whose calls failed in the [37-case study](../2026-11-06-terra-37/README.md).
 All **21 of 21 calls executed**, including all nine case/arm combinations that
 previously failed. Each recovery run has three executed arms. Execution is not
-semantic correctness: these answers have not been semantically judged or human
-reviewed, and the runs cannot establish accuracy, model benefit or production
-readiness. The original study remains 102/111 executed and 30 complete execution
+semantic correctness. A subsequent [model semantic review](../2026-11-06-terra-semantic-review/README.md)
+assessed these answers; human review remains pending. The runs cannot establish
+production accuracy, model benefit or readiness. The original study remains 102/111 executed and 30 complete execution
 triplets; its failed records have not been overwritten or combined with these
 later outputs.
 
@@ -50,6 +50,6 @@ later outputs.
   plans, raw event streams and prompts remain locally ignored. See the
   [runner contract](../../runtime-runner.md) for isolation and its limits.
 - These are exposed, agent-authored development cases, not independent holdouts;
-  one repetition does not establish stability. Human case review, semantic
-  assessment and independent holdouts remain outstanding. No result is a human
+  one repetition does not establish stability. Human case review, human
+  adjudication of the model assessments and independent holdouts remain outstanding. No result is a human
   certification of the book-to-diagnosis mapping.
