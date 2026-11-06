@@ -19,27 +19,37 @@ export function validateManifest(root = fixtureRoot) {
   };
   const manifest = JSON.parse(read('cases.json'));
   assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.revision, 1);
+  assert.equal(manifest.revision, 2);
   assert(nonempty(manifest.provenance));
-  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02']);
+  assert.deepEqual(manifest.cases.map((c) => c.id), ['RT-01', 'RT-02', 'RT-03', 'RT-04']);
   for (const entry of manifest.cases) {
     assert.equal(entry.revision, 1);
-    assert.equal(entry.kind, entry.id === 'RT-01' ? 'defect' : 'protected');
+    assert.equal(entry.kind, ['RT-01', 'RT-03'].includes(entry.id) ? 'defect' : 'protected');
     assert.equal(entry.task, `${entry.id}/task.md`);
     assert.equal(entry.context, `${entry.id}/context.md`);
     assert.equal(entry.rubric, `${entry.id}/rubric.json`);
+    const retries = ['RT-03', 'RT-04'].includes(entry.id);
     assert.deepEqual(entry.inputs, [entry.task, entry.context, `${entry.id}/service.mjs`,
-      'shared/clock.mjs', 'shared/request-boundary.mjs', 'shared/transport.mjs']);
+      'shared/clock.mjs', 'shared/request-boundary.mjs',
+      ...(retries ? ['shared/retry.mjs', 'shared/retry-transport.mjs'] : ['shared/transport.mjs'])]);
     // This whitelist deliberately excludes answer rubrics, tests, and the manifest.
     for (const input of entry.inputs) assert(nonempty(read(input)), `Empty input: ${input}`);
-    assert.deepEqual(entry.expected.beforeDeadline, {
-      response: 'pending', active: 1, aborted: false, timers: 1,
-      listeners: entry.id === 'RT-01' ? 0 : 1,
-    });
-    assert.deepEqual(entry.expected.atDeadline, {
-      response: 'timed-out', active: entry.id === 'RT-01' ? 1 : 0,
-      aborted: true, timers: 0, listeners: 0,
-    });
+    if (retries) {
+      const attempts = entry.id === 'RT-03' ? 9 : 3;
+      assert.deepEqual(entry.expected, {
+        allTransientFailures: { response: 'error', started: attempts, failed: attempts, active: 0, timers: 0, listeners: 0 },
+        deadlineAfterTwoFailures: { response: 'timed-out', started: 3, failed: 2, aborted: 1, active: 0, timers: 0, listeners: 0 },
+      });
+    } else {
+      assert.deepEqual(entry.expected.beforeDeadline, {
+        response: 'pending', active: 1, aborted: false, timers: 1,
+        listeners: entry.id === 'RT-01' ? 0 : 1,
+      });
+      assert.deepEqual(entry.expected.atDeadline, {
+        response: 'timed-out', active: entry.id === 'RT-01' ? 1 : 0,
+        aborted: true, timers: 0, listeners: 0,
+      });
+    }
     const rubric = JSON.parse(read(entry.rubric));
     assert.equal(rubric.caseId, entry.id);
     assert.equal(rubric.revision, entry.revision);
@@ -57,7 +67,7 @@ export function validateManifest(root = fixtureRoot) {
     if (entry.kind === 'defect') {
       assert.equal(rubric.expectedFindings.length, 1);
       const finding = rubric.expectedFindings[0];
-      assert.equal(finding.id, 'RT-01-cancellation-gap');
+      assert.equal(finding.id, retries ? 'RT-03-retry-amplification' : 'RT-01-cancellation-gap');
       assert.deepEqual(finding.allowedSeverities, ['Warning']);
       for (const field of ['symptom', 'source', 'consequence', 'remedy', 'grading']) assert(nonempty(finding[field]));
       assert(Array.isArray(finding.requiredEvidence) && finding.requiredEvidence.length > 0);

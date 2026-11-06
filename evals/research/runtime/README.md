@@ -1,7 +1,7 @@
-# Runtime research fixtures: RT-01 / RT-02
+# Runtime research fixtures: RT-01–RT-04
 
-Revision 1, authored synthetic development cases, 2026-11-06. These artifacts
-implement the first pair in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
+Manifest revision 2, case/rubric revisions 1, authored synthetic development cases, 2026-11-06. These artifacts
+implement the first two pairs in the [runtime pilot plan](../../../docs/research/runtime-pilot-plan.md).
 No experimental skill, public risk code, runtime score, live runner, or model
 results are introduced. Human review, book-source mapping, independent holdouts,
 and the three-arm model comparison remain pending. Agent QA is not human review.
@@ -22,7 +22,7 @@ model recall, precision, severity calibration, or real-world cancellation timing
 The first pair uses JavaScript ESM to run on the repository's existing Node runtime
 without adding a TypeScript compiler.
 
-## What is reproduced
+## Timeout and cancellation: RT-01 / RT-02
 
 Both services use the same caller-owned deadline, shared boundary, logical clock,
 and cancellation-capable fake transport. Only the leaf's signal forwarding differs.
@@ -46,13 +46,42 @@ promise while underlying work continues. These are test-local variants, not extr
 model cases. The tests verify causal fixture behavior rather than the quality of
 a future model's reasoning.
 
+## Retry ownership: RT-03 / RT-04
+
+The retry pair has the same task, authored read-only contract, caller deadline,
+signal forwarding, retry helper, and manually settled dependency. The whole
+request permits three total downstream attempts: initial call plus two retries.
+RT-03 has two independent three-attempt owners; an exhausted inner transient
+failure remains retryable to the outer owner. RT-04 has one owner and a one-call
+leaf. The transport never retries internally. No backoff is required by this
+bounded study's explicit immediate-retry policy.
+
+| Case | All calls fail transiently before deadline | Deadline after two transient failures |
+| --- | --- | --- |
+| RT-03 | Nine dependency calls (3 × 3), then error; violates the global limit of three. | Third call cancelled; three calls total, zero active slots/timers/listeners. |
+| RT-04 | Three dependency calls, then error; budget respected. | Third call cancelled; three calls total, zero active slots/timers/listeners. |
+
+The tests drive failures one at a time, asserting each observable attempt transition.
+Bounded promise-reaction draining waits for that transition; an event-loop checkpoint
+exhausts reactions when checking that cancellation cannot restart work. Neither uses
+elapsed-time sleeps. Additional controls cover immediate success, success on the
+third attempt, nonretryable failure, pre-aborted callers, parent cancellation, and
+cancellation between a failed call and its retry continuation. Cleanup is inspected
+before promise delivery and after settlement. No teardown is needed to obtain these
+retry-case outcomes.
+
+Budget mutants show that the RT-04 oracle rejects nested ownership and an off-by-one
+four-attempt owner. Manifest mutation tests reject changed expected counts, missing
+visible inputs, rubric leakage, and incomplete causal diagnoses. These tests do not
+establish model understanding. There are 33 offline tests across all four cases.
+
 ## Input and grading boundary
 
-[`cases.json`](cases.json) defines schema/revision 1 and the two cases. Each entry
+[`cases.json`](cases.json) defines schema 1 / manifest revision 2 and four cases. Each entry
 has an explicit `inputs` whitelist: task, context, its service, and shared clock,
-boundary, and transport. Those files are the complete prospective review input.
+boundary, and transport; retry cases also include the retry helper. Those files are the complete prospective review input.
 The common context is an authored contract, not production evidence. The task is
-identical for both cases and does not state the expected diagnosis.
+identical within each pair and does not state the expected diagnosis.
 
 Keep case metadata, kinds, expected snapshots, rubrics, tests, this README, and the
 manifest out of any future model input. Case IDs remain visible in fixture paths;
@@ -73,6 +102,11 @@ source establishes the diagnosis or score answer semantics.
 - RT-02: no timeout/cancellation finding on the supplied call path. Missing a local
   timer is intentional because caller-owned cancellation is effective. This is
   protection of the authored behavior, not a general guarantee about production.
+- RT-03: one supported Warning for retry amplification violating the three-total-
+  attempt request budget. Nine calls arise from three total attempts per owner,
+  not three retries plus initial calls. Do not split the same issue by layer.
+- RT-04: no retry-budget or cancellation finding on the complete supplied path.
+  A single owner and effective caller cancellation meet the authored contract.
 
 Manual assessment should compare causal meaning, not exact phrases, public risk
 codes, formatting, citations, or a numeric score. Record unsupported findings,
@@ -86,4 +120,4 @@ Use a focused PR against `research/domain-packs` and link the case ID and
 fixture behavior and rubric semantics together. Update the case/rubric revision
 and documented schema contract if expectations change; preserve any future run's
 exact artifact digests rather than rewriting prior results. The present validator
-intentionally accepts only this first pair and revision, not a general pack schema.
+intentionally accepts only these four cases and revisions, not a general pack schema.
