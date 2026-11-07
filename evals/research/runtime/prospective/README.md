@@ -178,3 +178,13 @@ public digest anchors. Model/reasoning registration and the reviewed live execut
 remain unbound; no execution is authorized or implemented by this preparation.
 `human-preparation.test.mjs` checks this frozen archive offline and is included in
 `npm test` and `npm run evals:runtime:prepared`.
+
+### Offline HC executor preparation
+
+The [2026-11-07 preparation](../../../../docs/research/runtime-preparations/2026-11-07-hc-executor/README.md)
+adds exact allowlisted 81-turn scratch export, fail-closed registration declarations,
+and explicitly synthetic raw-event replay into the existing importer. Run
+`npm run evals:runtime:executor:validate` offline. This is not an operational live
+executor: actual Codex isolation, hidden-retry controls, process interruption and
+raw-event mapping remain review gates. The frozen design, real human review and
+model binding remain unchanged/pending; no live model was called.
