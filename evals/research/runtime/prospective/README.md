@@ -233,3 +233,28 @@ only hashed against pinned snapshots/inventory, never executed; current sources
 remain bound to the new separate revision. The tests include deterministic state
 transitions, probe failure/budget expiry, exact byte drainage, control-channel
 isolation and predeclared parallel orphan cases. No live model was run.
+
+### Offline parent-owned model channel, revision 1
+
+The [channel preparation](../../../../docs/research/runtime-preparations/2026-11-09-hc-model-channel/README.md)
+adds a concrete, local-fixture-only relay with private parent-held dummy upstream
+authentication, a turn-scoped capability, exact request binding and an atomic one
+upstream dispatch budget. It refuses external upstream origins, follows no redirect,
+refreshes no credential and reconnects no interrupted stream. Buffered bounded
+responses retain sanitized partial evidence; deadlines cover upstream drips and
+inbound slow headers/bodies. Real Seatbelt probes permit only the relay port and
+refuse direct access to the fake upstream; the fixture receives no provider key.
+
+`npm run evals:runtime:channel:validate` checks the separate source-bound archive
+without opening a socket. Unit/integration tests are included in `npm test` and
+`evals:runtime:prepared`; actual Seatbelt integration skips on unsupported systems.
+No previous process source or archive changes. Identity provenance distinguishes
+intent, configured route, broker-observed request and upstream-reported fields.
+A reported reasoning effort is a request-level setting, not internal or dynamically
+selected effort; a reported model is not authenticated execution evidence.
+
+The relay accepts disposable fixture credentials only. Real Codex capability
+routing, effective retry/config behavior, HTTPS/OAuth/refresh, provider-internal
+retries, tool-versus-client endpoint separation and complete executor integration
+remain unverified. There is no live launch path or authorization. No live model,
+real credential, human review, semantic grade or skill-efficacy claim is introduced.
