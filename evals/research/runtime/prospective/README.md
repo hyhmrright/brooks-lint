@@ -355,3 +355,18 @@ CLI tools can reach the model broker, and a killed host launcher leaves its
 container running until explicit cleanup. Those negative boundaries keep live
 readiness false. `npm run evals:runtime:docker:validate` and default tests are
 strictly daemon-free; recording is opt-in, with zero real model calls or credentials.
+
+### Durable Docker cleanup lease (offline research only)
+
+`docker-lease-service.mjs` runs a trusted host manager and an independent restart
+supervisor. Jobs persist their intent before create; fixed deadlines and expiring
+non-extending heartbeats revoke work; manager restart revokes all unfinished jobs.
+Unknown create outcomes and unavailable Docker stay pending until identity-bound
+cleanup and absence are confirmed. Workers receive no host state or Docker socket.
+
+`npm run evals:runtime:lease:validate` validates saved eight-case evidence without
+Docker. `npm run evals:runtime:lease:record -- NEW_DIR sha256:IMAGE_ID` is an explicit
+real-Docker, fake-workload opt-in. See the [lease report and runbook](../../../../docs/research/runtime-preparations/2026-11-09-docker-lease/README.md).
+It is not wired into the frozen live study and does not solve native tool/model
+channel separation; the [native interface investigation](../../../../docs/research/runtime-preparations/2026-11-09-native-seam/README.md)
+records that remaining boundary separately.
