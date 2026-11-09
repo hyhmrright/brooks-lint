@@ -258,3 +258,18 @@ routing, effective retry/config behavior, HTTPS/OAuth/refresh, provider-internal
 retries, tool-versus-client endpoint separation and complete executor integration
 remain unverified. There is no live launch path or authorization. No live model,
 real credential, human review, semantic grade or skill-efficacy claim is introduced.
+
+### Real Codex CLI with owned local stubs
+
+The [2026-11-09 CLI archive](../../../../docs/research/runtime-preparations/2026-11-09-hc-codex-channel/README.md)
+records the real installed CLI against owned local HTTP/SSE fixtures: one success,
+HTTP401/429/503, interrupted SSE and two request-retry positive/budget controls.
+Raw streams and body bytes are retained. Fresh home/file-only no-auth state and
+an outer one-port Seatbelt policy protect the host boundary. Successful wiring
+requires an explicit owned local-proxy override; direct routing failed and is
+retained as diagnostic evidence. Public authentication markers are fake, and no
+model/provider inference occurs. Observed CLI retries are separate from broker
+forwarding limits and unobserved real-provider retries. Actual model identity,
+production auth, full tool/client separation and study execution remain unverified.
+`npm run evals:runtime:cli:validate` and default tests only read saved records;
+real CLI-to-stub recording is a separate explicitly selected command.
