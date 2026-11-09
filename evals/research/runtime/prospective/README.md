@@ -171,8 +171,10 @@ These supplied annotations are not human calibration or independent validation.
 
 The [human participation preparation](../../../../docs/research/runtime-preparations/2026-11-06-hc-human-review/README.md)
 contains a matched pair, exact participant inputs, a blank first-pass fixture
-review form and separate facilitator criteria. The invitation is an unsent draft;
-no human review is claimed. It also freezes an 81-turn, all-nine-candidate design
+review form and separate facilitator criteria. The invitation was an unsent draft at that snapshot; the
+[later sent invitation](../../../../docs/research/runtime-preparations/2026-11-07-hc-invitation/README.md)
+is archived separately. Sending it does not establish human participation; no human
+review is claimed. It also freezes an 81-turn, all-nine-candidate design
 with balanced execution positions, a common prompt, exact material snapshots and
 public digest anchors. Model/reasoning registration and the reviewed live executor
 remain unbound; no execution is authorized or implemented by this preparation.
@@ -188,3 +190,46 @@ and explicitly synthetic raw-event replay into the existing importer. Run
 executor: actual Codex isolation, hidden-retry controls, process interruption and
 raw-event mapping remain review gates. The frozen design, real human review and
 model binding remain unchanged/pending; no live model was called.
+
+### Local process executor boundary, revision 1
+
+The [2026-11-09 process preparation](../../../../docs/research/runtime-preparations/2026-11-09-hc-process-executor/README.md)
+adds an operational local subprocess supervisor: fresh per-turn HOME/CODEX_HOME/XDG
+state and frozen allowlisted workspace, scrubbed environment, macOS Seatbelt content
+read/write/network denial, exact raw byte retention, and monotonic TERM/KILL/drain
+cleanup for the same process group. Real OS probes use local authored Node programs,
+including a TERM-resistant child after its group leader exits. These are process
+observations, not model responses. The 900-second production deadline is declared;
+short local deadlines exercise the identical timer path without a 15-minute wait.
+
+`npm run evals:runtime:process:validate` verifies the saved six-observation archive
+without starting a child. `npm test` and `npm run evals:runtime:prepared` also run
+the process tests; actual Seatbelt probes explicitly skip on unsupported systems,
+while parser, command-declaration, archive and fail-closed gate checks stay portable.
+Unsupported systems are refused, not silently run without isolation.
+
+There is no live launch command. A future Codex argv declaration is available,
+but deny-all networking cannot perform inference. Transport/auth separation, real
+Codex prompt/catalog/config observation, effective hidden retry prevention, final
+answer/identity mapping and detached/setsid descendant containment remain live
+readiness blockers. Official documented exec JSONL does not establish responding
+model/provider/reasoning; these stay null/UNOBSERVED, separate from intent and local
+CLI binary/version metadata. Every projected ledger is blocked from continuing or
+semantic grading. Frozen study plans and earlier artifacts remain unchanged.
+
+### Bounded termination correction, process revision 2
+
+The [termination confirmation archive](../../../../docs/research/runtime-preparations/2026-11-09-hc-termination-confirmation/README.md)
+preserves both earlier failed QA rounds and all original observations unchanged.
+A fixed trusted guardian now holds group ownership while signalling; parent-only
+IPC records fixture lifecycle separately from output. Bounded asynchronous group
+probes distinguish running, absent, zombie-only (non-running but unreaped) and
+unknown states. Unknown/running cleanup and unclosed drainage fail closed; signal
+delivery is not confirmation. No group signal is sent after guardian ownership
+ends. Detached/setsid containment and real model execution remain unverified.
+
+`npm run evals:runtime:process:validate` checks both archives: historical code is
+only hashed against pinned snapshots/inventory, never executed; current sources
+remain bound to the new separate revision. The tests include deterministic state
+transitions, probe failure/budget expiry, exact byte drainage, control-channel
+isolation and predeclared parallel orphan cases. No live model was run.
