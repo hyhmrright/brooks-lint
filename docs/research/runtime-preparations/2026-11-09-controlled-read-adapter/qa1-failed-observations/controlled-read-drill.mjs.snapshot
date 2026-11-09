@@ -1,0 +1,34 @@
+/** Record/validate owned HTTP controls only. Never starts a CLI or a model. */
+import assert from 'node:assert/strict';
+import {mkdirSync,writeFileSync,readFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import {fixtureRun} from './controlled-read-fixture.mjs';
+const hash=b=>createHash('sha256').update(b).digest('hex');
+const root=fileURLToPath(new URL('../../../../docs/research/runtime-preparations/2026-11-09-controlled-read-adapter/',import.meta.url));
+const answer={model:'fixture-cheap',reasoning:'low',type:'answer',text:'SYNTHETIC answer'};
+const tool={model:'fixture-cheap',reasoning:'low',type:'tool',call:{name:'read_file',path:'case/code.js'}};
+export async function record(directory){
+ assert(!existsSync(directory),'New evidence directory required');mkdirSync(directory,{recursive:true});
+ const controls=[
+  ['read-continuation',{},(_,r,n)=>r.end(JSON.stringify(n===1?tool:answer)),'fixture-completed'],
+  ['shell-denied',{},(_,r)=>r.end(JSON.stringify({...tool,call:{name:'shell',path:'case/code.js'}})),'tool-or-envelope-denied'],
+  ['identity-mismatch',{},(_,r)=>r.end(JSON.stringify({...answer,model:'fixture-expensive'})),'identity-mismatch'],
+  ['auth-expired',{},(_,r)=>{r.writeHead(401);r.end('{}');},'http-401'],
+  ['rotated-fixture-auth',{fixtureCredential:'fixture-only-'+'2'.repeat(32)},(_,r)=>r.end(JSON.stringify(answer)),'fixture-completed'],
+  ['budget-stop',{budget_microunits:1},(_,r)=>r.end(JSON.stringify(tool)),'budget-cap'],
+  ['request-stop',{max_requests:1},(_,r)=>r.end(JSON.stringify(tool)),'request-cap'],
+  ['deadline',{timeout_ms:50},(_,r)=>{const t=setInterval(()=>r.write(' '),5);r.on('close',()=>clearInterval(t));},'deadline'],
+ ];
+ const inventory={};const put=(name,bytes)=>{writeFileSync(path.join(directory,name),bytes,{flag:'wx'});inventory[name]=hash(bytes);};
+ for(const [name,options,handler,expected] of controls){const start=new Date().toISOString();const evidence=await fixtureRun(handler,options);assert.equal(evidence.result.reason??evidence.result.status,expected);put(`${name}.json`,JSON.stringify({started_at:start,completed_at:new Date().toISOString(),expected,...evidence},null,2)+'\n');}
+ for(const name of ['controlled-read-adapter.mjs','controlled-read-fixture.mjs','controlled-read-drill.mjs','controlled-read-adapter.test.mjs'])put(name+'.snapshot',readFileSync(new URL(name,import.meta.url)));
+ put('run.json',JSON.stringify({simulation:true,model_calls:0,real_credentials:0,live_ready:false,study_eligible:false,controls:controls.map(([name])=>name),source:'current local custom adapter; no Codex or OpenAI API compatibility claim'},null,2)+'\n');
+ writeFileSync(path.join(directory,'inventory.json'),JSON.stringify(inventory,null,2)+'\n',{flag:'wx'});return validate(directory);
+}
+export function validate(directory){const inventory=JSON.parse(readFileSync(path.join(directory,'inventory.json')));for(const [name,digest] of Object.entries(inventory)){assert(/^[a-zA-Z0-9_.-]+$/.test(name));assert.equal(hash(readFileSync(path.join(directory,name))),digest);}
+ const run=JSON.parse(readFileSync(path.join(directory,'run.json')));assert.equal(run.controls.length,8);assert.equal(run.simulation,true);assert.equal(run.model_calls,0);assert.equal(run.live_ready,false);
+ for(const name of run.controls){assert(/^[a-z-]+$/.test(name));const e=JSON.parse(readFileSync(path.join(directory,name+'.json')));assert.equal(e.result.reason??e.result.status,e.expected);assert.equal(e.result.live_ready,false);assert.equal(e.result.study_eligible,false);assert.equal(e.result.actual_responding_model,null);assert.equal(e.result.ledger.requests,e.observed.length);assert(e.observed.every(x=>x.auth_matches));assert(e.result.ledger.requests<=e.result.ledger.config.max_requests);assert(e.result.ledger.reserved_microunits<=e.result.ledger.config.budget_microunits);}
+ return {controls:8,files:Object.keys(inventory).length,model_calls:0,live_ready:false};}
+if(process.argv[1]===fileURLToPath(import.meta.url)){const [command='validate',directory=path.join(root,'observations')]=process.argv.slice(2);assert(['record','validate'].includes(command));console.log(JSON.stringify(command==='record'?await record(directory):validate(directory)));}

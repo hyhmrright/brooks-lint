@@ -331,3 +331,16 @@ protocol/process evidence into new paths. The archive's coverage ledger and bloc
 design acceptance criteria distinguish scoped observations from host/production
 unknowns. The Discussion currently has no contributor reply; self-led development
 does not count as independent human review or lift the live-test hold.
+
+## Self-led controlled-read adapter
+
+The [controlled-read development archive](../../../../docs/research/runtime-preparations/2026-11-09-controlled-read-adapter/README.md)
+records an exploratory parent-owned fixture transport with immutable, exact-path
+in-memory reads only, shared run deadline, request/reservation limits and model
+identity checks. It supports no arbitrary shell/process/network tools and makes
+no Codex CLI/API compatibility or frozen-study equivalence claim. All observations
+are synthetic and live readiness remains false. `npm run evals:runtime:controlled:validate`
+validates saved controls offline; default and prepared tests include its regressions.
+A model-switch journal records no switch and an unbound future test model.
+External review is optional under the maintainer's self-led disposition; actual
+production and OS containment evidence remain necessary.
