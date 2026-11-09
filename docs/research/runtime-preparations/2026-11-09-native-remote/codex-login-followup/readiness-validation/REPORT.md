@@ -8,7 +8,7 @@ Verdict: **PASS for the offline implementation and the narrowly documented next 
 2. `npm test`: exit 0, final Node test suite 895/895, no failures/skips. Earlier validation-helper and installer suites also passed in the same command.
 3. `npm run evals`: exit 0, 64 structural scenarios valid.
 
-Verbatim outputs: `login-qa-validate.log`, `login-qa-test.log`, `login-qa-evals.log` alongside this report.
+Verbatim outputs: `login-qa-validate.txt`, `login-qa-test.txt`, `login-qa-evals.txt` alongside this report.
 
 Parent separately reports `evals:runtime:prepared` 537/537, parser benchmark 30/30, and Codex fixture validation 7/7. Those are additional checks, not substituted for the QA gate above.
 

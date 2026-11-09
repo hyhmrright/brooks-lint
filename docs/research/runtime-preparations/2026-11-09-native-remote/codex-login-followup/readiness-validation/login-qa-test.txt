@@ -1,0 +1,1213 @@
+
+> brooks-lint@1.9.1 test
+> node scripts/validate-repo.test.mjs && node --test scripts/dsh-provider.test.mjs && node --test scripts/npm-install.test.mjs scripts/dsh-market.test.mjs scripts/check-release-ci.test.mjs scripts/github-metadata.test.mjs scripts/report-contract.test.mjs scripts/runner-contract.test.mjs scripts/codex-evals.test.mjs evals/research/runtime/runtime.test.mjs scripts/runtime-research.test.mjs evals/research/runtime/calibration/scoring.test.mjs evals/research/runtime/candidate-holdouts/candidates.test.mjs evals/research/runtime/prospective/study.test.mjs evals/research/runtime/prospective/drill.test.mjs evals/research/runtime/prospective/reviews.test.mjs evals/research/runtime/prospective/human-preparation.test.mjs evals/research/runtime/prospective/executor-preparation.test.mjs evals/research/runtime/prospective/process-executor.test.mjs evals/research/runtime/prospective/model-channel.test.mjs evals/research/runtime/prospective/codex-channel.test.mjs evals/research/runtime/prospective/codex-stream.test.mjs evals/research/runtime/prospective/codex-boundaries.test.mjs evals/research/runtime/prospective/executor-completion.test.mjs evals/research/runtime/prospective/controlled-read-adapter.test.mjs evals/research/runtime/prospective/docker-isolation.test.mjs evals/research/runtime/prospective/docker-lease.test.mjs evals/research/runtime/prospective/native-remote.test.mjs evals/research/runtime/prospective/native-smoke.test.mjs evals/research/runtime/prospective/native-upstream-transport.test.mjs evals/research/runtime/prospective/codex-login-validation.test.mjs evals/research/runtime/prospective/codex-login-stock-drill.test.mjs evals/research/runtime/prospective/codex-login-smoke.test.mjs
+
+
+parseFrontmatterBooks
+  ✓ returns book titles from valid frontmatter
+  ✓ returns null when file has no frontmatter
+  ✓ returns null when frontmatter has no books key
+  ✓ returns null when books list is empty
+  ✓ handles 4-space indentation
+  ✓ handles CRLF line endings
+  ✓ handles titles containing colons
+  ✓ strips surrounding whitespace from titles
+  ✓ handles single-book list
+  ✓ ignores non-books frontmatter keys before books:
+  ✓ ignores non-books frontmatter keys after books:
+
+countBookSections
+  ✓ counts sections matching '## Author — *Title*'
+  ✓ returns 0 when no book sections exist
+  ✓ does not count lines without the em-dash separator
+
+countProductionRisks
+  ✓ counts '## Risk N:' headers
+  ✓ returns 0 when no production risk headers present
+  ✓ does not count test risk headers (Risk T…)
+
+countTestRisks
+  ✓ counts '## Risk TN:' headers
+  ✓ returns 0 when no test risk headers present
+  ✓ does not count production risk headers
+
+extractChangelogVersion
+  ✓ extracts version from standard changelog header
+  ✓ returns the first (latest) version when multiple entries exist
+  ✓ returns null when no version header found
+
+extractGuideStepLabels
+  ✓ extracts step labels from standard headings
+  ✓ extracts sub-step labels (a/b suffixes)
+  ✓ handles 0-indexed steps
+  ✓ returns empty array when no step headings exist
+  ✓ ignores non-step headings
+  ✓ handles mixed main and sub-steps
+  ✓ handles full pr-review-guide pattern
+
+assembleSystemPrompt
+  ✓ includes sweep in VALID_MODES
+  ✓ assembles sweep prompt with both risk catalogs and sweep guide
+
+hasOpencodeSlashFlag
+  ✓ accepts frontmatter carrying the opt-in flag
+  ✓ rejects frontmatter with no metadata block
+  ✓ rejects a metadata block that omits opencode/slash
+  ✓ rejects the flag set to false
+  ✓ accepts YAML's bare true, which parses to the same boolean
+  ✓ ignores an opencode/slash line outside the frontmatter
+  ✓ every shipped skill carries the flag
+
+readHistory
+  ✓ returns empty array when history file does not exist
+  ✓ returns parsed array when history file exists
+  ✓ returns empty array when history file contains invalid JSON
+
+appendHistory
+  ✓ creates history file with first record
+  ✓ appends to existing history without overwriting
+
+getTrend
+  ✓ returns null when history is empty
+  ✓ returns null when no records for the requested mode
+  ✓ returns lastScore and runCount for one prior record
+  ✓ returns most recent score when multiple records exist
+  ✓ ignores records for other modes
+  ✓ matches a canonical query against display-name records
+
+normalizeMode
+  ✓ maps display names to canonical modes
+  ✓ passes canonical names through unchanged
+  ✓ is case- and whitespace-insensitive
+  ✓ passes non-string input through unchanged
+
+sparkline
+  ✓ maps score extremes to the lowest and highest bars
+  ✓ renders one bar per score and clamps out-of-range values
+
+renderHistory
+  ✓ reports no history for an empty array
+  ✓ summarizes a single record as one run
+  ✓ collapses display-name and canonical records into one mode line
+
+extractRiskCodes
+  ✓ extracts R-codes from text
+  ✓ extracts T-codes from text
+  ✓ returns empty set when no risk codes present
+
+classify
+  ✓ returns 'pass' when all expected codes found with Iron Law and Health Score
+  ✓ returns 'partial' when a valid report omits one expected finding
+  ✓ returns 'fail' when no expected codes found in output
+  ✓ returns 'false-positive-pass' for no_health_score when output has no score
+  ✓ returns 'fail' for no_health_score when Health Score IS present in output
+  ✓ returns 'false-positive-pass' for no_risk_codes when expected code is absent
+  ✓ returns 'fail' for no_risk_codes when expected code IS present in output
+  ✓ rejects keyword-only output even when no forbidden code is present
+  ✓ returns 'fail' when codes found but Iron Law terms absent
+
+parseFindings
+  ✓ parses one finding per severity group
+  ✓ maps risk name to code and keeps severity
+  ✓ resolves an explicit (R1) code in the title
+  ✓ extracts file and line from the Symptom
+  ✓ ignores bold text outside any severity group
+  ✓ empty report yields no findings
+  ✓ tolerates plural / qualified severity headers
+  ✓ splits a colon-separated title and resolves its code
+  ✓ falls back to Consequence for the location when Symptom has none
+
+countFindings
+  ✓ counts findings by severity
+  ✓ empty report counts all zero
+
+extractLocation
+  ✓ captures path with line number
+  ✓ captures bare filename without a line
+  ✓ does not mistake prose for a file reference
+  ✓ captures newer-language extensions from bare filenames
+  ✓ prefers the longer of two prefix-sharing extensions
+  ✓ keeps the line number on a bare filename with a long extension
+  ✓ no extension shadows a longer one that starts with it
+
+reportToSarif
+  ✓ emits a SARIF 2.1.0 envelope
+  ✓ declares a deduped, PascalCased rule per risk code
+  ✓ maps severities to SARIF levels
+  ✓ attaches a physical location when a file is known
+  ✓ fingerprints are stable across runs
+  ✓ empty report yields no rules or results
+  ✓ routes T-code helpUri off the guide (no #t anchor) and R-code onto it
+  ✓ declares a BL000 rule when a finding is unmapped
+
+severityBreached
+  ✓ fail-on critical trips only on a critical finding
+  ✓ fail-on warning trips on critical or warning
+  ✓ fail-on none never trips
+  ✓ missing or partial findings are treated as zero
+
+isRegression
+  ✓ only a negative numeric delta is a regression
+
+parseMaxTokens
+  ✓ an absent flag falls back to the shared default
+  ✓ a positive integer string is accepted
+  ✓ a flag with no value of its own is rejected, not read as 1
+  ✓ non-integers, zero, and negatives are rejected
+  ✓ unsafe or overflowing token ceilings are rejected before the API call
+  ✓ the error message names the flag and a usable value
+
+warnIfTruncated
+  ✓ a response that stopped at the output ceiling is annotated
+  ✓ the annotation goes to stderr, never stdout
+  ✓ it warns rather than failing the build
+  ✓ a complete response is silent and reads as untruncated
+  ✓ the notice is a single line, as a workflow command requires
+  ✓ the notice names the knob to turn and which way the score is wrong
+
+Post PR Comment (action.yml)
+  ✓ the step posts the report and the trend to the pull request
+  ✓ a truncated report warns the reviewer in the comment itself
+  ✓ an untruncated report says nothing about truncation
+
+parser-fidelity benchmark (frozen real-report corpus)
+  ✓ corpus has >= 30 real reports spanning all six modes
+  ✓ corpus composition matches the documented numbers (30 total, 9 false-positive)
+  ✓ parser reproduces the graded severity counts on every report
+  ✓ every report emits valid SARIF 2.1.0
+  ✓ risk-code extraction has zero false positives / negatives on the corpus
+
+versionRefs
+  ✓ discovers every README translation, not a fixed list
+  ✓ renders the badge, action pin and JSON-LD text expected at the given version
+  ✓ requires the action pin wherever the action is documented
+  ✓ marks README references required and docs pages optional
+  ✓ ignores non-README markdown at the repo root
+  ✓ patterns match the real badge, action pin and JSON-LD shapes
+
+linkedSetupGuides
+  ✓ collects guides from README-style and sibling-style links alike
+  ✓ de-duplicates a guide linked more than once
+  ✓ returns an empty array when no guide is linked
+
+platformEnumeration
+  ✓ picks the enumeration line, not the earlier <platform> placeholder
+  ✓ keeps the continuation line, since getting-started wraps mid-list
+  ✓ matches the localized <平台> form
+  ✓ returns an empty string when the document has no enumeration
+
+namesPlatform
+  ✓ matches a platform delimited by list separators
+  ✓ does not match a platform buried in a hyphenated filename
+  ✓ does not match a platform that is only a substring
+
+parseInstallerPlatforms
+  ✓ reads the declared list and both directory mappings
+  ✓ omits a platform whose case arm is missing, so the validator can catch it
+  ✓ skips comments and the catch-all arm
+  ✓ parses the real installer, proving the patterns still match
+
+validate-repo integration
+  ✓ validate-repo.mjs exits 0 against the current repository
+  ✓ validate-repo.mjs runs the changelog coverage check and says what it did
+  ✓ validate-repo.mjs fails a release whose section never cites a merged pull request
+  ✓ validate-repo.mjs passes the same release once the section cites it
+  ✓ changelog-audit.mjs exits non-zero on an uncited pull request during a release
+  ✓ changelog-audit.mjs exits zero once the section cites it
+  ✓ changelog-audit.mjs reports a gap as backlog, not failure, between releases
+  ✓ changelog-audit.mjs audits the range from the last tag to HEAD
+  ✓ changelog-audit.mjs refuses a CHANGELOG with no release heading
+  ✓ changelog-audit.mjs refuses to derive a range from a repository it is not the root of
+  ✓ validate-repo.mjs ignores an inherited CLAUDE_PLUGIN_ROOT
+
+changelog audit
+  ✓ parseCommitLog keeps multi-line bodies intact
+  ✓ parseCommitLog reads a merge commit's two parents
+  ✓ parseCommitLog returns nothing for an empty range
+  ✓ exemption covers merges, release bumps and the star history refresh
+  ✓ exemption covers nothing else — internal hardening still needs an entry
+  ✓ exemption judges a bot commit by what it changed, not by its subject
+  ✓ pullRequestOf reads both GitHub merge subject conventions
+  ✓ pullRequestOf ignores a number that is only a reference
+  ✓ changelogTrailer reads the trailer and ignores prose about one
+  ✓ changelogTrailer takes the commit's own trailer, not one it quotes
+  ✓ changelogTrailer tolerates a commit with no body
+  ✓ auditRange flags a merged pull request the section never cites
+  ✓ auditRange clears a pull request the section cites
+  ✓ auditRange audits a merge commit's pull request despite the exemption
+  ✓ lastTag, isTagged and commitsSince read a real repository
+  ✓ lastTag ignores a tag that is not a release
+  ✓ lastTag returns null when no release tag is reachable
+  ✓ commitsSince reads the author and a real merge's two parents
+  ✓ coverageVerdict reports an uncited pull request while a release is in progress
+  ✓ coverageVerdict reports what it audited, so a clean pass is not silent
+  ✓ coverageVerdict stands down once the version is tagged
+  ✓ coverageVerdict stands down before the new section is written
+  ✓ coverageVerdict stands down outside a git work tree root
+  ✓ extractChangelogSection returns only the newest release
+  ✓ report names every uncited pull request in its FAIL line
+  ✓ report says so when nothing is provably missing
+  ✓ plural reads as English at zero, one and many
+  ✓ report says there is nothing to audit when the range is empty
+  ✓ report says so when a range holds nothing but exempt commits
+  ✓ extractChangelogSection returns an empty string when there is no release heading
+  ✓ coverageAnnouncement names the reason when the gate stands down
+  ✓ coverageAnnouncement names the range and its scope when it audits
+  ✓ auditRange surfaces a commit's Changelog trailer
+  ✓ a pull request cited only by a /pull/ URL counts as cited
+  ✓ pullRequestOf needs the merge subject to start with the merge phrase
+  ✓ pullRequestOf needs the squash marker to end the subject
+  ✓ the star history exemption needs a bot author
+  ✓ the star history exemption needs [bot] to end the author
+  ✓ the star history exemption needs the commit to have touched files
+  ✓ the release bump exemption is anchored to the start of the subject
+  ✓ lastTag ignores a tag that starts with v but is not a version
+  ✓ commitsSince excludes commits that HEAD never took in
+  ✓ coverageVerdict stands down when no release tag is reachable
+  ✓ coverageVerdict needs the section heading to open with the version
+  ✓ parseCommitLog gives a root commit no parents
+  ✓ parseCommitLog tolerates a record that carries no file block
+  ✓ extractChangelogSection ignores a heading that carries no date
+  ✓ report renders a walkable line for each commit needing an entry
+  ✓ report flags a deferred entry on the commit's own line
+  ✓ report flags an uncited pull request on the commit's own line
+  ✓ report lists every gap beneath its FAIL line
+  ✓ report names the next release's section between releases
+  ✓ report renders no verdict between releases
+  ✓ report does not flag a gap on a commit line between releases
+  ✓ report keeps a subject at the width whole and elides a longer one
+
+ci-config
+  ✓ baseRefCandidates prefers the remote-tracking ref for the PR base branch
+  ✓ baseRefCandidates falls back to the default branches off a pull_request
+  ✓ loadProjectConfig reads the base ref, not the working tree
+  ✓ loadProjectConfig skips a base candidate that does not resolve
+  ✓ loadProjectConfig runs on defaults when the base ref has no config
+  ✓ loadProjectConfig refuses unreviewed policy when the PR base is absent
+  ✓ loadProjectConfig keeps working-tree fallback outside a PR
+  ✓ loadProjectConfig with config-ref head never consults a git ref
+  ✓ loadProjectConfig reports no config when neither source has one
+  ✓ configSizeError refuses an absurdly large config and passes a normal one
+  ✓ hasCustomRisks only matches a top-level custom_risks key
+  ✓ configSystemBlock carries the config, its provenance, and the Config line
+  ✓ configSystemBlock tells the model to omit the Config line when there is none
+  ✓ customRisksBlock loads the shipped guide and tolerates a missing one
+
+222 tests: 222 passed, 0 failed
+✔ bundled provider discovers all six skills and loads their bodies and shared resources (11.222333ms)
+✔ custom roots skip directories without SKILL.md and non-directory entries (2.576ms)
+✔ description formats used by skills load through the public provider (2.839541ms)
+✔ invalid frontmatter fails discovery with the affected file path (2.607916ms)
+✔ unexpected read failures are reported with file path and original cause (0.929542ms)
+✔ loading a candidate reports a file removed after discovery (0.772833ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.97025
+✔ all public authored calibration counters reproduce without semantic classification (2.959333ms)
+✔ issue misses, response misses, extra assertions and supplementary concerns remain distinct (0.260209ms)
+✔ absence and noncanonical severity are separate, uncertain concerns do not become definite (0.186292ms)
+✔ empty denominators are null and failed partials are not semantically graded (0.734584ms)
+✔ incomplete successful response remains paired while failure/pending/absent arms exclude triplets (1.384625ms)
+✔ malformed/duplicate annotations, quote drift and rubric drift are rejected (2.858209ms)
+✔ saved calibration summary reproduces from authored annotations (0.543416ms)
+✔ review packets retain exact answers/rubrics but omit authored ratings and rationale (1.5335ms)
+✔ CAL-03 false safety counts globally alongside its miss, outside unresolved-only certainty (0.134459ms)
+✔ HC-01: cancellation during awaited setup (1.053125ms)
+✔ HC-01: normal completion, running cancellation and idempotent cleanup (0.177542ms)
+✔ HC-01: pre-abort starts nothing; failed gate acquires nothing (0.27975ms)
+✔ HC-02: cancellation during awaited setup (0.641875ms)
+✔ HC-02: normal completion, running cancellation and idempotent cleanup (0.163333ms)
+✔ HC-02: pre-abort starts nothing; failed gate acquires nothing (0.096625ms)
+✔ HC-03: cancellation during awaited setup (0.269375ms)
+✔ HC-03: normal completion, running cancellation and idempotent cleanup (0.1115ms)
+✔ HC-03: pre-abort starts nothing; failed gate acquires nothing (0.095041ms)
+✔ HC-04: asynchronous failure lifecycle (0.356625ms)
+✔ HC-04: asynchronous cancellation rejection lifecycle (0.095125ms)
+✔ HC-04: success releases once and capacity rejection doesn't corrupt first owner (0.103ms)
+✔ HC-05: asynchronous failure lifecycle (1.484291ms)
+✔ HC-05: asynchronous cancellation rejection lifecycle (0.097916ms)
+✔ HC-05: success releases once and capacity rejection doesn't corrupt first owner (0.073167ms)
+✔ HC-06: asynchronous failure lifecycle (0.273292ms)
+✔ HC-06: asynchronous cancellation rejection lifecycle (0.06425ms)
+✔ HC-06: success releases once and capacity rejection doesn't corrupt first owner (0.090917ms)
+✔ HC-07: superseded completion and same-key admission (0.325083ms)
+✔ HC-07: current completion, separate keys, repeated completion (0.084167ms)
+✔ HC-07: replacement finishes before old handle (0.043875ms)
+✔ HC-08: superseded completion and same-key admission (0.205666ms)
+✔ HC-08: current completion, separate keys, repeated completion (0.0435ms)
+✔ HC-08: replacement finishes before old handle (0.029375ms)
+✔ HC-09: superseded completion and same-key admission (0.164125ms)
+✔ HC-09: current completion, separate keys, repeated completion (0.032333ms)
+✔ HC-09: replacement finishes before old handle (0.030792ms)
+✔ unresolved HC-03/06/09: same visible executable traces permit opposing contracts (0.201084ms)
+✔ protected criteria reject the defective mechanism transplanted into each protected probe (0.178542ms)
+✔ candidate inventory enforces disclosed status, separate rubrics, exact digests and input boundaries (11.040334ms)
+✔ safe input reader rejects traversal, directories, symlinks and absolute paths (1.670042ms)
+✔ saved offline observations reproduce for all nine cases before and after teardown (7.270292ms)
+✔ predeclared boundary cases are immutable and never enable model or study eligibility (1.660583ms)
+✔ fixed tool declarations use non-login shell and only owned numeric destinations (3.534167ms)
+✔ authored malformed/failed/incomplete/duplicate and phase fixtures remain distinct bytes (0.335958ms)
+✔ owned broker rejects foreign routes and credentials and retains denial bytes (39.40725ms)
+✔ saved actual CLI captures validate offline and retain study readiness false (43.1785ms)
+✔ protocol result guard refuses empty/mismatched final, unknown termination and cleanup loss (0.863375ms)
+✔ protocol guard rejects contradictory upstream terminals and reported model despite successful CLI (0.461ms)
+✔ archive detects raw byte, plan, summary and source pin drift (918.927958ms)
+✔ rehashing tampered records cannot authorize real credentials, missing cleanup or model identity (938.164042ms)
+✔ strict parent guard rejects absent responses, invalid UTF8, event reorder and terminal phase contradictions (1.4195ms)
+✔ required tool launch failure cannot be substituted by a synthetic successful final answer (3.317208ms)
+✔ owned broker keeps concurrent requests within one atomic forward budget (10.991792ms)
+✔ fixed nc control proves outer broker-only reachability separately from failed curl and inner sandbox (0.943875ms)
+✔ pure launch verification refuses extra policy content, arbitrary env, inner mode and output path drift (1.668208ms)
+✔ required tool auth presence cannot be hidden by a successful marker and exit (0.983459ms)
+✔ CLI declaration fixes no-auth custom provider and isolated controls without real credentials (0.54925ms)
+✔ external, ambiguous, credential-bearing or malformed endpoint cannot be declared (3.937ms)
+✔ authored success payload is local SSE with explicit fixture model and deterministic terminal event (0.2705ms)
+✔ saved real-CLI/local-stub archive is source-bound and never counts synthetic payload as model evidence (17.674583ms)
+✔ fixed local proxy only accepts its own response route and refuses arbitrary proxy targets (0.1505ms)
+✔ one shared runtime environment pins fresh state and proxy origins without inherited auth (0.343333ms)
+✔ summary counters, retry contract, auth/status and CLI version cannot contradict original records (217.1025ms)
+✔ development inventories reject traversal, absolute paths, duplicate keys and malformed schemas before file access (323.688875ms)
+✔ explicit live gate, endpoint and model validation (1.534833ms)
+✔ only ChatGPT tokens admitted; API credentials excluded (0.478833ms)
+✔ successful fake CLI records response, usage, selection, private home cleanup (172.106792ms)
+✔ fails closed and cleans up: wrong-model (162.962125ms)
+✔ fails closed and cleans up: wrong-answer (161.479625ms)
+✔ fails closed and cleans up: failed-turn (160.267792ms)
+✔ fails closed and cleans up: tool (156.808291ms)
+✔ fails closed and cleans up: completed-tool (151.586958ms)
+✔ fails closed and cleans up: server-request (154.447208ms)
+✔ fails closed and cleans up: invalid (156.596667ms)
+✔ fails closed and cleans up: hang (197.153042ms)
+✔ spawn failure is bounded and recorded (17.794833ms)
+✔ refuses overwriting prior evidence (1.5815ms)
+✔ synthetic login lifecycle uses private auth-only home and never archives credentials (161.314583ms)
+✔ API account response cannot pass login smoke (166.346791ms)
+✔ archived real CLI fixture binds the launcher and selected-model RPC evidence (0.561584ms)
+✔ stock code mode disabled: observed behavior and reproducible source (2.632166ms)
+✔ stock code mode disabled: opposite outcome rejected (5.354ms)
+✔ stock disabled: reject real data (0.683959ms)
+✔ stock disabled: reject missing cleanup (2.08725ms)
+✔ stock disabled: reject catalog override (0.697542ms)
+✔ stock disabled: reject wrong worker (0.753125ms)
+✔ stock disabled: reject missing response (0.434833ms)
+✔ stock code mode enabled: observed behavior and reproducible source (0.934667ms)
+✔ stock code mode enabled: opposite outcome rejected (0.875917ms)
+✔ stock enabled: reject real data (0.451459ms)
+✔ stock enabled: reject missing cleanup (2.142083ms)
+✔ stock enabled: reject catalog override (0.694084ms)
+✔ stock enabled: reject wrong worker (0.830917ms)
+✔ stock enabled: reject missing response (1.128334ms)
+✔ drill refuses source drift (0.076667ms)
+✔ captured CLI fake-upstream worker execution and hostile probe validate as simulated observations only (3.517625ms)
+✔ simulated record guard rejects non-simulated record (1.00075ms)
+✔ simulated record guard rejects run error (0.452875ms)
+✔ simulated record guard rejects cleanup error (0.3865ms)
+✔ simulated record guard rejects missing requests (2.754209ms)
+✔ simulated record guard rejects foreign route (0.657583ms)
+✔ simulated record guard rejects wrong fixture model (0.663958ms)
+✔ simulated record guard rejects missing shell tool (1.695625ms)
+✔ simulated record guard rejects additional namespaced tools (1.091375ms)
+✔ simulated record guard rejects extra tool (1.625375ms)
+✔ simulated record guard rejects wrong thread model (1.763708ms)
+✔ simulated record guard rejects wrong effort (1.019291ms)
+✔ simulated record guard rejects local fallback (1.251417ms)
+✔ simulated record guard rejects turn override (0.549667ms)
+✔ simulated record guard rejects thread request mismatch (0.445875ms)
+✔ simulated record guard rejects status for different environment (2.610042ms)
+✔ simulated record guard rejects missing ready (0.45975ms)
+✔ simulated record guard rejects RPC error (0.413541ms)
+✔ simulated record guard rejects failed turn (0.416208ms)
+✔ simulated record guard rejects wrong turn thread (0.3815ms)
+✔ simulated record guard rejects missing command (0.408292ms)
+✔ simulated record guard rejects command failed (0.414667ms)
+✔ simulated record guard rejects command unfinished (1.218375ms)
+✔ simulated record guard rejects wrong command output (0.919292ms)
+✔ simulated record guard rejects wrong command turn (0.481917ms)
+✔ simulated record guard rejects wrong command thread (0.408042ms)
+✔ simulated record guard rejects no cleanup (0.379375ms)
+✔ simulated record guard rejects absence unconfirmed (0.386042ms)
+✔ simulated record guard rejects cleanup wrong worker (0.527458ms)
+✔ simulated record guard rejects inspect missing (0.984666ms)
+✔ simulated record guard rejects removed wrong worker (2.218667ms)
+✔ simulated record guard rejects removal failed (1.852833ms)
+✔ simulated record guard rejects absence deleted (1.575583ms)
+✔ simulated record guard rejects cleanup predates launch (0.710916ms)
+✔ hostile sentinel must remain outside worker (1.26275ms)
+✔ hostile observation cannot hide an exposed credential or successful network connection (4.928416ms)
+✔ luna catalog exposes unapproved namespaces and is rejected, despite a fake command event (0.656125ms)
+✔ explicit Luna direct-catalog simulation admits only the two observed command tools (6.4865ms)
+✔ probe exit status rejects failed and unconfirmed cleanup records (0.331ms)
+✔ child spawn errors are recorded and fail the probe (0.19825ms)
+✔ missing Codex binary fails before creating a supervisor (142.757667ms)
+✔ direct probe evidence names the checked-in probe source (1.26475ms)
+✔ stream controls are frozen, distinct and retain parent deadline above cleanup separately (0.530958ms)
+✔ CLI declarations pin both retry layers and idle setting without mutating inherited declarations (0.675583ms)
+✔ relay admission binds method, exact origin, route, host and public capability; rejects auth (0.142875ms)
+✔ actual owned relay spends its one-forward budget atomically and close is idempotent (63.089042ms)
+✔ saved actual native CLI observations match their predeclared criteria without invoking CLI (9.770959ms)
+✔ deadline assessment remains distinct from failed or completed CLI turns (0.272042ms)
+✔ archive rejects changed summaries, plan, byte captures and source pin removal (180.477916ms)
+✔ rehashing a tampered record cannot turn missing retries or credentials into passing evidence (269.191709ms)
+✔ idle attribution and service cleanup fail when timeout error, close ordering or sockets contradict evidence (1.069458ms)
+✔ parent transport completes authored read continuation without putting credential in tool/model payload (19.267417ms)
+✔ read capability is immutable and exact-path only; OS paths and non-read tools fail (3.922666ms)
+✔ ledger freezes caller config and rejects mid-run model/reasoning changes (0.238666ms)
+✔ unknown tool stops without continuation (3.527834ms)
+✔ traversal stops without continuation (1.199333ms)
+✔ model mismatch stops without continuation (1.959333ms)
+✔ effort mismatch stops without continuation (0.788833ms)
+✔ missing identity stops without continuation (0.691ms)
+✔ auth echo stops without continuation (1.017042ms)
+✔ extra fields stops without continuation (0.878416ms)
+✔ HTTP 301 has no redirect, credential refresh or retry (3.435834ms)
+✔ HTTP 307 has no redirect, credential refresh or retry (1.541875ms)
+✔ HTTP 401 has no redirect, credential refresh or retry (1.068666ms)
+✔ HTTP 403 has no redirect, credential refresh or retry (1.650541ms)
+✔ HTTP 429 has no redirect, credential refresh or retry (1.653334ms)
+✔ HTTP 503 has no redirect, credential refresh or retry (0.716875ms)
+✔ request and reservation limits stop looping tools before another dispatch (2.345541ms)
+✔ absolute exchange deadline terminates drip response (49.973417ms)
+✔ response bytes and request bytes are bounded (2.484333ms)
+✔ malformed or incomplete responses never become answers (1.930375ms)
+✔ only owned exact endpoint and explicit fixture credentials accepted (0.49025ms)
+✔ fixture credential rotation belongs to new runs; no credential stored by ledger (1.922083ms)
+✔ one monotonic deadline spans both tool exchanges (121.464041ms)
+✔ packet file count, combined bytes and evaluation-only paths are refused (0.926459ms)
+✔ saved exploratory evidence validates without live model calls (2.331709ms)
+✔ deadline fixture awaits terminal server capture and retains separate client partial bytes (105.696167ms)
+✔ evidence validation rejects missing, corrupt and cross-layer raw receipts (2.666ms)
+✔ locked-down launch has no bind mount/socket/privilege/network grant (1.120541ms)
+✔ reject mutable/untrusted image node:latest (0.954208ms)
+✔ reject mutable/untrusted image sha256:aaa (0.183458ms)
+✔ reject mutable/untrusted image --privileged (1.513959ms)
+✔ reject unowned name other (0.341209ms)
+✔ reject unowned name brooks-rt-ab (0.12825ms)
+✔ reject unowned name ../x (0.30475ms)
+✔ reject arbitrary entrypoint (2.802959ms)
+✔ reject partial IDs (0.120166ms)
+✔ ownership validates known isolated declaration (0.454ms)
+✔ refuse altered runtime NetworkMode (0.262209ms)
+✔ refuse altered runtime Privileged (0.086875ms)
+✔ refuse altered runtime ReadonlyRootfs (0.069417ms)
+✔ refuse altered runtime Binds (0.223208ms)
+✔ refuse altered runtime PidsLimit (0.077917ms)
+✔ refuse altered runtime Memory (0.070583ms)
+✔ refuse altered runtime NanoCpus (0.059125ms)
+✔ refuse altered runtime IpcMode (0.060916ms)
+✔ refuse altered runtime PidMode (0.065417ms)
+✔ refuse altered runtime Devices (0.0875ms)
+✔ refuse altered runtime Tmpfs (0.135333ms)
+✔ refuse unrelated container even if name looks owned (0.098834ms)
+✔ supervisor preserves exact process bytes (129.926ms)
+✔ supervisor deadline kills its owned command, confirms close (62.629833ms)
+✔ supervisor enforces retained combined output cap (116.519042ms)
+✔ saved native Docker evidence passes without daemon (26.114459ms)
+✔ rehashing fabricated cleanup does not bypass semantic evidence (435.473167ms)
+✔ missing raw command bytes rejected (431.588458ms)
+✔ QA1 bypass: six rehashed copies cannot replace six boundaries (472.085958ms)
+✔ omitted boundary rejected even with rehashed inventory (309.938917ms)
+✔ standalone case contradiction rejected (124.07425ms)
+✔ duplicate owned IDs rejected (201.053959ms)
+✔ overlapping command partitions rejected (127.683667ms)
+✔ global orphan command rejected (120.3005ms)
+✔ reordered case commands rejected (108.643292ms)
+✔ foreign file rejected even when inventoried (110.608083ms)
+✔ foreign command target rejected (81.631042ms)
+✔ inspection image mismatch rejected despite synchronized raw bytes (115.385542ms)
+✔ duplicate container name rejected (105.293583ms)
+✔ valid lease policy adds only unique owner label/name (32.886917ms)
+✔ reject mutable image (33.513959ms)
+✔ reject foreign name (10.661ms)
+✔ reject extended deadline (9.815084ms)
+✔ reject excessive budget (12.366417ms)
+✔ reject negative heartbeat (9.660125ms)
+✔ reject path token (11.129292ms)
+✔ identity refusal: wrong label (11.387667ms)
+✔ identity refusal: wrong ID (11.456083ms)
+✔ identity refusal: name reuse (9.741125ms)
+✔ identity refusal: image replacement (8.970541ms)
+✔ identity refusal: birth replacement (10.338459ms)
+✔ identity refusal: host network (9.517417ms)
+✔ normal create persists identity before start and cancellation confirms absence (96.068666ms)
+✔ lost create acknowledgement reconciles exact random label without start (80.513958ms)
+✔ manager restart revokes unfinished leases even with fresh heartbeat (97.518209ms)
+✔ daemon outage stays unresolved and recovery cleans owned job (121.82075ms)
+✔ heartbeat replay cannot postpone launcher-loss cleanup (102.520916ms)
+✔ fresh heartbeats cannot extend absolute deadline (99.632416ms)
+✔ monotonic deadline survives wall clock rollback (11.491959ms)
+✔ stale intent never starts a container (46.943708ms)
+✔ TERM resistance escalates to KILL, removal only after stopped (102.357416ms)
+✔ unconfirmed KILL does not remove or report success (106.068125ms)
+✔ successful rm exit without actual absence is rejected (101.986709ms)
+✔ forged journal ID never signals unrelated container (89.612917ms)
+✔ concurrent leases retain separate IDs and unrelated sentinel survives (160.229792ms)
+✔ admission caps active jobs at four (247.853542ms)
+✔ ambiguous discovery cannot signal either candidate (52.108208ms)
+✔ kernel lock rejects concurrent manager and releases without PID files (6.098625ms)
+✔ state symlink cannot be imported as journal (13.5615ms)
+✔ corrupt journal fails closed without Docker access (23.945583ms)
+✔ late heartbeat cannot revive a lease already expired at loop entry (101.029625ms)
+✔ restart of in-flight create stays pending until late owned container appears (88.129541ms)
+✔ recognize bounded Docker absence dialect Error response from daemon: No such object:  (0.19325ms)
+✔ recognize bounded Docker absence dialect error: no such object:  (0.050583ms)
+✔ late daemon completion after deadline can still be identified for cleanup (11.948958ms)
+✔ saved eight-case real Docker drill validates offline (10.34075ms)
+✔ rehashed duplicate case cannot stand in for missing boundary (58.188833ms)
+✔ rehashed final state cannot claim absence without Docker observation (35.172625ms)
+✔ rehashed foreign signal target rejected (36.169208ms)
+✔ rehashed manager crash omission rejected (39.370791ms)
+✔ forged nonexistent journal ID cannot hide an existing owned container (97.292333ms)
+✔ QA1: rehashed early state/event cannot disagree with facts and Docker (49.01ms)
+✔ synchronized early facts/state/event still cannot precede Docker absence (47.584667ms)
+✔ facts completion cannot drift independently from final state (46.342875ms)
+✔ unsupported late state/facts completion cannot follow completion event (43.419417ms)
+✔ final absence observation must precede state completion even inside event gap (42.677042ms)
+✔ reordered removal and final absence events rejected (45.713625ms)
+✔ late completion event outside recorded case rejected (40.872791ms)
+✔ non-integer completion timestamp rejected (41.674958ms)
+✔ negative launcher recovery duration rejected (40.371583ms)
+✔ duplicate completion events rejected (33.322417ms)
+✔ case completion reason and identity must agree with final state (43.401041ms)
+✔ stale intent completion cannot precede empty ownership discovery (39.721208ms)
+✔ saved all-nine archive reproduces byte-for-byte including actual offline CLI workflow (1097.75425ms)
+✔ synthetic complete stage uses identical authored answers and labels per case, no arm advantage (30.944333ms)
+✔ separate perturbations retain failure, interruption, pending, absence, incomplete, FN, FP and evidence counters (27.901792ms)
+✔ review packets expose only supplied input blobs and exact synthetic answers, omitting answer labels and arm mapping (25.567666ms)
+✔ actual offline CLI runs all preparation/import commands without invoking model executor (1168.948292ms)
+✔ archive writer refuses existing archive and validator detects raw answer tampering (2275.316542ms)
+✔ inventory cannot omit retained artifacts to bypass exact reproduction (2091.286625ms)
+✔ older accepted frozen inputs, protocol and guidance validate end-to-end without replacement (2117.403667ms)
+✔ bounded capture retains exact cap prefix and tracks all observed chunk bytes/digest (0.886666ms)
+✔ predeclared cases and interfaces remain owned-only/no-live (3.451792ms)
+✔ admission binds visible token/model/effort/prompt and atomically refuses reuse or retirement (0.286125ms)
+✔ owned HTTP concurrent and delayed callbacks cannot consume another turn budget (64.384417ms)
+✔ authored SSE explicitly declares final phase and synthetic identity only (0.268041ms)
+✔ saved native CLI matrix and81-turn rehearsal validate offline (499.78675ms)
+✔ native cap negative controls never become study results (1.945584ms)
+✔ saved current guard refuses terminal/cleanup/auth/mapping mutation (0.702959ms)
+✔ pure saved launch validator rejects broad reads, arbitrary env, inner mode and turn token drift (13.711583ms)
+✔ full rehearsal import refuses reorder/retry/material drift and leaves all model turns not-run (19.288875ms)
+✔ archive refuses raw, receipt, source, schedule and readiness drift (2633.453958ms)
+✔ proper native TLS trust positive controls bracket rejected CA and hostname controls (1.550375ms)
+✔ curl correction and detached controls retain distinct scoped outcomes (1.091833ms)
+✔ TLS env and redirect evidence mutation cannot be blessed by rehashed summaries (11.223375ms)
+✔ capture limits must equal declared policy, including standalone protocol import (35.555208ms)
+✔ regular final-file capture bounds import prefixes and records missing files (1.304959ms)
+✔ final-file symlink and directory fail closed before reading (1.237917ms)
+✔ oversized final-file refuses without reading the suffix (1.024834ms)
+✔ post-stat growth cannot extend final-file read work beyond initial snapshot (2.624458ms)
+✔ FIFO final-file returns under a separate hard child timeout without a writer (146.254542ms)
+✔ explicit final import error cannot be promoted by a matching successful answer (0.353333ms)
+✔ all81 exact input/guidance packets export into separate scratch workspaces; no scorer or rubric (2359.173792ms)
+✔ existing/symlinked/altered/traversal staging is refused (7.343375ms)
+✔ real registration remains unbound; pending review, sentinels, mismatched anchors and absent authorization block (0.788416ms)
+✔ synthetic81-turn replay roundtrips existing importer, keeps all reviews pending and no efficacy claim (123.137084ms)
+✔ empty successful answer is executed; plausible text without completion is failed; nonzero exit keeps partial (3.150333ms)
+✔ 900second deadline preserves raw/partial and leaves unstarted primary schedule not-run (3.862875ms)
+✔ observed identity mismatch/missing blocks subsequent turn; never substitute intended identity (5.642458ms)
+✔ no retry/order bypass or non-simulation events; malformed/late completion refused (9.340958ms)
+✔ empty answer event cannot precede identity, and elapsed boundary requires explicit exact deadline (6.881458ms)
+✔ durable offline archive byte-compares to deterministic rebuild and source snapshots (245.004375ms)
+✔ frozen design and public external anchor preserve exact artifact bytes (6.310375ms)
+✔ first-pass pair contains exact whitelisted source bytes and blank fixture judgments (0.640458ms)
+✔ all 81 primary turns are frozen once with counterbalanced positions and no executed response (101.55975ms)
+✔ future execution registration is explicitly unbound and design has no live results (0.38075ms)
+✔ valid one-turn dispatch has parent-only dummy auth, separate identity evidence and immutable request (14.174792ms)
+✔ simultaneous duplicates and later primary reuse cannot dispatch twice (3.726583ms)
+✔ capability, method, route, host, headers and exact model/reasoning/body pin reject without upstream (6.993417ms)
+✔ cross-session capability and closed session never allow a primary dispatch (1.663708ms)
+✔ 401,429 and503 consume one primary without retry or auth refresh (5.032583ms)
+✔ redirect is never followed and echoed credential/header is absent from client/evidence (1.485041ms)
+✔ SSE completion preserves request/report distinction and never invents provider identity (1.925167ms)
+✔ SSE disconnection retains sanitized partial bytes with no stream reconnect (22.976875ms)
+✔ total upstream deadline stops a drip stream; response byte overflow is explicit and not retried (105.977708ms)
+✔ inbound slow body and slow headers are bounded without consuming upstream attempt (203.942125ms)
+✔ request size cap, malformed shape, external origin and real-looking credentials fail closed (2.421583ms)
+✔ missing/mismatched reports and model self-description stay unverified; config has no credentials (0.488916ms)
+✔ dynamic configuration update stays unreviewed rather than reporting actual selected effort (1.854167ms)
+✔ actual sandbox grants only relay port; provider key absent in child and direct upstream refused (200.63275ms)
+✔ caller mutation after binding cannot alter request or intended model/reasoning (2.289ms)
+✔ absolute-form route and external body destinations cannot turn relay into arbitrary proxy (1.201875ms)
+✔ saved channel archive binds exact sources/sanitized bytes without model evidence claims (2.101291ms)
+✔ untrusted Content-Type and common JSON unicode credential echoes cannot escape sanitization (4.6075ms)
+✔ close before dispatch settles as not-attempted; close during dispatch settles failure without retry (7.407459ms)
+✔ saved native cases validate without Docker or network (86.852334ms)
+✔ archive rejects live (2.072083ms)
+✔ archive rejects model (1.882875ms)
+✔ archive rejects identity (1.50425ms)
+✔ archive rejects cleanup (1.721959ms)
+✔ archive rejects completed_time (3.854291ms)
+✔ archive rejects missing_event (1.448333ms)
+✔ archive rejects rm_failed (1.850542ms)
+✔ archive rejects upstream_auth (1.731834ms)
+✔ archive rejects upstream_extra (1.366167ms)
+✔ archive rejects admission_model (1.441584ms)
+✔ archive rejects tool_added (1.706ms)
+✔ archive rejects false_worker (4.794208ms)
+✔ archive rejects client_final (6.866416ms)
+✔ archive rejects client_sentinel (2.122333ms)
+✔ archive rejects run_failed (1.743292ms)
+✔ request rejects method (1.538959ms)
+✔ request rejects path (1.215792ms)
+✔ request rejects auth (1.128208ms)
+✔ request rejects model (1.247917ms)
+✔ request rejects effort (1.706584ms)
+✔ request rejects extra (1.362459ms)
+✔ request rejects tool (1.3215ms)
+✔ request rejects type (1.268625ms)
+✔ request rejects store (1.535959ms)
+✔ request rejects stream (1.420542ms)
+✔ request rejects input (1.689541ms)
+✔ request rejects include (1.394833ms)
+✔ request rejects schema (1.452833ms)
+✔ budget reserves before dispatch and prevents simultaneous call (1.449542ms)
+✔ one byte budget rejects before consumption (1.141125ms)
+✔ invalid deadline NaN (0.063333ms)
+✔ invalid deadline Infinity (0.044625ms)
+✔ invalid deadline -1 (0.035458ms)
+✔ invalid deadline 0 (0.043625ms)
+✔ invalid deadline 12001 (0.035666ms)
+✔ floating monotonic deadline is valid (0.0305ms)
+✔ deadline expiry and rollback deny (2.342417ms)
+✔ late callback is denied (1.201291ms)
+✔ cancel seals budget and callbacks (2.271458ms)
+✔ response rejects identity (1.850958ms)
+✔ response rejects missing_usage (1.355625ms)
+✔ response rejects bad_usage (1.233167ms)
+✔ response rejects overflow (1.358042ms)
+✔ response rejects total (1.416833ms)
+✔ response rejects incomplete (1.261375ms)
+✔ duplicate response cannot consume second reservation (2.275708ms)
+✔ policy refuses actual model or expensive fallback (0.061583ms)
+✔ same tool name cannot replace native schema (1.5035ms)
+✔ executed client source binding cannot drift (1.328875ms)
+✔ archive rejects inflated request cap (1.371417ms)
+✔ archive rejects unclosed Docker removal (1.50825ms)
+✔ clock returning nonfinite is rejected (0.102208ms)
+✔ three-session real native offline smoke validates (18.064667ms)
+✔ smoke registration unchanged and hash frozen (4.1055ms)
+✔ live refuses missing enabled (2.255917ms)
+✔ live refuses missing registration_sha256 (2.525166ms)
+✔ live refuses missing budget_nano_usd (1.99475ms)
+✔ live refuses missing user_reference (1.928167ms)
+✔ live refuses missing model (1.890167ms)
+✔ live refuses missing effort (2.212541ms)
+✔ live missing approval fails before transport or Docker (1.934583ms)
+✔ registration source mutation fails before execution (6.8135ms)
+✔ native idle workload is fixed and unknown workloads rejected (20.66575ms)
+✔ native idle workload inspection rejects command drift (1.772959ms)
+✔ smoke cannot accept pending cleanup (1.281875ms)
+✔ smoke cannot accept missing remote read (3.770667ms)
+✔ rehashed smoke rejects QA1 count body different model (140.61275ms)
+✔ rehashed smoke rejects QA1 all raw SSE deleted (133.032542ms)
+✔ rehashed smoke rejects QA1 raw child stdout deleted (132.8125ms)
+✔ rehashed smoke rejects QA1 cleanup before launch (159.7645ms)
+✔ rehashed smoke rejects count body different prompt (152.4365ms)
+✔ rehashed smoke rejects count ledger hash unrelated (154.770458ms)
+✔ rehashed smoke rejects count raw receipt missing (119.418209ms)
+✔ rehashed smoke rejects count raw receipt inconsistent usage (115.724917ms)
+✔ rehashed smoke rejects raw FINAL parsed state mismatch (108.835584ms)
+✔ rehashed smoke rejects raw SSE reversed (52.725292ms)
+✔ rehashed smoke rejects cross-session raw SSE (42.251084ms)
+✔ rehashed smoke rejects response bytes missing from ledger (47.668584ms)
+✔ rehashed smoke rejects response identity contradiction (61.948833ms)
+✔ rehashed smoke rejects cumulative prefix corrupted (86.236875ms)
+✔ rehashed smoke rejects cumulative requests oversized (37.606708ms)
+✔ rehashed smoke rejects reservation underreported (42.942708ms)
+✔ rehashed smoke rejects import before cleanup (46.3165ms)
+✔ rehashed smoke rejects import after journal close (45.3585ms)
+✔ rehashed smoke rejects nonfinite cleanup time (42.906584ms)
+✔ rehashed smoke rejects completion after session close (40.540042ms)
+✔ rehashed smoke rejects duplicate complete event (48.497042ms)
+✔ rehashed smoke rejects missing complete event (38.0895ms)
+✔ rehashed smoke rejects failed exact removal (37.549375ms)
+✔ rehashed smoke rejects unclosed exact removal (34.096208ms)
+✔ rehashed smoke rejects wrong removal identity (41.269208ms)
+✔ rehashed smoke rejects absence before removal (40.106083ms)
+✔ rehashed smoke rejects state before final absence (34.016084ms)
+✔ rehashed smoke rejects cross-session journal records (34.120167ms)
+✔ rehashed smoke rejects native final missing after valid SSE (31.703708ms)
+✔ real transport cannot start without explicit live authorization and reviewed counter (0.940542ms)
+✔ local TLS success retains safe evidence, enforces output cap/tier and reserves before dispatch (21.6215ms)
+✔ TLS HTTP301 never redirects/retries/refunds (4.465792ms)
+✔ TLS HTTP302 never redirects/retries/refunds (3.825083ms)
+✔ TLS HTTP307 never redirects/retries/refunds (3.914292ms)
+✔ TLS HTTP308 never redirects/retries/refunds (4.413541ms)
+✔ TLS HTTP401 never redirects/retries/refunds (3.697833ms)
+✔ TLS HTTP403 never redirects/retries/refunds (3.374958ms)
+✔ TLS HTTP429 never redirects/retries/refunds (3.5965ms)
+✔ TLS HTTP503 never redirects/retries/refunds (3.844583ms)
+✔ untrusted TLS certificate never reaches HTTP handler and consumes one reservation (3.400292ms)
+✔ reject model before network (0.650666ms)
+✔ reject effort before network (0.48925ms)
+✔ reject tier before network (0.492375ms)
+✔ reject output cap before network (0.440708ms)
+✔ reject unknown field before network (0.91725ms)
+✔ reject unknown tool before network (0.841959ms)
+✔ reject duplicate tool before network (0.610417ms)
+✔ reject secret in prompt before network (0.505083ms)
+✔ reject oversized input before network (1.162375ms)
+✔ unverified/out-of-budget counter undefined (0.5ms)
+✔ unverified/out-of-budget counter NaN (0.4925ms)
+✔ unverified/out-of-budget counter -1 (0.521625ms)
+✔ unverified/out-of-budget counter 32769 (0.440083ms)
+✔ unverified/out-of-budget counter [object Promise] (0.412083ms)
+✔ six sequential reservations exhaust the run without a seventh request (16.077ms)
+✔ parallel dispatch fails closed without a second HTTP attempt (1.145042ms)
+✔ absolute timer interrupts response drips (72.23825ms)
+✔ explicit cancellation closes active response without retry (20.933292ms)
+✔ one run deadline spans both TLS exchanges (101.779417ms)
+✔ response cap, malformed body and missing terminal are rejected (14.447916ms)
+✔ reported identity closes the run (4.102125ms)
+✔ reported missing usage closes the run (3.10525ms)
+✔ reported usage sum closes the run (3.36025ms)
+✔ reported excess output closes the run (3.469375ms)
+✔ reported unexpected tool closes the run (2.938708ms)
+✔ duplicate completions and terminal suffix are rejected by the SSE parser (0.113167ms)
+✔ duplicate response identity across exchanges stops continuation (5.306208ms)
+✔ credential echo literal is excluded from returned data and evidence (3.974375ms)
+✔ credential echo unicode is excluded from returned data and evidence (2.929416ms)
+✔ credential echo base64 is excluded from returned data and evidence (3.4975ms)
+✔ credential echo hex is excluded from returned data and evidence (3.666792ms)
+✔ provider token-count preflight binds the complete text/tool input before inference (6.308667ms)
+✔ invalid count receipt prevents inference {"object":"wrong","input_tokens":12} (3.096917ms)
+✔ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":32769} (3.281666ms)
+✔ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":"fixture-only-public-upstream-key"} (3.484333ms)
+✔ invalid count receipt prevents inference {} (4.070709ms)
+✔ token-count redirect is refused before inference (2.809041ms)
+✔ token-count drip is bounded by shared deadline (71.304334ms)
+✔ unknown counter error never leaks arbitrary diagnostic text (0.893208ms)
+✔ configuration changes and image inputs are refused before network (1.041916ms)
+✔ unadvertised streamed tool cannot hide behind a valid final message (0.088375ms)
+✔ actual native packet uses the same parent gateway and local TLS transport seam (19.693084ms)
+✔ fresh private state, exact frozen bytes and no inherited personal env/config/skills/memory (503.824292ms)
+✔ actual Seatbelt blocks repository/ancestor/home reads, outside writes, workspace mutation and symlink escape (398.305375ms)
+✔ actual Seatbelt refuses loopback network, including child process use (919.86125ms)
+✔ unsupported platform and unsafe runtime paths fail closed; restrictive profile contains no network allow (33.399583ms)
+✔ argv is passed literally, no shell; chunks retain exact UTF8 bytes and stderr bytes (444.371875ms)
+✔ deadline interrupts TERM-resistant process, escalates KILL and preserves partial evidence (1087.409167ms)
+✔ leader exit with TERM-resistant child holding pipes is cleaned despite leader exit/close (508.519709ms)
+✔ leader exit with closed-stdio child still escalates rather than cancelling on close (522.242333ms)
+✔ abort before launch spawns nothing; active abort preserves partial; nonzero process failure retained (1484.397875ms)
+✔ output overflow stops bounded process and explicitly records truncation (423.053584ms)
+✔ actual raw bytes archive exclusively outside model-readable state (348.635916ms)
+✔ documented Codex events project separately from identity; self-described model never counted as observed (0.642208ms)
+✔ malformed, failed, duplicate, late, unknown and invalid UTF8 JSONL retain errors, never successful (0.151208ms)
+✔ future argv freezes explicit intent, no inherited catalog, declares no retry and never runs (6.033541ms)
+✔ frozen registration and apparently complete declaration cannot unlock live execution; no retry/order skip (2.651041ms)
+✔ unsupported OS isolation refuses before filesystem or subprocess use (0.094708ms)
+✔ saved process archive verifies source/raw hashes and zero model claims on every platform (11.984667ms)
+✔ archived Darwin containment stays POSIX when the validating host uses Win32 separators (1.025375ms)
+✔ bounded confirmation waits for running members to disappear and records every injected transition (0.152042ms)
+✔ zombie-only is explicitly nonrunning but unreaped; mixed/running and ownership loss stay distinct (0.085208ms)
+✔ running, probe error and timeout remain unconfirmed at the injected deadline; late absent cannot pass (0.125167ms)
+✔ unknown probe and hanging probe exhaust one total budget while preserving completed observations (506.859ms)
+✔ real group probe refuses an expired deadline before starting ps (0.147542ms)
+✔ normal success drains large exact bytes; TERM trailing bytes survive bounded cleanup (1477.999083ms)
+✔ fixture has no guardian IPC and stdout cannot spoof a fixture exit (347.454417ms)
+✔ unexpected guardian exit never causes another signal to a possibly reused group (509.398208ms)
+✔ fixed guardian kills its still-owned group if the parent-only IPC disconnects (126.297125ms)
+✔ predeclared parallel open/closed-stdio orphan stress verifies no running members under load (735.850375ms)
+✔ historical QA and observations stay anchored while corrected guardian archive binds separate sources (15.554ms)
+✔ primary completion before its deadline stays successful during a separate bounded confirmation (2228.522584ms)
+✔ late abort after normal guardian release records interruption without any further group signal (333.052625ms)
+✔ saved exchange reconstructs exactly and all actual offline commands run (4783.589833ms)
+✔ blank forms are not completed reviews and source remains unchanged (178.550791ms)
+✔ exact source,plan,answer and provenance bind submitted annotations (286.403375ms)
+✔ annotations validate against case rubric and require rationale (983.723167ms)
+✔ set and object order do not manufacture disagreement (1024.946667ms)
+✔ conflicts stay pending without adjudication; both reviews and old reviews retained (1045.105084ms)
+✔ adjudication binds review revisions, exact quotes and explicit choices (2002.357667ms)
+✔ missing reviewer entries remain pending and duplicate reviewer identities rejected (1033.527167ms)
+✔ failed records never become reviewable or lose partial text (187.223625ms)
+✔ exact empty executed answer can be reviewed incomplete (178.1235ms)
+✔ archive generator refuses overwrite and validation detects tampering (5990.730583ms)
+✔ a pending reviewer cannot be silently selected and custom labels are schema-validated (1118.6185ms)
+✔ review CLI refuses to overwrite an existing form (307.027791ms)
+✔ plan freezes exact candidate bytes and revision-2 guidance without live integration (17.438625ms)
+✔ turn inputs preserve arm isolation and exclude all rubric/metadata bytes (15.428375ms)
+✔ each frozen snapshot rejects byte drift against trusted plan (20.798375ms)
+✔ frozen candidate/protocol/guidance snapshots need not match a newer checkout (14.7565ms)
+✔ rehashed changed plan rejected by external trusted digest (9.745958ms)
+✔ rehashing cannot promote independence or leak rubric to input (31.588042ms)
+✔ unknown cases, duplicate case and invalid repetitions rejected (8.8665ms)
+✔ response template represents all 18 planned arms as not run (16.1315ms)
+✔ wholly absent triplets remain explicit exclusions (10.341167ms)
+✔ pending executed review and failed partial remain separate (18.788542ms)
+✔ executed incomplete answer remains paired and detected issue is not erased (12.573625ms)
+✔ evidenced successful empty and whitespace answers remain paired when annotated incomplete (22.748959ms)
+✔ unknown/duplicate arm, unplanned repetition, status and extra fields rejected (17.074583ms)
+✔ plan, exact answer, review binding and provenance drift rejected (17.990291ms)
+✔ review packets omit arm, guidance, expected labels, reviewer and partial failures (11.9745ms)
+✔ CLI creates offline artifacts exclusively and refuses overwrite (412.467042ms)
+✔ RT-01: deadline response and underlying work are measured separately (25.252708ms)
+✔ RT-01: success before deadline releases work and cancels the timer (1.257833ms)
+✔ RT-01: a pre-aborted request starts no work or timers (20.045458ms)
+✔ RT-01: parent cancellation removes boundary listener and deadline (0.179292ms)
+✔ RT-02: deadline response and underlying work are measured separately (0.172042ms)
+✔ RT-02: success before deadline releases work and cancels the timer (0.075083ms)
+✔ RT-02: a pre-aborted request starts no work or timers (0.0625ms)
+✔ RT-02: parent cancellation removes boundary listener and deadline (0.071167ms)
+✔ transport honors pre-aborted signals without acquiring a slot (0.264875ms)
+✔ protected contract rejects mutant: dropped leaf signal (0.785708ms)
+✔ protected contract rejects mutant: transport ignores abort (0.158ms)
+✔ protected contract rejects mutant: only outward promise is cancelled (0.163ms)
+✔ manifest keeps model inputs separate from grading artifacts (24.79975ms)
+✔ manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics (895.568958ms)
+✔ RT-03: all transient failures expose the exact total-attempt budget (0.488042ms)
+✔ RT-03: success after 0 failures stops without extra attempts (0.100875ms)
+✔ RT-03: success after 2 failures stops without extra attempts (0.065542ms)
+✔ RT-03: nonretryable failure terminates every layer (0.06825ms)
+✔ RT-03: deadline after two failures cancels the active third attempt (8.518375ms)
+✔ RT-03: parent after two failures cancels the active third attempt (0.488666ms)
+✔ RT-03: cancellation between failure and next attempt prevents restart (0.385416ms)
+✔ RT-03: pre-aborted caller starts no dependency attempts (0.117959ms)
+✔ RT-04: all transient failures expose the exact total-attempt budget (0.13525ms)
+✔ RT-04: success after 0 failures stops without extra attempts (0.037ms)
+✔ RT-04: success after 2 failures stops without extra attempts (0.040292ms)
+✔ RT-04: nonretryable failure terminates every layer (0.035541ms)
+✔ RT-04: deadline after two failures cancels the active third attempt (0.584542ms)
+✔ RT-04: parent after two failures cancels the active third attempt (0.297625ms)
+✔ RT-04: cancellation between failure and next attempt prevents restart (0.299625ms)
+✔ RT-04: pre-aborted caller starts no dependency attempts (0.073ms)
+✔ single-owner budget oracle rejects mutant: nested retry ownership (0.302833ms)
+✔ single-owner budget oracle rejects mutant: three retries interpreted as four total attempts (0.151708ms)
+✔ retry artifact validation rejects changed budgets, leaked rubrics and incomplete diagnosis (657.54175ms)
+✔ RT-05: same offered optional saturation exposes essential admission (1.634459ms)
+✔ RT-05: optional success releases a worker and admits FIFO successor (0.204291ms)
+✔ RT-05: optional failure releases a worker and admits FIFO successor (0.090959ms)
+✔ RT-05: optional abort releases a worker and admits FIFO successor (0.072208ms)
+✔ RT-05: queued cancellation removes admission without starting work (0.331333ms)
+✔ RT-05: pre-aborted optional and essential callers acquire nothing (0.063583ms)
+✔ RT-06: same offered optional saturation exposes essential admission (0.429667ms)
+✔ RT-06: optional success releases a worker and admits FIFO successor (0.102375ms)
+✔ RT-06: optional failure releases a worker and admits FIFO successor (0.064417ms)
+✔ RT-06: optional abort releases a worker and admits FIFO successor (0.048ms)
+✔ RT-06: queued cancellation removes admission without starting work (0.326417ms)
+✔ RT-06: pre-aborted optional and essential callers acquire nothing (0.0375ms)
+✔ isolated admission oracle rejects shared-pool wiring (0.747834ms)
+✔ bounded optional admission oracle rejects excessive queue capacity (0.41525ms)
+✔ pool exposes own-route overload and releases synchronous task exceptions (0.123666ms)
+✔ isolation artifact validation rejects resource tampering and grading leakage (636.299ms)
+✔ RT-07: same leaf permits cancellable completion; no completion is the case truth (0.908709ms)
+✔ RT-07: same leaf permits ignoresAbort completion; no completion is the case truth (0.285083ms)
+✔ RT-08: same leaf permits singleOwner completion with separately supplied budget (0.327042ms)
+✔ RT-08: same leaf permits nestedOwners completion with separately supplied budget (0.307417ms)
+✔ RT-08: same leaf permits permittedNestedOwners completion with separately supplied budget (0.236625ms)
+✔ RT-08: private nested completion cancels without further attempts or leaked resources (0.183417ms)
+✔ incomplete-context artifacts reject certainty, omitted obligations and private input leaks (687.660792ms)
+✔ RT-09: finite long-running archive respects two-worker bound and completes in order (0.67475ms)
+✔ RT-09: failure of a releases capacity and remaining finite work completes (0.429083ms)
+✔ RT-09: failure of c releases capacity and remaining finite work completes (0.424875ms)
+✔ RT-09: failure of e releases capacity and remaining finite work completes (0.322333ms)
+✔ RT-09: occupancy oracle rejects concurrent unbounded launch despite finite completion (0.199958ms)
+✔ RT-10: await/destructuring example priced returns the specified value (0.226166ms)
+✔ RT-10: await/destructuring example missing returns the specified value (0.179291ms)
+✔ RT-10: await/destructuring example undefined returns the specified value (0.140375ms)
+✔ RT-10: await/destructuring example null returns the specified value (0.116875ms)
+✔ RT-10: transport rejection propagates through async without applying the default (0.076958ms)
+✔ batch/syntax artifacts reject changed contract, activation, answer leakage and missing completion (696.552208ms)
+✔ research prototype has explicit negative task boundary and sequential guide references (0.596625ms)
+✔ RT-11: setup and work share the stated total boundary only when covered (0.253209ms)
+✔ RT-11: early completion clears both phase and deadline (0.073042ms)
+✔ RT-11: setup failure clears owned resources (0.052458ms)
+✔ RT-11: work failure clears owned resources (0.026792ms)
+✔ RT-11: parent cancellation at 0 starts no later phases (0.062ms)
+✔ RT-11: parent cancellation at 30 starts no later phases (0.027791ms)
+✔ RT-11: parent cancellation at 90 starts no later phases (0.026375ms)
+✔ RT-12: setup and work share the stated total boundary only when covered (0.047875ms)
+✔ RT-12: early completion clears both phase and deadline (0.025625ms)
+✔ RT-12: setup failure clears owned resources (0.040125ms)
+✔ RT-12: work failure clears owned resources (0.026708ms)
+✔ RT-12: parent cancellation at 0 starts no later phases (0.023042ms)
+✔ RT-12: parent cancellation at 30 starts no later phases (0.023292ms)
+✔ RT-12: parent cancellation at 90 starts no later phases (0.028542ms)
+✔ total deadline oracle rejects reset-after-setup mutant despite eventual bounded completion (0.168375ms)
+✔ RT-13: identical local leaf permits uncovered caller completion (1.073791ms)
+✔ RT-13: identical local leaf permits permitted caller completion (0.183667ms)
+✔ RT-13: identical local leaf permits outerBounded caller completion (0.300333ms)
+✔ RT-14: queued expiry changes admission, not merely outward result (0.784125ms)
+✔ RT-14: active success admits live FIFO successors and cleans listeners (0.329333ms)
+✔ RT-14: active failure admits live FIFO successors and cleans listeners (0.333041ms)
+✔ RT-14: active abort admits live FIFO successors and cleans listeners (0.373083ms)
+✔ RT-14: finite overload, queued cancellation and pre-abort start no extra work (0.242792ms)
+✔ RT-15: queued expiry changes admission, not merely outward result (0.300458ms)
+✔ RT-15: active success admits live FIFO successors and cleans listeners (0.177ms)
+✔ RT-15: active failure admits live FIFO successors and cleans listeners (0.158166ms)
+✔ RT-15: active abort admits live FIFO successors and cleans listeners (0.155292ms)
+✔ RT-15: finite overload, queued cancellation and pre-abort start no extra work (0.187125ms)
+✔ RT-15: already expired submissions do not enter empty admission or acquire timers (0.057958ms)
+✔ waiting-expiry oracle rejects ignore-expiry mutant under identical finite capacity (0.305ms)
+✔ RT-16: identical visible admission permits requestOwned completion with different usefulness contract (0.2645ms)
+✔ RT-16: identical visible admission permits durableJob completion with different usefulness contract (0.162125ms)
+✔ deadline/queue artifacts reject modified outcomes, private leakage and uncertainty omissions (709.146125ms)
+✔ RT-15: waiting expiry at the exact release boundary removes work before admission (0.670542ms)
+✔ RT-15: multiple expired entries release timers and admission without later dependency starts (0.326042ms)
+✔ RT-17: all owned fan-out children are independently measured (0.774625ms)
+✔ RT-17: fan-out success settles every child (0.16275ms)
+✔ RT-17: fan-out failure settles every child (0.069917ms)
+✔ RT-17: fan-out pre-abort settles every child (0.069958ms)
+✔ RT-18: all owned fan-out children are independently measured (0.248375ms)
+✔ RT-18: fan-out success settles every child (0.051166ms)
+✔ RT-18: fan-out failure settles every child (0.069208ms)
+✔ RT-18: fan-out pre-abort settles every child (0.110125ms)
+✔ RT-19: identical visible extract admits request-owned and durable child countermodels (0.339291ms)
+✔ RT-20: ten local retry caps versus shared extra-attempt allowance (0.464375ms)
+✔ RT-20: success, permanent errors and cancellation cannot consume an extra attempt (0.234083ms)
+✔ RT-21: ten local retry caps versus shared extra-attempt allowance (0.283333ms)
+✔ RT-21: success, permanent errors and cancellation cannot consume an extra attempt (0.119625ms)
+✔ RT-21: fixed window does not refill early and resets exactly at boundary (0.470791ms)
+✔ RT-22: local retry extract cannot decide an omitted aggregate contract (0.304125ms)
+✔ RT-23: committed response loss measures effects rather than response status alone (0.256083ms)
+✔ RT-23: normal response, pre-cancel and permanent failure (0.0885ms)
+✔ RT-23: cancellation after commit retains effect and prevents a second attempt (0.071834ms)
+✔ RT-24: committed response loss measures effects rather than response status alone (0.167708ms)
+✔ RT-24: normal response, pre-cancel and permanent failure (0.049959ms)
+✔ RT-24: cancellation after commit retains effect and prevents a second attempt (0.040875ms)
+✔ RT-24: concurrent same-key writes deduplicate atomically and conflicting intent is rejected (0.154417ms)
+✔ RT-25: stable identity alone cannot establish backend deduplication (0.548542ms)
+✔ RT-26: injected eight-client schedule is measured per logical slot (0.471541ms)
+✔ RT-26: retry timer cancel-before cleans timer and listener (0.076792ms)
+✔ RT-26: retry timer cancel-waiting cleans timer and listener (0.045459ms)
+✔ RT-26: retry timer throw cleans timer and listener (0.046042ms)
+✔ RT-26: retry timer success cleans timer and listener (0.039291ms)
+✔ RT-27: injected eight-client schedule is measured per logical slot (0.212291ms)
+✔ RT-27: retry timer cancel-before cleans timer and listener (0.030709ms)
+✔ RT-27: retry timer cancel-waiting cleans timer and listener (0.030917ms)
+✔ RT-27: retry timer throw cleans timer and listener (0.048209ms)
+✔ RT-27: retry timer success cleans timer and listener (0.024917ms)
+✔ RT-28: identical local retry delay permits synchronized and staggered arrival countermodels (0.226917ms)
+✔ RT-29: distinct wrappers are checked at the actual two-slot resource (0.275792ms)
+✔ RT-29: transport success releases all admission (0.070708ms)
+✔ RT-29: transport failure releases all admission (0.036042ms)
+✔ RT-29: transport cancel releases all admission (0.034417ms)
+✔ RT-30: distinct wrappers are checked at the actual two-slot resource (0.177958ms)
+✔ RT-30: transport success releases all admission (0.034375ms)
+✔ RT-30: transport failure releases all admission (0.032ms)
+✔ RT-30: transport cancel releases all admission (0.035041ms)
+✔ RT-31: injected wrapper instances admit shared and reserved underlying transports (0.245375ms)
+✔ RT-32: simultaneous cooldown callers measure recovery admission (0.278792ms)
+✔ RT-32: successful probe closes; failed probe reopens and restarts cooldown (0.085916ms)
+✔ RT-33: simultaneous cooldown callers measure recovery admission (0.166708ms)
+✔ RT-33: successful probe closes; failed probe reopens and restarts cooldown (0.040541ms)
+✔ RT-33: cancelled probe permits replacement and pre-cancel never starts work (0.078042ms)
+✔ RT-32: stale concurrent success cannot close a generation reopened by another failed probe (0.064417ms)
+✔ RT-34: omitted controller and external admission permit different recovery concurrency (0.232375ms)
+✔ RT-35: optional admission must preserve a useful essential degraded response (0.226209ms)
+✔ RT-35: detail success releases capacity for next work (0.078ms)
+✔ RT-35: detail failure releases capacity for next work (0.055417ms)
+✔ RT-35: detail cancel releases capacity for next work (0.046958ms)
+✔ RT-36: optional admission must preserve a useful essential degraded response (0.184625ms)
+✔ RT-36: detail success releases capacity for next work (0.039833ms)
+✔ RT-36: detail failure releases capacity for next work (0.048792ms)
+✔ RT-36: detail cancel releases capacity for next work (0.047792ms)
+✔ RT-37: the same degraded payload satisfies an omission-permitted contract and violates required detail (0.149458ms)
+✔ RT-21: causal mutation to RT-20 fails the protected criterion (0.216083ms)
+✔ RT-24: causal mutation to RT-23 fails the protected criterion (0.067875ms)
+✔ RT-27: causal mutation to RT-26 fails the protected criterion (0.104458ms)
+✔ RT-30: causal mutation to RT-29 fails the protected criterion (0.166541ms)
+✔ RT-36: causal mutation to RT-35 fails the protected criterion (0.068041ms)
+✔ RT-18/33: dropped child signal and unlimited half-open admission fail protected criteria (0.142625ms)
+✔ Expanded manifest rejects kind drift (551.526541ms)
+✔ Expanded manifest rejects expected drift (571.463875ms)
+✔ Expanded manifest rejects input-test drift (547.290625ms)
+✔ Expanded manifest rejects input-rubric drift (516.72675ms)
+✔ Expanded manifest rejects missing-context drift (513.759125ms)
+✔ Expanded manifest rejects finding-evidence drift (486.818667ms)
+✔ RT-20: one transient error followed by recovery uses exactly one extra attempt (0.238875ms)
+✔ RT-21: one transient error followed by recovery uses exactly one extra attempt (0.091625ms)
+✔ RT-23: repeated ambiguous failures stop at two calls (0.092083ms)
+✔ RT-24: repeated ambiguous failures stop at two calls (0.046292ms)
+✔ RT-36: reject-all and incorrect-success mutations fail the useful response criterion (0.113375ms)
+✔ dispute RT-02: transport completion before expiry can lose to synchronous clock advancement (0.076209ms)
+✔ dispute RT-02: observing success before advancing the clock preserves the value (0.045542ms)
+✔ dispute RT-12: rejected setup duration -1 retains deadline and parent listener until expiry (0.075125ms)
+✔ dispute RT-12: rejected setup duration NaN retains deadline and parent listener until expiry (0.024875ms)
+✔ dispute RT-12: rejected setup duration Infinity retains deadline and parent listener until expiry (0.022959ms)
+✔ dispute RT-12: parent abort releases resources left after setup scheduling throws (0.056292ms)
+✔ dispute RT-12: invalid work duration throws during advancement and the original deadline still cleans up (0.057875ms)
+✔ dispute RT-12: validating durations before acquisition avoids the exception cleanup path (0.123334ms)
+✔ RT-38: settlement99 with same-turn deadline (0.374583ms)
+✔ RT-38: settlement99 with awaited delivery (0.04475ms)
+✔ RT-38: completion exactly100, completion-first (0.074083ms)
+✔ RT-38: completion exactly100, deadline-first (0.048875ms)
+✔ RT-38: timeout releases pending operation (0.069084ms)
+✔ RT-38: parent-abort releases pending operation (0.038833ms)
+✔ RT-38: pre-abort releases pending operation (0.035875ms)
+✔ RT-39: settlement99 with same-turn deadline (0.190167ms)
+✔ RT-39: settlement99 with awaited delivery (0.038333ms)
+✔ RT-39: completion exactly100, completion-first (0.041625ms)
+✔ RT-39: completion exactly100, deadline-first (0.0485ms)
+✔ RT-39: timeout releases pending operation (0.03625ms)
+✔ RT-39: parent-abort releases pending operation (0.035292ms)
+✔ RT-39: pre-abort releases pending operation (0.0335ms)
+✔ RT-40: settlement99 with same-turn deadline (0.167708ms)
+✔ RT-40: settlement99 with awaited delivery (0.037541ms)
+✔ RT-40: completion exactly100, completion-first (0.033916ms)
+✔ RT-40: completion exactly100, deadline-first (0.06125ms)
+✔ RT-40: timeout releases pending operation (0.04475ms)
+✔ RT-40: parent-abort releases pending operation (0.036333ms)
+✔ RT-40: pre-abort releases pending operation (0.045542ms)
+✔ RT-40: same visible trace admits opposing success contracts (0.072917ms)
+✔ RT-41: setupDuration=-1 rejection lifecycle (0.197459ms)
+✔ RT-41: setupDuration=NaN rejection lifecycle (0.045792ms)
+✔ RT-41: setupDuration=Infinity rejection lifecycle (0.032333ms)
+✔ RT-41: setupDuration=-Infinity rejection lifecycle (0.037958ms)
+✔ RT-41: setupDuration=10 rejection lifecycle (0.040667ms)
+✔ RT-41: setupDuration=null rejection lifecycle (0.031417ms)
+✔ RT-41: workDuration=-1 rejection lifecycle (0.043ms)
+✔ RT-41: workDuration=NaN rejection lifecycle (0.035667ms)
+✔ RT-41: workDuration=Infinity rejection lifecycle (0.036833ms)
+✔ RT-41: workDuration=-Infinity rejection lifecycle (0.048208ms)
+✔ RT-41: workDuration=10 rejection lifecycle (0.039292ms)
+✔ RT-41: workDuration=null rejection lifecycle (0.031583ms)
+✔ RT-41: standard setup rejection observation matches manifest or remains conditional (0.068083ms)
+✔ RT-41: valid durations 0/0 (0.048667ms)
+✔ RT-41: valid durations 20/30 (0.031041ms)
+✔ RT-41: valid durations 80/60 (0.03125ms)
+✔ RT-41: valid durations 40/60 (0.04ms)
+✔ RT-41: valid durations 0/100 (0.030167ms)
+✔ RT-41: valid durations 100/0 (0.026875ms)
+✔ RT-41: cancellation during pre-abort (0.04975ms)
+✔ RT-41: cancellation during setup (0.068958ms)
+✔ RT-41: cancellation during work (0.057292ms)
+✔ RT-41: undefined durations keep defaults (0.075125ms)
+✔ RT-42: setupDuration=-1 rejection lifecycle (0.280916ms)
+✔ RT-42: setupDuration=NaN rejection lifecycle (0.036583ms)
+✔ RT-42: setupDuration=Infinity rejection lifecycle (0.0305ms)
+✔ RT-42: setupDuration=-Infinity rejection lifecycle (0.029541ms)
+✔ RT-42: setupDuration=10 rejection lifecycle (0.027ms)
+✔ RT-42: setupDuration=null rejection lifecycle (0.028833ms)
+✔ RT-42: workDuration=-1 rejection lifecycle (0.040416ms)
+✔ RT-42: workDuration=NaN rejection lifecycle (0.029875ms)
+✔ RT-42: workDuration=Infinity rejection lifecycle (0.026666ms)
+✔ RT-42: workDuration=-Infinity rejection lifecycle (0.036791ms)
+✔ RT-42: workDuration=10 rejection lifecycle (0.025917ms)
+✔ RT-42: workDuration=null rejection lifecycle (0.025583ms)
+✔ RT-42: standard setup rejection observation matches manifest or remains conditional (0.03425ms)
+✔ RT-42: valid durations 0/0 (0.035792ms)
+✔ RT-42: valid durations 20/30 (0.033375ms)
+✔ RT-42: valid durations 80/60 (0.03375ms)
+✔ RT-42: valid durations 40/60 (0.041375ms)
+✔ RT-42: valid durations 0/100 (0.048958ms)
+✔ RT-42: valid durations 100/0 (0.029583ms)
+✔ RT-42: cancellation during pre-abort (0.1585ms)
+✔ RT-42: cancellation during setup (0.066792ms)
+✔ RT-42: cancellation during work (0.044625ms)
+✔ RT-42: undefined durations keep defaults (0.054708ms)
+✔ RT-43: setupDuration=-1 rejection lifecycle (0.337208ms)
+✔ RT-43: setupDuration=NaN rejection lifecycle (0.039583ms)
+✔ RT-43: setupDuration=Infinity rejection lifecycle (0.033584ms)
+✔ RT-43: setupDuration=-Infinity rejection lifecycle (0.046458ms)
+✔ RT-43: setupDuration=10 rejection lifecycle (0.032708ms)
+✔ RT-43: setupDuration=null rejection lifecycle (0.029875ms)
+✔ RT-43: workDuration=-1 rejection lifecycle (0.038291ms)
+✔ RT-43: workDuration=NaN rejection lifecycle (0.037459ms)
+✔ RT-43: workDuration=Infinity rejection lifecycle (0.035666ms)
+✔ RT-43: workDuration=-Infinity rejection lifecycle (0.61925ms)
+✔ RT-43: workDuration=10 rejection lifecycle (0.054541ms)
+✔ RT-43: workDuration=null rejection lifecycle (0.032333ms)
+✔ RT-43: standard setup rejection observation matches manifest or remains conditional (0.03325ms)
+✔ RT-43: valid durations 0/0 (0.040666ms)
+✔ RT-43: valid durations 20/30 (0.033041ms)
+✔ RT-43: valid durations 80/60 (0.025708ms)
+✔ RT-43: valid durations 40/60 (0.027625ms)
+✔ RT-43: valid durations 0/100 (0.024792ms)
+✔ RT-43: valid durations 100/0 (0.022791ms)
+✔ RT-43: cancellation during pre-abort (0.03925ms)
+✔ RT-43: cancellation during setup (0.033667ms)
+✔ RT-43: cancellation during work (0.02925ms)
+✔ RT-43: undefined durations keep defaults (0.025916ms)
+✔ RT-42: invalid inputs reject before even pre-aborted parent admission (0.093875ms)
+✔ RT-41/43: parent abort cleans resources retained after initial scheduling exception (0.081667ms)
+✔ RT-43: private validity policies produce opposing judgments without supplying a validator (0.075416ms)
+✔ a completed successful run for the exact release commit permits publication (0.385916ms)
+✔ a green different commit, missing CI, and incomplete or unsuccessful CI block publication (0.232916ms)
+✔ an older green run cannot override the latest failed run for the same commit (0.628667ms)
+✔ behavioral corpus keeps task prompts blind to skill selection and judgment (1.146791ms)
+✔ judge output contract requires every field and rejects extra keys at every object (0.096417ms)
+✔ rule-drift ground truth is executable and confined to the documented interval (3.108959ms)
+✔ coverage fixture has correct new behavior but its tests miss a removed branch (304.358ms)
+✔ mocked-subject fixture passes even if the real calculation throws (293.184542ms)
+✔ clean architecture and local severity fixtures satisfy their functional contracts (134.117917ms)
+✔ case validation rejects traversal and instruction injection fixture paths (2.033583ms)
+✔ observed trigger requires successful content-read evidence rather than claims or mentions (0.779417ms)
+✔ trace records failed turns and malformed logs instead of treating them as completed (0.113667ms)
+✔ judge accepts substantively complete baseline prose without Brooks labels (0.287083ms)
+✔ judge evidence and matched/missed IDs must be grounded and internally consistent (0.238916ms)
+✔ paired summaries exclude missing or failed arms and reject duplicate pair records (0.336208ms)
+✔ metrics distinguish unlabeled severity, uncertain findings, and nontrigger denominators (0.193584ms)
+✔ runner environment retains transport settings while isolating identity and configuration (0.093542ms)
+✔ runner materializes identical committed fixtures and installs skills only in treatment (591.594917ms)
+✔ process execution captures input/output and reports timeout, exit failures, and missing binary (330.686667ms)
+✔ CLI offline validation does not need Codex binary, auth, or live model settings (121.5465ms)
+✔ offline fake Codex exercises isolated treatment, baseline, and blind judge sessions (1410.883875ms)
+✔ session rejects preflight skill mismatch before execution and removes temporary credentials (562.046167ms)
+✔ session preserves failed-turn evidence without publishing a successful final answer (640.65625ms)
+✔ discovery reads only developer skill catalogs and never user or judge answer mentions (0.250167ms)
+✔ matched finding severity calibration cannot contradict the fixed rubric (0.102834ms)
+✔ process cancellation terminates an active process and rejects a pre-aborted launch (0.862084ms)
+✔ aborted session removes temporary credentials and never writes a completed answer (624.238166ms)
+✔ frozen Codex pilot-2026-11-04 judgments, paired summary, and observed reads remain reproducible (1.370291ms)
+✔ frozen Codex calibration-2026-11-04 judgments, paired summary, and observed reads remain reproducible (0.65725ms)
+✔ severity calibration rerun preserves the original evaluation criteria and controls (1.1475ms)
+✔ three-run severity archive preserves fixed criteria, complete attempts, and recovery provenance (4.267083ms)
+✔ three-run archive keeps grounded grades and replayable skill-read evidence (2.499209ms)
+✔ market pins the published npm version and its registry publication time (0.6835ms)
+✔ unpublished or invalid releases cannot produce installable market entries (0.158ms)
+✔ metadata checks ignore topic order and preserve unrelated labels (2.057917ms)
+✔ missing and changed repository metadata and managed labels are reported (0.14725ms)
+✔ every canonical global and project mapping installs flat bundled skills (3898.125375ms)
+✔ DSH_HOME override and custom destination preserve unrelated files (403.671334ms)
+✔ help, list and version do not install anything (1249.424ms)
+✔ invalid arguments fail before writing (1131.677083ms)
+✔ source overlap and symlink aliases are rejected (571.370583ms)
+✔ npm packed artifact can install without repository files or network (442.289167ms)
+✔ score labels work for all report modes including bold and final sweep score (2.639ms)
+✔ invalid, ambiguous and missing scores are not valid machine reports (0.719ms)
+✔ fenced examples are not interpreted as report scores or findings (1.28575ms)
+✔ custom findings preserve severity and code through parser and SARIF (1.129042ms)
+✔ missing severity and incomplete findings cannot silently become clean reports (0.287333ms)
+✔ no-risk scenarios reject unrelated findings while targeted exclusions permit them (0.204ms)
+✔ prose mentions are not findings and keyword soup cannot earn a pass (0.108542ms)
+✔ every finding needs all Iron Law fields and onboarding cannot contain bold scores (0.091834ms)
+✔ mode registry shares review test knowledge and restricts tool-less runners (0.694584ms)
+✔ suppressed-only reports keep score 100 and emit no active findings or SARIF results (0.263292ms)
+✔ suppression boundaries exclude inner findings and require fresh active severity afterward (0.236667ms)
+✔ malformed suppression blocks cannot silently hide subsequent active findings (0.251375ms)
+✔ strict parsing rejects contradictory header and inline severity signals (0.134458ms)
+✔ literal title severity labels preserve tiers through parser and SARIF without headings (0.231792ms)
+✔ literal severity labels must agree with markers and never leak into following findings (0.206792ms)
+✔ PR event SHAs select a non-main merge-base diff and trusted base policy (649.846417ms)
+✔ explicit refs, staged and unstaged inputs are honored without a main branch (221.438125ms)
+✔ missing refs, merge bases and Git repositories fail instead of pretending to scan (249.309167ms)
+✔ empty diff is skipped without loading SDK or writing SARIF; unsupported modes fail before API (1066.528416ms)
+✔ CI emits complete structured results, but malformed and truncated responses fail closed (1186.075209ms)
+✔ gate recomputes custom severities and rejects invalid report envelopes (580.4145ms)
+✔ API eval rejects explicit sweep and reports excluded sweep scenarios without API calls for them (508.746166ms)
+✔ API eval fails the process for partial and truncated results (334.058625ms)
+✔ scenario schema accepts review test risks and rejects conflicting or malformed boundaries (896.450125ms)
+✔ critical gate accepts suppressed-only reports but rejects ambiguous or malformed severity boundaries (578.858291ms)
+✔ default validation and plan mode never require Codex or credentials (593.0655ms)
+✔ plans freeze exact artifacts, reject edits and invalid settings, and rotate three arms (316.4495ms)
+✔ fake CLI exercises A/B/C isolation, same tasks, private cleanup and blind packets (2075.296792ms)
+✔ mismatch: preserve failure evidence and exclude incomplete triplet (1681.763667ms)
+✔ execution-failure: preserve failure evidence and exclude incomplete triplet (1673.071959ms)
+✔ offline judgments validate quotes, completeness, severity, and only new C-over-B issues count (84.470208ms)
+✔ trace read proxy excludes echo/search claims and failed commands (0.190167ms)
+✔ all expanded cases freeze visible inputs and count unresolved controls by manifest kind (100.169125ms)
+✔ pre-aborted execution records interruption without starting fake CLI (126.999583ms)
+✔ six dispute cases plan independently without a model process and keep private policies outside inputs (1522.981375ms)
+ℹ tests 895
+ℹ suites 0
+ℹ pass 895
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20489.747542
