@@ -1,0 +1,23 @@
+**Runtime Research (revision 2) — bounded protection**
+
+The supplied registry protects the replacement reservation from an older handle’s completion, as the stated contract requires. This conclusion assumes callers use the returned handles as intended and do not mutate their public `done` or `complete` properties.
+
+A trace for one key, starting with an empty registry:
+
+| Operation | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Admits generation A | 1 | 1 |
+| `start(k)` | Returns `null` | 1 | 1 |
+| `b = replace(k)` | Makes B current; A remains live | 1 | 2 |
+| `a.complete()` | Removes A from `live`; identity check preserves B’s reservation | 1 | 1 |
+| `start(k)` | Returns `null` while B is pending | 1 | 1 |
+| `b.complete()` | Removes B and its reservation | 0 | 0 |
+| `start(k)` | Admits a new generation | 1 | 1 |
+
+The controlling operation is `entries.get(key) === entry` in `complete()`: only the handle that is still current can delete the key’s reservation. The `done` guard also makes repeated completion of a handle inert.
+
+The opposite completion order is protected too. If B completes before A, B releases the reservation, so a new `start(k)` can admit C even while superseded A remains active. When A later completes, it cannot delete C’s reservation because A and C are distinct entry objects. This matches the contract’s distinction between one **current** generation and separately observed superseded work.
+
+The protection is limited to registry bookkeeping. `replace` does not stop older work, and `active` can exceed `reserved`; neither behavior violates the supplied contract. The shared `SlotPool` has its own capacity and lease-release controls, but the registry does not use it, so it establishes no capacity bound for registry work. `deferred()` supplies a way to control promise settlement, but no supplied execution connects it to the registry.
+
+This is a code trace, not an executed test or a production observation. Callers, actual work completion, and any external resource limits are not supplied, so their behavior and exposure remain unknown.

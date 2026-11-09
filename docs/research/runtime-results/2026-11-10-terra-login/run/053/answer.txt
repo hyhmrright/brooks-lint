@@ -1,0 +1,10 @@
+The visible contract leaves **failure cleanup ownership unspecified**, so the retained lease after rejection is an observable local behavior, not enough evidence of a contract defect or permanent leak.
+
+With a capacity-one `SlotPool`, the relevant trace is:
+
+1. `execute` synchronously acquires a lease. The pool has `active = 1`, and the function returns `response` and `release`.
+2. If `child` fulfills, the `await` continues, `release()` removes the lease, and `response` fulfills with the child’s value. The pool then has `active = 0`.
+3. If `child` rejects, the `await` throws before the automatic `release()` call. `response` rejects, and the pool still has `active = 1` until something calls the exposed hook. While it remains active, another acquisition on that capacity-one pool throws `capacity`.
+4. If the caller invokes `release()`, the supplied pool removes the lease. Its `Set.delete` guard also makes repeated releases harmless for this particular pool, including an explicit release followed by the success-path release.
+
+The missing context is whether the caller or `execute` owns cleanup after rejection, and when that cleanup must happen. If `execute` is supposed to own it, the rejection path is the source of retained capacity; releasing in a `finally` block would address that obligation. If an outer scope owns it, the exposed hook may satisfy the intended lifecycle. The supplied evidence does not establish which contract applies, whether the outer scope calls the hook, or whether every possible pool tolerates repeated release calls.

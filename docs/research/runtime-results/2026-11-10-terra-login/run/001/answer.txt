@@ -1,0 +1,18 @@
+The lifecycle violates the cancellation contract when the signal aborts while `launch` is awaiting the preparation gate. Once the gate opens, it acquires a slot and returns a pending operation even though the request is already cancelled.
+
+**Execution trace**, assuming a standard `AbortSignal`, a deferred gate, and a `SlotPool` with one available slot:
+
+1. Call `launch` with a signal that is not aborted and an unresolved gate. The initial check passes, and `launch` suspends at `await gate`.
+2. Abort the signal while the gate is unresolved. No abort listener has been registered yet.
+3. Resolve the gate. Execution resumes and calls `pool.acquire()`, so `started` and `active` become 1.
+4. The code registers an abort listener and returns a pending operation. An `AbortSignal` does not replay an earlier abort to a newly registered listener, so the operation remains pending until something calls `complete()`. If that never happens, its slot remains active.
+
+**Symptom → Source → Consequence → Remedy:** An aborted request starts work after preparation because the only pre-acquisition abort check occurs before the `await`, while the listener is installed after acquisition. This violates the stated gate contract and can occupy the finite pool, causing a later acquisition to throw `capacity`. Recheck `signal.aborted` immediately after `await gate` and return a cancelled result before acquiring a slot. Under the supplied single-process synchronous code between that check and listener registration, no asynchronous cancellation can interleave there.
+
+The contrast controls bound the finding:
+
+- A **pre-aborted** signal returns cancelled before the gate or pool is touched.
+- If the signal stays live through admission, `complete()` marks the operation `ok`, releases its lease, and removes the listener.
+- If it aborts **after** listener registration, the handler marks it cancelled, releases the lease, and removes the listener. The pending-status guard prevents a later `complete()` from releasing it again.
+
+This establishes a defect in the supplied synthetic lifecycle; it does not establish a production outage.

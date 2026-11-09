@@ -1,0 +1,18 @@
+The code has an observable cancellation gap, but the supplied contract does not say whether it is a defect. The missing decision is whether an abort during preparation must prevent later admission, or whether cancellation applies only after work starts. The caller’s ownership and obligation to complete accepted work are also unspecified.
+
+With a pending gate and an initially live signal, the execution trace is:
+
+1. `launch` passes its initial `signal.aborted` check and waits at `await gate`.
+2. The signal aborts while the gate is pending. No listener has been registered yet.
+3. The gate resolves. `launch` acquires a lease, creates a pending operation, and registers an abort listener.
+4. The earlier abort event is not replayed to that listener. The returned operation remains pending, and the pool’s slot remains active until `complete()` is called.
+
+That trace assumes the gate resolves and acquisition succeeds. With the supplied `SlotPool`, it produces `started = 1`, `released = 0`, and `active = 1` before completion. It establishes neither a production outage nor an indefinitely leaked slot: the caller may still call `complete()`.
+
+The contrast controls bound the behavior:
+
+- If the signal is already aborted at entry, `launch` returns cancelled without acquiring a slot.
+- If abort occurs after listener registration while the operation is pending, `cancel()` marks it cancelled and releases the lease.
+- If `complete()` runs first, it marks the operation `ok`, releases the lease, and removes the listener. The status guard makes subsequent finishes no-ops.
+
+If the intended policy is that cancellation during preparation invalidates admission, the **symptom** is a pending operation and occupied slot after that cancellation. The **source** is checking the signal only before the await and subscribing only after acquisition. The **consequence** is admission despite cancellation, with capacity held until completion. The **remedy** is to check `signal.aborted` again after the gate and before acquiring, with cancellation handling designed consistently around admission and ownership. If cancellation only applies after work starts, the observed behavior may instead be consistent with the policy; the supplied evidence does not decide between those interpretations.

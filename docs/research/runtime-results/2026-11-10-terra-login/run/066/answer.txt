@@ -1,0 +1,24 @@
+The registry provides the stated protection against an older handle releasing a replacement’s reservation, assuming callers use the returned handles through `complete()` and do not mutate their public fields. The supplied code does not establish a lifecycle defect under that assumption.
+
+For one key `k`, the execution trace is:
+
+| Operation | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Creates current generation `a` | 1 | 1 |
+| `start(k)` | Returns `null` | 1 | 1 |
+| `b = replace(k)` | Makes `b` current; `a` remains live | 1 | 2 |
+| `a.complete()` | Removes `a` from `live`; leaves `b` reserved because `entries.get(k) !== a` | 1 | 1 |
+| `start(k)` | Returns `null` while `b` is pending | 1 | 1 |
+| `b.complete()` | Removes `b` from `live` and its reservation | 0 | 0 |
+| `start(k)` | Admits a new generation | 1 | 1 |
+
+The identity comparison in `complete()` is the decisive protection: completion deletes the reservation only if that particular entry is still current. The `done` guard also makes repeated completion a no-op.
+
+Two contrast cases bound that conclusion:
+
+- If `b` completes **before** `a`, its reservation is released and a new `start(k)` can succeed even though `a` remains active. A subsequent `a.complete()` cannot delete that newer reservation. This follows the contract’s distinction between the current generation and a superseded handle; it does not enforce one physically active handle per key.
+- `reserved` counts current map entries, while `active` counts all handles not yet completed, including superseded ones. The shared `SlotPool` instead enforces a capacity over its own leases and releases only the supplied lease. The registry does not use it, so its capacity behavior cannot be assumed for the registry. The supplied `deferred()` is a scheduling control, not an automatic completion mechanism.
+
+One missing assumption matters: `done` and `complete` are writable properties on the returned object. For example, a caller setting `b.done = true` before calling `b.complete()` makes completion return without releasing its reservation. The contract does not say whether callers may mutate handles, so this is a conditional protection gap rather than a demonstrated defect in the stated usage. If arbitrary handle mutation must be supported, keep completion state private and expose an immutable or otherwise protected handle.
+
+This is a trace derived from the supplied code, not a test execution. The surrounding callers, actual work lifecycle, and any guarantees about handle mutation were not supplied.

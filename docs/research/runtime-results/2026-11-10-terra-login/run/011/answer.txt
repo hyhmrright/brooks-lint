@@ -1,0 +1,13 @@
+**The supplied lifecycle protects the stated cancellation boundary under the supplied single-process controls.** An abort while the gate is pending is observed after the gate opens, before the pool is touched. This is a bounded conclusion, not a claim that every possible signal, pool, or failure path is safe.
+
+The execution trace is:
+
+1. `launch` checks `signal.aborted`. A pre-aborted request returns `cancelled` without awaiting the gate or acquiring a slot.
+2. Otherwise, it awaits the supplied gate. If the signal aborts while the gate is pending, the launch remains suspended until the gate settles.
+3. When the gate resolves, the second `signal.aborted` check returns `cancelled` before `pool.acquire()`. With a fresh `SlotPool`, `started`, `released`, and `active` therefore remain zero.
+4. If the gate resolves without cancellation, `pool.acquire()` admits the operation. It returns `pending` and installs the abort listener. A later abort calls `finish('cancelled')`, which changes the status, releases the lease, and removes the listener.
+5. As a contrast, calling `complete()` on an admitted operation first changes its status to `ok` and performs the same cleanup. Subsequent completion or cancellation cannot release the lease again because `finish` acts only while status is `pending`.
+
+This reasoning assumes a standard `AbortSignal`, a resolving gate, and the supplied synchronous `SlotPool`. In that single-process execution, ordinary abort callbacks cannot interleave between the post-gate check, acquisition, and listener registration; no additional `await` occurs there.
+
+The contract does not say that abort must promptly settle `launch` while the gate remains closed. The code does **not** provide that behavior: it waits for the gate before returning `cancelled`. The supplied context also does not specify the expected result if the gate rejects or the pool is at capacity, so those paths cannot be judged as contract violations here. This is a trace of the supplied code, not an observed production incident or an executed test.

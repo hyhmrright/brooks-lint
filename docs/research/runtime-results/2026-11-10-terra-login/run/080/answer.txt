@@ -1,0 +1,16 @@
+The lifecycle permits an older handle to remove the map entry for its replacement. Whether that is a defect in the wider system depends on what the map is meant to guarantee: the supplied context does not say whether it is an authoritative reservation or a diagnostic index.
+
+A deterministic trace for one key is:
+
+| Step | Operation | `reserved` | `active` | Effect |
+|---|---|---:|---:|---|
+| 1 | `a = start("k")` | 1 | 1 | The map points to `a`. |
+| 2 | `b = replace("k")` | 1 | 2 | The map now points to `b`; both handles remain live. |
+| 3 | `a.complete()` | 0 | 1 | `a` leaves `live`, but its unconditional `entries.delete("k")` also removes `b`’s map entry. |
+| 4 | `c = start("k")` | 1 | 2 | The map lacks the key, so `c` starts while `b` remains live. |
+
+The local map therefore provides admission based on its current contents, but it does not reliably retain the current handle through an older handle’s completion. Repeating `a.complete()` has no further effect because `done` makes completion idempotent.
+
+The causal issue is the cleanup’s lack of an ownership check: `a` deletes by key without checking whether the entry at that key is still `a`. If the map is intended to reserve a key for its current handle, the consequence is that a later `start` can be admitted while the replacement is still active. A targeted remedy would delete only when `entries.get(key) === entry`. That preserves the replacement’s entry when an older handle completes; it does not by itself establish a rule for every live handle under a key.
+
+The shared `SlotPool` is a relevant contrast: it releases a specific lease only if that lease remains in its set, and its capacity check uses that set. Nothing supplied connects that pool to this registry, so it cannot be assumed to prevent the trace above. The missing context is whether map omissions are allowed, whether another mechanism governs admission, and what behavior is required when multiple handles for one key are live. Without those answers, the trace establishes a local ownership mismatch, not a production outage or a proven violation of an external exclusion guarantee.

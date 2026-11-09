@@ -1,0 +1,11 @@
+**The supplied contract leaves failure cleanup ownership unresolved.** The implementation retains the lease locally after a child rejection, but the available evidence does not establish whether that violates the caller contract or causes a permanent leak.
+
+The execution trace, using the supplied `deferred()` child and a default `SlotPool`, is:
+
+1. `execute` synchronously acquires the only slot: `active = 1`, `started = 1`, `released = 0`. It returns a response promise and a release hook.
+2. If the child rejects, `await child` throws inside the async function. Execution skips `release()`, and `response` rejects with the child’s reason. At that point, absent an explicit release, `active = 1` and `released = 0`.
+3. While that lease remains active, another acquire on this capacity-one pool throws `capacity`. Calling the returned `release()` removes the lease, making `active = 0` and `released = 1`.
+
+The contrast is child success: after the child resolves, `execute` calls `release()` before its response fulfills with the child’s value. The explicit hook can also release the lease independently. With **this supplied `SlotPool`**, repeated releases are harmless: only the first successful deletion increments `released`. That property is not established for every possible pool. Calling the hook while the child is still pending also frees the slot before the child settles; whether that timing is appropriate is unspecified.
+
+The missing context is **who owns release after rejection and when it must happen**. If `execute` owns failure cleanup, the skipped release is a defect and a `finally`-based cleanup is a candidate remedy, subject to the intended early-release and duplicate-release semantics. If the outer scope owns it, its timely use of the hook could satisfy the contract. The outer scope is unavailable, so neither conclusion can be confirmed. This is a trace derived from the supplied code and controls; no execution or tests were performed.

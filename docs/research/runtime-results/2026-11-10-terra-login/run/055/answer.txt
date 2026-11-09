@@ -1,0 +1,16 @@
+The registry violates the contract when a superseded handle completes: its completion deletes the replacement’s reservation, allowing another `start` for the same key while the replacement is still pending.
+
+For a key `k`, the execution is deterministic:
+
+| Step | Operation | Reserved | Active | Result |
+|---|---|---:|---:|---|
+| 1 | `a = start(k)` | 1 | 1 | `a` is current |
+| 2 | `b = replace(k)` | 1 | 2 | `b` is current; `a` remains live |
+| 3 | `a.complete()` | 0 | 1 | `a` is removed from `live`, but the reservation for `b` is also deleted |
+| 4 | `c = start(k)` | 1 | 2 | `c` is admitted while `b` is still pending |
+
+**Symptom → Source → Consequence → Remedy:** A further start succeeds too early because every handle’s `complete()` calls `entries.delete(key)` without checking which entry the map currently holds. After replacement, the older handle therefore deletes the newer handle’s reservation. The registry can admit `c` while `b` is pending, contrary to its admission contract. Guard the deletion with an identity check, such as `if (entries.get(key) === entry) entries.delete(key)`, while still removing the completing entry from `live`.
+
+The existing controls provide bounded protection. `done` makes repeated completion of the *same* handle harmless, and `live.delete(entry)` removes only that handle from the active count. Neither protects the map’s current reservation from a stale handle. By contrast, the supplied `SlotPool` releases a specific lease only if that lease is still present; it is a useful identity-based contrast, though the registry does not use it.
+
+This trace assumes the caller retains the older handle and calls `complete()` after `replace()`, a sequence explicitly allowed by the contract. The supplied files establish an admission defect; they do not establish an actual outage or describe downstream work performed by these handles.

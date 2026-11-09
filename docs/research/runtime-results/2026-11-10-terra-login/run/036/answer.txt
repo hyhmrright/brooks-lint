@@ -1,0 +1,17 @@
+**Runtime Research (revision 2) — Warning: rejection retains the lease**
+
+**Symptom:** When `child` rejects, including with an `AbortError`, `execute` returns a rejected `response` without releasing its acquired lease. This violates the supplied contract requiring release before response settlement.
+
+**Source:** In `HC-04/service.mjs`, `release()` follows `await child` on the success path. A rejection throws at the `await`, so execution skips `release()`. The async function propagates the original rejection value, preserving error identity.
+
+**Consequence:** With the supplied one-slot `SlotPool`, the lease remains active after rejection unless the caller invokes the returned hook. A subsequent acquisition then throws `Error('capacity')`. The contract says the caller must not need to perform that recovery, and specifies no timer or external cleanup owner. This establishes a bounded capacity failure in the supplied lifecycle, not a production outage.
+
+**Remedy:** Put the `await child` and return inside `try`, with `release()` in `finally`. With the supplied `SlotPool.release`, cleanup runs before `response` settles and the original child rejection propagates unchanged. The pool’s deletion-based release also makes repeated teardown harmless.
+
+The relevant execution contrasts are:
+
+- **Resolution:** `acquire()` occupies the slot; `child` resolves; `release()` removes the lease; then `response` fulfills with the value.
+- **Rejection or cancellation:** `acquire()` occupies the slot; `child` rejects; the `await` throws; `response` rejects with the same error while the lease remains active. A later acquisition fails until the hook is called.
+- **Explicit teardown:** Calling the returned hook releases the lease; repeated calls do not increment `released` again. This bounds the leak when a caller does invoke it, but does not satisfy the automatic-cleanup contract.
+
+This is a code trace against the supplied deterministic controls, not an executed test or evidence of production exposure. The proposed `finally` behavior assumes the supplied nonthrowing `SlotPool.release`; behavior for other pool implementations that throw during release is not specified.

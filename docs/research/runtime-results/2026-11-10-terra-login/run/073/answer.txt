@@ -1,0 +1,14 @@
+The registry can lose its mapping for a live replacement when an older handle completes. That changes what `start(key)` permits, but the supplied contract does not say whether the map must provide authoritative exclusion or may omit live handles as a diagnostic index.
+
+For one key, the execution is:
+
+| Step | Map entry | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(key)` | `a` | 1 | 1 |
+| `b = replace(key)` | `b` | 1 | 2 |
+| `a.complete()` | none | 0 | 1 |
+| `c = start(key)` | `c` | 1 | 2 |
+
+**Symptom → Source → Consequence → Remedy:** After `a` completes, `b` remains live but the map lacks its key. `a.complete()` removes `a` from `live`, then unconditionally calls `entries.delete(key)`, deleting the mapping that now points to `b`. A subsequent `start(key)` therefore succeeds while `b` is still active. If the map is intended to represent the current handle or enforce exclusion, the remedy is to delete the mapping only when `entries.get(key) === entry`. Whether that behavior is required depends on the missing map contract and any external admission mechanism.
+
+The contrast controls bound the finding. Before `a` completes, `start(key)` returns `null` because `b` is mapped. Completing a handle twice has no second effect because of its `done` guard. Completing the currently mapped handle removes its own mapping as expected. The shared `SlotPool` has separate lease and capacity accounting, but the registry does not use it in the supplied code, so it establishes no protection for this lifecycle.

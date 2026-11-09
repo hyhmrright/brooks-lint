@@ -1,0 +1,12 @@
+The supplied lifecycle satisfies the stated settlement contract with the provided `SlotPool`. The automatic `finally` block releases the lease on both child resolution and rejection; the caller does not need to invoke the returned hook.
+
+The execution trace is:
+
+1. `execute` synchronously acquires the sole lease, making `active` equal to 1.
+2. The async function waits for `child`. While it remains pending, the lease remains active unless the caller invokes `release`.
+3. When the child resolves or rejects, `finally` calls `pool.release(lease)` before `response` settles. With the supplied pool, that removes the lease and restores capacity.
+4. On rejection, including an `AbortError`, the same error object propagates to `response` because the supplied `release` does not throw.
+
+The relevant contrast is the returned `release` hook: if called before the child settles, it removes the lease immediately; the later `finally` call is harmless because `SlotPool.release` returns `false` for an already removed lease. If called after settlement, it is likewise harmless. Thus idempotence here depends on the supplied pool’s behavior.
+
+This protection is bounded. A child that never settles retains the lease unless the hook is called; the contract only specifies release on resolution or rejection. The error-identity conclusion also assumes the supplied `SlotPool.release`: a different implementation that throws during cleanup could replace the child’s rejection. No defect or production outage is established by the supplied evidence.

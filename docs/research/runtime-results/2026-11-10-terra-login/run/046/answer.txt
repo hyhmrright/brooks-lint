@@ -1,0 +1,12 @@
+The supplied code retains the lease locally when `child` rejects, but the contract does not say who must release it or when. That supports a finding about the function’s failure path, not a conclusion that the lease is permanently leaked.
+
+With a fresh `SlotPool` of capacity one, the execution trace is:
+
+1. `execute` synchronously acquires a lease: `started = 1`, `active = 1`. It returns a response promise and a `release` hook.
+2. If `child` resolves, the response continuation calls `release()` and then returns the value. The pool records `released = 1`, `active = 0`.
+3. If `child` rejects, `await child` throws, so the following `release()` is skipped. The response rejects and the pool remains at `active = 1` until someone calls the exposed hook.
+4. While that lease remains active, another acquisition from this capacity-one pool throws `capacity`. Calling the hook releases it, after which another acquisition can succeed.
+
+The success path is a relevant contrast: it does release automatically. The explicit hook is also a bounded protection: an outer caller can use it after rejection. In the supplied `SlotPool`, repeated release calls have no additional effect because only the first successful deletion increments `released`; the service itself does not establish that behavior for every possible pool.
+
+The missing assumptions are **failure-cleanup ownership and required timing**. If `execute` owns cleanup on rejection, the symptom is a retained lease after a rejected response; the source is the success-only release after `await`; the consequence is that capacity remains occupied until some other code releases it. A remedy would be to release in a `finally` block, with coordination or idempotence if callers may also invoke the hook. If the outer scope owns failure cleanup, the observed local retention may be consistent with the intended lifecycle. The unavailable outer scope is needed to decide which interpretation applies.

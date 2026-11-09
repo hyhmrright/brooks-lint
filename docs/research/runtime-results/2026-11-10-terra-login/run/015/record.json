@@ -1,0 +1,5815 @@
+{
+  "version": 1,
+  "simulation": false,
+  "scope": "login-text-comparison-v1",
+  "requested_model": "gpt-6.1-terra",
+  "requested_effort": "medium",
+  "proxy_mode": "explicit-environment",
+  "provider_reported_model": null,
+  "provider_identity_verified": false,
+  "cli_selected_model": "gpt-6.1-terra",
+  "auth_type": "chatgpt",
+  "started_at": "2026-11-09T16:34:26.352Z",
+  "argv": [
+    "--no-daemon",
+    "-c",
+    "model=\"gpt-6.1-terra\"",
+    "-c",
+    "model_reasoning_effort=\"medium\"",
+    "-c",
+    "cli_auth_credentials_store=\"file\"",
+    "-c",
+    "project_doc_max_bytes=0",
+    "-c",
+    "web_search=\"disabled\"",
+    "-c",
+    "cloud.skills.enabled=false",
+    "-c",
+    "skills.include_instructions=false",
+    "-c",
+    "skills.bundled.enabled=false",
+    "-c",
+    "tools.update_plan.enabled=false",
+    "-c",
+    "tools.experimental_request_user_input.enabled=false",
+    "-c",
+    "features.shell_tool=false",
+    "-c",
+    "features.shell_snapshot=false",
+    "-c",
+    "features.plugins=false",
+    "-c",
+    "features.apps=false",
+    "-c",
+    "features.hooks=false",
+    "-c",
+    "features.multi_agent=false",
+    "-c",
+    "features.multi_agent_v2=false",
+    "-c",
+    "features.goals=false",
+    "-c",
+    "features.view_image=false",
+    "-c",
+    "features.image_generation=false",
+    "-c",
+    "features.request_permissions_tool=false",
+    "-c",
+    "features.context_management=false",
+    "-c",
+    "features.deferred_executor=false",
+    "-c",
+    "features.memories=false",
+    "-c",
+    "features.code_mode_host=false",
+    "-c",
+    "features.unbounded_connection_retries=false",
+    "-c",
+    "features.browser_use=false",
+    "-c",
+    "features.computer_use=false",
+    "-c",
+    "features.workspace_dependencies=false",
+    "-c",
+    "features.sleep_tool=false",
+    "-c",
+    "features.skill_search=false",
+    "-c",
+    "features.plugin_discovery_prefetch=false",
+    "-c",
+    "model_provider=\"openai\"",
+    "-c",
+    "forced_login_method=\"chatgpt\"",
+    "app-server",
+    "--stdio"
+  ],
+  "prompt": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-02/service.mjs\",\"content\":\"/** Cancellation can occur while preparation yields to its caller. */\\nexport async function launch({ signal, gate, pool }) {\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  await gate;\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  const lease = pool.acquire();\\n  const operation = { status: 'pending', complete: () => finish('ok') };\\n  function finish(status) {\\n    if (operation.status !== 'pending') return;\\n    operation.status = status; pool.release(lease);\\n    signal.removeEventListener('abort', cancel);\\n  }\\n  function cancel() { finish('cancelled'); }\\n  signal.addEventListener('abort', cancel, { once: true });\\n  return operation;\\n}\\n\",\"sha256\":\"c09db6b2ab788c0b3adf507e56ca1177e901a10ec3de01e5d804c7848b50b22f\"},{\"path\":\"HC-02/context.md\",\"content\":\"# HC-02: visible contract\\n\\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\\n\",\"sha256\":\"fec73bbba71b26443bdd2d1df9c5a535dc8663a9ce16739bba2faf3a696f5aed\"},{\"path\":\"HC-02/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+  "limits": {
+    "turn_ms": 900000,
+    "cleanup_ms": 3000,
+    "output_bytes": 2097152,
+    "turns": 1
+  },
+  "source_sha256": "1bca7fc15828f7b6d68ab30e9c8d9761ea52d543d839528c0d22d968dbc984f8",
+  "events": [
+    {
+      "method": "account/updated",
+      "params": {
+        "authMode": "chatgpt",
+        "planType": "prolite"
+      },
+      "emittedAtMs": 1794242067634
+    },
+    {
+      "method": "thread/started",
+      "params": {
+        "thread": {
+          "id": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+          "environments": [],
+          "extra": null,
+          "sessionId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+          "forkedFromId": null,
+          "parentThreadId": null,
+          "preview": "",
+          "ephemeral": true,
+          "section": null,
+          "sectionEnteredAt": null,
+          "projectId": null,
+          "historyMode": "paginated",
+          "modelProvider": "openai",
+          "model": "gpt-6.1-terra",
+          "reasoningEffort": "medium",
+          "createdAt": 1794242069,
+          "updatedAt": 1794242069,
+          "recencyAt": 1794242069,
+          "status": {
+            "type": "idle"
+          },
+          "path": null,
+          "cwd": "[redacted]",
+          "cliVersion": "0.167.0",
+          "originator": "brooks-login-smoke",
+          "source": "vscode",
+          "canAcceptDirectInput": true,
+          "threadSource": null,
+          "agentNickname": null,
+          "agentRole": null,
+          "gitInfo": null,
+          "name": null,
+          "daybreakEnabled": null,
+          "turns": []
+        }
+      },
+      "emittedAtMs": 1794242069912
+    },
+    {
+      "method": "warning",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "message": "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`."
+      },
+      "emittedAtMs": 1794242069918
+    },
+    {
+      "method": "thread/status/changed",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "status": {
+          "type": "active",
+          "activeFlags": []
+        }
+      },
+      "emittedAtMs": 1794242069918
+    },
+    {
+      "method": "turn/started",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turn": {
+          "id": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+          "rootTurnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress",
+          "error": null,
+          "startedAt": 1794242069,
+          "completedAt": null,
+          "durationMs": null
+        }
+      },
+      "emittedAtMs": 1794242069918
+    },
+    {
+      "method": "item/started",
+      "params": {
+        "item": {
+          "type": "userMessage",
+          "id": "01a1c129-50d3-7ec0-8798-8391cdbf0a77",
+          "clientId": null,
+          "content": [
+            {
+              "type": "text",
+              "text": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-02/service.mjs\",\"content\":\"/** Cancellation can occur while preparation yields to its caller. */\\nexport async function launch({ signal, gate, pool }) {\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  await gate;\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  const lease = pool.acquire();\\n  const operation = { status: 'pending', complete: () => finish('ok') };\\n  function finish(status) {\\n    if (operation.status !== 'pending') return;\\n    operation.status = status; pool.release(lease);\\n    signal.removeEventListener('abort', cancel);\\n  }\\n  function cancel() { finish('cancelled'); }\\n  signal.addEventListener('abort', cancel, { once: true });\\n  return operation;\\n}\\n\",\"sha256\":\"c09db6b2ab788c0b3adf507e56ca1177e901a10ec3de01e5d804c7848b50b22f\"},{\"path\":\"HC-02/context.md\",\"content\":\"# HC-02: visible contract\\n\\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\\n\",\"sha256\":\"fec73bbba71b26443bdd2d1df9c5a535dc8663a9ce16739bba2faf3a696f5aed\"},{\"path\":\"HC-02/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+              "text_elements": []
+            }
+          ],
+          "startedAtMs": 1794242072787,
+          "completedAtMs": null
+        },
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "startedAtMs": 1794242072787
+      },
+      "emittedAtMs": 1794242072788
+    },
+    {
+      "method": "item/completed",
+      "params": {
+        "item": {
+          "type": "userMessage",
+          "id": "01a1c129-50d3-7ec0-8798-8391cdbf0a77",
+          "clientId": null,
+          "content": [
+            {
+              "type": "text",
+              "text": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-02/service.mjs\",\"content\":\"/** Cancellation can occur while preparation yields to its caller. */\\nexport async function launch({ signal, gate, pool }) {\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  await gate;\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  const lease = pool.acquire();\\n  const operation = { status: 'pending', complete: () => finish('ok') };\\n  function finish(status) {\\n    if (operation.status !== 'pending') return;\\n    operation.status = status; pool.release(lease);\\n    signal.removeEventListener('abort', cancel);\\n  }\\n  function cancel() { finish('cancelled'); }\\n  signal.addEventListener('abort', cancel, { once: true });\\n  return operation;\\n}\\n\",\"sha256\":\"c09db6b2ab788c0b3adf507e56ca1177e901a10ec3de01e5d804c7848b50b22f\"},{\"path\":\"HC-02/context.md\",\"content\":\"# HC-02: visible contract\\n\\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\\n\",\"sha256\":\"fec73bbba71b26443bdd2d1df9c5a535dc8663a9ce16739bba2faf3a696f5aed\"},{\"path\":\"HC-02/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+              "text_elements": []
+            }
+          ],
+          "startedAtMs": 1794242072787,
+          "completedAtMs": 1794242072787
+        },
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "completedAtMs": 1794242072787
+      },
+      "emittedAtMs": 1794242072788
+    },
+    {
+      "method": "item/started",
+      "params": {
+        "item": {
+          "type": "reasoning",
+          "id": "rs_0ca77e1afe7732c3016af1f61b266487d1a4efff3fcf440b7c",
+          "summary": [],
+          "content": [],
+          "startedAtMs": 1794242075300,
+          "completedAtMs": null
+        },
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "startedAtMs": 1794242075300
+      },
+      "emittedAtMs": 1794242075300
+    },
+    {
+      "method": "item/completed",
+      "params": {
+        "item": {
+          "type": "reasoning",
+          "id": "rs_0ca77e1afe7732c3016af1f61b266487d1a4efff3fcf440b7c",
+          "summary": [],
+          "content": [],
+          "startedAtMs": 1794242075300,
+          "completedAtMs": 1794242075304
+        },
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "completedAtMs": 1794242075304
+      },
+      "emittedAtMs": 1794242075304
+    },
+    {
+      "method": "item/started",
+      "params": {
+        "item": {
+          "type": "agentMessage",
+          "id": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+          "text": "",
+          "phase": "final_answer",
+          "memoryCitation": null,
+          "delivery": null,
+          "questions": null,
+          "startedAtMs": 1794242075427,
+          "completedAtMs": null
+        },
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "startedAtMs": 1794242075427
+      },
+      "emittedAtMs": 1794242075427
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "The"
+      },
+      "emittedAtMs": 1794242075427
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242075427
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " lifecycle"
+      },
+      "emittedAtMs": 1794242075427
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " provides"
+      },
+      "emittedAtMs": 1794242075427
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242075427
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " stated"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " cancellation"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " protection"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " for"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " an"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " abort"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " during"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " awaited"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " preparation"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " Under"
+      },
+      "emittedAtMs": 1794242075678
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Slot"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Pool"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " ordinary"
+      },
+      "emittedAtMs": 1794242075887
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242076012
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Abort"
+      },
+      "emittedAtMs": 1794242076012
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Signal"
+      },
+      "emittedAtMs": 1794242076012
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242076012
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " behavior"
+      },
+      "emittedAtMs": 1794242076012
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242076012
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242076012
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " evidence"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " does"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " not"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " show"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " a"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " contract"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " defect"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ".\n\n"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "The"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " relevant"
+      },
+      "emittedAtMs": 1794242076192
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " execution"
+      },
+      "emittedAtMs": 1794242076230
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " traces"
+      },
+      "emittedAtMs": 1794242076230
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " are"
+      },
+      "emittedAtMs": 1794242076375
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ":\n\n"
+      },
+      "emittedAtMs": 1794242076376
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-"
+      },
+      "emittedAtMs": 1794242076376
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " **"
+      },
+      "emittedAtMs": 1794242076376
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Pre"
+      },
+      "emittedAtMs": 1794242076376
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-ab"
+      },
+      "emittedAtMs": 1794242076376
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "orted"
+      },
+      "emittedAtMs": 1794242076376
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " request"
+      },
+      "emittedAtMs": 1794242076376
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ":**"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " The"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " first"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "signal"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ".ab"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "orted"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " check"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " returns"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " a"
+      },
+      "emittedAtMs": 1794242076747
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " cancelled"
+      },
+      "emittedAtMs": 1794242076784
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " result"
+      },
+      "emittedAtMs": 1794242076784
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " before"
+      },
+      "emittedAtMs": 1794242076784
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " awaiting"
+      },
+      "emittedAtMs": 1794242076784
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242076784
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242076836
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " or"
+      },
+      "emittedAtMs": 1794242076836
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " acquiring"
+      },
+      "emittedAtMs": 1794242076836
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " a"
+      },
+      "emittedAtMs": 1794242076836
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " slot"
+      },
+      "emittedAtMs": 1794242076836
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242076836
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " Pool"
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " counters"
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " remain"
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "started"
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " ="
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " "
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "0"
+      },
+      "emittedAtMs": 1794242076984
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`,"
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "active"
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " ="
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " "
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "0"
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`.\n"
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-"
+      },
+      "emittedAtMs": 1794242077065
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " **"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Abort"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " while"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " pending"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ":**"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242077253
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "launch"
+      },
+      "emittedAtMs": 1794242077255
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242077255
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " susp"
+      },
+      "emittedAtMs": 1794242077255
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "ends"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " at"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "await"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`."
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " When"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " resolves"
+      },
+      "emittedAtMs": 1794242077455
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " second"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " check"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " sees"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " abort"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " returns"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " cancelled"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " before"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242077598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "pool"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ".acquire"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "()"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`."
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " Again"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " no"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " slot"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " started"
+      },
+      "emittedAtMs": 1794242077765
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ".\n"
+      },
+      "emittedAtMs": 1794242077920
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-"
+      },
+      "emittedAtMs": 1794242077920
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " **"
+      },
+      "emittedAtMs": 1794242077920
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "No"
+      },
+      "emittedAtMs": 1794242077921
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " abort"
+      },
+      "emittedAtMs": 1794242077921
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " through"
+      },
+      "emittedAtMs": 1794242077921
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " admission"
+      },
+      "emittedAtMs": 1794242077921
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ":**"
+      },
+      "emittedAtMs": 1794242077921
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " After"
+      },
+      "emittedAtMs": 1794242077921
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242078086
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242078086
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " resolves"
+      },
+      "emittedAtMs": 1794242078086
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242078086
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242078086
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " second"
+      },
+      "emittedAtMs": 1794242078086
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " check"
+      },
+      "emittedAtMs": 1794242078087
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " passes"
+      },
+      "emittedAtMs": 1794242078087
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242078185
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " one"
+      },
+      "emittedAtMs": 1794242078185
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " slot"
+      },
+      "emittedAtMs": 1794242078301
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242078301
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " acquired"
+      },
+      "emittedAtMs": 1794242078301
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242078301
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242078302
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " an"
+      },
+      "emittedAtMs": 1794242078302
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " abort"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " listener"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " installed"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " With"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " synchronous"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " pool"
+      },
+      "emittedAtMs": 1794242078431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242078524
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " there"
+      },
+      "emittedAtMs": 1794242078524
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242078527
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " no"
+      },
+      "emittedAtMs": 1794242078527
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " asynchronous"
+      },
+      "emittedAtMs": 1794242078527
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " yield"
+      },
+      "emittedAtMs": 1794242078527
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " between"
+      },
+      "emittedAtMs": 1794242078635
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " that"
+      },
+      "emittedAtMs": 1794242078635
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " check"
+      },
+      "emittedAtMs": 1794242078635
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242078635
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " listener"
+      },
+      "emittedAtMs": 1794242078635
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " registration"
+      },
+      "emittedAtMs": 1794242078635
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ".\n"
+      },
+      "emittedAtMs": 1794242078811
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-"
+      },
+      "emittedAtMs": 1794242078811
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " **"
+      },
+      "emittedAtMs": 1794242078811
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Abort"
+      },
+      "emittedAtMs": 1794242078811
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " while"
+      },
+      "emittedAtMs": 1794242078811
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " running"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ":**"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " The"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " listener"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " calls"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "finish"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "('"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "cancel"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "led"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "')"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`,"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " which"
+      },
+      "emittedAtMs": 1794242078929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " changes"
+      },
+      "emittedAtMs": 1794242079058
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242079058
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " pending"
+      },
+      "emittedAtMs": 1794242079058
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " operation"
+      },
+      "emittedAtMs": 1794242079061
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "’s"
+      },
+      "emittedAtMs": 1794242079061
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " status"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " releases"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " its"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " removes"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " listener"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " A"
+      },
+      "emittedAtMs": 1794242079334
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " later"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "complete"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "()`"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " has"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " no"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " effect"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " because"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " operation"
+      },
+      "emittedAtMs": 1794242079436
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242079540
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " no"
+      },
+      "emittedAtMs": 1794242079540
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " longer"
+      },
+      "emittedAtMs": 1794242079647
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " pending"
+      },
+      "emittedAtMs": 1794242079647
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ".\n"
+      },
+      "emittedAtMs": 1794242079647
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-"
+      },
+      "emittedAtMs": 1794242079647
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " **"
+      },
+      "emittedAtMs": 1794242079647
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Normal"
+      },
+      "emittedAtMs": 1794242079647
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " completion"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ":**"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "complete"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "()`"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " calls"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "finish"
+      },
+      "emittedAtMs": 1794242079863
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "('"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "ok"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "')"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`,"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " releasing"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " removing"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " listener"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " The"
+      },
+      "emittedAtMs": 1794242079981
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " pending"
+      },
+      "emittedAtMs": 1794242080155
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-status"
+      },
+      "emittedAtMs": 1794242080155
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " guard"
+      },
+      "emittedAtMs": 1794242080155
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " also"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " prevents"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " a"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " repeated"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " completion"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " from"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " releasing"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " it"
+      },
+      "emittedAtMs": 1794242080156
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " twice"
+      },
+      "emittedAtMs": 1794242080277
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ".\n\n"
+      },
+      "emittedAtMs": 1794242080277
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "This"
+      },
+      "emittedAtMs": 1794242080277
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " conclusion"
+      },
+      "emittedAtMs": 1794242080277
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " assumes"
+      },
+      "emittedAtMs": 1794242080277
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242080277
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242080277
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " resolves"
+      },
+      "emittedAtMs": 1794242080278
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242080388
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242080388
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " signal"
+      },
+      "emittedAtMs": 1794242080388
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " behaves"
+      },
+      "emittedAtMs": 1794242080388
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " like"
+      },
+      "emittedAtMs": 1794242080388
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " a"
+      },
+      "emittedAtMs": 1794242080388
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " standard"
+      },
+      "emittedAtMs": 1794242080493
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Abort"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Signal"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`,"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242080640
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Slot"
+      },
+      "emittedAtMs": 1794242080793
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "Pool"
+      },
+      "emittedAtMs": 1794242080793
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242080793
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242080793
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " used"
+      },
+      "emittedAtMs": 1794242080793
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " without"
+      },
+      "emittedAtMs": 1794242080794
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " re"
+      },
+      "emittedAtMs": 1794242080794
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "entrant"
+      },
+      "emittedAtMs": 1794242080794
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " behavior"
+      },
+      "emittedAtMs": 1794242080929
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " The"
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " contract"
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " does"
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " not"
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " specify"
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " what"
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " should"
+      },
+      "emittedAtMs": 1794242080930
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " happen"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " if"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " gate"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " rejects"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " or"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " acquisition"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " throws"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " so"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242081071
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " evidence"
+      },
+      "emittedAtMs": 1794242081073
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " does"
+      },
+      "emittedAtMs": 1794242081235
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " not"
+      },
+      "emittedAtMs": 1794242081235
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " establish"
+      },
+      "emittedAtMs": 1794242081236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " whether"
+      },
+      "emittedAtMs": 1794242081236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " those"
+      },
+      "emittedAtMs": 1794242081236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " paths"
+      },
+      "emittedAtMs": 1794242081236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " satisfy"
+      },
+      "emittedAtMs": 1794242081236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " any"
+      },
+      "emittedAtMs": 1794242081236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " additional"
+      },
+      "emittedAtMs": 1794242081333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " error"
+      },
+      "emittedAtMs": 1794242081333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "-hand"
+      },
+      "emittedAtMs": 1794242081333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "ling"
+      },
+      "emittedAtMs": 1794242081333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": " requirement"
+      },
+      "emittedAtMs": 1794242081333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "itemId": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242081333
+    },
+    {
+      "method": "turn/moderationMetadata",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "metadata": {
+          "prompt": {
+            "omnimod": {
+              "protection_type": "omnimod",
+              "outputs": [
+                {
+                  "results": [
+                    {
+                      "category_flags": {
+                        "A1": false,
+                        "A2": false,
+                        "A3": false,
+                        "C1": false,
+                        "C11": false,
+                        "C2": false,
+                        "E1": false,
+                        "E2": false,
+                        "E3": false,
+                        "H1": false,
+                        "H2": false,
+                        "H3": false,
+                        "JB1": false,
+                        "K1": false,
+                        "K2": false,
+                        "K3": false,
+                        "K4": false,
+                        "P1": false,
+                        "P2": false,
+                        "P3": false,
+                        "P4": false,
+                        "PD1": false,
+                        "PD4": false,
+                        "S1": false,
+                        "S3+": false,
+                        "S4": false,
+                        "SH": false,
+                        "TXT-C3": false,
+                        "TXT-C4": false,
+                        "V1": false,
+                        "V2+": false,
+                        "V4+": false,
+                        "REFUSED": false,
+                        "CBRN-B1+": false,
+                        "IMG-C1": false,
+                        "IMG-C11": false,
+                        "IMG-C2": false,
+                        "IMG-S1": false,
+                        "IMG-SH": false,
+                        "IMG-V1": false,
+                        "IMG-V2+": false,
+                        "IMG-V4+": false
+                      }
+                    }
+                  ],
+                  "is_blocked": false
+                }
+              ]
+            }
+          },
+          "generation": {},
+          "tool_call": {},
+          "tool_response": {}
+        }
+      },
+      "emittedAtMs": 1794242081436
+    },
+    {
+      "method": "item/completed",
+      "params": {
+        "item": {
+          "type": "agentMessage",
+          "id": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+          "text": "The supplied lifecycle provides the stated cancellation protection for an abort during the awaited preparation gate. Under the supplied `SlotPool` and ordinary `AbortSignal` behavior, the evidence does not show a contract defect.\n\nThe relevant execution traces are:\n\n- **Pre-aborted request:** The first `signal.aborted` check returns a cancelled result before awaiting the gate or acquiring a slot. Pool counters remain `started = 0`, `active = 0`.\n- **Abort while the gate is pending:** `launch` suspends at `await gate`. When the gate resolves, the second check sees the abort and returns cancelled before `pool.acquire()`. Again, no slot is started.\n- **No abort through admission:** After the gate resolves, the second check passes, one slot is acquired, and an abort listener is installed. With the supplied synchronous pool, there is no asynchronous yield between that check and listener registration.\n- **Abort while running:** The listener calls `finish('cancelled')`, which changes the pending operation’s status, releases its lease, and removes the listener. A later `complete()` has no effect because the operation is no longer pending.\n- **Normal completion:** `complete()` calls `finish('ok')`, releasing the lease and removing the listener. The pending-status guard also prevents a repeated completion from releasing it twice.\n\nThis conclusion assumes the gate resolves, the signal behaves like a standard `AbortSignal`, and the supplied `SlotPool` is used without reentrant behavior. The contract does not specify what should happen if the gate rejects or acquisition throws, so the evidence does not establish whether those paths satisfy any additional error-handling requirement.",
+          "phase": "final_answer",
+          "memoryCitation": null,
+          "delivery": null,
+          "questions": null,
+          "startedAtMs": 1794242075427,
+          "completedAtMs": 1794242081436
+        },
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "completedAtMs": 1794242081436
+      },
+      "emittedAtMs": 1794242081436
+    },
+    {
+      "method": "thread/tokenUsage/updated",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+        "tokenUsage": {
+          "total": {
+            "totalTokens": 9424,
+            "inputTokens": 9043,
+            "cachedInputTokens": 7040,
+            "cacheWriteInputTokens": 0,
+            "outputTokens": 381,
+            "reasoningOutputTokens": 42
+          },
+          "last": {
+            "totalTokens": 9424,
+            "inputTokens": 9043,
+            "cachedInputTokens": 7040,
+            "cacheWriteInputTokens": 0,
+            "outputTokens": 381,
+            "reasoningOutputTokens": 42
+          },
+          "modelContextWindow": 475000
+        }
+      },
+      "emittedAtMs": 1794242081436
+    },
+    {
+      "method": "account/rateLimits/updated",
+      "params": {
+        "rateLimits": {
+          "limitId": "codex",
+          "limitName": null,
+          "normalModelSlug": null,
+          "primary": {
+            "usedPercent": 42,
+            "windowDurationMins": 10080,
+            "resetsAt": 1794378934
+          },
+          "secondary": null,
+          "credits": {
+            "hasCredits": false,
+            "unlimited": false,
+            "balance": "0"
+          },
+          "individualLimit": null,
+          "spendControlReached": null,
+          "planType": "prolite",
+          "rateLimitReachedType": null
+        }
+      },
+      "emittedAtMs": 1794242081436
+    },
+    {
+      "method": "thread/status/changed",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "status": {
+          "type": "idle"
+        }
+      },
+      "emittedAtMs": 1794242081437
+    },
+    {
+      "method": "turn/completed",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "turn": {
+          "id": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+          "rootTurnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+          "items": [
+            {
+              "type": "agentMessage",
+              "id": "msg_0ca77e1afe7732c3016af1f61b469087d1918d7a2209f0e33d",
+              "text": "The supplied lifecycle provides the stated cancellation protection for an abort during the awaited preparation gate. Under the supplied `SlotPool` and ordinary `AbortSignal` behavior, the evidence does not show a contract defect.\n\nThe relevant execution traces are:\n\n- **Pre-aborted request:** The first `signal.aborted` check returns a cancelled result before awaiting the gate or acquiring a slot. Pool counters remain `started = 0`, `active = 0`.\n- **Abort while the gate is pending:** `launch` suspends at `await gate`. When the gate resolves, the second check sees the abort and returns cancelled before `pool.acquire()`. Again, no slot is started.\n- **No abort through admission:** After the gate resolves, the second check passes, one slot is acquired, and an abort listener is installed. With the supplied synchronous pool, there is no asynchronous yield between that check and listener registration.\n- **Abort while running:** The listener calls `finish('cancelled')`, which changes the pending operation’s status, releases its lease, and removes the listener. A later `complete()` has no effect because the operation is no longer pending.\n- **Normal completion:** `complete()` calls `finish('ok')`, releasing the lease and removing the listener. The pending-status guard also prevents a repeated completion from releasing it twice.\n\nThis conclusion assumes the gate resolves, the signal behaves like a standard `AbortSignal`, and the supplied `SlotPool` is used without reentrant behavior. The contract does not specify what should happen if the gate rejects or acquisition throws, so the evidence does not establish whether those paths satisfy any additional error-handling requirement.",
+              "phase": "final_answer",
+              "memoryCitation": null,
+              "delivery": null,
+              "questions": null,
+              "startedAtMs": 1794242075427,
+              "completedAtMs": 1794242081436
+            }
+          ],
+          "itemsView": "summary",
+          "status": "completed",
+          "error": null,
+          "startedAt": 1794242069,
+          "completedAt": 1794242081,
+          "durationMs": 11518
+        }
+      },
+      "emittedAtMs": 1794242081437
+    }
+  ],
+  "requests": [
+    {
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "clientInfo": {
+          "name": "brooks-login-smoke",
+          "version": "0.1"
+        },
+        "capabilities": {
+          "experimentalApi": true
+        }
+      }
+    },
+    {
+      "id": 2,
+      "method": "account/read",
+      "params": {
+        "refreshToken": false
+      }
+    },
+    {
+      "id": 3,
+      "method": "thread/start",
+      "params": {
+        "model": "gpt-6.1-terra",
+        "modelProvider": "openai",
+        "cwd": "[redacted]",
+        "environments": [],
+        "sandbox": "read-only",
+        "approvalPolicy": "never",
+        "ephemeral": true,
+        "allowProviderModelFallback": false
+      }
+    },
+    {
+      "id": 4,
+      "method": "turn/start",
+      "params": {
+        "threadId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+        "input": [
+          {
+            "type": "text",
+            "text": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-02/service.mjs\",\"content\":\"/** Cancellation can occur while preparation yields to its caller. */\\nexport async function launch({ signal, gate, pool }) {\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  await gate;\\n  if (signal.aborted) return { status: 'cancelled', complete() {} };\\n  const lease = pool.acquire();\\n  const operation = { status: 'pending', complete: () => finish('ok') };\\n  function finish(status) {\\n    if (operation.status !== 'pending') return;\\n    operation.status = status; pool.release(lease);\\n    signal.removeEventListener('abort', cancel);\\n  }\\n  function cancel() { finish('cancelled'); }\\n  signal.addEventListener('abort', cancel, { once: true });\\n  return operation;\\n}\\n\",\"sha256\":\"c09db6b2ab788c0b3adf507e56ca1177e901a10ec3de01e5d804c7848b50b22f\"},{\"path\":\"HC-02/context.md\",\"content\":\"# HC-02: visible contract\\n\\nThe request is cancelable throughout asynchronous preparation and work. An abort during the supplied preparation gate must prevent any slot acquisition or work start after that gate opens. A pre-aborted request also starts nothing. Work admitted without cancellation may finish normally; cancellation while running releases its one slot and listener. Use the supplied finite SlotPool and an actual awaited gate. This is a single-process synthetic lifecycle, not a production outage model.\\n\",\"sha256\":\"fec73bbba71b26443bdd2d1df9c5a535dc8663a9ce16739bba2faf3a696f5aed\"},{\"path\":\"HC-02/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+            "text_elements": []
+          }
+        ],
+        "effort": "medium"
+      }
+    }
+  ],
+  "rpc_responses": [
+    {
+      "method": "initialize",
+      "response": {
+        "id": 1,
+        "result": {
+          "userAgent": "brooks-login-smoke/0.167.0 (Mac OS 27.2.0; arm64) unknown (brooks-login-smoke; 0.1)",
+          "codexHome": "/private[redacted]/codex",
+          "platformFamily": "unix",
+          "platformOs": "macos"
+        }
+      }
+    },
+    {
+      "method": "thread/start",
+      "response": {
+        "id": 3,
+        "result": {
+          "thread": {
+            "id": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+            "environments": [],
+            "extra": null,
+            "sessionId": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+            "forkedFromId": null,
+            "parentThreadId": null,
+            "preview": "",
+            "ephemeral": true,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "openai",
+            "model": "gpt-6.1-terra",
+            "reasoningEffort": "medium",
+            "createdAt": 1794242069,
+            "updatedAt": 1794242069,
+            "recencyAt": 1794242069,
+            "status": {
+              "type": "idle"
+            },
+            "path": null,
+            "cwd": "[redacted]",
+            "cliVersion": "0.167.0",
+            "originator": "brooks-login-smoke",
+            "source": "vscode",
+            "canAcceptDirectInput": true,
+            "threadSource": null,
+            "agentNickname": null,
+            "agentRole": null,
+            "gitInfo": null,
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": []
+          },
+          "model": "gpt-6.1-terra",
+          "modelProvider": "openai",
+          "serviceTier": null,
+          "disabledPluginIds": [],
+          "cwd": "[redacted]",
+          "runtimeWorkspaceRoots": [],
+          "instructionSources": [],
+          "approvalPolicy": "never",
+          "approvalsReviewer": "user",
+          "sandbox": {
+            "type": "readOnly",
+            "networkAccess": false
+          },
+          "activePermissionProfile": null,
+          "reasoningEffort": "medium",
+          "multiAgentMode": "explicitRequestOnly"
+        }
+      }
+    },
+    {
+      "method": "turn/start",
+      "response": {
+        "id": 4,
+        "result": {
+          "turn": {
+            "id": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+            "rootTurnId": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+            "items": [],
+            "itemsView": "notLoaded",
+            "status": "inProgress",
+            "error": null,
+            "startedAt": null,
+            "completedAt": null,
+            "durationMs": null
+          }
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "status": "completed",
+  "answer": "The supplied lifecycle provides the stated cancellation protection for an abort during the awaited preparation gate. Under the supplied `SlotPool` and ordinary `AbortSignal` behavior, the evidence does not show a contract defect.\n\nThe relevant execution traces are:\n\n- **Pre-aborted request:** The first `signal.aborted` check returns a cancelled result before awaiting the gate or acquiring a slot. Pool counters remain `started = 0`, `active = 0`.\n- **Abort while the gate is pending:** `launch` suspends at `await gate`. When the gate resolves, the second check sees the abort and returns cancelled before `pool.acquire()`. Again, no slot is started.\n- **No abort through admission:** After the gate resolves, the second check passes, one slot is acquired, and an abort listener is installed. With the supplied synchronous pool, there is no asynchronous yield between that check and listener registration.\n- **Abort while running:** The listener calls `finish('cancelled')`, which changes the pending operation’s status, releases its lease, and removes the listener. A later `complete()` has no effect because the operation is no longer pending.\n- **Normal completion:** `complete()` calls `finish('ok')`, releasing the lease and removing the listener. The pending-status guard also prevents a repeated completion from releasing it twice.\n\nThis conclusion assumes the gate resolves, the signal behaves like a standard `AbortSignal`, and the supplied `SlotPool` is used without reentrant behavior. The contract does not specify what should happen if the gate rejects or acquisition throws, so the evidence does not establish whether those paths satisfy any additional error-handling requirement.",
+  "usage": {
+    "total": {
+      "totalTokens": 9424,
+      "inputTokens": 9043,
+      "cachedInputTokens": 7040,
+      "cacheWriteInputTokens": 0,
+      "outputTokens": 381,
+      "reasoningOutputTokens": 42
+    },
+    "last": {
+      "totalTokens": 9424,
+      "inputTokens": 9043,
+      "cachedInputTokens": 7040,
+      "cacheWriteInputTokens": 0,
+      "outputTokens": 381,
+      "reasoningOutputTokens": 42
+    },
+    "modelContextWindow": 475000
+  },
+  "limitations": [
+    "One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.",
+    "ChatGPT usage and billing are not API dollar accounting.",
+    "Model selection is CLI metadata, not independent backend attestation.",
+    "Text smoke does not validate remote shell execution.",
+    "Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry."
+  ],
+  "timing": {
+    "clock": "monotonic",
+    "events": [
+      {
+        "kind": "phase",
+        "name": "spawn",
+        "elapsed_ms": 0
+      },
+      {
+        "kind": "rpc_request",
+        "name": "initialize",
+        "elapsed_ms": 2
+      },
+      {
+        "kind": "rpc_response",
+        "name": "initialize",
+        "elapsed_ms": 54
+      },
+      {
+        "kind": "rpc_request",
+        "name": "account/read",
+        "elapsed_ms": 54
+      },
+      {
+        "kind": "notification",
+        "name": "account/updated",
+        "elapsed_ms": 1281
+      },
+      {
+        "kind": "rpc_response",
+        "name": "account/read",
+        "elapsed_ms": 1281
+      },
+      {
+        "kind": "rpc_request",
+        "name": "thread/start",
+        "elapsed_ms": 1281
+      },
+      {
+        "kind": "rpc_response",
+        "name": "thread/start",
+        "elapsed_ms": 3560
+      },
+      {
+        "kind": "rpc_request",
+        "name": "turn/start",
+        "elapsed_ms": 3560
+      },
+      {
+        "kind": "notification",
+        "name": "thread/started",
+        "elapsed_ms": 3561
+      },
+      {
+        "kind": "rpc_response",
+        "name": "turn/start",
+        "elapsed_ms": 3566
+      },
+      {
+        "kind": "notification",
+        "name": "warning",
+        "elapsed_ms": 3566
+      },
+      {
+        "kind": "notification",
+        "name": "thread/status/changed",
+        "elapsed_ms": 3566
+      },
+      {
+        "kind": "notification",
+        "name": "turn/started",
+        "elapsed_ms": 3566
+      },
+      {
+        "kind": "notification",
+        "name": "item/started",
+        "elapsed_ms": 6436
+      },
+      {
+        "kind": "notification",
+        "name": "item/completed",
+        "elapsed_ms": 6436
+      },
+      {
+        "kind": "notification",
+        "name": "item/started",
+        "elapsed_ms": 8948
+      },
+      {
+        "kind": "notification",
+        "name": "item/completed",
+        "elapsed_ms": 8952
+      },
+      {
+        "kind": "notification",
+        "name": "item/started",
+        "elapsed_ms": 9075
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9075
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9075
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9075
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9075
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9075
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9326
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9535
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9840
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9841
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9878
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9878
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10024
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10395
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10432
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10432
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10432
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10432
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10432
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10484
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10484
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10484
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10484
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10484
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10484
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10632
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10632
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10632
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10632
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10632
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10633
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10633
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10633
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10713
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10901
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10902
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10902
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10902
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11246
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11247
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11247
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11413
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11568
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11568
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11568
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11569
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11569
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11569
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11569
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11569
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11569
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11734
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11735
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11735
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11735
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11735
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11735
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11735
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11735
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11833
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11833
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11950
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11950
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11950
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11950
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11950
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11950
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12078
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12078
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12078
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12078
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12078
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12078
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12078
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12079
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12079
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12079
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12172
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12172
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12174
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12174
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12174
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12174
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12282
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12282
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12283
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12283
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12283
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12283
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12459
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12459
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12459
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12459
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12459
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12577
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12706
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12706
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12706
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12708
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12708
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12982
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13084
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13188
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13188
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13295
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13295
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13295
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13295
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13295
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13295
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13511
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13629
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13804
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13805
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13925
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13926
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14036
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14036
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14037
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14037
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14037
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14037
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14141
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14288
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14441
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14441
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14441
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14442
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14442
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14442
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14442
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14442
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14578
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14719
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14720
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14884
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14884
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14884
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14884
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14884
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14884
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14885
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14885
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14981
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14981
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14981
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14981
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14981
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14981
+      },
+      {
+        "kind": "notification",
+        "name": "turn/moderationMetadata",
+        "elapsed_ms": 15084
+      },
+      {
+        "kind": "notification",
+        "name": "item/completed",
+        "elapsed_ms": 15084
+      },
+      {
+        "kind": "notification",
+        "name": "thread/tokenUsage/updated",
+        "elapsed_ms": 15084
+      },
+      {
+        "kind": "notification",
+        "name": "account/rateLimits/updated",
+        "elapsed_ms": 15084
+      },
+      {
+        "kind": "notification",
+        "name": "thread/status/changed",
+        "elapsed_ms": 15085
+      },
+      {
+        "kind": "notification",
+        "name": "turn/completed",
+        "elapsed_ms": 15085
+      },
+      {
+        "kind": "phase",
+        "name": "cleanup",
+        "elapsed_ms": 15085
+      }
+    ],
+    "last_phase": "cleanup",
+    "deadline_phase": null,
+    "completed_elapsed_ms": 15120
+  },
+  "initialize": {
+    "userAgent": "brooks-login-smoke/0.167.0 (Mac OS 27.2.0; arm64) unknown (brooks-login-smoke; 0.1)",
+    "codexHome": "/private[redacted]/codex",
+    "platformFamily": "unix",
+    "platformOs": "macos"
+  },
+  "cli_version": "0.167.0",
+  "cli_selected_effort": "medium",
+  "thread_id": "01a1c129-3cb3-7ba3-9b11-8863b24c98c0",
+  "turn_id": "01a1c129-459d-7c73-a1d0-ad6fedc7ab1a",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "cleanup": {
+    "closed": true,
+    "group_absent": true,
+    "observations": [
+      {
+        "error": null,
+        "members": [
+          {
+            "pid": 29063,
+            "pgid": 29063,
+            "state": "?Es"
+          }
+        ]
+      },
+      {
+        "error": null,
+        "members": []
+      }
+    ],
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "delivered": true
+      }
+    ],
+    "private_home_removed": true
+  },
+  "completed_at": "2026-11-09T16:34:41.475Z"
+}

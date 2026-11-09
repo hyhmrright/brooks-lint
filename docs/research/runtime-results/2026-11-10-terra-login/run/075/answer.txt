@@ -1,0 +1,26 @@
+I’ll use the supplied runtime-research guidance to trace the replacement and completion order, then compare it with the controls and the stated contract.
+**Runtime Research (revision 2)**
+
+The registry can lose the map entry for a live replacement when an older handle completes. Whether that is a contract defect depends on what the map is required to represent: the supplied context leaves its admission role unresolved.
+
+The following trace is derived from the supplied code, with the same key `k` throughout:
+
+| Operation | Map entry for `k` | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | `a` | 1 | 1 |
+| `b = replace(k)` | `b` | 1 | 2 |
+| `a.complete()` | none | 0 | 1 |
+| `c = start(k)` | `c` | 1 | 2 |
+
+`a.complete()` removes `a` from `live`, but its unconditional `entries.delete(key)` also removes `b`’s map entry. The next `start(k)` therefore returns `c` while `b` remains live. This follows from the implementation; it is not a reported production observation.
+
+**Symptom → Source → Consequence → Remedy**
+
+- **Symptom:** Completion of an older handle removes the current replacement’s key from the map.
+- **Source:** In `makeRegistry`, `complete()` deletes by key without checking whether the map still points to that handle.
+- **Consequence:** `reserved` becomes zero while a handle for the key is active, and a subsequent `start` is admitted. If the map is the authoritative per-key exclusion reservation, this defeats that reservation. If it is a diagnostic index that may omit live handles, and another admission mechanism supplies any required exclusion, this trace alone does not establish a contract violation.
+- **Remedy:** If the intended contract requires the current replacement to remain indexed, delete the map entry only when `entries.get(key) === entry`. Confirm the admission contract before treating this as the complete remedy: identity checking preserves the current mapping, but does not itself impose a capacity limit on `replace`.
+
+The contrast controls bound the conclusion. Without replacement, completing `a` removes its own entry and a later `start(k)` is admitted; a repeated `a.complete()` is a no-op because of `done`. If `b` completes before `a`, it removes the current mapping, and `a`’s later deletion has no current entry to remove—unless another handle has meanwhile been installed. The separate `SlotPool` control uses distinct lease identities and releases only the supplied lease, but the registry does not use it. Its capacity protection therefore cannot be attributed to this lifecycle.
+
+The smallest missing context is the caller’s contract for the map: must a live current replacement retain an authoritative per-key reservation, or are index omissions permitted, and where is any required admission enforced? No external admission or capacity guarantee is supplied, so neither a definitive severity nor a claim of universal safety is supported.

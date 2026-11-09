@@ -1,0 +1,22 @@
+**Warning: an older completion can remove the replacement’s reservation.** The contract says a superseded handle may finish, but must release only its own generation. The supplied implementation does not preserve that ownership.
+
+A deterministic trace for one key `k`, assuming callers do not mutate the returned handles:
+
+| Operation | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Admits `a` | 1 | 1 |
+| `b = replace(k)` | Tracks `b`; `a` remains live | 1 | 2 |
+| `a.complete()` | Removes `a` from `live`, but also deletes `k` | 0 | 1 |
+| `c = start(k)` | Admits `c`, although `b` is still pending | 1 | 2 |
+
+**Symptom:** After `a.complete()`, `start(k)` succeeds while replacement `b` is pending, contrary to the stated admission contract.
+
+**Source:** In `complete()`, `entries.delete(key)` removes whatever reservation is currently stored under the key, without checking whether it still belongs to the completing `entry`. The `done` guard applies only to repeat completion of that same handle.
+
+**Consequence:** The registry can admit another generation while the replacement remains active. The same issue can recur when `b` completes after `c` is admitted. This establishes a local contract violation; the supplied evidence does not establish downstream effects or a production outage.
+
+**Remedy:** In `complete()`, delete the map entry only if `entries.get(key) === entry`. Continue removing the completing entry from `live` independently. Verify the older-completes-first sequence above, including rejection of a further `start` until the replacement completes.
+
+The contrast controls are bounded: before replacement, `start(k)` rejects while the key is reserved; repeated completion of one handle is a no-op because of `done`. If the replacement completes first, it releases its own reservation and the later older completion does not immediately violate a pending replacement—unless another generation has since been admitted. The supplied `SlotPool` uses distinct lease identities and releases only the matching lease, but it is not connected to this registry and therefore provides no demonstrated protection for it. `deferred()` provides a way to control completion order, not an admission guard.
+
+This is a code-path analysis of the supplied text; no runtime execution or tests were performed. Caller behavior, integration with other controls, and operational impact are not supplied.

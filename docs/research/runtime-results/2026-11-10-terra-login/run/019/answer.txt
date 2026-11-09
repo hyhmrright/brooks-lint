@@ -1,0 +1,18 @@
+The observable gap is that an abort during preparation is missed by the listener installed afterward. Whether that is a defect depends on the missing cancellation policy: the supplied contract does not say whether a preparation-time abort must prevent admission or only whether cancellation applies after work starts.
+
+Assuming a standard `AbortSignal`, a pending gate, and an available slot, the trace is:
+
+1. `launch` sees `signal.aborted === false` and waits at `await gate`.
+2. The signal aborts while the gate is pending.
+3. The gate resolves. `launch` does not recheck the signal, so it acquires a slot, creates a pending operation, and registers an abort listener.
+4. Registering that listener does not replay the earlier abort. The returned operation remains pending and the slot remains active until `complete()` is called.
+
+The shared `SlotPool` makes this visible: after admission, `started` and `active` are 1; after `complete()`, `released` is 1 and `active` is 0. If the caller never completes the operation, the supplied code shows no other release path for that already-aborted signal. The evidence does not establish who owns completion or whether the caller will complete it.
+
+The contrast controls bound the behavior:
+
+- If the signal is already aborted at entry, `launch` returns a cancelled operation without acquiring a slot.
+- If the signal aborts **after** the listener is installed, `cancel()` finishes the pending operation and releases its slot.
+- `finish` checks for `pending`, so a later abort or repeated completion does not release the lease a second time.
+
+If the intended policy is that cancellation during preparation invalidates later admission, the symptom is a pending operation admitted after cancellation; the source is the missing post-`await` abort check; the consequence is a slot held until completion; and the remedy is to recheck `signal.aborted` after the gate resolves and before acquiring the slot. If cancellation is defined only as a notification after work starts, the same trace may be consistent with the policy. The missing admission and accepted-work ownership rules are therefore necessary to classify it as a contract defect.

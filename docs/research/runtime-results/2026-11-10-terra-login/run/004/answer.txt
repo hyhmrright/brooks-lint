@@ -1,0 +1,22 @@
+**Finding: cancellation during preparation can still admit work.**
+
+**Symptom:** With an initially live standard `AbortSignal`, a pending `deferred().promise` as the gate, and a fresh `SlotPool(1)`, the following sequence violates the contract:
+
+1. `launch` checks `signal.aborted`, sees `false`, and suspends at `await gate`.
+2. The caller aborts while the gate is pending. No abort listener has been registered.
+3. The caller resolves the gate. `launch` resumes, acquires the slot, registers the listener, and returns an operation with status `pending`.
+4. The pool now has `started = 1`, `active = 1`, and `released = 0`. Registering the listener after the abort does not replay the abort event.
+
+**Source:** In `HC-01/service.mjs`, the only aborted-state check occurs before the asynchronous gate; acquisition and listener registration occur afterward, without another check.
+
+**Consequence:** The request starts work after cancellation, contrary to the stated contract. In this finite-pool example, its slot remains occupied until `complete()` is called; another acquisition while it is occupied throws `capacity`. Calling `complete()` also changes the incorrectly admitted operation to `ok`. This demonstrates a bounded lifecycle defect, not a production outage or a claim that the slot is permanently lost.
+
+**Remedy:** Recheck `signal.aborted` immediately after `await gate` and return the cancelled result before acquiring a slot. Keep the running-operation listener and cleanup, and verify the gate-abort sequence alongside the controls below.
+
+The contrast controls are narrower:
+
+- A **pre-aborted** signal returns `cancelled` before the gate or pool is used.
+- If the gate opens without cancellation, the operation acquires one slot; `complete()` changes it to `ok`, releases the slot, and removes the listener.
+- If cancellation occurs **after listener registration**, the listener changes the operation to `cancelled` and releases the slot. The pending-status guard prevents a later `complete()` from releasing it again.
+
+This is a trace derived from the supplied code and controls, assuming standard `AbortController`/`AbortSignal` behavior and a normally resolved gate. It was not executed, and the supplied evidence does not establish behavior for a rejected gate or external production workloads.

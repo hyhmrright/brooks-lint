@@ -1,0 +1,25 @@
+I’ll apply the supplied runtime-research guidance to trace cancellation across the preparation gate and compare it with the pre-aborted and running cases.
+**Runtime Research (revision 2) — Warning: cancellation during preparation is missed**
+
+**Symptom:** A request aborted while `launch` is awaiting `gate` can acquire a slot and return a pending operation after the gate opens, contrary to the supplied contract.
+
+**Source:** In `HC-01/service.mjs`, `launch` checks `signal.aborted` only before `await gate`. It acquires a lease after the await and subscribes to `abort` afterward. Assuming a standard `AbortSignal`, adding a listener after its abort event does not replay that event.
+
+The execution trace with `deferred()` and a capacity-one `SlotPool` is:
+
+1. Call `launch` with a non-aborted signal and an unresolved `gate.promise`. It passes the initial check and suspends at `await gate`.
+2. Abort the signal while the gate remains closed. No listener has yet been installed.
+3. Resolve the gate. `launch` resumes, calls `pool.acquire()`, registers a listener too late to receive the earlier event, and returns an operation with `status: 'pending'`.
+4. At that point the pool reports `started = 1`, `active = 1`, and `released = 0`. Calling `complete()` later releases the slot and changes the status to `ok`; it does not restore the required cancellation outcome.
+
+**Consequence:** The cancelled request starts work and occupies the only slot in this controlled example. A second acquisition while that slot is occupied throws `capacity`. The slot is retained until the operation is explicitly completed; this trace does not establish a permanent leak or a production outage. The bounded contract violation supports a Warning.
+
+**Remedy:** In `launch`, check `signal.aborted` again immediately after `await gate` and return the cancelled result before acquiring a slot. Preserve the running-operation listener and cleanup, and verify the gate-abort sequence alongside the contrasting cases below.
+
+The existing controls provide bounded protection in other orders:
+
+- **Pre-aborted:** the first guard returns `cancelled` without awaiting the gate or acquiring a slot.
+- **Abort after admission:** once the operation has been returned and its listener installed, abort calls `finish('cancelled')`, releases its lease, and removes the listener. The pending-status guard prevents a later `complete()` from releasing it twice.
+- **No cancellation:** after the gate opens, `complete()` changes the operation to `ok` and releases the lease.
+
+This is a code-derived trace of the supplied synthetic lifecycle, not an executed test or an observation of production behavior. It assumes a standard `AbortSignal`, a fulfilled gate, and the supplied synchronous `SlotPool`; callers, gate rejection policy, and production exposure are outside the supplied evidence.

@@ -1,0 +1,16 @@
+**The rejection path retains the lease locally, but the supplied contract does not establish whether that is a defect.** It leaves both ownership and the required timing of failure cleanup unspecified; the outer scope that might release the lease is unavailable.
+
+The following is a trace from the supplied code and controls, not an executed test:
+
+1. With a fresh default `SlotPool`, `execute` synchronously acquires its sole lease: `active = 1`, `started = 1`, `released = 0`. It returns a `response` promise and a `release` hook.
+2. If the deferred child rejects, `await child` throws inside the async function. The subsequent `release()` is skipped, and `response` rejects with the child’s reason. At that point, absent an explicit release, `active` remains 1 and `released` remains 0.
+3. A further acquisition from that same pool at this point throws `capacity`. Calling the returned `release()` removes the lease; `active` becomes 0 and `released` becomes 1, allowing acquisition again.
+
+The success path is the relevant contrast: when the child resolves, `execute` calls `release()` before `response` fulfills with the child’s value. The explicit hook also permits release after rejection. With the supplied `SlotPool`, repeated release of the same lease has no further effect, although that idempotence is a property of this control, not an established property of every possible pool.
+
+Two contract interpretations produce different judgments:
+
+- If `execute` owns cleanup on every child settlement, skipping release on rejection violates that contract; a `finally` around the await would be a candidate remedy.
+- If the outer scope owns failure cleanup and releases through the hook at an allowed time, the observed retention can be consistent with the contract. Adding automatic cleanup would require checking compatibility with that ownership arrangement.
+
+The smallest missing context is the caller’s failure-cleanup contract or implementation, including **who releases and by when**. Without it, the evidence supports temporary local retention and possible capacity rejection, but neither permanent leakage nor a confirmed contract violation. No deadline, retry policy, production exposure, or broader pool behavior is supplied.

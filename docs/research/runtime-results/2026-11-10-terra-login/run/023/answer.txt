@@ -1,0 +1,19 @@
+**The cancellation policy during preparation is missing, so the supplied evidence does not establish a contract defect or a clean verdict.** The code does have a specific observable gap: an abort while `gate` is pending is not acted on after the gate resolves.
+
+With a standard `AbortSignal`, a resolving gate, and an initially empty capacity-one `SlotPool`, the relevant trace is:
+
+1. `launch` sees `signal.aborted === false` and waits at `await gate`.
+2. The signal aborts while the gate is pending. No abort listener has been registered.
+3. The gate resolves. `launch` acquires a lease, creates a pending operation, and registers the listener. Registering a listener on an already-aborted signal does not replay the abort event.
+4. The caller receives `status: 'pending'`; the pool has `started: 1`, `released: 0`, and `active: 1`. Calling `complete()` changes the status to `ok`, releases the lease, and removes the listener.
+
+That trace is derived from the supplied code; it is not a reported test run. If the caller never calls `complete()`, this path leaves the lease active in the supplied pool. The evidence does not establish how long a real caller retains it or whether an outage occurs.
+
+The contract determines the judgment:
+
+- **If abort during preparation invalidates later admission**, acquiring the slot and returning a pending operation violates that rule. A remedy would be to check `signal.aborted` again after `await gate` and return cancelled before acquiring the lease.
+- **If abort is only a notification applying after work starts**, admission after that earlier abort may be permitted. The supplied contract would still need to specify ownership and completion of the accepted operation before its resource lifetime can be judged.
+
+The smallest missing context is the caller’s cancellation and accepted-work ownership policy for an abort during preparation. No unseen caller behavior is assumed.
+
+The contrast controls show the protection’s bounds. If the signal is already aborted at entry, `launch` returns cancelled without acquiring a slot. If it aborts after listener registration while the operation is pending, `cancel()` releases the lease and sets the status to cancelled. Normal `complete()` also releases it, and the pending-status guard prevents a second completion or cancellation from releasing it again. These controls do not cover the abort during the gate wait.

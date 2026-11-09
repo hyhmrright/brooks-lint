@@ -1,0 +1,12 @@
+The visible code leaves the lease active when `child` rejects, but the supplied contract does not say whether `execute` or an outer scope must release it after rejection. That ownership and the required cleanup timing are the missing context needed to call this a contract defect.
+
+With the supplied `SlotPool` and a deferred child, the execution trace is:
+
+1. `execute` synchronously acquires a lease: `started = 1`, `active = 1`, `released = 0`. It returns `response` and the explicit `release` hook while the child is pending.
+2. If the child resolves, the `await` continues, `release()` removes the lease, and `response` resolves with the child’s value. The pool then reports `active = 0`, `released = 1`.
+3. If the child rejects, the `await` throws before the success-path `release()` runs. `response` rejects, and the pool remains at `active = 1`, `released = 0` until someone calls the exposed hook.
+4. Calling that hook removes the lease. With this pool, a later release of the same lease returns `false` and does not increment `released` again.
+
+The retained lease can block another acquisition at the pool’s default capacity, which throws `Error('capacity')`. That demonstrates a local consequence while the lease remains active; it does not establish permanent leakage or a production outage.
+
+If the intended contract assigns rejection cleanup to `execute`, the remedy is to release in a `finally` around the `await`. If an outer scope owns cleanup, its behavior and timing are needed to assess whether the lifecycle meets the contract. The duplicate-release protection described above is specific to the supplied `SlotPool`; the code does not establish that every possible pool has it.

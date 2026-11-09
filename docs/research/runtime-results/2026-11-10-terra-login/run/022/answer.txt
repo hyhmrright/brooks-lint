@@ -1,0 +1,19 @@
+The code has an observable cancellation gap during preparation, but the supplied contract does not establish whether that gap is a defect. The missing decision is whether an abort while `gate` is pending must prevent later admission, or whether cancellation applies only after work starts.
+
+Assuming a standard `AbortSignal`, a resolving gate, and an initially empty default `SlotPool`, the relevant trace is:
+
+1. `launch` sees `signal.aborted === false` and waits at `await gate`.
+2. The signal aborts while the gate is pending. No abort listener has been registered yet.
+3. The gate resolves. `launch` acquires a lease, creates a pending operation, and registers the listener on the already-aborted signal. Registering it does not replay the abort event.
+4. `launch` returns the pending operation. The pool reports `started = 1`, `released = 0`, and `active = 1`. Calling `complete()` changes the status to `ok` and releases the lease; without a later completion, the supplied code provides no further release path for that operation.
+
+If preparation-time cancellation **must invalidate admission**, the conditional finding is:
+
+- **Symptom:** An abort during the gate wait is missed, and the operation can be admitted as pending.
+- **Source:** `launch` checks `signal.aborted` before yielding, but subscribes only after the gate and does not recheck the signal.
+- **Consequence:** Cancelled work can occupy a slot until someone completes it. With the default capacity of one, another acquisition during that interval throws `capacity`. The evidence does not establish an outage or that the slot remains occupied indefinitely.
+- **Remedy:** Once the policy is established, recheck cancellation after the gate and before acquiring the lease; retain cancellation handling for the admitted operation. Verify both the gate-wait abort and normal completion paths against that policy.
+
+The contrast controls bound the result. An already-aborted signal at entry returns `cancelled` without acquiring a slot. If abort occurs after the listener is registered while the operation is pending, `cancel()` changes its status to `cancelled` and releases the lease. Likewise, `complete()` releases it with status `ok`; the pending-status guard prevents repeated completion or a later abort from releasing it again. If the gate rejects, `launch` rejects before acquisition. If the pool is already full, `acquire()` throws instead of returning an operation.
+
+These are traces inferred from the supplied code and standard signal behavior; no execution was performed. The caller’s ownership obligations and preparation-time cancellation policy are needed to decide whether the observed admission behavior violates the intended contract.

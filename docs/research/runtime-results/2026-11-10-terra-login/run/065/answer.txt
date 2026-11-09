@@ -1,0 +1,19 @@
+**The registry provides the stated replacement protection**, assuming callers use the returned handles through `complete()` and do not mutate their public `done` property. The conclusion is based on the supplied code and contract; it is not an observation of a running service.
+
+For one key, the relevant execution trace is:
+
+| Operation | `reserved` | `active` | Result |
+|---|---:|---:|---|
+| `start(key)` → A | 1 | 1 | A is current. |
+| `start(key)` | 1 | 1 | Returns `null`: A is pending. |
+| `replace(key)` → B | 1 | 2 | B becomes current; A remains separately live. |
+| `A.complete()` | 1 | 1 | A leaves `live`; the identity check preserves B’s reservation. |
+| `start(key)` | 1 | 1 | Returns `null`: B is still pending. |
+| `B.complete()` | 0 | 0 | B releases its reservation. |
+| `start(key)` → C | 1 | 1 | Admission succeeds again. |
+
+The source of the protection is `entries.get(key) === entry` in `complete()`: an old handle deletes the reservation only if it is still the current entry. The `done` guard also makes repeated completion through the method harmless.
+
+The contrasting completion order is consistent with the contract: if B completes before A, B releases the current reservation and a further `start` can succeed even while A remains live. A’s later completion cannot remove that newer reservation. Thus, `reserved` counts current keys, while `active` counts all unfinished handles, including superseded ones; `active > reserved` is expected.
+
+This protection is bounded. `replace` does not stop old work, and the registry itself imposes no limit on the number of superseded live handles. The contract does not require either behavior. The supplied `deferred` and `SlotPool` controls are not connected to the registry, so they establish no additional cancellation or capacity protection here. The code also exposes mutable handle fields: whether callers are allowed to assign to `done` or replace `complete` is unspecified. Such mutation can bypass normal cleanup, but the supplied evidence does not establish that callers do so or that the contract requires protection against it.

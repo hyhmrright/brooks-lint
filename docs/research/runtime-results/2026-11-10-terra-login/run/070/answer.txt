@@ -1,0 +1,21 @@
+The registry protects the replacement reservation from an older handle’s completion. Under ordinary use of the returned handles, the supplied code supports the stated admission contract; it does not establish a lifecycle defect.
+
+A trace for one key, `k`, shows the protection:
+
+| Operation | Current reservation | `reserved` | `active` | Result |
+|---|---|---:|---:|---|
+| `a = start(k)` | `a` | 1 | 1 | Admitted |
+| `start(k)` | `a` | 1 | 1 | Returns `null` |
+| `b = replace(k)` | `b` | 1 | 2 | `a` remains separately active |
+| `a.complete()` | `b` | 1 | 1 | Removes `a` from `live`; identity check preserves `b` |
+| `start(k)` | `b` | 1 | 1 | Returns `null` |
+| `b.complete()` | none | 0 | 0 | Releases the current reservation |
+| `start(k)` | new entry | 1 | 1 | Admitted |
+
+The decisive source is `entries.get(key) === entry` in `complete()`: a completion deletes the reservation only if its own entry is still current. The `done` guard also makes repeated completion a no-op.
+
+The reverse completion order is a useful contrast. If `b` completes first, it releases the reservation even while superseded `a` remains active. A new `start(k)` can then succeed; a later `a.complete()` cannot delete that new entry. This follows the contract’s distinction between the current generation and a superseded handle that may still be running.
+
+`SlotPool` similarly releases only a matching lease and makes repeat release harmless, but it is a separate control: the registry does not use it, and it does not demonstrate a cap on the registry’s `active` count. `deferred()` supplies controllable promises but is also not connected to this registry. Thus the evidence establishes reservation ownership, not forced cancellation, a global capacity limit, or that callers always complete their work.
+
+This assessment assumes callers do not directly mutate the returned entry’s public `done` property or replace its `complete` method. Those mutations could change lifecycle behavior; the supplied contract does not specify whether handles must resist them. The trace is derived from the supplied code, not a test run.

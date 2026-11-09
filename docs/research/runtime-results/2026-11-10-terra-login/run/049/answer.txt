@@ -1,0 +1,19 @@
+I’ll use the supplied runtime research guidance to trace the lease lifecycle and distinguish the visible behavior from the missing ownership contract.
+**Runtime Research (revision 2) — unresolved cleanup ownership**
+
+The supplied code retains the lease locally when `child` rejects, but the contract does not say who must release it or by when. That is insufficient to establish a contract violation or a permanent leak.
+
+With a fresh `SlotPool` of capacity one and a deferred child, the execution trace is:
+
+1. `execute` synchronously acquires a lease: `started = 1`, `active = 1`. It returns `response` and the explicit `release` hook while the child is pending.
+2. If the child rejects, `await child` throws inside the async function. The following `release()` is skipped, and `response` rejects with the child’s reason. Before any outer cleanup, `active = 1` and `released = 0`; another acquisition from this pool throws `capacity`.
+3. If the caller invokes the returned `release` hook, the supplied pool removes the lease: `active = 0`, `released = 1`, and capacity is available again.
+
+The success path is the relevant contrast: when the child fulfills, `execute` calls `release()` before `response` fulfills with the value. The explicit hook also permits earlier or later cleanup. For the supplied `SlotPool`, repeated releases of the same lease are harmless: only the first removal increments `released`. That protection is specific to this pool; other pool implementations are unspecified.
+
+Two ownership rules yield different judgments of the rejection trace:
+
+- If `execute` owns cleanup on rejection, retention after rejection violates that rule; cleanup on both settlement paths, such as a `finally`, would address it.
+- If an outer scope owns failure cleanup, its invocation of the hook may satisfy the contract. Whether the observed retention is acceptable then depends on the required cleanup timing.
+
+The smallest missing context is the caller’s failure-cleanup ownership and timing contract, together with the outer scope’s behavior. No caller or production observation was supplied, so the trace does not establish how long the lease remains held in use. These are deductions from the supplied code and controls, not results of an executed test.

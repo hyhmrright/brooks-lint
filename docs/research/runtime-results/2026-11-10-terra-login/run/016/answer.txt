@@ -1,0 +1,12 @@
+The supplied lifecycle provides **bounded protection against cancellation during the preparation gate**. With a standard `AbortSignal`, the supplied synchronous `SlotPool`, and a gate that eventually resolves, an abort while the gate is pending prevents acquisition after it opens.
+
+The following are traces derived from the supplied code; they are not results of an executed test:
+
+1. **Abort during preparation:** Start with a fresh controller, a deferred gate, and an empty capacity-one pool. `launch` passes the first abort check and suspends at `await gate`. Abort the controller, then resolve the gate. When `launch` resumes, the second check returns a cancelled operation. The pool remains `started = 0`, `active = 0`, `released = 0`.
+2. **Pre-aborted contrast:** Abort before calling `launch`. The first check returns a cancelled operation without awaiting the gate or acquiring a slot.
+3. **Normal completion contrast:** Resolve the gate without aborting. `launch` acquires one lease and returns a pending operation. Calling `complete()` changes its status to `ok`, releases the lease, and removes the abort listener. The pool ends at `started = 1`, `active = 0`, `released = 1`.
+4. **Running cancellation contrast:** After admission, aborting invokes `cancel()`, which changes the status to `cancelled`, releases the lease, and removes the listener. A subsequent `complete()` does nothing because the operation is no longer pending; the lease is released only once.
+
+The protection has two limits. First, an abort **does not settle `launch` while the gate remains pending**: the second check runs only after the awaited gate resolves. The contract expressly requires preventing acquisition after the gate opens, but does not specify whether cancellation must promptly settle the returned promise before then. That timing requirement is the missing context needed to call this a defect.
+
+Second, the conclusion assumes the supplied pool and ordinary single-process JavaScript execution: `SlotPool.acquire()` is synchronous and does not itself trigger an abort. Under those conditions, no asynchronous turn occurs between the post-gate check and listener registration. The evidence does not establish the same protection for arbitrary reentrant pool implementations, a rejected gate, or other unsupplied lifecycle behavior.

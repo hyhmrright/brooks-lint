@@ -1,0 +1,16 @@
+The supplied contract does not say whether an abort during preparation must prevent later admission. The code has an observable gap in cancellation handling at that boundary, but the evidence does not establish whether that behavior violates the intended policy.
+
+Assuming a standard `AbortSignal`, a deferred gate that resolves, and an initially empty `SlotPool`:
+
+1. `launch` sees `signal.aborted === false` and waits at `await gate`.
+2. The signal aborts while the gate is pending. No listener has been registered yet.
+3. The gate resolves. `launch` acquires a lease, creates a pending operation, and registers an abort listener. A standard signal does not replay the earlier abort to that listener.
+4. `launch` returns `status: 'pending'` with `pool.started === 1`, `pool.active === 1`, and `pool.released === 0`. Calling `complete()` later changes the status to `ok` and releases the lease.
+
+The relevant contrasts are bounded:
+
+- If the signal is already aborted at entry, `launch` returns `cancelled` without acquiring a slot.
+- If it aborts after the listener is registered while the operation is pending, `finish('cancelled')` releases the lease and removes the listener. Repeated completion or cancellation has no further effect because `finish` checks the status.
+- If the gate rejects, execution does not reach acquisition; if the pool is full, `acquire()` throws. These traces do not establish a slot leak.
+
+**Missing decision:** If preparation-time cancellation invalidates admission, the trace above is a defect: the initial check is stale after the `await`, so an aborted request can occupy a slot until its owner calls `complete()`. The appropriate remedy would be to recheck `signal.aborted` after the gate and before acquisition, while retaining cancellation handling after admission. If cancellation during preparation is only a notification for work that has started, the supplied context does not establish that this admission is wrong; the contract must also clarify who owns and completes the returned operation. No outage or indefinite retention is established by the supplied evidence.

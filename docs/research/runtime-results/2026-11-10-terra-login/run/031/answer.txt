@@ -1,0 +1,17 @@
+**Runtime Research (revision 2) — Warning: rejection retains the lease**
+
+**Symptom:** In `HC-04/service.mjs`, `execute` releases its lease only after `await child` resolves. If `child` rejects, including with an `AbortError`, execution skips `release()` and the returned `response` rejects.
+
+**Source:** The cleanup is on the fulfillment path rather than in a `finally` block that covers both outcomes.
+
+**Consequence:** With the supplied one-slot `SlotPool`, a rejection leaves `active` at 1 unless the caller invokes the returned hook. A subsequent acquisition throws `Error('capacity')`, contrary to the contract’s requirement that the caller need not recover capacity. The response does preserve the original rejection identity on this path. This is a bounded defect in the supplied lifecycle; production exposure is unknown.
+
+**Remedy:** In `execute`, await the child inside `try` and call `release()` in `finally`. With the supplied non-throwing, idempotent `SlotPool.release`, cleanup then occurs before the response settles and the original rejection is preserved.
+
+The relevant execution contrasts are:
+
+- **Fulfillment:** `acquire` makes `active` 1; the child resolves; `release` makes it 0; then `response` resolves with the child’s value.
+- **Rejection or cancellation:** `acquire` makes `active` 1; the child rejects; `response` rejects with the same error; `active` remains 1. The next acquisition fails unless the hook is called.
+- **Explicit teardown:** Calling the hook releases the slot, and repeated calls are harmless because `SlotPool.release` deletes a lease only once. If called while the child is pending, it releases capacity early; a later fulfillment calls it again harmlessly. This protection does not provide automatic rejection cleanup.
+
+These traces are derived from the supplied code and contract; no execution was performed. The remedy’s error-identity claim assumes the supplied `SlotPool.release` behavior. Behavior for a different pool whose `release` throws is not established.

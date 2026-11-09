@@ -1,0 +1,18 @@
+The supplied lifecycle provides the required cancellation protection across the preparation gate, assuming a standard `AbortSignal`, the supplied `SlotPool`, and a gate that fulfills. The code also releases the slot on normal completion or running cancellation. This is a bounded conclusion from the supplied code, not a claim about other signals, pools, or failure paths.
+
+For an abort during preparation, the execution trace is:
+
+1. `launch` sees a non-aborted signal and suspends at `await gate`.
+2. The caller aborts while the gate is pending.
+3. The gate fulfills and `launch` resumes. Its second `signal.aborted` check returns a cancelled operation before `pool.acquire()`.
+4. With a fresh pool, `started`, `active`, and `released` remain `0`. The same check protects an abort after the gate resolves but before the continuation runs.
+
+The relevant contrasts are:
+
+- **Pre-aborted:** the first check returns cancelled before awaiting the gate or acquiring a slot.
+- **No cancellation:** after the gate fulfills, `acquire()` makes `started = 1` and `active = 1`. Calling `complete()` sets status to `ok`, releases the lease, and removes the abort listener; `released = 1` and `active = 0`.
+- **Abort while running:** the registered listener calls `finish('cancelled')`, producing the same release and listener cleanup. The pending-status guard makes a later `complete()` or repeated finish harmless.
+
+With the supplied synchronous `SlotPool.acquire()` and standard signal behavior, there is no ordinary asynchronous yield between the post-gate check and listener registration. The evidence therefore does not support a missed-abort race in that interval.
+
+The contract does not specify what should happen if the gate rejects or the pool is already at capacity; those paths reject `launch` rather than returning an operation. No tests were supplied or run, so these traces are derived from the provided code.

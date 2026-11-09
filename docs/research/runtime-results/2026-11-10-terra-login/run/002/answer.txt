@@ -1,0 +1,22 @@
+**Warning: cancellation during preparation can be missed.** The lifecycle can acquire a slot and return a pending operation after the request has already been aborted, contrary to the stated contract.
+
+**Symptom:** With a fresh `AbortController`, a deferred gate, and a capacity-one `SlotPool`, the following execution is possible:
+
+1. Call `launch` with the unresolved gate. The initial `signal.aborted` check is false, so `launch` suspends at `await gate`.
+2. Abort the controller while the gate is unresolved. No abort listener has been registered yet.
+3. Resolve the gate. The continuation calls `pool.acquire()`, creates a pending operation, and only then registers the listener.
+4. The returned operation remains `pending`; the pool has `started = 1`, `active = 1`, and `released = 0`. Adding a listener to an already-aborted standard `AbortSignal` does not replay the abort event.
+
+**Source:** In `HC-01/service.mjs`, the only pre-acquisition cancellation check occurs before the asynchronous gate. There is no check after the `await`, and the abort subscription is installed after acquisition.
+
+**Consequence:** This request starts work despite cancellation and retains the slot until `complete()` is called. If it is not completed, a subsequent acquisition from the capacity-one pool throws `capacity`. Calling `complete()` instead changes the operation to `ok` and releases the slot, so the missed cancellation does not by itself prove a permanent leak or a production outage.
+
+**Remedy:** In `launch`, check `signal.aborted` immediately after the gate resolves and return the cancelled result before acquiring a slot. Preserve the running-operation listener and cleanup, and verify the gate-abort sequence alongside the contrast cases below.
+
+The supplied code also provides bounded protections:
+
+- **Already aborted:** the first guard returns `cancelled` without awaiting the gate or acquiring a slot.
+- **Abort after admission and listener registration:** `cancel()` calls `finish('cancelled')`, which releases the lease and removes the listener. The pending-state guard prevents a later `complete()` from releasing it again.
+- **No cancellation:** `complete()` changes the pending operation to `ok`, releases its lease, and removes the listener.
+
+This is a trace inferred from the supplied code, not a claimed test run. It assumes a standard `AbortSignal`, a gate that resolves, and the supplied synchronous `SlotPool`; behavior for a rejected gate or other pool implementations is outside this conclusion.

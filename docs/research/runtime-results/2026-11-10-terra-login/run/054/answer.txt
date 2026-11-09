@@ -1,0 +1,15 @@
+I’ll use the supplied runtime-research guidance to trace lease ownership through success and rejection, including the explicit release control.
+**Runtime Research (revision 2): failure cleanup ownership is unresolved.** The supplied code retains the lease locally after a child rejection unless someone calls the exposed release hook. The contract does not say whether `execute` or the unavailable outer scope must perform that cleanup, or by when.
+
+The execution trace, using the supplied `SlotPool` with capacity one, is:
+
+1. `execute` synchronously acquires a lease: `active` becomes 1. It returns `response` and `release` while the child is pending.
+2. **Success control:** when the child fulfills, execution resumes after `await child`, calls `release()`, and resolves `response` with the child’s value. The pool’s `active` becomes 0.
+3. **Rejection path:** when the child rejects, `await child` throws, so the following `release()` is skipped and `response` rejects. Before any outer cleanup, `active` remains 1; another acquisition from that capacity-one pool throws `capacity`.
+4. **Explicit-release control:** calling the returned `release()` removes that lease and restores capacity. With this `SlotPool`, repeated calls do not release another lease or increment `released` again.
+
+The rejection trace establishes temporary local retention and its effect on this controlled pool. It does **not** establish a permanent leak: the outer scope may call the hook after observing rejection.
+
+Two contract interpretations lead to different judgments. If `execute` owns cleanup on rejection, skipping release is a defect; cleanup on both settlement paths, such as a `finally`, would address it. If the outer scope owns rejection cleanup and calls the hook at the required time, the same local behavior can satisfy the contract. The smallest missing evidence is the caller’s failure-cleanup contract or implementation, including its required timing. Until that is known, neither a definitive defect nor universal safety is supported.
+
+This is a trace from the supplied code and controls, not an executed test or a production observation. The behavior and idempotence of other pool implementations are also unspecified.

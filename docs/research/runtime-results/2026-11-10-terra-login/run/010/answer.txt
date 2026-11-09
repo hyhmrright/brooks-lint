@@ -1,0 +1,12 @@
+The supplied lifecycle provides the cancellation protection stated for the preparation gate, under the normal single-process JavaScript execution model and with the supplied `SlotPool`. No contract defect is supported by these files.
+
+**Execution trace:**
+
+1. If the signal is already aborted, `launch` returns a cancelled operation before awaiting the gate or acquiring a slot.
+2. Otherwise, it awaits the gate. If the signal aborts while the gate is pending, the second `signal.aborted` check returns a cancelled operation when the gate opens. `pool.started` and `pool.active` remain zero.
+3. If the gate opens without cancellation, `pool.acquire()` obtains one lease, and the operation starts as `pending`. The abort listener then makes cancellation call `finish('cancelled')`, which releases the lease and removes the listener.
+4. Normal completion calls `finish('ok')` and performs the same cleanup. The `pending` guard makes subsequent completion or cancellation calls no-ops, so the lease is released at most once.
+
+The contrast controls are a pre-aborted request, an abort while an actual deferred gate is pending, and an admitted request that either completes or aborts while running. With a capacity-one `SlotPool`, the latter two paths should each leave `active` at zero and increment `released` once.
+
+This conclusion assumes a standard `AbortSignal` and the supplied synchronous `SlotPool`: there is no asynchronous yield between the post-gate abort check and listener registration, and `acquire()` does not itself trigger an abort. The contract does not specify what should happen if the gate rejects or slot acquisition throws, so those outcomes cannot be assessed as defects here.

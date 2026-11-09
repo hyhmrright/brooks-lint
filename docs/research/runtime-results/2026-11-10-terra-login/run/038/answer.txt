@@ -1,0 +1,12 @@
+**The supplied lifecycle meets the stated settlement contract with the supplied `SlotPool`.** The protection is bounded: capacity is held while the child remains pending unless the caller invokes the teardown hook.
+
+Execution trace with a one-slot pool:
+
+1. `execute` synchronously acquires a lease, so `active` becomes 1. A second acquisition at this point throws `Error('capacity')`.
+2. The async operation awaits `child`. On fulfillment, it enters `finally` and releases the lease before `response` fulfills with the child’s value.
+3. On rejection—including an `AbortError` rejection—it likewise releases the lease in `finally` before `response` rejects with the **same error object**.
+4. After either settlement path, `active` is 0 and another acquisition can succeed without the caller invoking `release`.
+
+The teardown hook is idempotent with this pool: if the caller releases early, `SlotPool.release` removes the lease once; the later `finally` call returns `false` and does not increment `released` again. Conversely, calling the hook after automatic cleanup has no further effect. Early teardown does free the slot while the child may still be pending; the contract describes the hook as teardown but does not say that calling it cancels the child.
+
+This conclusion assumes the supplied synchronous, non-throwing `SlotPool.release` implementation. If a different pool’s release throws, the `finally` exception could replace the child’s result or original rejection. A child that never settles and is never explicitly torn down retains the slot; the contract specifies cleanup on settlement, and supplies no timer or external cleanup owner. These are boundaries of the evidence, not demonstrated defects in the supplied controls.

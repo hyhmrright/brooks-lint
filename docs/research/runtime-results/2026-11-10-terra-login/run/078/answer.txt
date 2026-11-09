@@ -1,0 +1,18 @@
+The registry can lose its mapping for a live replacement when an older handle completes. That behavior is supported by the code; whether it violates an authoritative exclusion contract depends on context the caller has not supplied.
+
+A deterministic trace for one key is:
+
+| Step | Operation | `reserved` | `active` | Map state |
+|---|---|---:|---:|---|
+| 1 | `a = start("k")` | 1 | 1 | `"k" → a` |
+| 2 | `b = replace("k")` | 1 | 2 | `"k" → b` |
+| 3 | `a.complete()` | 0 | 1 | No `"k"` entry; `b` remains live |
+| 4 | `c = start("k")` | 1 | 2 | `"k" → c`; `b` remains live |
+
+**Symptom → Source → Consequence → Remedy:** Completing `a` removes the visible reservation for `b`. The source is the unconditional `entries.delete(key)` in `complete()`: it deletes whichever entry currently occupies that key, without checking that it is `a`. As a result, a subsequent `start("k")` succeeds while `b` is still live, and `reserved` omits `b`. If the map is intended to represent the current handle, delete only when `entries.get(key) === entry`.
+
+There are bounded protections and limits to that remedy. Calling `a.complete()` again has no effect because `done` guards completion, and `live.delete(entry)` removes the completing handle by identity. An identity check on the map deletion would protect `b` from `a`’s completion, but it would not by itself establish that at most one handle per key is live: replacement explicitly permits overlapping handles, and the contract does not say what admission should do after the current replacement completes while an older handle remains live.
+
+The shared `SlotPool` is a contrast: it tracks distinct lease identities, enforces its own capacity on acquisition, and releases only a lease present in its set. The supplied registry does not use that pool, so it provides no demonstrated protection for this trace.
+
+The missing assumption is whether the map is an authoritative exclusion reservation or a diagnostic index allowed to omit live handles, and whether any external admission control applies. Without that context, the trace establishes a local mapping and admission behavior, not a production outage or a universal safety conclusion.

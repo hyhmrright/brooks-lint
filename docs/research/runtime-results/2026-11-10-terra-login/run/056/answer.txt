@@ -1,0 +1,20 @@
+**Warning: an older completion removes the replacement’s reservation.** The registry therefore violates the stated per-key admission contract.
+
+**Symptom:** For the same key `k`, the following sequence is permitted by the supplied code:
+
+| Operation | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Creates the first generation | 1 | 1 |
+| `b = replace(k)` | Tracks `b`; `a` remains live | 1 | 2 |
+| `a.complete()` | Removes `a` from `live` **and deletes `k`** | 0 | 1 |
+| `c = start(k)` | Admits `c` while `b` is still pending | 1 | 2 |
+
+**Source:** In `complete()`, `live.delete(entry)` identifies the completing generation, but `entries.delete(key)` deletes whichever generation is currently tracked under the key. It does not check that the tracked entry is the completing one.
+
+**Consequence:** After `a` completes, the admission authority has lost `b`’s reservation, so `start(k)` admits another generation before `b` completes. A later completion of `b` can similarly delete `c`’s reservation. This establishes a local contract defect; the supplied evidence does not establish production exposure or an outage.
+
+**Remedy:** In `complete()`, delete the map entry only if `entries.get(key) === entry`. Continue removing the completing entry from `live` and retaining the `done` guard. Verify the sequence above, including that `start(k)` remains rejected until `b.complete()`, and that a subsequent start succeeds.
+
+The existing controls have bounded effects. Without replacement, `start(k)` rejects while the entry is tracked, and its completion releases the reservation. The `done` guard makes repeated completion of the same handle inert, but it cannot prevent the *first* stale completion from deleting a replacement. The shared `SlotPool` contrasts with this behavior: it releases by lease identity and ignores an unknown or already released lease. The supplied registry does not use that pool, and `deferred()` supplies scheduling control rather than an admission safeguard.
+
+This trace assumes callers invoke the returned handles’ methods in the shown order and do not mutate their public `done` or `key` properties. No external callers, integration behavior, or test results were supplied.

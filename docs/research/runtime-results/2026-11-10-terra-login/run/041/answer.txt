@@ -1,0 +1,13 @@
+**Runtime Research (revision 2) — bounded protection**
+
+With the supplied `SlotPool`, `execute` meets the stated lease and error-handling contract for a child that resolves or rejects. This is a conclusion about the supplied implementation and controls, not an observation of production behavior.
+
+The execution trace is:
+
+1. `execute` synchronously acquires the sole lease, then returns a response promise and a release hook. While the child remains pending, the lease remains active unless the caller invokes the hook.
+2. When the child resolves, `await child` produces its value. The `finally` block releases the lease before the response promise fulfills with that value.
+3. When the child rejects—including with an `AbortError`—the same `finally` block releases the lease before the response rejects. Because the supplied `SlotPool.release` does not throw, the original rejection object is preserved.
+
+The contrast controls support the ownership boundary. If the caller invokes `release` before the child settles, the slot becomes available early; the later `finally` call attempts to delete the same lease and has no further effect. Repeated hook calls likewise do not increment `released` again. Because each acquisition uses a distinct `Symbol`, a late release of the old lease cannot release a subsequently acquired lease.
+
+This protection assumes the supplied `SlotPool` behavior. The service accepts an injected pool, and a different `release` implementation that throws could replace a child’s original rejection. The contract also specifies cleanup on settlement; it does not require a deadline or automatic release for a child that never settles. No execution or production exposure was supplied, so this assessment is based on the code and authored contract.

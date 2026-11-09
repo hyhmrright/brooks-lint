@@ -1,0 +1,21 @@
+I’ll apply the supplied runtime research guidance to trace cancellation through the gate, slot acquisition, and cleanup, including the contrasting normal and running-cancellation paths.
+**Runtime Research (revision 2) — bounded protection**
+
+The supplied lifecycle protects the stated gate-cancellation case, assuming a standard `AbortSignal`, the supplied synchronous `SlotPool`, and a gate that fulfills. I do not see a supported defect in that path.
+
+**Execution trace: abort while the gate is pending**
+
+1. `launch` sees `signal.aborted === false` and suspends at `await gate`.
+2. The caller aborts before the gate opens. No lease has been acquired.
+3. When the gate fulfills, `launch` resumes and checks `signal.aborted` again.
+4. It returns a cancelled operation with a no-op `complete()`. `pool.acquire()` is never called, so `started`, `active`, and `released` remain zero for this request.
+
+The second check also covers an abort after the gate is resolved but before the suspended continuation runs. With the supplied synchronous pool and standard signal behavior, there is no asynchronous yield between that check, acquisition, and listener registration.
+
+**Contrast controls**
+
+- **Pre-aborted:** The first check returns cancelled before awaiting the gate or acquiring a slot.
+- **No cancellation:** Once the gate fulfills, `acquire()` starts one lease and the operation is pending. Calling `complete()` changes its status to `ok`, releases the lease, and removes the listener.
+- **Abort while running:** The listener calls `finish('cancelled')`, which releases the lease and removes the listener. The pending-status guard makes a later `complete()` or repeated finish harmless.
+
+The finite pool rejects acquisition if already at capacity; the supplied contract does not specify how `launch` should handle that exception. Likewise, a rejected gate causes `launch` to reject, but the contract does not state the expected rejection behavior. The conclusions above are a trace of the supplied code, not an executed test or evidence about production behavior.

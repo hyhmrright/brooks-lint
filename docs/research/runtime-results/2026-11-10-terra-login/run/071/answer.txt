@@ -1,0 +1,16 @@
+The supplied registry protects the replacement reservation when an older handle completes. The identity check in `complete()` ensures that only the entry currently tracked for the key can remove that reservation.
+
+A deterministic trace for one key shows the boundary:
+
+| Step | Result | Reserved | Active |
+|---|---|---:|---:|
+| `a = start(key)` | Admits `a` | 1 | 1 |
+| `b = replace(key)` | Tracks `b`; `a` remains live | 1 | 2 |
+| `a.complete()` | Removes `a` from `live`; leaves `b` reserved | 1 | 1 |
+| `start(key)` | Returns `null` | 1 | 1 |
+| `b.complete()` | Removes `b` and its reservation | 0 | 0 |
+| `start(key)` | Admits a new entry | 1 | 1 |
+
+As a contrast, if `b` completes before `a`, its reservation is released and a new `start` can succeed while `a` remains active. That is consistent with the stated contract: the superseded handle is observed separately and is not assumed to be stopped. Calling `complete()` again on either handle has no effect because of the `done` guard.
+
+The shared `deferred` and `SlotPool` controls are not used by this service. They therefore provide no evidence that underlying work is cancelled or that a separate resource lease is released. The conclusion assumes calls occur through the supplied registry API and that handles eventually call `complete()` when their work finishes; the supplied code does not establish how callers manage that lifecycle.

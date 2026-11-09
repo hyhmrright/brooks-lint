@@ -1,0 +1,18 @@
+**Finding: a rejected child leaves the lease occupied (Warning).**
+
+**Symptom:** When `child` rejects, including with an `AbortError`, `response` rejects without releasing the lease. This violates the supplied contract requiring release before either outcome settles.
+
+**Source:** In `HC-04/service.mjs`, `release()` follows `await child` in the async function. A rejection throws at the `await`, so execution skips the release call. The response does preserve the original rejection reason on this path.
+
+**Consequence:** With the supplied one-slot `SlotPool` and no caller teardown, the lease remains active after the response rejects. A subsequent acquisition throws `Error('capacity')`. This is a bounded defect in the supplied lifecycle; the evidence does not establish production exposure or an outage.
+
+**Remedy:** Put the `await child` inside a `try` block and release the lease in `finally`, so cleanup runs before the response settles on both resolution and rejection. With the supplied non-throwing, idempotent `SlotPool.release`, this also preserves the original rejection identity.
+
+The execution trace and controls are:
+
+1. `execute` synchronously acquires the only slot and returns a pending `response` and a `release` hook.
+2. If the child **resolves**, execution resumes after `await`, releases the lease, and resolves `response` with the value. This path meets the stated ordering.
+3. If the child **rejects**, execution leaves at `await`; `response` rejects with the same error object, while `active` remains `1` and `released` remains `0`. A later `acquire()` fails for capacity.
+4. Calling the returned hook manually releases the slot; repeated calls do not release it again because `SlotPool.release` deletes the lease only once. That is a useful teardown control, but the contract explicitly says recovery must not depend on the caller invoking it. An early hook call likewise makes the later successful-path release a harmless no-op.
+
+This is a trace of the supplied code and controls, not an executed test. The remedy’s error-identity conclusion assumes the supplied `SlotPool.release` behavior; a different pool whose `release` throws would need an explicit cleanup-error policy. The contract specifies no deadline for a child that remains pending, so that case does not establish another defect.

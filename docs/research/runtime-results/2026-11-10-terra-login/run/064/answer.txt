@@ -1,0 +1,14 @@
+The registry provides the stated protection against an older completion removing a replacement’s reservation. Its deletion check compares the current map value with the completing entry by identity.
+
+For one key, the relevant execution trace is:
+
+1. `start(key)` creates entry A: `reserved = 1`, `active = 1`.
+2. `replace(key)` creates entry B and makes it current: `reserved = 1`, `active = 2`. A remains live.
+3. A calls `complete()`: it leaves the live set, but `entries.get(key) === A` is false, so B’s reservation remains. The counts are `reserved = 1`, `active = 1`.
+4. A further `start(key)` returns `null`. When B completes, it removes its own reservation; a subsequent start can succeed.
+
+The reverse completion order is also significant: if B completes first, it releases the reservation even while superseded A remains active. A new start can then succeed. That is consistent with the supplied contract, which admits at most one **current** generation and separately observes superseded handles; it does not promise one active handle per key. Repeated `complete()` calls have no further effect under normal use because of the `done` guard.
+
+The shared `SlotPool` is a contrast control: it limits active leases by capacity and releases only the supplied lease token. The registry does not use it, so the control does not impose a capacity limit on registry entries. The supplied `deferred()` helper likewise has no role in this synchronous registry code.
+
+This assessment assumes callers use the returned handles as intended and do not mutate their public `done` property. The supplied evidence supports the identity-based reservation protection, not a broader guarantee about external work or resource capacity.

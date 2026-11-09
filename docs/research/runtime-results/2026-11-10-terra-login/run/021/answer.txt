@@ -1,0 +1,21 @@
+**Runtime Research (revision 2) — unresolved cancellation policy**
+
+The supplied code admits work after a signal aborts during preparation. Whether that is a defect depends on a cancellation policy the context explicitly leaves unspecified.
+
+Assuming a standard `AbortSignal`, a successfully resolved gate, and an initially empty `SlotPool` with capacity one, the execution trace is:
+
+1. `launch` checks `signal.aborted`; it is false, so execution waits at `await gate`.
+2. The signal aborts while the gate is pending. No listener has been registered yet.
+3. The gate resolves. `launch` does not check `signal.aborted` again, so it acquires a lease and creates a pending operation.
+4. It registers an abort listener after the abort event has already occurred. Registering the listener does not replay that event. The returned operation remains `pending`, and the pool has `started = 1`, `released = 0`, `active = 1`.
+5. If the caller invokes `complete()`, the operation becomes `ok`, releases the lease, and removes the listener. Without completion, the supplied code shows no later event that releases this lease on account of the earlier abort. This establishes retention in that trace, not a proven permanent leak.
+
+The contrast controls bound what the code does protect:
+
+- **Already aborted at entry:** `launch` returns `cancelled` without waiting for the gate or acquiring a slot.
+- **Abort after admission and listener registration:** the listener calls `finish('cancelled')`, which releases the lease. A later `complete()` has no effect because `finish` only acts on a pending operation.
+- **Normal completion after admission:** `complete()` sets `ok`, releases the lease, and removes the listener. With the supplied pool, a full slot causes `acquire()` to throw instead of exceeding capacity.
+
+Two compatible policies produce different judgments of the preparation-abort trace. If cancellation during preparation invalidates later admission, acquiring the slot and returning `pending` violates that policy; a post-gate aborted check before acquisition would address this particular gap. If cancellation is only a notification for work after it starts, admission after the earlier event may be permitted, and the accepted-work owner may be responsible for completing it.
+
+The smallest missing context is the caller’s rule for an abort during preparation, including who owns and completes work admitted afterward. The supplied files do not establish that rule, production exposure, or whether a caller provides additional cleanup, so a definitive defect, severity, or universal safety conclusion is unsupported. This is a code trace using the supplied controls; no execution was performed.

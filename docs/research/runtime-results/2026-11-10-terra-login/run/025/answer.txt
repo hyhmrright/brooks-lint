@@ -1,0 +1,19 @@
+I’ll use the supplied runtime-research guidance to trace the cancellation and slot lifecycle against the stated contract.
+**Runtime Research (revision 2): unresolved cancellation policy.** The code admits work after an abort during preparation, but the supplied contract does not say whether that admission is invalid. The observed behavior alone does not establish a defect or a clean verdict.
+
+Assuming a standard `AbortSignal`, a resolving gate, and an initially empty default `SlotPool`, the relevant execution trace is:
+
+1. `launch` sees `signal.aborted === false` and waits at `await gate`. No slot has been acquired.
+2. The signal aborts while the gate is pending. No abort listener is registered yet.
+3. The gate resolves. `launch` acquires a lease, creates a pending operation, and registers an abort listener. Registering it after the abort does not replay the earlier event.
+4. `launch` returns the pending operation with `pool.started === 1`, `pool.active === 1`, and `pool.released === 0`. Calling `complete()` changes the status to `ok`, releases the lease, and removes the listener.
+
+The relevant contrasts are bounded:
+
+- If the signal is already aborted at entry, `launch` returns `cancelled` without acquiring a slot.
+- If it aborts after listener registration while the operation is pending, the listener sets the status to `cancelled` and releases the lease. Completion and cancellation both go through `finish`, whose pending-state guard prevents a second release.
+- If the gate rejects, `launch` rejects before acquiring a slot.
+
+The missing decision is whether **an abort during preparation invalidates later admission**. Under that rule, the trace violates the contract: a cancelled request acquires capacity and remains pending until completed. A remedy would be to recheck `signal.aborted` after the gate and before acquisition, with cancellation handling consistent with the chosen ownership policy. Under the alternative rule stated in the context—that cancellation is only a notification applying after work starts—the same admission may be permitted; the owner must still define how the accepted operation completes and releases its lease.
+
+The smallest deciding artifact is the caller’s cancellation and accepted-work ownership contract, including who must complete an admitted operation. No production exposure, permanent leak, or severity follows from the supplied evidence.

@@ -1,0 +1,12 @@
+The supplied implementation satisfies the stated lifecycle contract **with the supplied `SlotPool`**. Its protection is bounded by the pool’s synchronous, idempotent release behavior and by the child eventually settling.
+
+The execution trace is:
+
+1. `execute` synchronously acquires the sole lease. While the child is pending, the pool has `active === 1`, and another acquisition throws `Error('capacity')`.
+2. If the child resolves, `await child` produces its value. The `finally` block releases the lease before `response` resolves with that value.
+3. If the child rejects—including with an `AbortError` object—the same `finally` block releases the lease before `response` rejects with the **same error object**. Cancellation here means a rejection; the function does not itself initiate cancellation.
+4. If the caller invokes `release` early, the pool removes the lease. The later `finally` call is harmless: `Set.delete` returns false, so `released` is not incremented again. Repeated hook calls are likewise harmless.
+
+These are contrasts derived from the supplied code and controls, not reported test executions. No caller hook is needed to recover capacity after child settlement. A child that never settles keeps the lease unless the caller invokes the hook; the stated contract does not require automatic cleanup of a permanently pending child.
+
+The conclusion also assumes the supplied pool behavior. With a different pool whose `release` throws, `finally` could replace the child’s result or original rejection; with a release operation that requires asynchronous completion, this implementation would not wait for it. Neither behavior is present in the supplied `SlotPool`, so neither establishes a defect here.

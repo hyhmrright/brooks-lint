@@ -1,0 +1,12 @@
+The supplied `execute` and `SlotPool` provide the stated lease cleanup for a child that settles. The `finally` block releases the lease before `response` settles, and the supplied pool’s release operation is synchronous and idempotent. No defect is established for those paths.
+
+The execution trace is:
+
+1. `execute` synchronously acquires the only slot. While the child is pending, the lease remains active unless the caller invokes `release`.
+2. If the child resolves with a value, `finally` releases the lease, then `response` resolves with that value.
+3. If the child rejects, including with an `AbortError`, `finally` releases the lease, then `response` rejects with the **same error object**.
+4. If the caller invokes `release` first, the slot is freed immediately. When the child later settles, the `finally` block calls `release` again; `SlotPool` ignores that second release. Repeated calls to the hook likewise have no further effect.
+
+The contrast is a child that never settles: absent an explicit call to `release`, its lease remains active and another acquisition fails with `capacity`. The stated contract requires cleanup on settlement; it supplies no deadline or requirement to cancel a pending child. Also, an early call to `release` frees the slot but does not cancel the child, so capacity accounting does not establish that underlying work has stopped.
+
+This assessment assumes the injected pool is the supplied `SlotPool`. A different pool whose `release` throws could replace the child’s outcome in `finally`; its behavior is not supplied. These are conclusions from the supplied code and contract, not observations of production behavior.

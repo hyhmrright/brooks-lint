@@ -1,0 +1,12 @@
+The supplied implementation satisfies the stated settlement contract with the supplied `SlotPool`. Its `finally` block releases the lease on both resolution and rejection before `response` settles. Since the pool ignores a second release of the same lease, the returned teardown hook is idempotent.
+
+A rejection trace shows the relevant ordering:
+
+1. `execute` acquires the only slot, so `active` becomes 1.
+2. The child rejects with an error object, including an `AbortError` if cancellation is represented that way.
+3. The `finally` block calls `pool.release(lease)`, so `active` becomes 0.
+4. `response` rejects with the same error object.
+
+As a contrast, if the child resolves, the same `finally` block releases the slot before `response` resolves with the child’s value. If the caller invokes `release` first, the later automatic release returns `false` from the pool and does not increment its release count again.
+
+This protection is bounded by the supplied controls: it assumes `pool.release` behaves like the provided non-throwing implementation. The hook can also release capacity while the child is still pending; the stated contract does not say whether that use is prohibited. A child that never settles retains the slot unless the caller invokes the hook, but the contract specifies cleanup on settlement, not a deadline for a pending child.

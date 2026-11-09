@@ -1,0 +1,18 @@
+**Finding — Warning: child rejection leaves the lease active**
+
+**Symptom:** If `child` rejects, including with an `AbortError`, the returned `response` rejects while the lease remains active.
+
+**Source:** In `HC-04/service.mjs`, `release()` is after `await child`. A rejection throws at the `await`, so execution skips the release call. The async function propagates the original rejection reason, preserving its identity.
+
+**Consequence:** With the supplied one-slot `SlotPool`, a subsequent `execute` call throws `Error('capacity')` on acquisition until someone invokes the returned release hook. The contract explicitly says callers must not need to recover capacity this way, and supplies no timer or external cleanup owner. This establishes a bounded lifecycle defect; it does not establish a production outage or its wider reach.
+
+**Remedy:** Put the await and return inside a `try` and call `release()` in `finally`. With the supplied `SlotPool`, release is synchronous and does not throw, so it occurs before response settlement and the original rejection passes through unchanged.
+
+The execution trace and contrast controls are:
+
+1. `execute` synchronously acquires the sole lease: `active = 1`, `started = 1`, `released = 0`. It returns a pending `response` and the release hook.
+2. **Resolution:** when the deferred child resolves, execution resumes, releases the lease, and returns the value. Before the response fulfills, `active = 0` and `released = 1`.
+3. **Rejection or cancellation:** when the child rejects with error object `e`, the `await` throws `e`; release is skipped. The response rejects with that same object, but `active = 1` and `released = 0`. A new acquisition then throws `capacity`.
+4. **Manual teardown:** calling the hook removes the lease; calling it again has no further effect with the supplied pool. This is bounded idempotent protection, but it requires caller action and therefore does not meet the rejection cleanup contract.
+
+This is a trace derived from the supplied code and controls, not a test run. The proposed `finally` remedy assumes the supplied pool’s non-throwing synchronous release behavior; behavior for a different pool whose release throws or is asynchronous is not specified.

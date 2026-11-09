@@ -1,0 +1,17 @@
+The supplied lifecycle provides the stated **post-gate cancellation protection** under ordinary single-process JavaScript execution. An abort while the gate is pending prevents acquisition after the gate opens. The code does not, however, return a cancelled result until the gate settles.
+
+The following is a trace from the supplied code and controls, not a reported test run:
+
+1. Start with a non-aborted standard `AbortSignal`, an unresolved `deferred().promise` as `gate`, and a `SlotPool(1)`. `launch` passes its first check and suspends at `await gate`; the pool has `started = 0` and `active = 0`.
+2. Abort the signal while the gate is unresolved. No listener has been installed yet, and `launch` remains suspended.
+3. Resolve the gate. When `launch` resumes, its second `signal.aborted` check returns `{ status: 'cancelled', complete() {} }`. The pool remains at `started = 0`, `released = 0`, `active = 0`.
+
+The contrast cases are:
+
+- **Already aborted:** the first check returns cancelled before awaiting the gate or acquiring a slot.
+- **No cancellation:** after the gate resolves, `acquire()` starts one lease and returns a pending operation. Calling `complete()` changes it to `ok`, releases the lease, and removes the abort listener.
+- **Abort while running:** the listener changes the pending operation to `cancelled`, releases its lease, and removes itself. The pending-status guard makes a later `complete()` harmless.
+
+These conclusions assume a standard `AbortSignal` and the supplied synchronous `SlotPool`. In that model, there is no asynchronous yield between the second abort check, acquisition, and listener registration, so the supplied code does not establish a missed-abort race in that interval.
+
+**Missing contract detail:** If “cancelable throughout asynchronous preparation” requires the `launch` promise to settle promptly on abort even when the gate never opens, the implementation lacks that behavior: it waits for the gate before checking again. The explicit gate requirement only says an abort must prevent acquisition or work start *after the gate opens*, which the trace satisfies. The contract also does not specify how a rejected gate should be handled; the `await` propagates that rejection.

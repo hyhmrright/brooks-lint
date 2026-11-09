@@ -1,0 +1,13 @@
+I’ll use the supplied runtime research guidance to trace lease ownership through resolution, rejection, and explicit teardown.
+**Runtime Research (revision 2) — bounded protection**
+
+With the supplied `SlotPool`, `execute` meets the stated release and error-preservation contract when the child settles. No lifecycle defect is established by the supplied evidence.
+
+The execution trace is:
+
+1. `execute` synchronously acquires the single lease and starts an async function that awaits `child`. While the child is pending, the lease remains active; a second acquisition throws `Error('capacity')`.
+2. If the child resolves, the `finally` block calls `release()` before `response` resolves with the child’s value. Capacity is then available without caller teardown.
+3. If the child rejects, including with an `AbortError`, the same `finally` block releases the lease before `response` rejects. Because the supplied `SlotPool.release` does not throw, the rejection retains the original error object.
+4. As a contrast, if the caller invokes the returned `release` hook while the child is still pending, the slot becomes available immediately. The later `finally` call is harmless: `SlotPool.release` deletes the lease only once and returns `false` on subsequent calls.
+
+This conclusion assumes the supplied `SlotPool` is the pool in use and its methods behave as shown. A different pool whose `release` throws could replace a child rejection with the release error. A child that never settles retains the lease unless the caller invokes the hook; the stated contract specifies cleanup on settlement, and supplies no deadline or requirement to cancel pending work. These are code-based traces, not results from an executed reproducer or evidence of production behavior.

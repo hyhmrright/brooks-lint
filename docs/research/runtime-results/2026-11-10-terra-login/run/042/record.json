@@ -1,0 +1,5380 @@
+{
+  "version": 1,
+  "simulation": false,
+  "scope": "login-text-comparison-v1",
+  "requested_model": "gpt-6.1-terra",
+  "requested_effort": "medium",
+  "proxy_mode": "explicit-environment",
+  "provider_reported_model": null,
+  "provider_identity_verified": false,
+  "cli_selected_model": "gpt-6.1-terra",
+  "auth_type": "chatgpt",
+  "started_at": "2026-11-09T16:42:10.389Z",
+  "argv": [
+    "--no-daemon",
+    "-c",
+    "model=\"gpt-6.1-terra\"",
+    "-c",
+    "model_reasoning_effort=\"medium\"",
+    "-c",
+    "cli_auth_credentials_store=\"file\"",
+    "-c",
+    "project_doc_max_bytes=0",
+    "-c",
+    "web_search=\"disabled\"",
+    "-c",
+    "cloud.skills.enabled=false",
+    "-c",
+    "skills.include_instructions=false",
+    "-c",
+    "skills.bundled.enabled=false",
+    "-c",
+    "tools.update_plan.enabled=false",
+    "-c",
+    "tools.experimental_request_user_input.enabled=false",
+    "-c",
+    "features.shell_tool=false",
+    "-c",
+    "features.shell_snapshot=false",
+    "-c",
+    "features.plugins=false",
+    "-c",
+    "features.apps=false",
+    "-c",
+    "features.hooks=false",
+    "-c",
+    "features.multi_agent=false",
+    "-c",
+    "features.multi_agent_v2=false",
+    "-c",
+    "features.goals=false",
+    "-c",
+    "features.view_image=false",
+    "-c",
+    "features.image_generation=false",
+    "-c",
+    "features.request_permissions_tool=false",
+    "-c",
+    "features.context_management=false",
+    "-c",
+    "features.deferred_executor=false",
+    "-c",
+    "features.memories=false",
+    "-c",
+    "features.code_mode_host=false",
+    "-c",
+    "features.unbounded_connection_retries=false",
+    "-c",
+    "features.browser_use=false",
+    "-c",
+    "features.computer_use=false",
+    "-c",
+    "features.workspace_dependencies=false",
+    "-c",
+    "features.sleep_tool=false",
+    "-c",
+    "features.skill_search=false",
+    "-c",
+    "features.plugin_discovery_prefetch=false",
+    "-c",
+    "model_provider=\"openai\"",
+    "-c",
+    "forced_login_method=\"chatgpt\"",
+    "app-server",
+    "--stdio"
+  ],
+  "prompt": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-05/service.mjs\",\"content\":\"/** A lease is acquired synchronously and its operation settles asynchronously. */\\nexport function execute({ pool, child }) {\\n  const lease = pool.acquire();\\n  const release = () => pool.release(lease);\\n  const response = (async () => {\\n    try { return await child; } finally { release(); }\\n  })();\\n  return { response, release };\\n}\\n\",\"sha256\":\"62ef7b38746484d90d7da05e0ec3a956f9b6c70ce97fc90b2b3e8f79d8500ba4\"},{\"path\":\"HC-05/context.md\",\"content\":\"# HC-05: visible contract\\n\\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\\n\",\"sha256\":\"10515b19aeec0b706c8c4dc21d10600a4ca9056b2fc44e9dee9a227d9386a2cf\"},{\"path\":\"HC-05/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+  "limits": {
+    "turn_ms": 900000,
+    "cleanup_ms": 3000,
+    "output_bytes": 2097152,
+    "turns": 1
+  },
+  "source_sha256": "1bca7fc15828f7b6d68ab30e9c8d9761ea52d543d839528c0d22d968dbc984f8",
+  "events": [
+    {
+      "method": "account/updated",
+      "params": {
+        "authMode": "chatgpt",
+        "planType": "prolite"
+      },
+      "emittedAtMs": 1794242531669
+    },
+    {
+      "method": "thread/started",
+      "params": {
+        "thread": {
+          "id": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+          "environments": [],
+          "extra": null,
+          "sessionId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+          "forkedFromId": null,
+          "parentThreadId": null,
+          "preview": "",
+          "ephemeral": true,
+          "section": null,
+          "sectionEnteredAt": null,
+          "projectId": null,
+          "historyMode": "paginated",
+          "modelProvider": "openai",
+          "model": "gpt-6.1-terra",
+          "reasoningEffort": "medium",
+          "createdAt": 1794242534,
+          "updatedAt": 1794242534,
+          "recencyAt": 1794242534,
+          "status": {
+            "type": "idle"
+          },
+          "path": null,
+          "cwd": "[redacted]",
+          "cliVersion": "0.167.0",
+          "originator": "brooks-login-smoke",
+          "source": "vscode",
+          "canAcceptDirectInput": true,
+          "threadSource": null,
+          "agentNickname": null,
+          "agentRole": null,
+          "gitInfo": null,
+          "name": null,
+          "daybreakEnabled": null,
+          "turns": []
+        }
+      },
+      "emittedAtMs": 1794242534141
+    },
+    {
+      "method": "warning",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "message": "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`."
+      },
+      "emittedAtMs": 1794242534146
+    },
+    {
+      "method": "thread/status/changed",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "status": {
+          "type": "active",
+          "activeFlags": []
+        }
+      },
+      "emittedAtMs": 1794242534147
+    },
+    {
+      "method": "turn/started",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turn": {
+          "id": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+          "rootTurnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+          "items": [],
+          "itemsView": "notLoaded",
+          "status": "inProgress",
+          "error": null,
+          "startedAt": 1794242534,
+          "completedAt": null,
+          "durationMs": null
+        }
+      },
+      "emittedAtMs": 1794242534147
+    },
+    {
+      "method": "item/started",
+      "params": {
+        "item": {
+          "type": "userMessage",
+          "id": "01a1c130-665d-7320-93b7-1c9b012f549b",
+          "clientId": null,
+          "content": [
+            {
+              "type": "text",
+              "text": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-05/service.mjs\",\"content\":\"/** A lease is acquired synchronously and its operation settles asynchronously. */\\nexport function execute({ pool, child }) {\\n  const lease = pool.acquire();\\n  const release = () => pool.release(lease);\\n  const response = (async () => {\\n    try { return await child; } finally { release(); }\\n  })();\\n  return { response, release };\\n}\\n\",\"sha256\":\"62ef7b38746484d90d7da05e0ec3a956f9b6c70ce97fc90b2b3e8f79d8500ba4\"},{\"path\":\"HC-05/context.md\",\"content\":\"# HC-05: visible contract\\n\\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\\n\",\"sha256\":\"10515b19aeec0b706c8c4dc21d10600a4ca9056b2fc44e9dee9a227d9386a2cf\"},{\"path\":\"HC-05/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+              "text_elements": []
+            }
+          ],
+          "startedAtMs": 1794242537053,
+          "completedAtMs": null
+        },
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "startedAtMs": 1794242537053
+      },
+      "emittedAtMs": 1794242537053
+    },
+    {
+      "method": "item/completed",
+      "params": {
+        "item": {
+          "type": "userMessage",
+          "id": "01a1c130-665d-7320-93b7-1c9b012f549b",
+          "clientId": null,
+          "content": [
+            {
+              "type": "text",
+              "text": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-05/service.mjs\",\"content\":\"/** A lease is acquired synchronously and its operation settles asynchronously. */\\nexport function execute({ pool, child }) {\\n  const lease = pool.acquire();\\n  const release = () => pool.release(lease);\\n  const response = (async () => {\\n    try { return await child; } finally { release(); }\\n  })();\\n  return { response, release };\\n}\\n\",\"sha256\":\"62ef7b38746484d90d7da05e0ec3a956f9b6c70ce97fc90b2b3e8f79d8500ba4\"},{\"path\":\"HC-05/context.md\",\"content\":\"# HC-05: visible contract\\n\\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\\n\",\"sha256\":\"10515b19aeec0b706c8c4dc21d10600a4ca9056b2fc44e9dee9a227d9386a2cf\"},{\"path\":\"HC-05/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+              "text_elements": []
+            }
+          ],
+          "startedAtMs": 1794242537053,
+          "completedAtMs": 1794242537053
+        },
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "completedAtMs": 1794242537053
+      },
+      "emittedAtMs": 1794242537053
+    },
+    {
+      "method": "item/started",
+      "params": {
+        "item": {
+          "type": "reasoning",
+          "id": "rs_0adff34a3d9a8f77016af1f7eb229087d18d82359217271240",
+          "summary": [],
+          "content": [],
+          "startedAtMs": 1794242539264,
+          "completedAtMs": null
+        },
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "startedAtMs": 1794242539264
+      },
+      "emittedAtMs": 1794242539264
+    },
+    {
+      "method": "item/completed",
+      "params": {
+        "item": {
+          "type": "reasoning",
+          "id": "rs_0adff34a3d9a8f77016af1f7eb229087d18d82359217271240",
+          "summary": [],
+          "content": [],
+          "startedAtMs": 1794242539264,
+          "completedAtMs": 1794242539264
+        },
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "completedAtMs": 1794242539264
+      },
+      "emittedAtMs": 1794242539264
+    },
+    {
+      "method": "item/started",
+      "params": {
+        "item": {
+          "type": "agentMessage",
+          "id": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+          "text": "",
+          "phase": "final_answer",
+          "memoryCitation": null,
+          "delivery": null,
+          "questions": null,
+          "startedAtMs": 1794242539265,
+          "completedAtMs": null
+        },
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "startedAtMs": 1794242539265
+      },
+      "emittedAtMs": 1794242539265
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "The"
+      },
+      "emittedAtMs": 1794242539265
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242539265
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lifecycle"
+      },
+      "emittedAtMs": 1794242539448
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " satisfies"
+      },
+      "emittedAtMs": 1794242539448
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242539448
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " stated"
+      },
+      "emittedAtMs": 1794242539448
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " settlement"
+      },
+      "emittedAtMs": 1794242539448
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " contract"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " with"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " provided"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Slot"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Pool"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`."
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " The"
+      },
+      "emittedAtMs": 1794242539662
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " automatic"
+      },
+      "emittedAtMs": 1794242539753
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242539753
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "finally"
+      },
+      "emittedAtMs": 1794242539753
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242539753
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " block"
+      },
+      "emittedAtMs": 1794242539756
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " releases"
+      },
+      "emittedAtMs": 1794242539756
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242539756
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242539757
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " on"
+      },
+      "emittedAtMs": 1794242539757
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " both"
+      },
+      "emittedAtMs": 1794242539757
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " child"
+      },
+      "emittedAtMs": 1794242539757
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " resolution"
+      },
+      "emittedAtMs": 1794242539917
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242539917
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " rejection"
+      },
+      "emittedAtMs": 1794242539917
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ";"
+      },
+      "emittedAtMs": 1794242539917
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242539917
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " caller"
+      },
+      "emittedAtMs": 1794242539917
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " does"
+      },
+      "emittedAtMs": 1794242539917
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " not"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " need"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " to"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " invoke"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " returned"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " hook"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".\n\n"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "The"
+      },
+      "emittedAtMs": 1794242540024
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " execution"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " trace"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ":\n\n"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "1"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "execute"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242540242
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " synchron"
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "ously"
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " acqu"
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "ires"
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " sole"
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242540348
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " making"
+      },
+      "emittedAtMs": 1794242540491
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242540491
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "active"
+      },
+      "emittedAtMs": 1794242540491
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242540491
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " equal"
+      },
+      "emittedAtMs": 1794242540491
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " to"
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " "
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "1"
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".\n"
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "2"
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " The"
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " async"
+      },
+      "emittedAtMs": 1794242540710
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " function"
+      },
+      "emittedAtMs": 1794242540761
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " waits"
+      },
+      "emittedAtMs": 1794242540761
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " for"
+      },
+      "emittedAtMs": 1794242540761
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242540761
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "child"
+      },
+      "emittedAtMs": 1794242540761
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`."
+      },
+      "emittedAtMs": 1794242540762
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " While"
+      },
+      "emittedAtMs": 1794242540762
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " it"
+      },
+      "emittedAtMs": 1794242540762
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " remains"
+      },
+      "emittedAtMs": 1794242540762
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " pending"
+      },
+      "emittedAtMs": 1794242540905
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242540905
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242540905
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242540905
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " remains"
+      },
+      "emittedAtMs": 1794242540905
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " active"
+      },
+      "emittedAtMs": 1794242540905
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " unless"
+      },
+      "emittedAtMs": 1794242541048
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242541048
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " caller"
+      },
+      "emittedAtMs": 1794242541048
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " invokes"
+      },
+      "emittedAtMs": 1794242541048
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242541048
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "release"
+      },
+      "emittedAtMs": 1794242541049
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`.\n"
+      },
+      "emittedAtMs": 1794242541049
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "3"
+      },
+      "emittedAtMs": 1794242541049
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242541049
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " When"
+      },
+      "emittedAtMs": 1794242541049
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242541236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " child"
+      },
+      "emittedAtMs": 1794242541236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " resolves"
+      },
+      "emittedAtMs": 1794242541236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " or"
+      },
+      "emittedAtMs": 1794242541236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " rejects"
+      },
+      "emittedAtMs": 1794242541236
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242541237
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242541237
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "finally"
+      },
+      "emittedAtMs": 1794242541237
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242541237
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " calls"
+      },
+      "emittedAtMs": 1794242541237
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "pool"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".release"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "("
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "lease"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ")`"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " before"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "response"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " settles"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " With"
+      },
+      "emittedAtMs": 1794242541409
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " pool"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " that"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " removes"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " and"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " restores"
+      },
+      "emittedAtMs": 1794242541598
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " capacity"
+      },
+      "emittedAtMs": 1794242541759
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".\n"
+      },
+      "emittedAtMs": 1794242541759
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "4"
+      },
+      "emittedAtMs": 1794242541759
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242541759
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " On"
+      },
+      "emittedAtMs": 1794242541759
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " rejection"
+      },
+      "emittedAtMs": 1794242541759
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242541828
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " including"
+      },
+      "emittedAtMs": 1794242541828
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " an"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Abort"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Error"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`,"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " same"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " error"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " object"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " propag"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "ates"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " to"
+      },
+      "emittedAtMs": 1794242541949
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242542145
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "response"
+      },
+      "emittedAtMs": 1794242542145
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242542145
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " because"
+      },
+      "emittedAtMs": 1794242542145
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242542145
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242542145
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242542145
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "release"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " does"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " not"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " throw"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".\n\n"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "The"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " relevant"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " contrast"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " returned"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242542312
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "release"
+      },
+      "emittedAtMs": 1794242542488
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242542488
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " hook"
+      },
+      "emittedAtMs": 1794242542488
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ":"
+      },
+      "emittedAtMs": 1794242542488
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " if"
+      },
+      "emittedAtMs": 1794242542488
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " called"
+      },
+      "emittedAtMs": 1794242542488
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " before"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " child"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " settles"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " it"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " removes"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " immediately"
+      },
+      "emittedAtMs": 1794242542651
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ";"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " later"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "finally"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " call"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " harmless"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " because"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242542833
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Slot"
+      },
+      "emittedAtMs": 1794242542940
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Pool"
+      },
+      "emittedAtMs": 1794242542940
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".release"
+      },
+      "emittedAtMs": 1794242542940
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242542940
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " returns"
+      },
+      "emittedAtMs": 1794242542942
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242543131
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "false"
+      },
+      "emittedAtMs": 1794242543131
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`"
+      },
+      "emittedAtMs": 1794242543131
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " for"
+      },
+      "emittedAtMs": 1794242543131
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " an"
+      },
+      "emittedAtMs": 1794242543132
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " already"
+      },
+      "emittedAtMs": 1794242543132
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " removed"
+      },
+      "emittedAtMs": 1794242543132
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242543332
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242543332
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " If"
+      },
+      "emittedAtMs": 1794242543332
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " called"
+      },
+      "emittedAtMs": 1794242543332
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " after"
+      },
+      "emittedAtMs": 1794242543333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " settlement"
+      },
+      "emittedAtMs": 1794242543333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ","
+      },
+      "emittedAtMs": 1794242543333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " it"
+      },
+      "emittedAtMs": 1794242543333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242543333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " likewise"
+      },
+      "emittedAtMs": 1794242543333
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " harmless"
+      },
+      "emittedAtMs": 1794242543353
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242543353
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " Thus"
+      },
+      "emittedAtMs": 1794242543353
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " id"
+      },
+      "emittedAtMs": 1794242543353
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "empot"
+      },
+      "emittedAtMs": 1794242543353
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "ence"
+      },
+      "emittedAtMs": 1794242543353
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " here"
+      },
+      "emittedAtMs": 1794242543353
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " depends"
+      },
+      "emittedAtMs": 1794242543552
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " on"
+      },
+      "emittedAtMs": 1794242543552
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242543552
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242543552
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " pool"
+      },
+      "emittedAtMs": 1794242543552
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "’s"
+      },
+      "emittedAtMs": 1794242543552
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " behavior"
+      },
+      "emittedAtMs": 1794242543552
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".\n\n"
+      },
+      "emittedAtMs": 1794242543553
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "This"
+      },
+      "emittedAtMs": 1794242543553
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " protection"
+      },
+      "emittedAtMs": 1794242543553
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242543553
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " bounded"
+      },
+      "emittedAtMs": 1794242543553
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242543553
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " A"
+      },
+      "emittedAtMs": 1794242543749
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " child"
+      },
+      "emittedAtMs": 1794242543749
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " that"
+      },
+      "emittedAtMs": 1794242543749
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " never"
+      },
+      "emittedAtMs": 1794242543749
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " settles"
+      },
+      "emittedAtMs": 1794242543749
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " retains"
+      },
+      "emittedAtMs": 1794242543749
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " lease"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " unless"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " hook"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " called"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ";"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " contract"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " only"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " specifies"
+      },
+      "emittedAtMs": 1794242543895
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " release"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " on"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " resolution"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " or"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " rejection"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " The"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " error"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "-"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "identity"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " conclusion"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " also"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " assumes"
+      },
+      "emittedAtMs": 1794242544112
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " `"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Slot"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "Pool"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": ".release"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "`:"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " a"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " different"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " implementation"
+      },
+      "emittedAtMs": 1794242544380
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " that"
+      },
+      "emittedAtMs": 1794242544431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " throws"
+      },
+      "emittedAtMs": 1794242544431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " during"
+      },
+      "emittedAtMs": 1794242544431
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " cleanup"
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " could"
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " replace"
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " child"
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "’s"
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " rejection"
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242544576
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " No"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " defect"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " or"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " production"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " outage"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " is"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " established"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " by"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " the"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " supplied"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": " evidence"
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "item/agentMessage/delta",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "itemId": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+        "delta": "."
+      },
+      "emittedAtMs": 1794242544721
+    },
+    {
+      "method": "turn/moderationMetadata",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "metadata": {
+          "prompt": {
+            "omnimod": {
+              "protection_type": "omnimod",
+              "outputs": [
+                {
+                  "results": [
+                    {
+                      "category_flags": {
+                        "A1": false,
+                        "A2": false,
+                        "A3": false,
+                        "C1": false,
+                        "C11": false,
+                        "C2": false,
+                        "E1": false,
+                        "E2": false,
+                        "E3": false,
+                        "H1": false,
+                        "H2": false,
+                        "H3": false,
+                        "JB1": false,
+                        "K1": false,
+                        "K2": false,
+                        "K3": false,
+                        "K4": false,
+                        "P1": false,
+                        "P2": false,
+                        "P3": false,
+                        "P4": false,
+                        "PD1": false,
+                        "PD4": false,
+                        "S1": false,
+                        "S3+": false,
+                        "S4": false,
+                        "SH": false,
+                        "TXT-C3": false,
+                        "TXT-C4": false,
+                        "V1": false,
+                        "V2+": false,
+                        "V4+": false,
+                        "REFUSED": false,
+                        "CBRN-B1+": false,
+                        "IMG-C1": false,
+                        "IMG-C11": false,
+                        "IMG-C2": false,
+                        "IMG-S1": false,
+                        "IMG-SH": false,
+                        "IMG-V1": false,
+                        "IMG-V2+": false,
+                        "IMG-V4+": false
+                      }
+                    }
+                  ],
+                  "is_blocked": false
+                }
+              ]
+            }
+          },
+          "generation": {},
+          "tool_call": {},
+          "tool_response": {}
+        }
+      },
+      "emittedAtMs": 1794242544786
+    },
+    {
+      "method": "item/completed",
+      "params": {
+        "item": {
+          "type": "agentMessage",
+          "id": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+          "text": "The supplied lifecycle satisfies the stated settlement contract with the provided `SlotPool`. The automatic `finally` block releases the lease on both child resolution and rejection; the caller does not need to invoke the returned hook.\n\nThe execution trace is:\n\n1. `execute` synchronously acquires the sole lease, making `active` equal to 1.\n2. The async function waits for `child`. While it remains pending, the lease remains active unless the caller invokes `release`.\n3. When the child resolves or rejects, `finally` calls `pool.release(lease)` before `response` settles. With the supplied pool, that removes the lease and restores capacity.\n4. On rejection, including an `AbortError`, the same error object propagates to `response` because the supplied `release` does not throw.\n\nThe relevant contrast is the returned `release` hook: if called before the child settles, it removes the lease immediately; the later `finally` call is harmless because `SlotPool.release` returns `false` for an already removed lease. If called after settlement, it is likewise harmless. Thus idempotence here depends on the supplied pool’s behavior.\n\nThis protection is bounded. A child that never settles retains the lease unless the hook is called; the contract only specifies release on resolution or rejection. The error-identity conclusion also assumes the supplied `SlotPool.release`: a different implementation that throws during cleanup could replace the child’s rejection. No defect or production outage is established by the supplied evidence.",
+          "phase": "final_answer",
+          "memoryCitation": null,
+          "delivery": null,
+          "questions": null,
+          "startedAtMs": 1794242539265,
+          "completedAtMs": 1794242544902
+        },
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "completedAtMs": 1794242544902
+      },
+      "emittedAtMs": 1794242544902
+    },
+    {
+      "method": "thread/tokenUsage/updated",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+        "tokenUsage": {
+          "total": {
+            "totalTokens": 9317,
+            "inputTokens": 8948,
+            "cachedInputTokens": 8832,
+            "cacheWriteInputTokens": 0,
+            "outputTokens": 369,
+            "reasoningOutputTokens": 59
+          },
+          "last": {
+            "totalTokens": 9317,
+            "inputTokens": 8948,
+            "cachedInputTokens": 8832,
+            "cacheWriteInputTokens": 0,
+            "outputTokens": 369,
+            "reasoningOutputTokens": 59
+          },
+          "modelContextWindow": 475000
+        }
+      },
+      "emittedAtMs": 1794242544903
+    },
+    {
+      "method": "account/rateLimits/updated",
+      "params": {
+        "rateLimits": {
+          "limitId": "codex",
+          "limitName": null,
+          "normalModelSlug": null,
+          "primary": {
+            "usedPercent": 42,
+            "windowDurationMins": 10080,
+            "resetsAt": 1794378934
+          },
+          "secondary": null,
+          "credits": {
+            "hasCredits": false,
+            "unlimited": false,
+            "balance": "0"
+          },
+          "individualLimit": null,
+          "spendControlReached": null,
+          "planType": "prolite",
+          "rateLimitReachedType": null
+        }
+      },
+      "emittedAtMs": 1794242544903
+    },
+    {
+      "method": "thread/status/changed",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "status": {
+          "type": "idle"
+        }
+      },
+      "emittedAtMs": 1794242544903
+    },
+    {
+      "method": "turn/completed",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "turn": {
+          "id": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+          "rootTurnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+          "items": [
+            {
+              "type": "agentMessage",
+              "id": "msg_0adff34a3d9a8f77016af1f7eb228c87d197dca1433a77c515",
+              "text": "The supplied lifecycle satisfies the stated settlement contract with the provided `SlotPool`. The automatic `finally` block releases the lease on both child resolution and rejection; the caller does not need to invoke the returned hook.\n\nThe execution trace is:\n\n1. `execute` synchronously acquires the sole lease, making `active` equal to 1.\n2. The async function waits for `child`. While it remains pending, the lease remains active unless the caller invokes `release`.\n3. When the child resolves or rejects, `finally` calls `pool.release(lease)` before `response` settles. With the supplied pool, that removes the lease and restores capacity.\n4. On rejection, including an `AbortError`, the same error object propagates to `response` because the supplied `release` does not throw.\n\nThe relevant contrast is the returned `release` hook: if called before the child settles, it removes the lease immediately; the later `finally` call is harmless because `SlotPool.release` returns `false` for an already removed lease. If called after settlement, it is likewise harmless. Thus idempotence here depends on the supplied pool’s behavior.\n\nThis protection is bounded. A child that never settles retains the lease unless the hook is called; the contract only specifies release on resolution or rejection. The error-identity conclusion also assumes the supplied `SlotPool.release`: a different implementation that throws during cleanup could replace the child’s rejection. No defect or production outage is established by the supplied evidence.",
+              "phase": "final_answer",
+              "memoryCitation": null,
+              "delivery": null,
+              "questions": null,
+              "startedAtMs": 1794242539265,
+              "completedAtMs": 1794242544902
+            }
+          ],
+          "itemsView": "summary",
+          "status": "completed",
+          "error": null,
+          "startedAt": 1794242534,
+          "completedAt": 1794242544,
+          "durationMs": 10756
+        }
+      },
+      "emittedAtMs": 1794242544903
+    }
+  ],
+  "requests": [
+    {
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "clientInfo": {
+          "name": "brooks-login-smoke",
+          "version": "0.1"
+        },
+        "capabilities": {
+          "experimentalApi": true
+        }
+      }
+    },
+    {
+      "id": 2,
+      "method": "account/read",
+      "params": {
+        "refreshToken": false
+      }
+    },
+    {
+      "id": 3,
+      "method": "thread/start",
+      "params": {
+        "model": "gpt-6.1-terra",
+        "modelProvider": "openai",
+        "cwd": "[redacted]",
+        "environments": [],
+        "sandbox": "read-only",
+        "approvalPolicy": "never",
+        "ephemeral": true,
+        "allowProviderModelFallback": false
+      }
+    },
+    {
+      "id": 4,
+      "method": "turn/start",
+      "params": {
+        "threadId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+        "input": [
+          {
+            "type": "text",
+            "text": "Assess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\n\nRead the supplied task, context, service and shared controls. Guidance, when available in this isolated workspace, may be consulted. Give the execution trace and relevant contrast controls. State missing assumptions explicitly. For a supported finding, explain Symptom → Source → Consequence → Remedy. Do not assume a production outage or universal safety. Do not access the parent repository, the network, rubrics, tests, manifests, prior answers or other turns.\n\n\nSupplied files (JSON strings preserve exact file contents):\n{\"inputs\":[{\"path\":\"HC-05/service.mjs\",\"content\":\"/** A lease is acquired synchronously and its operation settles asynchronously. */\\nexport function execute({ pool, child }) {\\n  const lease = pool.acquire();\\n  const release = () => pool.release(lease);\\n  const response = (async () => {\\n    try { return await child; } finally { release(); }\\n  })();\\n  return { response, release };\\n}\\n\",\"sha256\":\"62ef7b38746484d90d7da05e0ec3a956f9b6c70ce97fc90b2b3e8f79d8500ba4\"},{\"path\":\"HC-05/context.md\",\"content\":\"# HC-05: visible contract\\n\\nThe execute function owns its acquired SlotPool lease. On either child resolution or child rejection, including cancellation represented by an AbortError rejection, the lease must be released before the returned response settles. A rejection must preserve the original error identity. The caller must not need to invoke release to recover capacity; the returned release hook is only idempotent teardown. There is one slot and no timer or external cleanup owner.\\n\",\"sha256\":\"10515b19aeec0b706c8c4dc21d10600a4ca9056b2fc44e9dee9a227d9386a2cf\"},{\"path\":\"HC-05/task.md\",\"content\":\"# Task\\n\\nAssess the supplied runtime lifecycle against its stated contract. Explain a supported causal defect, bounded protection, or the specific missing context. Keep conclusions within the supplied evidence.\\n\",\"sha256\":\"52c79c9592f3554d6a7bae5a9e0b95e610013e66dde3af7211caf4ecd3e33044\"},{\"path\":\"shared/controls.mjs\",\"content\":\"/** Original deterministic controls; no wall clock, network or model calls. */\\nexport function deferred() {\\n  let resolve, reject;\\n  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });\\n  return { promise, resolve, reject };\\n}\\nexport class SlotPool {\\n  #leases = new Set();\\n  constructor(capacity = 1) { this.capacity = capacity; this.started = 0; this.released = 0; }\\n  acquire() {\\n    if (this.#leases.size >= this.capacity) throw new Error('capacity');\\n    const lease = Symbol('lease'); this.#leases.add(lease); this.started++; return lease;\\n  }\\n  release(lease) { if (this.#leases.delete(lease)) { this.released++; return true; } return false; }\\n  get active() { return this.#leases.size; }\\n}\\n\",\"sha256\":\"59709941c1c5f3b9897ca89a1cc203219c1f81a96b0bea82e29f060124141658\"}],\"guidance\":[]}",
+            "text_elements": []
+          }
+        ],
+        "effort": "medium"
+      }
+    }
+  ],
+  "rpc_responses": [
+    {
+      "method": "initialize",
+      "response": {
+        "id": 1,
+        "result": {
+          "userAgent": "brooks-login-smoke/0.167.0 (Mac OS 27.2.0; arm64) unknown (brooks-login-smoke; 0.1)",
+          "codexHome": "/private[redacted]/codex",
+          "platformFamily": "unix",
+          "platformOs": "macos"
+        }
+      }
+    },
+    {
+      "method": "thread/start",
+      "response": {
+        "id": 3,
+        "result": {
+          "thread": {
+            "id": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+            "environments": [],
+            "extra": null,
+            "sessionId": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+            "forkedFromId": null,
+            "parentThreadId": null,
+            "preview": "",
+            "ephemeral": true,
+            "section": null,
+            "sectionEnteredAt": null,
+            "projectId": null,
+            "historyMode": "paginated",
+            "modelProvider": "openai",
+            "model": "gpt-6.1-terra",
+            "reasoningEffort": "medium",
+            "createdAt": 1794242534,
+            "updatedAt": 1794242534,
+            "recencyAt": 1794242534,
+            "status": {
+              "type": "idle"
+            },
+            "path": null,
+            "cwd": "[redacted]",
+            "cliVersion": "0.167.0",
+            "originator": "brooks-login-smoke",
+            "source": "vscode",
+            "canAcceptDirectInput": true,
+            "threadSource": null,
+            "agentNickname": null,
+            "agentRole": null,
+            "gitInfo": null,
+            "name": null,
+            "daybreakEnabled": null,
+            "turns": []
+          },
+          "model": "gpt-6.1-terra",
+          "modelProvider": "openai",
+          "serviceTier": null,
+          "disabledPluginIds": [],
+          "cwd": "[redacted]",
+          "runtimeWorkspaceRoots": [],
+          "instructionSources": [],
+          "approvalPolicy": "never",
+          "approvalsReviewer": "user",
+          "sandbox": {
+            "type": "readOnly",
+            "networkAccess": false
+          },
+          "activePermissionProfile": null,
+          "reasoningEffort": "medium",
+          "multiAgentMode": "explicitRequestOnly"
+        }
+      }
+    },
+    {
+      "method": "turn/start",
+      "response": {
+        "id": 4,
+        "result": {
+          "turn": {
+            "id": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+            "rootTurnId": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+            "items": [],
+            "itemsView": "notLoaded",
+            "status": "inProgress",
+            "error": null,
+            "startedAt": null,
+            "completedAt": null,
+            "durationMs": null
+          }
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "status": "completed",
+  "answer": "The supplied lifecycle satisfies the stated settlement contract with the provided `SlotPool`. The automatic `finally` block releases the lease on both child resolution and rejection; the caller does not need to invoke the returned hook.\n\nThe execution trace is:\n\n1. `execute` synchronously acquires the sole lease, making `active` equal to 1.\n2. The async function waits for `child`. While it remains pending, the lease remains active unless the caller invokes `release`.\n3. When the child resolves or rejects, `finally` calls `pool.release(lease)` before `response` settles. With the supplied pool, that removes the lease and restores capacity.\n4. On rejection, including an `AbortError`, the same error object propagates to `response` because the supplied `release` does not throw.\n\nThe relevant contrast is the returned `release` hook: if called before the child settles, it removes the lease immediately; the later `finally` call is harmless because `SlotPool.release` returns `false` for an already removed lease. If called after settlement, it is likewise harmless. Thus idempotence here depends on the supplied pool’s behavior.\n\nThis protection is bounded. A child that never settles retains the lease unless the hook is called; the contract only specifies release on resolution or rejection. The error-identity conclusion also assumes the supplied `SlotPool.release`: a different implementation that throws during cleanup could replace the child’s rejection. No defect or production outage is established by the supplied evidence.",
+  "usage": {
+    "total": {
+      "totalTokens": 9317,
+      "inputTokens": 8948,
+      "cachedInputTokens": 8832,
+      "cacheWriteInputTokens": 0,
+      "outputTokens": 369,
+      "reasoningOutputTokens": 59
+    },
+    "last": {
+      "totalTokens": 9317,
+      "inputTokens": 8948,
+      "cachedInputTokens": 8832,
+      "cacheWriteInputTokens": 0,
+      "outputTokens": 369,
+      "reasoningOutputTokens": 59
+    },
+    "modelContextWindow": 475000
+  },
+  "limitations": [
+    "One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.",
+    "ChatGPT usage and billing are not API dollar accounting.",
+    "Model selection is CLI metadata, not independent backend attestation.",
+    "Text smoke does not validate remote shell execution.",
+    "Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry."
+  ],
+  "timing": {
+    "clock": "monotonic",
+    "events": [
+      {
+        "kind": "phase",
+        "name": "spawn",
+        "elapsed_ms": 0
+      },
+      {
+        "kind": "rpc_request",
+        "name": "initialize",
+        "elapsed_ms": 2
+      },
+      {
+        "kind": "rpc_response",
+        "name": "initialize",
+        "elapsed_ms": 57
+      },
+      {
+        "kind": "rpc_request",
+        "name": "account/read",
+        "elapsed_ms": 57
+      },
+      {
+        "kind": "notification",
+        "name": "account/updated",
+        "elapsed_ms": 1281
+      },
+      {
+        "kind": "rpc_response",
+        "name": "account/read",
+        "elapsed_ms": 1281
+      },
+      {
+        "kind": "rpc_request",
+        "name": "thread/start",
+        "elapsed_ms": 1281
+      },
+      {
+        "kind": "rpc_response",
+        "name": "thread/start",
+        "elapsed_ms": 3752
+      },
+      {
+        "kind": "rpc_request",
+        "name": "turn/start",
+        "elapsed_ms": 3752
+      },
+      {
+        "kind": "notification",
+        "name": "thread/started",
+        "elapsed_ms": 3753
+      },
+      {
+        "kind": "notification",
+        "name": "warning",
+        "elapsed_ms": 3758
+      },
+      {
+        "kind": "rpc_response",
+        "name": "turn/start",
+        "elapsed_ms": 3758
+      },
+      {
+        "kind": "notification",
+        "name": "thread/status/changed",
+        "elapsed_ms": 3758
+      },
+      {
+        "kind": "notification",
+        "name": "turn/started",
+        "elapsed_ms": 3758
+      },
+      {
+        "kind": "notification",
+        "name": "item/started",
+        "elapsed_ms": 6665
+      },
+      {
+        "kind": "notification",
+        "name": "item/completed",
+        "elapsed_ms": 6665
+      },
+      {
+        "kind": "notification",
+        "name": "item/started",
+        "elapsed_ms": 8876
+      },
+      {
+        "kind": "notification",
+        "name": "item/completed",
+        "elapsed_ms": 8876
+      },
+      {
+        "kind": "notification",
+        "name": "item/started",
+        "elapsed_ms": 8876
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 8876
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 8877
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9059
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9059
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9059
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9060
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9060
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9274
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9365
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9365
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9365
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9365
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9368
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9368
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9368
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9368
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9368
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9368
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9368
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9529
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9529
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9529
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9529
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9529
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9529
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9529
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9636
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9853
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9959
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9960
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9960
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9960
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9960
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9960
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9960
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 9960
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10103
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10322
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10373
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10516
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10516
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10516
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10517
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10517
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10517
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10660
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 10848
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11020
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11020
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11020
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11020
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11021
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11210
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11371
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11371
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11371
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11371
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11371
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11371
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11440
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11440
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11560
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11560
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11560
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11561
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11757
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11757
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11757
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11757
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11757
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11757
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11757
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11924
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 11925
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12100
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12100
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12100
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12100
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12100
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12100
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12262
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12262
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12262
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12263
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12263
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12263
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12263
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12263
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12263
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12263
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12445
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12446
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12551
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12552
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12552
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12552
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12553
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12743
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12743
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12743
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12744
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12744
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12744
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12744
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12944
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12945
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12964
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12964
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12964
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12964
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12964
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12964
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 12964
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13164
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13164
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13165
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13361
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13361
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13361
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13361
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13361
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13361
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13507
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13508
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13508
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13508
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13724
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13725
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13725
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 13992
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14042
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14042
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14043
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14188
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14188
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14188
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14188
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14188
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14189
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14189
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14189
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14333
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "item/agentMessage/delta",
+        "elapsed_ms": 14334
+      },
+      {
+        "kind": "notification",
+        "name": "turn/moderationMetadata",
+        "elapsed_ms": 14398
+      },
+      {
+        "kind": "notification",
+        "name": "item/completed",
+        "elapsed_ms": 14514
+      },
+      {
+        "kind": "notification",
+        "name": "thread/tokenUsage/updated",
+        "elapsed_ms": 14515
+      },
+      {
+        "kind": "notification",
+        "name": "account/rateLimits/updated",
+        "elapsed_ms": 14515
+      },
+      {
+        "kind": "notification",
+        "name": "thread/status/changed",
+        "elapsed_ms": 14515
+      },
+      {
+        "kind": "notification",
+        "name": "turn/completed",
+        "elapsed_ms": 14515
+      },
+      {
+        "kind": "phase",
+        "name": "cleanup",
+        "elapsed_ms": 14516
+      }
+    ],
+    "last_phase": "cleanup",
+    "deadline_phase": null,
+    "completed_elapsed_ms": 14550
+  },
+  "initialize": {
+    "userAgent": "brooks-login-smoke/0.167.0 (Mac OS 27.2.0; arm64) unknown (brooks-login-smoke; 0.1)",
+    "codexHome": "/private[redacted]/codex",
+    "platformFamily": "unix",
+    "platformOs": "macos"
+  },
+  "cli_version": "0.167.0",
+  "cli_selected_effort": "medium",
+  "thread_id": "01a1c130-5157-7d11-a1d8-7b4ed6aaadd3",
+  "turn_id": "01a1c130-5b01-7472-8419-95d79bd1b73e",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "cleanup": {
+    "closed": true,
+    "group_absent": true,
+    "observations": [
+      {
+        "error": null,
+        "members": [
+          {
+            "pid": 29826,
+            "pgid": 29826,
+            "state": "?Es"
+          }
+        ]
+      },
+      {
+        "error": null,
+        "members": []
+      }
+    ],
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "delivered": true
+      }
+    ],
+    "private_home_removed": true
+  },
+  "completed_at": "2026-11-09T16:42:24.942Z"
+}

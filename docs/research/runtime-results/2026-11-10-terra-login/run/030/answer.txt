@@ -1,0 +1,22 @@
+**Warning: a rejected child leaves the lease active.** The contract requires `execute` to release its lease before the response settles on both resolution and rejection, including an `AbortError`.
+
+**Symptom:** When `child` rejects, the returned `response` rejects with the original error, but the lease remains held unless the caller invokes `release`.
+
+**Source:** In `HC-04/service.mjs`, `release()` follows `await child` on the success path. A rejection throws at the `await`, bypassing that call.
+
+**Consequence:** With the supplied one-slot `SlotPool` and no external cleanup owner, a subsequent acquisition throws `Error('capacity')`. This demonstrates a local capacity leak; the supplied evidence does not establish production exposure or an outage.
+
+**Remedy:** Put the await and return inside a `try` block and call `release()` in `finally`. With the supplied `SlotPool`, release does not throw, so the response retains the child’s original rejection identity while cleanup occurs before settlement.
+
+The execution trace, using the supplied deterministic controls, is:
+
+| Step | Rejected child | Resolved child |
+|---|---|---|
+| `execute` acquires | `started = 1`, `active = 1` | `started = 1`, `active = 1` |
+| Child settles | `await child` throws the original error | `await child` yields the value |
+| Before response settles | `release()` is skipped | `release()` removes the lease |
+| After response settles | `active = 1`, `released = 0`; another acquisition throws | `active = 0`, `released = 1`; another acquisition can succeed |
+
+An `AbortError` rejection follows the same rejection path. The returned hook can recover capacity if called, and repeated calls are harmless with the supplied pool because it removes a lease only once. That is bounded protection, but relying on the caller to invoke it violates the stated ownership contract.
+
+This is a static trace of the supplied code, not a test execution. The remedy’s error-identity guarantee assumes `pool.release` does not throw, as is true for the supplied control; behavior for other pool implementations is not specified.

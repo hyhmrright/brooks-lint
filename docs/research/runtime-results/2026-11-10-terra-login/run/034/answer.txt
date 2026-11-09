@@ -1,0 +1,17 @@
+**Finding — Warning: a rejected child leaves the lease active.**
+
+**Symptom:** In `HC-04/service.mjs`, `release()` runs only after `await child` resolves. If the child rejects, including with an `AbortError`, execution skips that call.
+
+**Source:** The cleanup is on the success path rather than in a `finally` block. The async function propagates the original rejection, but does not release the lease first.
+
+**Consequence:** With the supplied one-slot `SlotPool`, the rejected response leaves `active === 1` and `released === 0`. A subsequent `execute` using that pool throws `Error('capacity')` synchronously at acquisition. The caller can recover capacity by invoking the returned hook, but the contract says that must not be necessary. This establishes a defect in the supplied lifecycle, not a production outage.
+
+**Remedy:** Put the child await inside `try` and call `release()` in `finally`. With the supplied `SlotPool`, release does not throw, so the response will preserve the child’s original value or rejection identity after cleanup. If another pool implementation can throw during release, its error policy needs to be specified to ensure it cannot replace the original rejection.
+
+The execution traces provide the relevant contrast:
+
+- **Resolution:** acquire → `active = 1` → child resolves → release → `active = 0`, `released = 1` → response resolves with the child value.
+- **Rejection or cancellation:** acquire → `active = 1` → child rejects → `await` throws past `release()` → response rejects with the same error object while `active = 1`, `released = 0`.
+- **Explicit teardown:** calling the returned hook removes the lease; repeated calls do not increment `released` again because `SlotPool.release` deletes only an existing lease. This is bounded idempotent protection, but it depends on the caller invoking the hook.
+
+These are traces inferred from the supplied code and controls; no tests were run or inspected. The evidence does not establish behavior for a different pool or external cleanup mechanism.

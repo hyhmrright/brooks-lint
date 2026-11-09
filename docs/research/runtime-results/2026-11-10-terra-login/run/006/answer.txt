@@ -1,0 +1,14 @@
+The lifecycle violates the cancellation contract when the signal aborts while `launch` is awaiting the preparation gate.
+
+With a standard `AbortSignal`, an initially open slot, and a deferred gate:
+
+1. `launch` checks `signal.aborted`, sees `false`, and awaits the gate.
+2. The caller aborts the signal before resolving the gate. No abort listener has been registered yet.
+3. The caller resolves the gate. `launch` resumes, acquires a slot, creates a pending operation, and registers an abort listener.
+4. The earlier abort event is not replayed to that listener. `launch` returns a pending operation with `pool.started === 1` and `pool.active === 1`, despite the contract requiring no acquisition or work start after that abort.
+
+**Symptom → Source → Consequence → Remedy:** A cancelled request starts work after preparation because the only pre-acquisition abort check occurs before the `await`. The acquired slot remains active until something calls `complete()`; that call marks the operation `ok` and releases the slot, rather than reporting the earlier cancellation. Recheck `signal.aborted` immediately after the gate resolves and return the cancelled result before acquiring a slot. With ordinary single-threaded JavaScript execution and the supplied synchronous `SlotPool.acquire()`, no asynchronous turn intervenes between that check and acquisition.
+
+The supplied code does provide bounded protection in other cases. A pre-aborted signal returns before awaiting the gate or acquiring a slot. If the signal aborts after the listener is registered while the operation is pending, `finish('cancelled')` releases the lease and removes the listener. An uncancelled operation can call `complete()` to release its lease normally; the pending-status guard prevents a second release.
+
+This assessment assumes standard `AbortSignal` event behavior and a gate that resolves. The contract does not specify how a rejected gate should be handled, and the supplied evidence does not establish any production impact.

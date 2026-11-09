@@ -1,0 +1,13 @@
+The supplied contract does not establish a lifecycle defect: it leaves ownership and timing of release after rejection unspecified. The code does retain the lease locally after a child rejection until something calls the exposed `release` hook.
+
+The execution trace with the supplied `SlotPool` and a pending `deferred()` child is:
+
+1. `execute` synchronously acquires a lease. The pool has `active = 1`, `started = 1`, and `released = 0`. It returns `response` and `release` while the child is pending.
+2. If the child **rejects**, `await child` throws before the automatic `release()` call. `response` rejects with that reason; the pool remains at `active = 1`, `released = 0` unless the caller releases it. With the default capacity of one, another acquisition in that interval throws `capacity`.
+3. If the caller then invokes the returned `release`, the control removes the lease: `active = 0`, `released = 1`. A later acquisition can succeed.
+
+The success path is the relevant contrast: if the child resolves, execution reaches `release()` before `response` fulfills with the child’s value. Explicit release while the child is pending also frees the control’s slot; if the child subsequently succeeds, the automatic release calls the pool again. `SlotPool` makes that second call harmless because deleting an absent lease returns false and does not increment `released`. The service itself does not guarantee that arbitrary pools handle repeated releases harmlessly.
+
+The missing context is **who owns rejection cleanup and when it must happen**. If `execute` must release on every settlement, its success-only release is the source of a defect, and cleanup around the await would be appropriate. If the outer scope owns failure cleanup, calling the exposed hook may satisfy the intended lifecycle. The outer scope and its timing are unavailable, so neither a contract violation nor a permanent leak is established.
+
+This is a reasoning trace from the supplied code and controls; no execution or tests were performed.

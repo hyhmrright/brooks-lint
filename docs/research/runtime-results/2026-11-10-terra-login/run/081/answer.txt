@@ -1,0 +1,23 @@
+The registry can lose the map entry for a live replacement when an older handle completes. The resulting admission behavior is established locally; whether it violates an exclusion or capacity contract is **undetermined**, because the supplied context does not say what role the map has beyond the stated `start` rule.
+
+**Execution trace** for one key, `k`:
+
+| Operation | Map entry for `k` | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | `a` | 1 | 1 |
+| `b = replace(k)` | `b` | 1 | 2 |
+| `a.complete()` | absent | 0 | 1 |
+| `c = start(k)` | `c` | 1 | 2 |
+
+At the third step, `b` is still live, but `a.complete()` deletes `k` without checking which entry the map currently holds. The fourth step therefore succeeds: `start` correctly follows its stated map-absence rule, even though `b` remains active.
+
+**Symptom → Source → Consequence → Remedy**
+
+- **Symptom:** Completion of an older handle removes the replacement’s map entry.
+- **Source:** Each handle’s `complete()` unconditionally calls `entries.delete(key)`; it does not verify that `entries.get(key) === entry`.
+- **Consequence:** `reserved` can omit a live replacement, and a subsequent `start(k)` can create another live handle. If the map is intended to reserve a key while its current handle is live, that reservation is lost early. If omissions are permitted because the map is diagnostic, the supplied contract does not establish that this is a defect. No external admission or capacity failure is established.
+- **Remedy:** First establish the map’s intended invariant. If it must retain the current replacement until that handle completes, delete the key only when the map still points to the completing entry. If admission must instead exclude *all* live handles for a key, an identity check alone is insufficient: track live handles per key or use an authoritative exclusion mechanism with that invariant.
+
+The contrast controls bound the observation. Calling the same handle’s `complete()` again is a no-op because of its `done` guard; completing the current mapped handle normally removes its own entry. `live.delete(entry)` also removes only that handle, so the old completion leaves `b` counted as active. Separately, the supplied `SlotPool` rejects acquisition at capacity and releases only the supplied lease once, but the registry does not use it in the supplied code. `deferred()` can control ordering in a test; it provides no admission protection itself.
+
+This is a source-level trace of the supplied files, not an executed test or an assessment of omitted callers and controls.

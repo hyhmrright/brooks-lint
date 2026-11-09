@@ -1,0 +1,25 @@
+I’ll use the supplied runtime research guidance to trace reservation ownership and completion, including the shared controls as contrasts.
+**Runtime Research (revision 2) — Warning: an older completion removes the replacement’s reservation**
+
+The supplied contract makes the registry the admission authority: a replacement remains reserved until that replacement completes, even if its predecessor finishes first. The implementation violates that contract.
+
+**Execution trace**, for a single key `k`, derived from the supplied code:
+
+| Operation | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Admits A | 1 | 1 |
+| `b = replace(k)` | B becomes current; A remains live | 1 | 2 |
+| `a.complete()` | Removes A from `live`, but also deletes B’s map entry | 0 | 1 |
+| `c = start(k)` | Admits C while B is still pending | 1 | 2 |
+
+**Symptom:** After A is superseded, its first `complete()` deletes the reservation for B. A subsequent `start(k)` succeeds before B completes.
+
+**Source:** In `makeRegistry`, every entry’s completion calls `entries.delete(key)` without checking whether `entries.get(key)` is still that entry. The deletion is keyed by the shared key rather than by the completing generation.
+
+**Consequence:** The registry admits another current generation while the replacement is pending, contrary to its stated admission rule. This is a bounded, demonstrated behavior defect; the supplied evidence does not establish production exposure or an outage. Completion of B after C is admitted can likewise delete C’s reservation.
+
+**Remedy:** In `complete()`, retain the per-entry `done` and `live` cleanup, but delete the map entry only when `entries.get(key) === entry`. Verify the predecessor-completes-first sequence and that admission remains rejected until the current replacement completes.
+
+The existing controls have limited scope. `start(k)` rejects while a map entry exists, and `done` makes repeated completion of the *same* handle a no-op; neither prevents its first stale completion from deleting a newer entry. In the contrasting order where B completes before A, B correctly releases its own reservation, but A can still delete any generation admitted afterward. The shared `SlotPool` instead releases by unique lease identity, so releasing an old lease cannot release a different lease; it is a contrast in ownership, not a control used by this registry. `deferred()` supplies promise settlement control but is not used by the service.
+
+This trace assumes calls occur in the stated order and handles are completed through their supplied methods. It is a code-derived trace, not an executed test or production observation; callers, workload and any external safeguards were not supplied.

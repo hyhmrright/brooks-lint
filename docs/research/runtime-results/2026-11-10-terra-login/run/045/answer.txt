@@ -1,0 +1,12 @@
+The supplied `SlotPool` and `execute` implementation satisfy the stated lifecycle contract for a child that settles. The protection is bounded by the pool’s release behavior and by the child actually settling.
+
+**Execution trace**
+
+1. `execute` synchronously acquires the only lease. While the child is pending, the pool has one active lease, so another acquisition throws `Error('capacity')`.
+2. If the child resolves, `await child` obtains its value, then the `finally` block releases the lease before `response` resolves with that value.
+3. If the child rejects, including with an `AbortError`, the `finally` block releases the lease before `response` rejects with the **same error object**. No caller invocation of `release` is needed.
+4. The returned `release` hook can be called before or after settlement. With the supplied pool, deleting the same lease again has no effect: `released` increases only once. Calling it early frees capacity while the child is still pending; the contract describes the hook as teardown and does not prohibit that timing.
+
+The contrast is a child that **never settles**: neither resolution nor rejection reaches `finally`, so the lease remains active unless the caller invokes the hook. The contract promises cleanup on settlement; it does not specify a deadline for a permanently pending child.
+
+This conclusion assumes the supplied `SlotPool` is the pool used: its `release` is synchronous and does not throw. With an unspecified pool whose `release` throws, that exception could replace the child’s result or rejection, including its original error identity. The supplied evidence does not establish that such a pool is supported. These are code-based traces; no runtime execution is claimed.

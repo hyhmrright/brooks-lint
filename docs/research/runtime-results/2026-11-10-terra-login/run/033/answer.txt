@@ -1,0 +1,22 @@
+The lifecycle violates the rejection part of the contract: **a rejected child leaves the lease active after `response` rejects**. This includes cancellation represented by an `AbortError`.
+
+**Execution trace and controls**
+
+- `execute` acquires the pool’s only lease synchronously and returns `response` and `release`.
+- If the child resolves, `await child` produces its value, `release()` runs, and then `response` resolves with that value. This path releases the lease before settlement.
+- If the child rejects with error `err`, `await child` throws `err`. Execution skips `release()`, and `response` rejects with the same error object. With the supplied `SlotPool`, `active` remains 1; a subsequent acquisition throws `capacity`.
+- Calling the returned `release` hook would free the lease, and repeated calls are harmless because `SlotPool.release` deletes the lease only once. That is a bounded recovery mechanism, but the contract says the caller must not need it.
+
+**Symptom → Source → Consequence → Remedy:** A rejected or cancelled operation retains capacity → cleanup is placed only after a successful `await` → in the stated one-slot pool, later acquisition fails until someone invokes the hook; there is no specified timer or external cleanup owner → put the release in a `finally` around the await, so it runs before either settlement:
+
+```js
+const response = (async () => {
+  try {
+    return await child;
+  } finally {
+    release();
+  }
+})();
+```
+
+With the supplied `SlotPool`, release does not throw, so this also preserves the original rejection identity. If a different pool’s `release` can throw, its error behavior would need a separate contract: a throw in `finally` could replace the child’s error.

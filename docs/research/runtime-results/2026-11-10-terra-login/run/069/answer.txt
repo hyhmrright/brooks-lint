@@ -1,0 +1,19 @@
+The registry protects the replacement reservation from an older handle’s completion, under the assumption that callers use the returned handles as intended and do not mutate their public fields or methods.
+
+For a key `k`, the execution trace is:
+
+| Step | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Admits `a` as the current generation. | 1 | 1 |
+| `start(k)` | Returns `null` because `k` is reserved. | 1 | 1 |
+| `b = replace(k)` | Makes `b` current; `a` remains live. | 1 | 2 |
+| `a.complete()` | Removes `a` from `live`. The identity check sees that `b` is current, so it preserves the reservation. | 1 | 1 |
+| `start(k)` | Still returns `null`. | 1 | 1 |
+| `b.complete()` | Removes `b` from `live` and deletes its current reservation. | 0 | 0 |
+| `start(k)` | Admits a new generation. | 1 | 1 |
+
+The protection comes from `entries.get(key) === entry`: completion deletes the reservation only when the completing object is still the current entry. The `done` guard also makes repeated completion of an unmodified handle a no-op. If the replacement completes before the older handle, its reservation is released; the older handle can remain active until it completes.
+
+This is a bounded guarantee about **current admission**, not a limit of one live handle per key. `replace` deliberately allows the superseded handle and replacement to coexist, as reflected by `active` reaching two. The supplied `SlotPool` is a useful contrast: it enforces a capacity on active leases and releases by lease identity. It is not used by the registry, and the supplied `deferred` control has no role in this lifecycle.
+
+The handles expose mutable `done` and `complete` properties, so the trace assumes callers do not overwrite them. The supplied contract does not say whether protection against such mutation is required. No causal defect is established for the stated lifecycle under that assumption.

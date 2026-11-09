@@ -1,0 +1,24 @@
+**Runtime Research (revision 2)**
+
+The registry violates its replacement contract: completion of a superseded handle can remove the current generation’s reservation, allowing another `start` while that generation is still pending.
+
+**Warning — Older completion removes a replacement reservation**
+
+**Symptom:** For one key `k`, the following trace follows directly from `makeRegistry` in `HC-07/service.mjs`:
+
+| Operation | Current reservation | `reserved` | `active` | Result |
+|---|---|---:|---:|---|
+| `a = start(k)` | `a` | 1 | 1 | Admitted |
+| `replace(k)` returns `b` | `b` | 1 | 2 | `a` remains live |
+| `a.complete()` | None | 0 | 1 | Removes `b`’s reservation |
+| `c = start(k)` | `c` | 1 | 2 | Admitted while `b` is pending |
+
+**Source:** Each `complete()` removes its own entry from `live`, but calls `entries.delete(key)` without checking whether `entries.get(key)` is still that entry. After replacement, the map associates `k` with `b`, so `a` deletes `b`’s reservation.
+
+**Consequence:** The registry admits `c` despite the contract requiring rejection until `b` completes. The same problem can recur when `b` completes and deletes `c`’s reservation. This establishes a local admission defect; the supplied evidence does not establish production exposure or an outage.
+
+**Remedy:** In `complete()`, retain the per-entry `done` and `live` cleanup, but delete the map entry only if `entries.get(key) === entry`. Verify the replacement trace and that completing the current generation releases its reservation.
+
+The controls show the boundary of the existing protection. Without replacement, `start(k)` rejects while the map contains `k`, and the current handle’s completion releases it. The `done` guard makes repeated completion of the *same* handle a no-op, but does not protect a replacement from the older handle’s first completion. By contrast, the supplied `SlotPool.release(lease)` removes the specific lease identity, so releasing one lease does not remove another. The service does not use that pool.
+
+This is a code-derived trace, not a reported execution. It assumes sequential calls using the same key and that callers do not mutate the exposed `done` property. Callers, actual workload, and any separate admission controls are not supplied; none is needed to establish the registry’s contract violation.

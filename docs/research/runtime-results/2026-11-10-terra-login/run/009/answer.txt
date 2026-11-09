@@ -1,0 +1,20 @@
+**Finding — cancellation during preparation can admit work (Warning)**
+
+**Symptom:** With a fresh `AbortController`, an unresolved `deferred().promise` as the gate, and a capacity-one `SlotPool`, the supplied code implies this execution trace:
+
+1. Call `launch`. The initial `signal.aborted` check is false, so it suspends at `await gate`.
+2. Abort the signal while the gate is still unresolved.
+3. Resolve the gate. `launch` resumes and calls `pool.acquire()`, then creates a pending operation and registers the abort listener.
+4. The earlier abort event is not replayed to that listener. The returned operation remains `pending`; the pool has `started = 1`, `released = 0`, and `active = 1`.
+
+This is a trace derived from the supplied code, not a reported test execution.
+
+**Source:** `launch` checks cancellation only before the `await` and subscribes only after acquiring the slot. It does not recheck `signal.aborted` when preparation resumes.
+
+**Consequence:** This violates the explicit requirement that an abort during the gate prevent slot acquisition and work start. In the trace, the cancelled request occupies the sole slot until its returned operation is completed; another acquisition in the meantime throws `capacity`. The supplied evidence establishes a bounded synthetic lifecycle defect, not a production outage.
+
+**Remedy:** In `launch`, recheck `signal.aborted` immediately after `await gate` and return the cancelled operation before acquiring a slot. Preserve the running-operation listener and cleanup. Verify the gate-abort ordering with the supplied deferred gate and finite pool, including the pool counters and returned status.
+
+The contrast controls are narrower but work as written under ordinary `AbortSignal` behavior: a **pre-aborted** signal returns cancelled before awaiting or acquiring; an **uncancelled** request can acquire and `complete()` changes its status to `ok` and releases the slot; an abort **after listener registration** changes a pending operation to `cancelled` and releases the slot. The pending-status guard prevents subsequent completion from releasing it again.
+
+This assessment assumes a standard `AbortSignal`, a normally resolved gate, and a pool with available capacity at admission. Gate rejection and other caller behavior are outside the supplied contract and evidence.

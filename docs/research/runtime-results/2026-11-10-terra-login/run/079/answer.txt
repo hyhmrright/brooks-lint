@@ -1,0 +1,23 @@
+I’ll use the supplied runtime-research guidance to trace the registry’s lifecycle and distinguish the observed map behavior from the missing admission contract.
+**Runtime Research (revision 2): the registry can lose the current handle’s map entry when an older handle completes.** Whether that is a contract defect depends on the map’s intended role, which the supplied context explicitly leaves open.
+
+The following trace follows `makeRegistry()` in `HC-09/service.mjs`; counts are `(reserved, active)`:
+
+| Step | Result | Counts |
+|---|---|---|
+| `a = start("k")` | Map points to `a`; `a` is live. | `(1, 1)` |
+| `b = replace("k")` | Map now points to `b`; both handles are live. | `(1, 2)` |
+| `a.complete()` | Removes `a` from `live`, then unconditionally deletes `"k"` from the map, including its mapping to `b`. | `(0, 1)` |
+| `c = start("k")` | Succeeds because the map lacks `"k"`; `b` and `c` are live. | `(1, 2)` |
+
+**Symptom:** Completion of the older handle removes the newer handle’s map entry. A later `start("k")` is admitted while the replacement remains live.
+
+**Source:** Each handle’s `complete()` closes over the key and calls `entries.delete(key)` without checking which handle the map currently contains. The `done` guard makes repeated completion of the *same* handle a no-op, but does not prevent its first completion from deleting a replacement’s entry.
+
+**Consequence:** The observable `reserved` count can omit a live replacement, and `start` can admit another handle for its key. If the map is an authoritative reservation that must continue to represent the current handle, this is a local admission defect. If it is a diagnostic index whose omissions are permitted, the supplied contract does not establish that the omission is a defect. No external admission or capacity outcome is established.
+
+**Remedy, conditional on the contract:** If the map must preserve the current replacement, delete the key only when `entries.get(key) === entry`. If admission instead must exclude starts while *any* handle for a key remains live, define that stronger rule and track live handles per key; an identity check alone would not enforce it after the current handle completes while an older one remains live.
+
+The contrasts bound the result. Without replacement, completing `a` removes its own map entry and permits a later start. Repeating `a.complete()` after its first completion has no further effect. The supplied `SlotPool` independently uses lease identity and releases a lease only once, but nothing in the supplied service connects it to the registry, so it cannot be assumed to protect this admission path. `deferred()` provides scheduling control, not admission protection.
+
+The smallest missing context is the caller’s rule for what the map must represent and how admission or capacity is enforced outside this registry. The trace is derived from the supplied code; no execution or production behavior was observed.

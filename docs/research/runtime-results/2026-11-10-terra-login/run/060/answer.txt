@@ -1,0 +1,14 @@
+The registry violates the contract when a superseded handle completes after its replacement has been created. The older handle deletes the reservation by key without checking which generation currently owns it.
+
+For a key `k`, the execution trace is:
+
+1. `a = start(k)` creates the first generation: `reserved = 1`, `active = 1`.
+2. `b = replace(k)` tracks `b` as current while `a` remains live: `reserved = 1`, `active = 2`.
+3. `a.complete()` marks `a` done and removes it from `live`, but also calls `entries.delete(k)`. That removes `b`’s reservation: `reserved = 0`, `active = 1`.
+4. `c = start(k)` now succeeds even though `b` is pending: `reserved = 1`, `active = 2`.
+
+**Symptom → Source → Consequence → Remedy:** A further start is admitted while the replacement is pending → completion deletes the key unconditionally → two non-superseded generations can be active for the same key, contrary to the admission contract → delete the reservation only if `entries.get(key) === entry`. The completing handle should still be removed from `live` and marked done.
+
+The controls bound this finding. The `done` guard makes repeated completion of the *same* handle a no-op, but does not protect a replacement on the first completion. The separate `live` set correctly retains the replacement after the older handle completes; it does not govern admission. In contrast, the shared `SlotPool.release` removes the specific lease supplied to it, illustrating ownership-specific release. The `deferred` control supplies promise resolution mechanics but is not used by this registry.
+
+This trace assumes calls occur in the stated order and the replacement has not completed before the older handle. No production outage, concurrency mechanism, or caller behavior beyond those calls is established by the supplied evidence.

@@ -1,0 +1,19 @@
+**Runtime Research (revision 2)**
+
+The supplied lifecycle protects the stated admission boundary: an abort while the preparation gate is pending prevents slot acquisition after the gate opens. It also releases the slot when an admitted operation is cancelled. This is a bounded assessment of the supplied single-process lifecycle, not a claim of universal safety.
+
+**Execution trace — abort during preparation**
+
+1. With a fresh `AbortController`, a pending `deferred().promise` gate, and a capacity-one `SlotPool`, call `launch`. The first `signal.aborted` check is false, so execution suspends at `await gate`.
+2. Abort the signal, then resolve the gate. When `launch` resumes, the second check sees `signal.aborted` and returns a cancelled operation.
+3. `pool.acquire()` is never called: `started = 0`, `active = 0`, and `released = 0`. No work is admitted.
+
+**Contrast controls**
+
+- **Pre-aborted:** the first check returns cancelled before waiting on the gate; all pool counters remain zero.
+- **Normal completion:** resolve the gate without aborting. `acquire()` produces one pending operation (`started = 1`, `active = 1`). Calling `complete()` sets its status to `ok`, releases the lease, and removes the abort listener (`released = 1`, `active = 0`).
+- **Abort while running:** after admission, abort invokes `cancel()`, which sets status to `cancelled`, releases the lease and removes the listener. A later `complete()` is a no-op because the operation is no longer pending, so the lease is released only once.
+
+These are traces inferred from the supplied code; they are not reported test runs. They assume a standard `AbortSignal`, the supplied synchronous `SlotPool`, and a gate that fulfills. Under those assumptions, there is no asynchronous yield between the second abort check, acquisition, and listener registration.
+
+One boundary remains unspecified: aborting while the gate is pending does **not** make `launch` settle until the gate settles. The stated contract requires preventing acquisition after the gate opens, but does not specify prompt cancellation response. Likewise, the expected result if the gate rejects is not supplied; the rejection propagates before any slot is acquired. Neither behavior supports a contract-defect finding without those additional requirements.

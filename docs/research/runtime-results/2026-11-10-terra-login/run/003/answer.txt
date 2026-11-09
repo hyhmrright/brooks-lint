@@ -1,0 +1,27 @@
+I’ll use the supplied runtime research guidance to trace cancellation across the preparation gate and compare it with the pre-aborted and running cases.
+**Runtime Research (revision 2)**
+
+**Finding — cancellation during preparation admits work (Warning)**
+
+**Symptom:** With a standard `AbortSignal`, an abort while `launch` is awaiting the preparation gate can be missed. The function then returns a `pending` operation and holds a slot, although the contract says that abort must prevent acquisition and work start.
+
+**Source:** In `HC-01/service.mjs`, `launch` checks `signal.aborted` only before `await gate`. It acquires a lease and registers the abort listener after the gate resolves, without checking the signal again. Adding a listener to an already aborted signal does not replay the abort event.
+
+**Consequence:** In the supplied single-process lifecycle, a cancelled request can increment `SlotPool.started` and occupy its finite capacity until `complete()` is called. With capacity one, another acquisition while that lease remains active throws `Error('capacity')`. This establishes a contract violation and bounded capacity contention, not a production outage or a permanent leak: `complete()` can still release the lease.
+
+**Remedy:** In `launch`, check `signal.aborted` immediately after `await gate` and return the cancelled result before acquiring a slot. Preserve the running-operation listener and its cleanup, and verify the gate-abort sequence alongside the contrast cases below.
+
+The decisive execution trace, using the supplied `deferred()` as an actual awaited gate and a fresh capacity-one `SlotPool`, is:
+
+1. Call `launch` with an initially un-aborted signal and the unresolved gate promise. It passes the first check and suspends at `await gate`; the pool has `started = 0`, `active = 0`.
+2. Abort the signal while the gate is unresolved. No listener has been registered by `launch`.
+3. Resolve the gate and await `launch`. It acquires a lease and installs a listener too late for that abort. The returned operation is `pending`; the pool has `started = 1`, `active = 1`, `released = 0`.
+4. If the caller invokes `complete()`, the operation becomes `ok` and the pool becomes `active = 0`, `released = 1`. Without completion, the supplied lifecycle has no further event that releases this lease.
+
+The contrasting paths show the limits of the existing protection:
+
+- **Pre-aborted:** the initial guard returns `cancelled` without awaiting the gate or acquiring a slot.
+- **Admitted, then aborted:** after the gate opens and `launch` returns, abort invokes `cancel()`, sets the operation to `cancelled`, releases its lease, and removes the listener. A later `complete()` has no effect because `finish` guards against a second transition.
+- **Admitted, then completed:** `complete()` sets `ok`, releases the lease, and removes the listener.
+
+These are traces derived from the supplied code, not results of an executed reproducer. They assume a standard `AbortController`/`AbortSignal`, a successfully resolved gate, and an available slot at acquisition. The supplied evidence does not establish callers’ cleanup behavior, production exposure, deadlines, retries, or behavior when the gate rejects.

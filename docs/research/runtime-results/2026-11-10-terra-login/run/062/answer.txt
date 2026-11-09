@@ -1,0 +1,14 @@
+The registry violates the replacement contract: **an older handle can remove the reservation belonging to its replacement**, allowing another `start` while the replacement is still pending.
+
+For one key, the execution trace is:
+
+1. `a = start(key)` creates the current entry: `reserved = 1`, `active = 1`.
+2. `b = replace(key)` overwrites the map entry with `b`, while `a` remains live: `reserved = 1`, `active = 2`.
+3. `a.complete()` marks `a` done and removes it from `live`, but also calls `entries.delete(key)` unconditionally. That deletes **`b`’s** reservation: `reserved = 0`, `active = 1`.
+4. `c = start(key)` now succeeds even though `b` is pending: `reserved = 1`, `active = 2`.
+
+**Symptom → Source → Consequence → Remedy:** A subsequent start is admitted too early because completion deletes by key without checking which generation the map currently holds. The registry can therefore have both the pending replacement and a newly admitted handle for the same key, contrary to the stated admission contract. On completion, delete the reservation only if `entries.get(key) === entry`; still remove the completing entry from `live`.
+
+The existing `done` flag provides a narrower protection: repeated completion of the *same* handle is a no-op. It does not protect a replacement from the first completion of its predecessor. As a contrast, the shared `SlotPool` releases the specific lease supplied to it and counts a release only when that lease was present. The supplied `deferred` control has no role in this synchronous registry trace.
+
+This finding assumes the contract permits `replace` followed by completion of the superseded handle, as stated. The files establish the incorrect admission state; they do not establish a production outage or describe what work the handles perform.

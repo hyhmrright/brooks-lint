@@ -1,0 +1,23 @@
+I’ll use the supplied runtime research guidance to trace replacement and completion, then assess what the controls establish about admission.
+**Runtime Research (revision 2): the local behavior is clear, but whether it violates the contract depends on what the map is meant to guarantee.** An older handle can remove a newer handle’s map entry while the newer handle remains live.
+
+The following trace is derived from the supplied code; it was not executed. Counts are `(reserved, active)`:
+
+| Operation | Result | Counts |
+|---|---|---|
+| `a = start("k")` | Map points to `a`; `a` is live. | `(1, 1)` |
+| `b = replace("k")` | Map now points to `b`; both handles are live. | `(1, 2)` |
+| `a.complete()` | Removes `a` from `live`, then deletes `"k"` from the map, even though it points to `b`. | `(0, 1)` |
+| `c = start("k")` | Succeeds because the map lacks `"k"`; `b` and `c` are live. | `(1, 2)` |
+
+**Symptom:** Completion of `a` removes the current entry for `b`.
+
+**Source:** In `HC-09/service.mjs`, `complete()` unconditionally calls `entries.delete(key)`; it does not check whether the map still points to that handle.
+
+**Consequence:** The registry locally permits another `start("k")` while `b` remains live. If the map is an authoritative reservation that must block starts until the current handle completes, this is a defect. If it is a diagnostic index permitted to omit live handles, the supplied contract does not establish a violation. External admission protection and any capacity guarantee are also unknown.
+
+**Remedy:** If the intended rule is that an older completion must preserve the current entry, delete the map entry only when `entries.get(key) === entry`. Confirm the intended admission rule first: that identity check preserves the current mapping, but does not by itself define exclusion for every live handle.
+
+The contrast controls are bounded. Completing the current handle without replacement removes its own map entry and permits a later start. Repeating `a.complete()` is harmless because `done` prevents a second deletion; it does not prevent the first stale deletion. The supplied `SlotPool` independently limits leases to its configured capacity and releases a lease by identity, but the registry does not use it in the supplied code, so it cannot be credited as protection for this lifecycle. `deferred()` only provides manually controlled promise settlement; no integration with the registry is shown.
+
+The smallest missing artifact is the caller’s admission contract: whether the map must retain the current handle as an exclusion reservation, or may omit it as a diagnostic index. A caller or integration showing any separate admission control would also determine the practical consequence. No production exposure or outage is established.

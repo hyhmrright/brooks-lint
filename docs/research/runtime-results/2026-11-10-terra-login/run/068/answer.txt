@@ -1,0 +1,19 @@
+The registry provides the stated **generation protection** for ordinary use of the returned handles. An older completion removes that handle from `live`, but the identity check prevents it from deleting a replacement’s reservation.
+
+A trace for one key, `k`, illustrates the boundary:
+
+| Operation | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Admits `a` | 1 | 1 |
+| `start(k)` | Returns `null` | 1 | 1 |
+| `b = replace(k)` | Tracks `b`; `a` remains live | 1 | 2 |
+| `a.complete()` | Removes `a` from `live`; leaves `b` reserved because `entries.get(k) !== a` | 1 | 1 |
+| `start(k)` | Returns `null` | 1 | 1 |
+| `b.complete()` | Removes `b` from `live` and its reservation | 0 | 0 |
+| `start(k)` | Admits a new generation | 1 | 1 |
+
+The reverse completion order is also informative: if `b` completes first, it releases the current reservation even though `a` remains live. A subsequent `start(k)` can then succeed. That is consistent with the supplied contract, which permits a superseded handle to finish later and limits the rule to one **current** generation per key. Repeated `complete()` calls have no further effect because of the `done` guard.
+
+This conclusion assumes callers use `complete()` normally and do not directly mutate the returned handle’s public `done` property. The contract does not specify whether such mutation must be resisted. It also does not establish that superseded work stops: `active` can exceed `reserved`, and the registry has no cancellation or resource-pool integration.
+
+The supplied `deferred` and `SlotPool` controls are separate utilities; the service does not use them. `SlotPool` independently enforces capacity and releases a lease at most once, but it does not demonstrate that registry generations acquire or release real resources. No execution or tests were performed; the trace follows from the supplied code.

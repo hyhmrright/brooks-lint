@@ -1,0 +1,19 @@
+The lifecycle violates the preparation-cancellation contract: if the signal aborts while `launch` is awaiting the gate, the function can still acquire a slot and return a pending operation after the gate opens.
+
+**Execution trace with the supplied controls:**
+
+1. Create a deferred gate and a `SlotPool` with capacity 1. Call `launch` with a signal that is not yet aborted and the deferred promise as `gate`.
+2. `launch` passes its initial `signal.aborted` check and pauses at `await gate`.
+3. Abort the signal while the gate remains unresolved. No abort listener has been registered yet.
+4. Resolve the gate. `launch` resumes, acquires a lease, creates a pending operation, and registers an abort listener. An abort event that has already occurred is not replayed to that listener.
+5. The returned operation remains `pending`, with `pool.started === 1` and `pool.active === 1`, until its `complete()` method is called. That call changes its status to `ok` and releases the lease.
+
+The **symptom** is work admission after cancellation during preparation. The **source** is the gap between the initial abort check and the listener registration after the `await`. The **consequence** in this finite pool is that the cancelled request occupies its slot until explicitly completed; another acquisition at capacity would throw. This trace does not establish a production outage or an indefinite leak in every use.
+
+The contrast controls bound the finding:
+
+- A signal already aborted at entry returns `cancelled` without acquiring a slot.
+- If the gate opens without cancellation, the operation can complete normally and release its lease.
+- If cancellation occurs after the operation has been returned, its listener calls `finish('cancelled')`, which releases the lease and removes the listener. The status guard prevents a later `complete()` from releasing it again.
+
+A remedy is to check `signal.aborted` again immediately after `await gate` and return a cancelled result before acquiring a lease. With a standard `AbortSignal` and the supplied synchronous pool, there is no asynchronous yield between that check and listener registration. This assessment assumes the gate fulfills; the contract does not specify how a rejected gate should be handled.

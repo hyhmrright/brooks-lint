@@ -1,0 +1,25 @@
+I’ll apply the supplied runtime-research guidance to trace cancellation across the preparation gate and compare it with the pre-aborted and running cases.
+**Runtime Research (revision 2): Warning — cancellation during preparation is missed**
+
+**Symptom:** In `HC-01/service.mjs`, `launch` checks `signal.aborted` before awaiting the gate, but does not check it again afterward. An abort during that wait can therefore be followed by slot acquisition and a pending operation, contrary to the supplied contract.
+
+**Source:** The abort listener is registered only after `await gate` and `pool.acquire()`. Assuming a standard `AbortSignal`, adding a listener after the abort event does not replay that event.
+
+**Consequence:** With a capacity-one `SlotPool`, the cancelled request occupies the slot until its returned operation is explicitly completed. A competing acquisition during that interval throws `capacity`. This is a bounded synthetic defect; the evidence does not establish a production outage or how often it occurs.
+
+**Remedy:** In `launch`, check `signal.aborted` immediately after the gate resolves and return the cancelled result before acquiring a slot. Retain the running-operation listener and cleanup. Verify the gate-abort case alongside the pre-aborted, normal-completion, and running-abort cases.
+
+The decisive execution trace, derived from the supplied code rather than an executed test, is:
+
+1. Create a deferred gate, a capacity-one pool, and a non-aborted signal. Call `launch` with `gate.promise`; it passes the initial check and suspends at `await gate`.
+2. Abort the signal while the gate is unresolved. No listener is registered yet.
+3. Resolve the gate. The continuation acquires a slot, creates a `pending` operation, and registers a listener too late to observe the earlier abort.
+4. The returned operation remains `pending`; `pool.started` and `pool.active` are both 1. Calling `complete()` subsequently changes its status to `ok` and releases the slot.
+
+The contrast controls are narrower but effective in their stated schedules:
+
+- A signal already aborted at entry returns `cancelled` without awaiting the gate or acquiring a slot.
+- If the gate opens without cancellation, `complete()` changes the pending operation to `ok`, releases its slot, and removes the listener.
+- If abort occurs after the operation has registered its listener, `cancel()` changes its status to `cancelled`, releases the slot, and removes the listener. The pending-status guard prevents a later `complete()` from releasing it again.
+
+This assessment assumes standard single-process JavaScript event-loop and `AbortSignal` behavior, and a gate that resolves. Gate rejection handling and caller behavior outside these supplied files are unspecified; no broader claims about them follow from this trace.

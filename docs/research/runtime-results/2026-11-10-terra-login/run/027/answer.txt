@@ -1,0 +1,24 @@
+The lifecycle has a **cancellation gap during preparation**, but the supplied contract does not establish whether it is a defect. The deciding missing context is whether an abort while the gate is pending invalidates later admission, and who owns and completes work admitted after that abort.
+
+For the following trace, assume a standard `AbortSignal`, a successfully resolved gate, and an initially empty `SlotPool` with capacity one:
+
+1. `launch` sees `signal.aborted === false` and waits at `await gate`.
+2. The signal aborts while the gate is pending. No listener has been registered yet.
+3. The gate resolves. `launch` acquires a lease, creates a pending operation, and registers an abort listener. Registering that listener does not replay the earlier abort.
+4. `launch` returns the **pending** operation. The pool reports `started = 1`, `released = 0`, and `active = 1`. The lease remains active until `complete()` is called; the already-fired abort will not cancel it.
+
+The relevant contrasts are bounded:
+
+- If the signal is already aborted at entry, `launch` returns a cancelled result without acquiring a slot.
+- If it aborts after the listener is installed and before completion, `cancel()` changes the operation to `cancelled`, releases the lease, and removes the listener.
+- If `complete()` runs first, it changes the operation to `ok`, releases the lease, and removes the listener. The pending-status guard makes subsequent completion or cancellation calls ineffective.
+- If acquisition reaches a full `SlotPool`, `acquire()` throws and `launch` rejects; no operation is returned from that attempt.
+
+**Conditional finding, if preparation-time abort must prevent admission:**
+
+- **Symptom:** An abort during the gate wait can be followed by a pending operation and an active lease.
+- **Source:** The abort state is checked only before `await gate`, while the listener is attached only after acquisition.
+- **Consequence:** Work can be admitted after cancellation and occupy capacity until someone completes it. The supplied evidence does not establish that this happens in production, or that the caller fails to complete it.
+- **Remedy:** Establish the cancellation and ownership policy first. If abort must prevent admission, recheck `signal.aborted` after the gate and before acquiring, and ensure cancellation is handled through admission and operation ownership. If cancellation applies only after work starts, document who owns and completes an operation returned after an earlier abort.
+
+This is a source-level execution trace, not a claim that tests were run.

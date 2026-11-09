@@ -1,0 +1,19 @@
+The code leaves a **cancellation-policy question unresolved**: an abort while `gate` is pending does not prevent later admission, but the supplied contract does not say whether it should.
+
+A deterministic trace using the supplied `deferred()` gate and a capacity-one `SlotPool` is:
+
+1. Call `launch` with a non-aborted signal and a pending gate. It passes the initial check and waits.
+2. Abort the signal, then resolve the gate. No abort listener was registered when the abort occurred.
+3. `launch` resumes, acquires a lease, registers a listener after the abort event, and returns a `pending` operation. The pool has `started = 1`, `released = 0`, and `active = 1`.
+4. Calling `complete()` changes the status to `ok`, releases the lease, and removes the listener. Without a later completion, the lease remains active in the behavior shown.
+
+The contrast controls bound that result. If the signal is already aborted at entry, `launch` returns `cancelled` without acquiring a slot. If it aborts after the listener is registered while the operation is pending, `cancel()` releases the lease and sets the status to `cancelled`. The `finish` status guard also makes subsequent completion or cancellation a no-op.
+
+If the missing policy says **an abort during preparation invalidates later admission**, the supported defect is:
+
+- **Symptom:** An operation becomes pending and consumes a slot after its signal has aborted.
+- **Source:** The only pre-admission abort check occurs before `await gate`; the listener is installed after acquisition and does not replay the earlier abort.
+- **Consequence:** The operation can occupy capacity until `complete()` is called, and can report `ok` despite the earlier abort.
+- **Remedy:** Recheck `signal.aborted` after the gate and before acquiring the lease, returning a cancelled result when it is set.
+
+If cancellation is instead only a notification for work that has already started, the same trace does not establish a contract violation. The supplied context also does not establish who must eventually call `complete()`, so it does not establish a permanent leak or an outage.

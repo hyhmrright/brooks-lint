@@ -1,0 +1,23 @@
+The registry permits an older handle to remove the map entry for its replacement. That behavior is established by the supplied code; whether it violates the intended contract depends on what the map is meant to guarantee.
+
+**Execution trace**, starting with an empty registry and key `k`:
+
+| Operation | Map entry for `k` | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | `a` | 1 | 1 |
+| `b = replace(k)` | `b` | 1 | 2 |
+| `a.complete()` | absent | 0 | 1 |
+| `c = start(k)` | `c` | 1 | 2 |
+
+At the third step, `a.complete()` removes `a` from `live` but unconditionally calls `entries.delete(k)`, removing `b`’s map entry while `b` remains live. The fourth step succeeds because `start` checks only map membership.
+
+**Symptom → Source → Consequence → Remedy**
+
+- **Symptom:** Completion of a superseded handle removes the current handle’s entry.
+- **Source:** `complete()` deletes by key without checking that `entries.get(key)` is the completing entry.
+- **Consequence:** The local map can omit a live replacement, and a subsequent `start(k)` can create another handle. If the map is the authoritative exclusion reservation, that opens an admission gap. The supplied context does not establish that assumption, an external capacity guarantee, or an actual outage.
+- **Remedy:** If the map must retain the current replacement until *that handle* completes, delete the key only when `entries.get(key) === entry`. First confirm the intended admission contract: this guard preserves the current mapping, but does not by itself establish a limit on all live handles.
+
+The contrast controls bound the conclusion. A repeated `a.complete()` is harmless because `done` prevents a second deletion. Completion of the current mapped handle removes its own entry as expected. `live` independently tracks each handle, so in the trace `active` still reports `b` after its map entry disappears. The supplied `SlotPool` separately enforces its own capacity using identity-specific leases and idempotent release, but the registry does not use it; its protection cannot be attributed to this lifecycle. `deferred()` supplies promise control only and adds no admission protection.
+
+The missing context is whether map omissions are acceptable diagnostics, or whether callers rely on the map for exclusion, and whether another mechanism governs admission or capacity. The trace is derived from the supplied code; no tests were run.

@@ -1,0 +1,26 @@
+The registry permits an older handle to remove the map entry for its replacement. The resulting admission behavior is clear, but whether that behavior violates an external exclusion contract depends on missing context: the supplied contract does not say whether the map is authoritative or whether omissions are permitted.
+
+**Execution trace** for a key `k`, derived from the supplied code:
+
+| Operation | Map entry for `k` | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | `a` | 1 | 1 |
+| `b = replace(k)` | `b` | 1 | 2 |
+| `a.complete()` | absent | 0 | 1 |
+| `c = start(k)` | `c` | 1 | 2 |
+
+`b` remains live when `a.complete()` deletes `k`. The subsequent `start(k)` succeeds because it checks only the map.
+
+**Symptom:** Completing a replaced handle removes the current handle’s map entry, even though that current handle is still active.
+
+**Source:** In `HC-09/service.mjs`, `complete()` removes its own entry from `live`, but calls `entries.delete(key)` without checking whether `entries.get(key)` is still that handle.
+
+**Consequence:** The map can omit a live replacement, `reserved` can fall to zero while `active` is one, and another `start(k)` can succeed. If the map is meant to enforce exclusion for the current handle, that is a protection gap. If it is a diagnostic index allowed to omit handles, the supplied evidence does not establish an external contract violation. No outage or capacity failure follows from the trace alone.
+
+**Remedy:** If the current replacement must remain indexed until it completes, delete the map entry only when `entries.get(key) === entry`. Clarify separately whether admission must exclude *all* live handles for a key; if so, tracking only the current replacement is insufficient after that replacement completes while an older handle remains live.
+
+The contrast controls bound the conclusion:
+
+- Without replacement, a first `start(k)` causes another `start(k)` to return `null`; normal completion removes the reservation. Repeated completion is guarded by `done`.
+- With replacement, completing the **current** handle removes its own map entry, even if an older handle is still live. An identity check protects the replacement from stale cleanup, but does not enforce exclusion across every live generation.
+- `SlotPool` independently enforces its own capacity through lease identities and idempotent release. The registry does not use it, so the supplied controls establish neither that such a pool protects registry callers nor that no external protection exists. `deferred()` provides scheduling control but imposes no admission rule.

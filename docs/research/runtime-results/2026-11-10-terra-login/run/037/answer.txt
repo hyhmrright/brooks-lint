@@ -1,0 +1,12 @@
+The supplied implementation satisfies the stated settlement and cleanup contract with the supplied `SlotPool`. Its protection is bounded: a child that never settles keeps the slot until the caller invokes the teardown hook, and cancellation only triggers cleanup if it is represented by a child rejection.
+
+The execution trace is:
+
+1. `execute` synchronously acquires the sole lease and starts an async response that awaits `child`.
+2. If `child` resolves, the `finally` block releases the lease before `response` fulfills with the child’s value.
+3. If `child` rejects, including with an `AbortError`, the same `finally` block releases the lease before `response` rejects. Because the supplied `SlotPool.release` does not throw, the rejection retains the original error object.
+4. If the caller invokes `release` first, the pool removes the lease. The later release in `finally`, or any repeated call, has no further effect because `Set.delete` returns false for an absent lease. The pool’s `released` count therefore increases only once for that lease.
+
+The contrast is a still-pending child: absent a caller teardown, its `finally` block has not run, so the slot remains active and a second acquisition throws a `capacity` error. The contract promises cleanup on resolution or rejection; it does not specify a timeout or require cancellation to make a pending child reject. The supplied code also does not itself create or observe an abort signal.
+
+These conclusions assume the supplied `SlotPool` is the pool in use. If another pool’s `release` throws, that exception could replace a child result or rejection in `finally`; its behavior is outside the supplied control. No remedy is needed for the stated contract under that control.

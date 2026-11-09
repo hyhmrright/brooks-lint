@@ -1,0 +1,25 @@
+**Warning: a superseded handle can remove the current generation’s reservation.**
+
+**Symptom:** An older handle’s first completion can allow `start(key)` while its replacement is still pending, contrary to the stated contract.
+
+**Source:** In `HC-07/service.mjs`, `complete()` calls `entries.delete(key)` without checking whether `entries.get(key)` still refers to that handle’s entry.
+
+**Consequence:** The registry admits another current generation while the replacement is pending. The supplied evidence establishes an admission contract violation; it does not establish a production outage or what downstream work actually overlaps.
+
+**Remedy:** Delete the reservation only if `entries.get(key) === entry`. Continue removing the completing entry from `live` independently, so superseded handles remain observable until they finish.
+
+The following trace assumes ordinary sequential calls using the same key `k`; no timing or network behavior is needed:
+
+| Call | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start(k)` | Admits A | 1 | 1 |
+| `b = replace(k)` | Tracks B; A remains live | 1 | 2 |
+| `start(k)` | Returns `null` | 1 | 2 |
+| `a.complete()` | Removes A from `live` **and deletes B’s reservation** | 0 | 1 |
+| `c = start(k)` | Admits C while B is pending | 1 | 2 |
+
+The `done` guard makes repeated completion of A harmless, but it does not protect B from A’s **first** completion. Similarly, if B completes after C is admitted, B can delete C’s reservation.
+
+For contrast, completing the current generation without an intervening replacement correctly releases its reservation, and `start` rejects while that reservation exists. The supplied `SlotPool` also releases by lease identity: releasing an obsolete or already released lease cannot remove a different lease. It is a separate control, however; the registry does not use it, so it supplies no protection to this lifecycle.
+
+This assessment is derived from the supplied code and contract. No tests or runtime execution were performed, and caller behavior and deployment exposure are outside the supplied evidence.

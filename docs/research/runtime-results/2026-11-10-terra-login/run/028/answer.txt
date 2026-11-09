@@ -1,0 +1,25 @@
+The lifecycle violates the lease-release contract when the child rejects, including when cancellation is represented by an `AbortError`. The returned response rejects with the original error, but the lease remains active unless the caller invokes the teardown hook.
+
+The execution trace follows directly from the supplied code and controls:
+
+1. `execute` synchronously acquires the sole slot, then starts an async operation awaiting `child`.
+2. If `child` resolves, execution reaches `release()` before returning the value. The response then resolves, and `SlotPool.active` falls to zero.
+3. If `child` rejects with an error object, `await child` throws that object. Execution skips `release()`, and the response rejects with the same object. The lease remains active, so a subsequent acquisition throws `Error('capacity')`.
+
+The symptom is retained capacity after rejection. Its source is that cleanup appears only on the successful path after `await`. With one slot and no external cleanup owner, the consequence is that further acquisitions fail until someone calls the returned `release` hook. The supplied evidence does not establish a production outage.
+
+The contrast control is `SlotPool.release`: deleting a lease succeeds only once, so calling the hook repeatedly is harmless. That makes the hook idempotent, but it does not automatically run on rejection.
+
+A remedy is to put release in a `finally` block around the await:
+
+```js
+const response = (async () => {
+  try {
+    return await child;
+  } finally {
+    release();
+  }
+})();
+```
+
+With the supplied `SlotPool.release`, this releases the lease before the response settles on either path and preserves the original rejection identity. This conclusion assumes `pool.release` does not throw, as is true for the supplied control; the service itself does not specify behavior for a throwing release implementation.

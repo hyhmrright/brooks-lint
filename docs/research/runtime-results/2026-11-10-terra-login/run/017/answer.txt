@@ -1,0 +1,16 @@
+The lifecycle provides the stated cancellation protection with the supplied `SlotPool`, an actual awaited gate, and a standard `AbortSignal`. In particular, the second abort check prevents acquisition when cancellation occurs while preparation is waiting.
+
+A deterministic trace for the key case is:
+
+1. `launch` sees that the signal is not aborted and awaits the unresolved gate.
+2. The caller aborts the signal, then resolves the gate.
+3. When `launch` resumes, the second check sees `signal.aborted` and returns a cancelled operation.
+4. `pool.acquire()` is never called: `started = 0`, `active = 0`, and `released = 0`.
+
+The contrast controls support the other stated paths:
+
+- **Pre-aborted:** The first check returns cancelled before awaiting the gate or acquiring a slot.
+- **Admitted work:** Resolving the gate without aborting lets `launch` acquire one lease and return a pending operation. Calling `complete()` changes its status to `ok`, releases the lease, and removes the abort listener.
+- **Abort while running:** The listener calls `finish('cancelled')`, which releases the lease and removes the listener. A later `complete()` has no effect because `finish` only acts on a pending operation.
+
+This conclusion depends on the supplied pool’s synchronous `acquire()` having no callbacks that abort the signal. Under those supplied controls, there is no asynchronous yield between the post-gate check and listener registration. The contract does not state what should happen if the gate rejects, so its propagated rejection is not enough evidence of a contract defect.

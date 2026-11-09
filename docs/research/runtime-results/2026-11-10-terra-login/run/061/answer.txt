@@ -1,0 +1,24 @@
+I’ll apply the supplied runtime research guidance to the registry’s generation and completion sequence, including the contrast controls.
+**Runtime Research (revision 2) — Warning: an older completion removes the replacement’s reservation**
+
+**Symptom:** A superseded handle can cause `start(key)` to admit another generation while its replacement is still pending.
+
+**Source:** In `HC-07/service.mjs`, `complete()` unconditionally calls `entries.delete(key)`. It does not check whether the map still points to the completing entry. The stated contract requires completion to release only its own generation.
+
+**Consequence:** The registry loses its authority to reject a further start for that key. The replacement and the newly admitted handle can then both remain active. This is a demonstrated contract violation in the supplied lifecycle; the evidence does not establish production exposure or an outage.
+
+**Remedy:** In `complete()`, delete the map entry only if `entries.get(key) === entry`. Continue removing the completing entry from `live`, so superseded handles remain separately observed until they finish.
+
+The execution trace follows directly from the supplied code, assuming calls occur in this order:
+
+| Call | Result | `reserved` | `active` |
+|---|---|---:|---:|
+| `a = start("k")` | Admits `a` | 1 | 1 |
+| `b = replace("k")` | Tracks `b`; `a` remains live | 1 | 2 |
+| `a.complete()` | Removes `a` from `live` **and deletes `b`’s map entry** | 0 | 1 |
+| `c = start("k")` | Admits `c`, although `b` is pending | 1 | 2 |
+| `b.complete()` | Also deletes `c`’s reservation | 0 | 1 |
+
+The relevant contrast is that `start("k")` rejects while the map still contains the current entry, and a current entry’s completion normally removes its reservation. The `done` guard also makes repeated completion of the **same** handle a no-op, but it does not protect a replacement from the first completion of an older handle. The shared `SlotPool` illustrates identity-based release: it removes only the supplied lease and ignores a repeated release. It is a separate control and is not used by this registry.
+
+This is a code-derived trace, not an executed test or production observation. Callers, actual workload, and any external admission controls were not supplied; they could affect practical exposure but do not change the registry’s stated contract or the traced behavior.

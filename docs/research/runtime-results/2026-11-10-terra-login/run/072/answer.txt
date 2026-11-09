@@ -1,0 +1,21 @@
+**Runtime Research (revision 2): bounded protection.** Under ordinary use of the returned handles, the registry preserves the replacement reservation when an older generation completes. The supplied code supports that conclusion for registry admission; it does not establish that superseded work has stopped or that an external resource has been released.
+
+The following is a trace of `HC-08/service.mjs`, not an executed test. Counts are `reserved / active`:
+
+| Step | Result | Counts |
+|---|---|---:|
+| `a = start("k")` | Creates current generation `a`. | 1 / 1 |
+| `start("k")` | Returns `null` because `k` is reserved. | 1 / 1 |
+| `b = replace("k")` | Makes `b` current; `a` remains live. | 1 / 2 |
+| `a.complete()` | Removes `a` from `live`. The identity check sees that `b` is current, so it retains the reservation. | 1 / 1 |
+| `start("k")` | Returns `null` while `b` is pending. | 1 / 1 |
+| `b.complete()` | Removes `b` from `live` and deletes its own reservation. | 0 / 0 |
+| `start("k")` | Admits a new generation. | 1 / 1 |
+
+The identity check, `entries.get(key) === entry`, is the control that prevents the older completion from deleting the replacement. The `done` guard makes a repeated `complete()` call a no-op.
+
+A relevant contrast is completion in the opposite order: if `b` completes before `a`, its reservation is released and a new `start("k")` is admitted even while `a` remains live. That matches the stated contract: the superseded handle is separately observed, and admission depends on the **current** generation.
+
+`shared/controls.mjs` supplies a deferred promise and an independently managed `SlotPool`, but the registry does not use either. The pool’s lease identity and capacity check therefore do not establish a resource limit for this registry. In particular, `active` counts live handles and can exceed one for a key after replacement; the contract limits current generations, not all running generations.
+
+This assessment assumes callers use `complete()` to report completion and do not directly alter the exposed `done` property. The supplied context does not specify behavior for such mutation, or show callers and underlying work, so it cannot establish whether handles complete reliably or whether external resources are released. No contract defect is demonstrated by the supplied lifecycle.
