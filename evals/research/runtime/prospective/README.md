@@ -273,3 +273,18 @@ forwarding limits and unobserved real-provider retries. Actual model identity,
 production auth, full tool/client separation and study execution remain unverified.
 `npm run evals:runtime:cli:validate` and default tests only read saved records;
 real CLI-to-stub recording is a separate explicitly selected command.
+
+## Native CLI streaming protocol continuation (owned local fixtures only)
+
+The opt-in `codex-stream-drill.mjs record <native-binary> [new-output-root]`
+observes six predeclared streaming/retry/timeout cases using the same isolated
+native CLI launch and exact Seatbelt grants as the earlier channel archive. It
+uses owned loopback fake services and public inactive authentication markers,
+never a real provider. The relay delivers SSE bytes immediately, preserving the
+distinction between stream idle timeout and a parent's absolute process deadline.
+
+`npm run evals:runtime:stream:validate` and the default test/prepared gates read
+saved observations and run pure/owned-HTTP regression checks only. They never
+launch Codex. The source-bound archive is
+`docs/research/runtime-preparations/2026-11-09-hc-codex-stream/`; synthetic payloads,
+usage and CLI completion are not model evaluation or authenticated model identity.
