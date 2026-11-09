@@ -38,3 +38,10 @@ evals:runtime:prepared` passed 541/541. An archive check matched all 81 answer
 bytes and hashes, selected model/effort, completion and cleanup records. A scan
 for common API key and bearer token patterns returned no matches; it is not a
 guarantee that every possible secret pattern was detectable.
+
+## Subsequent semantic review
+
+The pending-review description above is the preserved execution-time state.
+The [separate review revision](review-v1/REPORT.md) now grades all 81 answers,
+with frozen-rubric counters, per-answer rationales and sensitivity analysis.
+Original execution data and the original pending summary remain unchanged.
