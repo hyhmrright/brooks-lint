@@ -1,5 +1,12 @@
 # Codex-login follow-up: offline diagnosis
 
+Later follow-up: [the stock code-mode diagnostic](stock-code-mode/README.md)
+reproduces the disabled-host failure and successful remote shell execution without
+a catalog override. [The new login smoke entry point](LOGIN-SMOKE.md) is prepared
+for one explicitly selected live text turn after the maintainer's model switch.
+This updates next-step readiness only; the historical limitations below and the
+hold on the formal 81-answer study remain applicable to the earlier probe.
+
 ## Outcome and current gate
 
 The previous live turn contained an assistant assertion that shell was unavailable, not a tool error or a captured tool declaration. Its cause is **not established**. This follow-up issued no live model requests; the 81-turn study and registered API smoke remain unrun.
