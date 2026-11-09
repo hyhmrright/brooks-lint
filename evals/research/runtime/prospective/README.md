@@ -308,3 +308,26 @@ failures remain unverified network observations. The remaining-boundary ledger
 lists local follow-ups as well as production-only unknowns. Run
 `npm run evals:runtime:boundaries:validate` offline; default tests use saved bytes
 and owned-HTTP regressions only, never native CLI or real providers.
+
+### Remaining owned-local executor boundaries and full81-turn protocol rehearsal
+
+The [completion archive](../../../../docs/research/runtime-preparations/2026-11-09-hc-executor-completion/README.md)
+adds per-turn broker binding, concurrent/late-callback controls, bounded native
+request/response/process/final-file import caps,307/308 observations, real native
+CLI custom-CA/fallback/precedence and hostname controls over an owned CONNECT proxy,
+and the exact public OpenSSL-config correction for actual curl tool networking.
+It preserves128 native CLI execs and four fixed Node controls, including failed
+CA-as-leaf and nested-detached experiments. All81 frozen scheduled turns complete
+native CLI/fake-SSE protocol exchanges with exact allowlisted workspace inventories;
+canonical model responses remain81 `not-run`, no actual reads or semantic judgments
+are claimed, and all study eligibility remains false. A separate trusted-parent
+owned detached child control passes; hostile descendant containment and shared-port
+tool/client identity segregation remain explicit design blockers.
+
+`npm run evals:runtime:completion:validate` and the added default tests validate
+saved evidence/pure guards/owned HTTP only, never launch Codex or a model. Explicit
+`completion:record`/`completion:record-detached` commands collect new owned-local
+protocol/process evidence into new paths. The archive's coverage ledger and blocked
+design acceptance criteria distinguish scoped observations from host/production
+unknowns. The Discussion currently has no contributor reply; self-led development
+does not count as independent human review or lift the live-test hold.

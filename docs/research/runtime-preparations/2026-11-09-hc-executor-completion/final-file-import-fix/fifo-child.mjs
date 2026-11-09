@@ -1,0 +1,1 @@
+import {captureFinalFile} from "file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/executor-completion.mjs";console.log('BEFORE_FINAL_CAPTURE');console.log(JSON.stringify(captureFinalFile({home:"/var/folders/kb/clk179sd5qq5htsth48gfk5c0000gn/T/hc-final-fix-BcBpqi"})));console.log('AFTER_FINAL_CAPTURE');
