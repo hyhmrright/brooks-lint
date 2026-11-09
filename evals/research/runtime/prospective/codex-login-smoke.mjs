@@ -7,6 +7,7 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {StringDecoder} from 'node:string_decoder';
 import {performance} from 'node:perf_hooks';
+import {terminate as terminateDarwinGroup} from './codex-login-turn.mjs';
 
 export const PROMPT='Reply with exactly BROOKS_LOGIN_OK. Do not use any tools, delegate, or access files.';
 export const LIMITS=Object.freeze({turn_ms:45000,cleanup_ms:3000,output_bytes:2097152,turns:1});
@@ -53,6 +54,7 @@ export function argumentsFor(model,{fixtureEndpoint}={}) {
 }
 const alive=pid=>{try{process.kill(-pid,0);return true}catch(e){if(e.code==='ESRCH')return false;throw e}};
 export async function terminate(child,closed,ms=LIMITS.cleanup_ms){
+  if(process.platform==='darwin'){const r=await terminateDarwinGroup(child,closed,ms);return {closed:r.closed,group_absent:r.group_absent};}
   if(!child?.pid)return {closed:await closed,group_absent:true};
   const signal=s=>{try{process.kill(-child.pid,s)}catch(e){if(e.code!=='ESRCH')throw e}};
   signal('SIGTERM');
@@ -74,7 +76,7 @@ export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.
   fs.mkdirSync(out,{recursive:true,mode:0o700});
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'brooks-login-smoke-'));fs.chmodSync(root,0o700);
   const home=path.join(root,'codex');fs.mkdirSync(home,{mode:0o700});
-  const record={version:1,simulation:!live,scope:'single-text-login-smoke',requested_model:model,requested_effort:'low',proxy_mode:inheritProxy?'explicit-environment':'none',provider_reported_model:null,provider_identity_verified:false,cli_selected_model:null,auth_type:null,started_at:new Date().toISOString(),argv,prompt:PROMPT,limits:LIMITS,source_sha256:sha(fs.readFileSync(fileURLToPath(import.meta.url))),events:[],requests:[],rpc_responses:[],stderr:'',status:'failed',answer:null,usage:null,limitations:['One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.','ChatGPT usage and billing are not API dollar accounting.','Model selection is CLI metadata, not independent backend attestation.','Text smoke does not validate remote shell execution.','Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry.']};
+  const record={version:1,simulation:!live,scope:'single-text-login-smoke',requested_model:model,requested_effort:'low',proxy_mode:inheritProxy?'explicit-environment':'none',provider_reported_model:null,provider_identity_verified:false,cli_selected_model:null,auth_type:null,started_at:new Date().toISOString(),argv,prompt:PROMPT,limits:LIMITS,source_sha256:sha(fs.readFileSync(fileURLToPath(import.meta.url))),cleanup_source_sha256:process.platform==='darwin'?sha(fs.readFileSync(new URL('./codex-login-turn.mjs',import.meta.url))):null,events:[],requests:[],rpc_responses:[],stderr:'',status:'failed',answer:null,usage:null,limitations:['One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.','ChatGPT usage and billing are not API dollar accounting.','Model selection is CLI metadata, not independent backend attestation.','Text smoke does not validate remote shell execution.','Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry.']};
   // Diagnostic offsets are monotonic and never include RPC payloads or credentials.
   const origin=performance.now(),elapsed=()=>Math.round(performance.now()-origin);
   record.limits={...LIMITS,turn_ms:timeoutMs};
@@ -128,7 +130,7 @@ export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.
     record.timing.completed_elapsed_ms=elapsed();
     // Include any refreshed credentials in redaction before deleting the private home.
     try{const p=loginCredential(fs.readFileSync(path.join(home,'auth.json'),'utf8'));secrets.push(...p.secrets)}catch{}
-    fs.rmSync(root,{recursive:true,force:true});record.cleanup.private_home_removed=!fs.existsSync(root);
+    if(record.cleanup.closed&&record.cleanup.group_absent)fs.rmSync(root,{recursive:true,force:true});record.cleanup.private_home_removed=!fs.existsSync(root);
     if(record.unexpected_activity||!record.cleanup.closed||!record.cleanup.group_absent||!record.cleanup.private_home_removed)record.status='failed';
     record.completed_at=new Date().toISOString();
     const saved=clean(record);fs.writeFileSync(path.join(out,'record.json'),JSON.stringify(saved,null,2)+'\n',{mode:0o600});fs.writeFileSync(path.join(out,'events.jsonl'),saved.events.map(e=>JSON.stringify(e)).join('\n')+'\n',{mode:0o600});if(saved.answer!==null)fs.writeFileSync(path.join(out,'answer.txt'),saved.answer+'\n',{mode:0o600});
