@@ -344,3 +344,14 @@ validates saved controls offline; default and prepared tests include its regress
 A model-switch journal records no switch and an unbound future test model.
 External review is optional under the maintainer's self-led disposition; actual
 production and OS containment evidence remain necessary.
+
+### Docker native CLI isolation controls
+
+The [Docker archive](../../../../docs/research/runtime-preparations/2026-11-09-docker-isolation/README.md)
+records authorized Docker Desktop startup, pinned Node/Codex provisioning and six
+owned network-none container controls. Native answer wiring and scoped detached
+container cleanup are observed; builtin read-only namespace creation fails, outer
+CLI tools can reach the model broker, and a killed host launcher leaves its
+container running until explicit cleanup. Those negative boundaries keep live
+readiness false. `npm run evals:runtime:docker:validate` and default tests are
+strictly daemon-free; recording is opt-in, with zero real model calls or credentials.

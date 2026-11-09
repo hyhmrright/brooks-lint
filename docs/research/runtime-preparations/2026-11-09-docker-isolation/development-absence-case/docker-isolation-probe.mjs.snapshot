@@ -1,0 +1,40 @@
+/** Executed only inside the task-owned network-none Linux container. */
+import http from 'node:http';
+import fs from 'node:fs';
+import {spawn,spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+const mode=process.argv[2],hash=b=>createHash('sha256').update(b).digest('hex');
+if(mode==='child'||mode==='grandchild'){
+ process.on('SIGTERM',()=>{});
+ if(mode==='child')spawn(process.execPath,[import.meta.filename,'grandchild'],{detached:true,stdio:'ignore'}).unref();
+ fs.writeFileSync('/tmp/'+mode+'.json',JSON.stringify({pid:process.pid,stat:fs.readFileSync('/proc/self/stat','utf8')}));
+ setTimeout(()=>process.exit(0),30000); // experimental fallback only
+}else if(mode==='detached'||mode==='owner-exit'){
+ process.on('SIGTERM',()=>{});
+ spawn(process.execPath,[import.meta.filename,'child'],{detached:true,stdio:'ignore'}).unref();
+ setTimeout(()=>{console.log(JSON.stringify({mode,pid:process.pid,child:JSON.parse(fs.readFileSync('/tmp/child.json')),grandchild:JSON.parse(fs.readFileSync('/tmp/grandchild.json'))}));if(mode==='owner-exit')process.exit(0);},250);
+ setTimeout(()=>process.exit(0),20000);
+}else if(mode==='tool'){
+ const checks={uid:process.getuid(),net_devices:fs.readFileSync('/proc/net/dev','utf8'),auth_names_present:['OPENAI_API_KEY','CODEX_API_KEY','HC_UPSTREAM_AUTH'].filter(k=>Object.hasOwn(process.env,k)),host_mount_present:fs.existsSync('/host'),docker_socket_present:fs.existsSync('/var/run/docker.sock')};
+ for(const p of ['/etc/fixture-write','/workspace/allowed.txt']){try{fs.writeFileSync(p,'fixture');checks[p]='write-succeeded';}catch(e){checks[p]=e.code;}}
+ const u=new URL(process.argv[3]);const r=await new Promise(resolve=>{const q=http.get(u,res=>{let body='';res.on('data',x=>body+=x);res.on('end',()=>resolve({status:res.statusCode,body}));});q.on('error',e=>resolve({error:e.code}));q.setTimeout(500,()=>q.destroy());});
+ console.log(JSON.stringify({...checks,shared_broker:r}));
+}else{
+ fs.mkdirSync('/home/node/.codex',{recursive:true});
+ const requests=[],responses=[],tools=[];let count=0;
+ function complete(output){const base={id:'resp_docker_fixture',object:'response',created_at:0,model:'fixture-model',error:null,incomplete_details:null,parallel_tool_calls:false,reasoning:{effort:'medium'},usage:{input_tokens:1,output_tokens:1,total_tokens:2}};const events=[{type:'response.created',response:{...base,status:'in_progress',output:[]}},...output.flatMap((item,output_index)=>[{type:'response.output_item.added',output_index,item:{...item,status:'in_progress'}},{type:'response.output_item.done',output_index,item}]),{type:'response.completed',response:{...base,status:'completed',output}}];return Buffer.from(events.map((e,i)=>`event: ${e.type}\ndata: ${JSON.stringify({...e,sequence_number:i})}\n\n`).join(''));}
+ const server=http.createServer(async(q,r)=>{const chunks=[];for await(const b of q)chunks.push(b);const raw=Buffer.concat(chunks);if(q.url==='/tool-probe'){tools.push({method:q.method,url:q.url});r.end('SHARED_PORT_REACHABLE');return;}
+ requests.push({method:q.method,url:q.url,headers:q.headers,body_base64:raw.toString('base64'),sha256:hash(raw)});
+ if(++count>2){r.writeHead(429);r.end('FIXTURE_REQUEST_LIMIT');return;}
+ const item=count===1&&mode!=='cli-answer'?{id:'fc_owned',type:'function_call',call_id:'call_owned',name:'exec_command',arguments:JSON.stringify({cmd:`node /opt/probe.mjs tool http://127.0.0.1:${server.address().port}/tool-probe`,shell:'/bin/sh',login:false,max_output_tokens:2000,yield_time_ms:1000}),status:'completed'}:{id:'msg_owned',type:'message',role:'assistant',phase:'final_answer',status:'completed',content:[{type:'output_text',text:'DOCKER_LOCAL_FIXTURE_ONLY',annotations:[]}]};
+ const body=complete([item]);responses.push({body_base64:body.toString('base64'),sha256:hash(body)});r.writeHead(200,{'content-type':'text/event-stream','connection':'close'});r.end(body);});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const settings=['features.remote_models=false','features.api_key_model_discovery=false','features.shell_snapshot=false','features.plugins=false','features.apps=false','features.hooks=false','features.multi_agent=false','features.enable_request_compression=false','features.unbounded_connection_retries=false','cli_auth_credentials_store="file"','otel.exporter="none"','otel.trace_exporter="none"','otel.metrics_exporter="none"','analytics.enabled=false','check_for_update_on_startup=false','skills.bundled.enabled=false','project_doc_max_bytes=0','memories.use_memories=false','memories.generate_memories=false','web_search="disabled"','model="fixture-model"','model_reasoning_effort="medium"','model_provider="docker_fixture"','model_providers.docker_fixture.name="Owned offline fixture"',`model_providers.docker_fixture.base_url="http://127.0.0.1:${server.address().port}/v1"`,'model_providers.docker_fixture.wire_api="responses"','model_providers.docker_fixture.requires_openai_auth=false','model_providers.docker_fixture.supports_websockets=false','model_providers.docker_fixture.request_max_retries=0','model_providers.docker_fixture.stream_max_retries=0'];
+ const argv=['--no-daemon','-a','never','-C','/workspace',...settings.flatMap(x=>['-c',x]),'exec','--strict-config','--json','--ephemeral','--ignore-user-config','--ignore-rules','--skip-git-repo-check','-s',mode==='cli-outer'?'danger-full-access':'read-only','-'];
+ const env={PATH:'/usr/local/bin:/usr/bin:/bin',HOME:'/home/node',CODEX_HOME:'/home/node/.codex',NO_PROXY:'*',HTTP_PROXY:'',HTTPS_PROXY:'',ALL_PROXY:''};
+ const version=spawnSync('codex',['--version'],{env,encoding:'utf8',timeout:2000});let out=[],err=[],size=0,stop=null;
+ const child=spawn('codex',argv,{env,stdio:['pipe','pipe','pipe']});const timer=setTimeout(()=>{stop='deadline';child.kill('SIGKILL');},10000);
+ for(const [stream,parts]of [[child.stdout,out],[child.stderr,err]])stream.on('data',b=>{size+=b.length;if(size>262144){stop='output-cap';child.kill('SIGKILL');return;}parts.push(b);});child.stdin.end('LOCAL FIXTURE: follow the authored tool request then final answer. No real inference.');
+ const exit=await new Promise(r=>child.on('close',(code,signal)=>r({code,signal})));clearTimeout(timer);server.closeAllConnections();await new Promise(r=>server.close(r));
+ console.log(JSON.stringify({mode,simulation:true,model_calls:0,live_ready:false,actual_responding_model:null,version:{stdout:version.stdout,stderr:version.stderr,status:version.status},argv,env,exit,stop,stdout_base64:Buffer.concat(out).toString('base64'),stderr_base64:Buffer.concat(err).toString('base64'),requests,responses,tools}));
+}

@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {containerArgs,ownedId,assertOwnedInspection,boundedCommand,DOCKER_POLICY} from './docker-isolation.mjs';
+const image='sha256:'+'a'.repeat(64),name='brooks-rt-'+'b'.repeat(12),id='c'.repeat(64);
+test('locked-down launch has no bind mount/socket/privilege/network grant',()=>{const a=containerArgs(image,name,'cli-answer');for(const s of ['none','ALL','no-new-privileges','1000:1000','64','512m','no'])assert(a.includes(s));for(const s of ['--privileged','--mount','--volume','--pid','--network=host'])assert(!a.includes(s));assert.equal(a.at(-2),image);});
+for(const bad of ['node:latest','sha256:aaa','--privileged'])test('reject mutable/untrusted image '+bad,()=>assert.throws(()=>containerArgs(bad,name,'cli-answer')));
+for(const bad of ['other','brooks-rt-ab','../x'])test('reject unowned name '+bad,()=>assert.throws(()=>containerArgs(image,bad,'detached')));
+test('reject arbitrary entrypoint',()=>assert.throws(()=>containerArgs(image,name,'shell')));
+test('reject partial IDs',()=>assert.throws(()=>ownedId('abcdef')));
+const info=()=>({Id:id,Config:{Labels:{[DOCKER_POLICY.label]:'true'},User:'1000:1000'},HostConfig:{NetworkMode:'none',ReadonlyRootfs:true,Privileged:false,CapDrop:['ALL'],PidsLimit:64,RestartPolicy:{Name:'no'},Binds:null,SecurityOpt:['no-new-privileges']},Mounts:[]});
+test('ownership validates known isolated declaration',()=>assert.equal(assertOwnedInspection(info(),id),true));
+for(const [key,value]of [['NetworkMode','host'],['Privileged',true],['ReadonlyRootfs',false],['Binds',['/tmp:/host']],['PidsLimit',0]])test('refuse altered runtime '+key,()=>{const i=info();i.HostConfig[key]=value;assert.throws(()=>assertOwnedInspection(i,id));});
+test('refuse unrelated container even if name looks owned',()=>{const i=info();i.Config.Labels={};assert.throws(()=>assertOwnedInspection(i,id));});
+test('supervisor preserves exact process bytes',async()=>{const r=await boundedCommand(process.execPath,['-e','process.stdout.write("hello");process.stderr.write("error")']);assert.equal(r.code,0);assert.equal(Buffer.from(r.stdout_base64,'base64').toString(),'hello');assert.equal(Buffer.from(r.stderr_base64,'base64').toString(),'error');});
+test('supervisor deadline kills its owned command, confirms close',async()=>{const r=await boundedCommand(process.execPath,['-e','setInterval(()=>{},1000)'],{timeout_ms:60});assert.equal(r.reason,'deadline');assert.equal(r.closed,true);assert.equal(r.signal,'SIGKILL');});
+test('supervisor enforces retained combined output cap',async()=>{const r=await boundedCommand(process.execPath,['-e','process.stdout.write("a".repeat(8192));setInterval(()=>{},1000)'],{max_output_bytes:256});assert.equal(r.reason,'output-cap');assert.equal(r.retained_bytes,256);assert.equal(r.closed,true);});
