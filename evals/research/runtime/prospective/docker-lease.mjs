@@ -12,6 +12,7 @@ export const LEASE_LIMITS = Object.freeze({max_ms:300000, max_jobs:4, command_ms
 const TOKEN = /^[a-f0-9]{32}$/;
 const ID = /^[a-f0-9]{64}$/;
 const IMAGE = /^sha256:[a-f0-9]{64}$/;
+export const NATIVE_SESSION_SOURCE="setTimeout(()=>process.exit(0),180000)";
 const TERMINAL = new Set(['complete']);
 export function atomicJSON(file, value) {
   const temp = `${file}.${crypto.randomBytes(8).toString('hex')}.tmp`;
@@ -28,7 +29,7 @@ export function initializeState(root) {
   assert.equal(fs.statSync(root).mode & 0o077, 0, 'State directory must be private');
   return fs.realpathSync(root);
 }
-export function createIntent(root, image, {lease_ms=30000, heartbeat_ms=5000, now=Date.now()}={}) {
+export function createIntent(root, image, {lease_ms=30000, heartbeat_ms=5000, now=Date.now(), workload=null}={}) {
   root=initializeState(root);
   assert(IMAGE.test(image));
   assert(Number.isSafeInteger(lease_ms) && lease_ms>=500 && lease_ms<=LEASE_LIMITS.max_ms);
@@ -36,12 +37,13 @@ export function createIntent(root, image, {lease_ms=30000, heartbeat_ms=5000, no
   assert(Number.isSafeInteger(now));
   const token=crypto.randomBytes(16).toString('hex');
   const intent={version:1, token, name:`brooks-lease-${token}`, image, issued_at:now,
-    deadline:now+lease_ms, lease_ms, heartbeat_ms};
+    deadline:now+lease_ms, lease_ms, heartbeat_ms,...(workload===null?{}:{workload})};
+  validateIntent(intent);
   atomicJSON(path.join(root,`${token}.intent.json`),intent);
   return intent;
 }
 export function validateIntent(i) {
-  assert.equal(i.version,1); assert(TOKEN.test(i.token));
+  assert.equal(i.version,1);assert(i.workload===undefined||i.workload==='native-session'); assert(TOKEN.test(i.token));
   assert.equal(i.name,`brooks-lease-${i.token}`); assert(IMAGE.test(i.image));
   assert(Number.isSafeInteger(i.issued_at)); assert(Number.isSafeInteger(i.deadline));
   assert(Number.isSafeInteger(i.lease_ms)&&i.lease_ms>=500&&i.lease_ms<=LEASE_LIMITS.max_ms);
@@ -61,12 +63,14 @@ export function leaseArgs(i) {
   const args=containerArgs(i.image,`brooks-rt-${i.token.slice(0,12)}`,'detached');
   args[args.indexOf('--name')+1]=i.name;
   args.splice(1,0,'--label',`${LEASE_LABEL}=${i.token}`);
+  if(i.workload==='native-session'){args.splice(args.indexOf(i.image),0,'--entrypoint','node');args.splice(args.indexOf(i.image)+1,1,'-e',NATIVE_SESSION_SOURCE);}
   return args;
 }
 export function verifyIdentity(info,i,identity=null) {
   validateIntent(i); assert(ID.test(info.Id)); assertOwnedInspection(info,info.Id);
   assert.equal(info.Config.Labels[LEASE_LABEL],i.token);
   assert.equal(info.Name,`/${i.name}`); assert.equal(info.Image,i.image);
+  if(i.workload==='native-session'){assert.deepEqual(info.Config.Entrypoint,['node']);assert.deepEqual(info.Config.Cmd,['-e',NATIVE_SESSION_SOURCE]);}
   const born=Date.parse(info.Created); assert(Number.isFinite(born));
   assert(born>=i.issued_at-2000,'Unexpected container birth time');
   if(identity) { assert.equal(info.Id,identity.id); assert.equal(info.Created,identity.created); }

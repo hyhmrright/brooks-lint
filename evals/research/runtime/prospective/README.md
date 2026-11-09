@@ -370,3 +370,15 @@ real-Docker, fake-workload opt-in. See the [lease report and runbook](../../../.
 It is not wired into the frozen live study and does not solve native tool/model
 channel separation; the [native interface investigation](../../../../docs/research/runtime-preparations/2026-11-09-native-seam/README.md)
 records that remaining boundary separately.
+
+### Native remote App Server research treatment
+
+The [native remote report](../../../../docs/research/runtime-preparations/2026-11-09-native-remote/README.md)
+records actual pinned CLI tool calls across two network-none Docker containers,
+with a trusted-parent fake HTTP broker, durable cleanup leases, and exact two-tool
+schema admission. `npm run evals:runtime:native:validate` checks the saved evidence
+without Docker; `npm run evals:runtime:native:record` explicitly reruns real Docker
+controls against the authored local upstream, never a real model. This is a new
+experimental App Server treatment, not a replacement for the frozen `codex exec`
+81-response study. Provider authentication, real model identity, and behavioral
+accuracy remain unverified. The fixture-only controller refuses real models.
