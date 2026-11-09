@@ -288,3 +288,23 @@ saved observations and run pure/owned-HTTP regression checks only. They never
 launch Codex. The source-bound archive is
 `docs/research/runtime-preparations/2026-11-09-hc-codex-stream/`; synthetic payloads,
 usage and CLI completion are not model evaluation or authenticated model identity.
+
+## Native CLI completion and tool boundary continuation
+
+The [owned boundary archive](../../../../docs/research/runtime-preparations/2026-11-09-hc-codex-boundaries/README.md)
+retains 32 actual native CLI attempts including an interrupted author collection,
+15 frozen protocol cases and four separately frozen outer-tool controls. No model
+inference occurs. A stricter parent fixture-contract guard rejects successful CLI
+exits with empty/commentary-only/duplicate-terminal/mismatched-reported identity
+payloads, and required tool steps that failed to execute. Full raw records and
+collection-versus-validation source provenance remain separate.
+
+The built-in read-only tool sandbox could not nest inside the outer Seatbelt
+profile. Separate controls disable only the inner sandbox while retaining the
+outer one-port deny-default boundary. Actual marker/auth-name checks and a fixed
+nc broker/observer probe then run, but this is not proof of built-in read-only
+network isolation or full hostile tool/client separation. Curl initialization
+failures remain unverified network observations. The remaining-boundary ledger
+lists local follow-ups as well as production-only unknowns. Run
+`npm run evals:runtime:boundaries:validate` offline; default tests use saved bytes
+and owned-HTTP regressions only, never native CLI or real providers.
