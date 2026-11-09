@@ -126,3 +126,14 @@ proxy and a simulated success. It does not establish that the real proxy, TLS,
 login, or provider will work for live inference.
 
 Official reference: [Codex app-server sign-in documentation](https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server).
+
+## Proxy-enabled live follow-up
+
+The subsequent proxy-enabled live attempt also reached the total deadline without
+an assistant answer. It observed the submitted user message, moderation metadata,
+and rate-limit notifications sooner than the earlier attempt, but the two individual
+runs do not identify the remaining cause or prove proxy inheritance fixed inference.
+See `live-2026-11-09-terra-proxy/` and `timeout-investigation-2026-11-09/`. The
+previous proxy hypothesis is not a validated resolution. A fresh live attempt
+requires prior disclosure and authorization; do not automatically retry or run the
+formal 81-answer study.

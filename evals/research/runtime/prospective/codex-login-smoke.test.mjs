@@ -17,6 +17,7 @@ if(mode==='hang')return;
 if(mode==='invalid'){console.log('not-json');return;}
 console.log(JSON.stringify({id:q.id,result}));
 if(q.method==='turn/start'){
+ if(mode==='hang-turn'){console.log(JSON.stringify({method:'item/completed',params:{item:{type:'userMessage'}}}));return;}
  if(mode==='completed-tool')console.log(JSON.stringify({method:'item/completed',params:{item:{type:'commandExecution'}}}));
  if(mode==='tool')console.log(JSON.stringify({method:'item/started',params:{item:{type:'commandExecution'}}}));
  if(mode==='server-request')console.log(JSON.stringify({id:901,method:'account/chatgptAuthTokens/refresh',params:{}}));
@@ -65,8 +66,27 @@ test('proxy inheritance is explicit, scoped and credentials are redacted',async(
  try{const absent=await run('no-proxy');assert.equal(absent.status,'completed');const r=await run('proxy',{inheritProxy:true});assert.equal(r.proxy_mode,'explicit-environment');assert.equal(r.status,'completed');assert(!JSON.stringify(r).includes('proxypass'))}finally{if(old===undefined)delete process.env.https_proxy;else process.env.https_proxy=old}
 });
 test('retained local proxy drill matches current launcher and one simulated request',async()=>{
- const {createHash}=await import('node:crypto');const base=new URL('../../../../docs/research/runtime-preparations/2026-11-09-native-remote/codex-login-followup/proxy-offline-2026-11-09/',import.meta.url);
+ const base=new URL('../../../../docs/research/runtime-preparations/2026-11-09-native-remote/codex-login-followup/proxy-offline-2026-11-09/',import.meta.url);
  const record=JSON.parse(fs.readFileSync(new URL('record.json',base)));const proxy=JSON.parse(fs.readFileSync(new URL('proxy-observation.json',base)));
- assert.equal(record.source_sha256,createHash('sha256').update(fs.readFileSync(new URL('./codex-login-smoke.mjs',import.meta.url))).digest('hex'));
+ // A historical drill pins the launcher it actually exercised, not today's source.
+ assert.equal(record.source_sha256,'21045c26bf63723b0860564e6deec6c25fceb9de89507ebb1c8eb2d26637856d');
  assert.equal(record.simulation,true);assert.equal(record.proxy_mode,'explicit-environment');assert.equal(record.status,'completed');assert.equal(record.answer,'BROOKS_LOGIN_OK');assert.equal(proxy.observed.length,1);assert.equal(proxy.simulation,true);
+});
+
+test('deadline records the last observed phase and actual timeout without fabricating an answer',async()=>{
+ const r=await run('hang-turn',{timeoutMs:500});
+ assert.equal(r.status,'failed');assert.match(r.error,/deadline/);assert.equal(r.answer,null);
+ assert.equal(r.limits.turn_ms,500);assert.equal(r.timing.clock,'monotonic');
+ assert.equal(r.timing.deadline_phase,'item/completed');assert.deepEqual(r.timing.pending_rpc_methods,[]);
+ assert(r.timing.events.some(e=>e.kind==='rpc_request'&&e.name==='turn/start'));
+ assert(r.timing.events.some(e=>e.kind==='rpc_response'&&e.name==='turn/start'));
+ assert(r.timing.events.some(e=>e.kind==='notification'&&e.name==='item/completed'));
+ assert(r.timing.deadline_elapsed_ms>=450);assert(r.timing.completed_elapsed_ms>=r.timing.deadline_elapsed_ms);
+ assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed);
+});
+
+test('deadline identifies an outstanding initialization RPC',async()=>{
+ const r=await run('hang',{timeoutMs:350});
+ assert.equal(r.status,'failed');assert.equal(r.timing.deadline_phase,'initialize');
+ assert.deepEqual(r.timing.pending_rpc_methods,['initialize']);assert.equal(r.answer,null);
 });

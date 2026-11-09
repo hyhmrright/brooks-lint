@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {StringDecoder} from 'node:string_decoder';
+import {performance} from 'node:perf_hooks';
 
 export const PROMPT='Reply with exactly BROOKS_LOGIN_OK. Do not use any tools, delegate, or access files.';
 export const LIMITS=Object.freeze({turn_ms:45000,cleanup_ms:3000,output_bytes:2097152,turns:1});
@@ -74,6 +75,11 @@ export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'brooks-login-smoke-'));fs.chmodSync(root,0o700);
   const home=path.join(root,'codex');fs.mkdirSync(home,{mode:0o700});
   const record={version:1,simulation:!live,scope:'single-text-login-smoke',requested_model:model,requested_effort:'low',proxy_mode:inheritProxy?'explicit-environment':'none',provider_reported_model:null,provider_identity_verified:false,cli_selected_model:null,auth_type:null,started_at:new Date().toISOString(),argv,prompt:PROMPT,limits:LIMITS,source_sha256:sha(fs.readFileSync(fileURLToPath(import.meta.url))),events:[],requests:[],rpc_responses:[],stderr:'',status:'failed',answer:null,usage:null,limitations:['One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.','ChatGPT usage and billing are not API dollar accounting.','Model selection is CLI metadata, not independent backend attestation.','Text smoke does not validate remote shell execution.','Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry.']};
+  // Diagnostic offsets are monotonic and never include RPC payloads or credentials.
+  const origin=performance.now(),elapsed=()=>Math.round(performance.now()-origin);
+  record.limits={...LIMITS,turn_ms:timeoutMs};
+  record.timing={clock:'monotonic',events:[],last_phase:'setup',deadline_phase:null};
+  const mark=(phase,kind='phase')=>{record.timing.last_phase=phase;record.timing.events.push({kind,name:phase,elapsed_ms:elapsed()})};
   let secrets=[...proxy.secrets],child,closed=Promise.resolve(true),timer,buffer='',size=0,next=0,pending=new Map(),resolveTurn,rejectTurn,fatal=null;
   const decoder=new StringDecoder('utf8');
   const turn=new Promise((resolve,reject)=>{resolveTurn=resolve;rejectTurn=reject});turn.catch(()=>{});
@@ -81,6 +87,7 @@ export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.
   const clean=x=>scrub(x,secrets,root);
   try {
     if(live){const parsed=loginCredential(fs.readFileSync(path.join(authHome,'auth.json'),'utf8'));secrets.push(...parsed.secrets);fs.writeFileSync(path.join(home,'auth.json'),JSON.stringify(parsed.auth),{mode:0o600});}
+    mark('spawn');
     child=spawn(executable,[...prefixArgs,...argv],{cwd:root,env:{PATH:process.env.PATH,HOME:root,CODEX_HOME:home,...proxy.env},detached:true,stdio:['pipe','pipe','pipe']});
     closed=new Promise(resolve=>{child.once('close',()=>resolve(true));child.once('error',e=>{record.spawn_error=e.code||'spawn-error';fail(Error('CLI spawn failed'));resolve(true)})});
     child.stdin.on('error',()=>fail(Error('CLI input closed')));
@@ -88,16 +95,17 @@ export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.
     function onBytes(b){size+=b.length;if(size>LIMITS.output_bytes){fail(Error('Output limit exceeded'));try{process.kill(-child.pid,'SIGKILL')}catch{};return false}return true}
     child.stderr.on('data',b=>{if(onBytes(b))record.stderr+=clean(b.toString())});
     child.stdout.on('data',b=>{if(!onBytes(b))return;buffer+=decoder.write(b);let n;while((n=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,n);buffer=buffer.slice(n+1);let e;try{e=JSON.parse(line)}catch{fail(Error('Invalid JSONL from CLI'));continue}
-      if(e.id!==undefined&&pending.has(e.id)&&!e.method){const p=pending.get(e.id);pending.delete(e.id);if(p.method!=='account/read')record.rpc_responses.push({method:p.method,response:clean(e)});e.error?p.reject(Error('RPC '+p.method+' failed: '+clean(e.error.message))):p.resolve(e.result);continue}
+      if(e.id!==undefined&&pending.has(e.id)&&!e.method){const p=pending.get(e.id);pending.delete(e.id);mark(p.method,'rpc_response');if(p.method!=='account/read')record.rpc_responses.push({method:p.method,response:clean(e)});e.error?p.reject(Error('RPC '+p.method+' failed: '+clean(e.error.message))):p.resolve(e.result);continue}
       if(e.method==='remoteControl/status/changed')continue;
       record.events.push(clean(e));
+      if(typeof e.method==='string')mark(e.method,'notification');
       if(e.id!==undefined&&e.method){child.stdin.write(JSON.stringify({id:e.id,error:{code:-32601,message:'Interactive/server requests are disabled in login smoke'}})+'\n');fail(Error('Unexpected server request'));}
       if(['item/started','item/completed'].includes(e.method)&&e.params?.item&&!['userMessage','agentMessage','reasoning'].includes(e.params.item.type)){record.unexpected_activity=e.params.item.type;fail(Error('Unexpected tool/activity item: '+e.params.item.type));}
       if(e.method==='thread/tokenUsage/updated')record.usage=clean(e.params?.tokenUsage??null);
       if(e.method==='turn/completed')resolveTurn(e.params.turn);
     }});
-    timer=setTimeout(()=>fail(Error('Smoke deadline exceeded')),timeoutMs);
-    function req(method,params){if(fatal)return Promise.reject(fatal);return new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject,method});record.requests.push({id,method,params:clean(params)});child.stdin.write(JSON.stringify({id,method,params})+'\n')})}
+    timer=setTimeout(()=>{record.timing.deadline_phase=record.timing.last_phase;record.timing.pending_rpc_methods=[...pending.values()].map(p=>p.method);record.timing.deadline_elapsed_ms=elapsed();fail(Error('Smoke deadline exceeded'))},timeoutMs);
+    function req(method,params){if(fatal)return Promise.reject(fatal);return new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject,method});mark(method,'rpc_request');record.requests.push({id,method,params:clean(params)});child.stdin.write(JSON.stringify({id,method,params})+'\n')})}
     record.initialize=clean(await req('initialize',{clientInfo:{name:'brooks-login-smoke',version:'0.1'},capabilities:{experimentalApi:true}}));
     record.cli_version=record.initialize.userAgent?.match(/^[^/]+\/([0-9.]+)/)?.[1]??null;
     child.stdin.write('{"method":"initialized"}\n');
@@ -116,7 +124,8 @@ export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.
     record.status='completed';
   }catch(e){record.error=clean(String(e.message));}
   finally{
-    clearTimeout(timer);record.cleanup=await terminate(child,closed);
+    clearTimeout(timer);mark('cleanup');record.cleanup=await terminate(child,closed);
+    record.timing.completed_elapsed_ms=elapsed();
     // Include any refreshed credentials in redaction before deleting the private home.
     try{const p=loginCredential(fs.readFileSync(path.join(home,'auth.json'),'utf8'));secrets.push(...p.secrets)}catch{}
     fs.rmSync(root,{recursive:true,force:true});record.cleanup.private_home_removed=!fs.existsSync(root);
