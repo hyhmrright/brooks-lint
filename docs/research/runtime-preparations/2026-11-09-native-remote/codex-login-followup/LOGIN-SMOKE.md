@@ -87,3 +87,42 @@ References: [Codex non-interactive mode](https://learn.chatgpt.com/docs/non-inte
 and [Codex App Server](https://learn.chatgpt.com/docs/app-server). Installed CLI
 0.167.0 help and generated experimental schema establish the local `environments: []`
 contract; provider behavior still requires live observation.
+
+## Proxy-dependent environments (2026-11-09)
+
+The launcher starts with a deliberately narrow environment. It does not inherit
+proxy configuration unless `--inherit-proxy` is explicitly selected. On this host,
+ordinary HTTPS to `chatgpt.com` succeeded with the configured proxy (HTTP 200,
+about 2 seconds), while a clean environment without proxy settings timed out after
+10 seconds. The previous live launcher discarded those proxy settings. This is a
+strong, testable explanation for the live timeout, not proof of its precise cause:
+the HTTPS check was not an inference request and does not establish model access.
+
+When the operator has chosen to use the configured proxy and explicitly authorizes
+a new live smoke, add `--inherit-proxy`:
+
+```sh
+npm run evals:runtime:login:smoke -- --live --model MODEL --inherit-proxy --out /tmp/brooks-login-live-NEW
+```
+
+Only standard proxy environment variables are passed, not the remaining parent
+environment. Their values, usernames and passwords are redacted from records.
+The proxy is a trusted transport chosen by the operator; its security and network
+reachability remain outside this test. No proxy URL is written into the report.
+TLS verification is not disabled. If no proxy URL is configured, opt-in fails closed.
+The preexisting 45-second total deadline still includes initialization and login,
+so it does not guarantee 45 seconds of inference. The proxy can make internal
+provider retries possible, but does not impose a cost or request cap.
+
+A reproducible offline transport drill starts an actual Codex CLI with a local
+synthetic HTTP proxy and synthetic upstream response; no real model is called:
+
+```sh
+node evals/research/runtime/prospective/codex-login-proxy-drill.mjs /tmp/brooks-proxy-offline-NEW
+```
+
+The retained `proxy-offline-2026-11-09/` record shows one request through that
+proxy and a simulated success. It does not establish that the real proxy, TLS,
+login, or provider will work for live inference.
+
+Official reference: [Codex app-server sign-in documentation](https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server).

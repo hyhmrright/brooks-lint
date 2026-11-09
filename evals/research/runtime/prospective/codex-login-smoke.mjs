@@ -11,11 +11,30 @@ export const PROMPT='Reply with exactly BROOKS_LOGIN_OK. Do not use any tools, d
 export const LIMITS=Object.freeze({turn_ms:45000,cleanup_ms:3000,output_bytes:2097152,turns:1});
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const PROXY_KEYS=['http_proxy','https_proxy','all_proxy','no_proxy','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY'];
+export function proxyEnvironment(source,enabled) {
+  const env={},secrets=[];
+  if(!enabled)return {env,secrets};
+  for(const key of PROXY_KEYS){
+    const value=source[key];if(!value)continue;
+    if(/[\r\n\0]/.test(value))throw Error('Invalid proxy environment');
+    if(!/no_proxy/i.test(key)){
+      let url;try{url=new URL(value)}catch{throw Error('Invalid proxy URL')}
+      if(!['http:','https:','socks5:','socks5h:'].includes(url.protocol))throw Error('Unsupported proxy URL');
+      for(const part of [url.username,url.password])if(part)secrets.push(part,decodeURIComponent(part));
+    }
+    env[key]=value;secrets.push(value);
+  }
+  if(!Object.keys(env).some(k=>!/no_proxy/i.test(k)))throw Error('Proxy opt-in requires a proxy URL');
+  return {env,secrets};
+}
 export function scrub(value,secrets=[],root='') {
-  let text=JSON.stringify(value);
-  for(const secret of [...secrets,root].filter(x=>typeof x==='string'&&x.length>3).sort((a,b)=>b.length-a.length)) text=text.split(secret).join('[redacted]');
-  text=text.replace(/Bearer\s+[A-Za-z0-9._~+\/-]+/g,'Bearer [redacted]');
-  return JSON.parse(text);
+  const terms=[...secrets.filter(x=>typeof x==='string'&&x.length),...(typeof root==='string'&&root.length>3?[root]:[])].sort((a,b)=>b.length-a.length);
+  return JSON.parse(JSON.stringify(value,(_key,item)=>{
+    if(typeof item!=='string')return item;
+    let text=item;for(const secret of terms)text=text.split(secret).join('[redacted]');
+    return text.replace(/Bearer\s+[A-Za-z0-9._~+\/-]+/g,'Bearer [redacted]');
+  }));
 }
 export function loginCredential(bytes) {
   const auth=JSON.parse(bytes);
@@ -44,24 +63,25 @@ export async function terminate(child,closed,ms=LIMITS.cleanup_ms){
   return {closed:didClose,group_absent:!alive(child.pid)};
 }
 /** fixtureEndpoint and executable exist solely for deterministic, offline verification. */
-export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.homedir(),'.codex'),fixtureEndpoint,executable='codex',prefixArgs=[],timeoutMs=LIMITS.turn_ms}={}) {
+export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.homedir(),'.codex'),fixtureEndpoint,executable='codex',prefixArgs=[],timeoutMs=LIMITS.turn_ms,inheritProxy=false}={}) {
   if(live&&fixtureEndpoint)throw Error('Cannot mix live and fixture routes');
   if(!live&&!fixtureEndpoint)throw Error('Explicit --live required; otherwise a local fixture endpoint is required');
   if(!Number.isInteger(timeoutMs)||timeoutMs<=0||timeoutMs>LIMITS.turn_ms)throw Error('Invalid timeout');
+  const proxy=proxyEnvironment(process.env,inheritProxy);
   const argv=argumentsFor(model,{fixtureEndpoint});
   if(!out||fs.existsSync(out))throw Error('New output directory required');
   fs.mkdirSync(out,{recursive:true,mode:0o700});
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'brooks-login-smoke-'));fs.chmodSync(root,0o700);
   const home=path.join(root,'codex');fs.mkdirSync(home,{mode:0o700});
-  const record={version:1,simulation:!live,scope:'single-text-login-smoke',requested_model:model,requested_effort:'low',provider_reported_model:null,provider_identity_verified:false,cli_selected_model:null,auth_type:null,started_at:new Date().toISOString(),argv,prompt:PROMPT,limits:LIMITS,source_sha256:sha(fs.readFileSync(fileURLToPath(import.meta.url))),events:[],requests:[],rpc_responses:[],stderr:'',status:'failed',answer:null,usage:null,limitations:['One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.','ChatGPT usage and billing are not API dollar accounting.','Model selection is CLI metadata, not independent backend attestation.','Text smoke does not validate remote shell execution.','Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry.']};
-  let secrets=[],child,closed=Promise.resolve(true),timer,buffer='',size=0,next=0,pending=new Map(),resolveTurn,rejectTurn,fatal=null;
+  const record={version:1,simulation:!live,scope:'single-text-login-smoke',requested_model:model,requested_effort:'low',proxy_mode:inheritProxy?'explicit-environment':'none',provider_reported_model:null,provider_identity_verified:false,cli_selected_model:null,auth_type:null,started_at:new Date().toISOString(),argv,prompt:PROMPT,limits:LIMITS,source_sha256:sha(fs.readFileSync(fileURLToPath(import.meta.url))),events:[],requests:[],rpc_responses:[],stderr:'',status:'failed',answer:null,usage:null,limitations:['One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.','ChatGPT usage and billing are not API dollar accounting.','Model selection is CLI metadata, not independent backend attestation.','Text smoke does not validate remote shell execution.','Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry.']};
+  let secrets=[...proxy.secrets],child,closed=Promise.resolve(true),timer,buffer='',size=0,next=0,pending=new Map(),resolveTurn,rejectTurn,fatal=null;
   const decoder=new StringDecoder('utf8');
   const turn=new Promise((resolve,reject)=>{resolveTurn=resolve;rejectTurn=reject});turn.catch(()=>{});
   const fail=e=>{fatal??=e;for(const p of pending.values())p.reject(e);pending.clear();rejectTurn(e)};
   const clean=x=>scrub(x,secrets,root);
   try {
-    if(live){const parsed=loginCredential(fs.readFileSync(path.join(authHome,'auth.json'),'utf8'));secrets=parsed.secrets;fs.writeFileSync(path.join(home,'auth.json'),JSON.stringify(parsed.auth),{mode:0o600});}
-    child=spawn(executable,[...prefixArgs,...argv],{cwd:root,env:{PATH:process.env.PATH,HOME:root,CODEX_HOME:home},detached:true,stdio:['pipe','pipe','pipe']});
+    if(live){const parsed=loginCredential(fs.readFileSync(path.join(authHome,'auth.json'),'utf8'));secrets.push(...parsed.secrets);fs.writeFileSync(path.join(home,'auth.json'),JSON.stringify(parsed.auth),{mode:0o600});}
+    child=spawn(executable,[...prefixArgs,...argv],{cwd:root,env:{PATH:process.env.PATH,HOME:root,CODEX_HOME:home,...proxy.env},detached:true,stdio:['pipe','pipe','pipe']});
     closed=new Promise(resolve=>{child.once('close',()=>resolve(true));child.once('error',e=>{record.spawn_error=e.code||'spawn-error';fail(Error('CLI spawn failed'));resolve(true)})});
     child.stdin.on('error',()=>fail(Error('CLI input closed')));
     child.once('close',(code,signal)=>{record.exit={code,signal};fail(Error('CLI closed'))});
@@ -107,7 +127,7 @@ export async function runLoginSmoke({model,out,live=false,authHome=path.join(os.
   return clean(record);
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)){
-  const args=process.argv.slice(2),allowed=new Set(['--live','--model','--out']);let model,out,live=false;
-  for(let i=0;i<args.length;i++){if(!allowed.has(args[i]))throw Error('Usage: --live --model MODEL --out NEW_DIRECTORY');if(args[i]==='--live')live=true;else if(args[i]==='--model')model=args[++i];else out=args[++i]}
-  const r=await runLoginSmoke({model,out,live});console.log(JSON.stringify({status:r.status,requested_model:r.requested_model,cli_selected_model:r.cli_selected_model,error:r.error,cleanup:r.cleanup}));if(r.status!=='completed')process.exitCode=1;
+  const args=process.argv.slice(2),allowed=new Set(['--live','--model','--out','--inherit-proxy']);let model,out,live=false,inheritProxy=false;
+  for(let i=0;i<args.length;i++){if(!allowed.has(args[i]))throw Error('Usage: --live --model MODEL --out NEW_DIRECTORY');if(args[i]==='--live')live=true;else if(args[i]==='--inherit-proxy')inheritProxy=true;else if(args[i]==='--model')model=args[++i];else out=args[++i]}
+  const r=await runLoginSmoke({model,out,live,inheritProxy});console.log(JSON.stringify({status:r.status,requested_model:r.requested_model,cli_selected_model:r.cli_selected_model,error:r.error,cleanup:r.cleanup}));if(r.status!=='completed')process.exitCode=1;
 }

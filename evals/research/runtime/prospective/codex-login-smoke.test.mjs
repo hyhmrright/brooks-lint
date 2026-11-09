@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {argumentsFor,loginCredential,runLoginSmoke,scrub} from './codex-login-smoke.mjs';
+import {argumentsFor,loginCredential,proxyEnvironment,runLoginSmoke,scrub} from './codex-login-smoke.mjs';
 const fixtureEndpoint='http://127.0.0.1:1/v1';
 const temp=()=>fs.mkdtempSync(path.join(os.tmpdir(),'brooks-login-test-'));
 const fake=String.raw`
@@ -12,7 +12,7 @@ readline.createInterface({input:process.stdin}).on('line',l=>{const q=JSON.parse
 if(q.method==='thread/start')result={model:mode==='wrong-model'?'gpt-wrong':q.params.model,reasoningEffort:'low',thread:{id:'fixture-thread'}};
 if(q.method==='account/read'){const a=JSON.parse(fs.readFileSync(process.env.CODEX_HOME+'/auth.json','utf8'));if(a.tokens.refresh_token!==''||a.OPENAI_API_KEY)throw Error('unexpected private credential copied');}
 if(q.method==='account/read')result={account:{type:mode==='api'?'apiKey':'chatgpt',email:'PRIVATE_EMAIL'}};
-if(q.method==='initialize')result={userAgent:'fixture-cli/1'};
+if(q.method==='initialize'){if(mode==='proxy'&&process.env.https_proxy!=='http://proxyuser:proxypass@127.0.0.1:1234')throw Error('proxy missing');if(mode==='no-proxy'&&process.env.https_proxy)throw Error('unexpected proxy');result={userAgent:'fixture-cli/1'};if(mode==='proxy')console.error('proxy secret '+process.env.https_proxy+' proxypass');}
 if(mode==='hang')return;
 if(mode==='invalid'){console.log('not-json');return;}
 console.log(JSON.stringify({id:q.id,result}));
@@ -51,5 +51,22 @@ test('synthetic login lifecycle uses private auth-only home and never archives c
 });
 test('API account response cannot pass login smoke',async()=>{const root=temp();try{fs.writeFileSync(path.join(root,'auth.json'),JSON.stringify({auth_mode:'chatgpt',tokens:{access_token:'fixture-access'}}));const r=await run('api',{live:true,fixtureEndpoint:undefined,authHome:root});assert.equal(r.status,'failed');assert.match(r.error,/ChatGPT login/)}finally{fs.rmSync(root,{recursive:true,force:true})}});
 test('archived real CLI fixture binds the launcher and selected-model RPC evidence',async()=>{
- const {createHash}=await import('node:crypto');const url=new URL('../../../../docs/research/runtime-preparations/2026-11-09-native-remote/codex-login-followup/text-smoke-offline-final/record.json',import.meta.url);const r=JSON.parse(fs.readFileSync(url));assert.equal(r.source_sha256,createHash('sha256').update(fs.readFileSync(new URL('./codex-login-smoke.mjs',import.meta.url))).digest('hex'));assert.equal(r.simulation,true);assert.equal(r.status,'completed');assert.equal(r.answer,'BROOKS_LOGIN_OK');assert.equal(r.rpc_responses.find(e=>e.method==='thread/start').response.result.model,r.requested_model);assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed);assert.equal(r.provider_reported_model,null);
+ const url=new URL('../../../../docs/research/runtime-preparations/2026-11-09-native-remote/codex-login-followup/text-smoke-offline-final/record.json',import.meta.url);const r=JSON.parse(fs.readFileSync(url));assert.equal(r.source_sha256,'7c8c4a54476ddda174088424b62c31cafb8a14977a31d72ddb32af2727379814');assert.equal(r.simulation,true);assert.equal(r.status,'completed');assert.equal(r.answer,'BROOKS_LOGIN_OK');assert.equal(r.rpc_responses.find(e=>e.method==='thread/start').response.result.model,r.requested_model);assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed);assert.equal(r.provider_reported_model,null);
+});
+
+test('proxy inheritance is explicit, scoped and credentials are redacted',async()=>{
+ const source={https_proxy:'http://proxyuser:proxypass@127.0.0.1:1234',NO_PROXY:'localhost',OPENAI_API_KEY:'dont-copy'};
+ assert.deepEqual(proxyEnvironment(source,false).env,{});
+ const p=proxyEnvironment(source,true);assert.deepEqual(Object.keys(p.env),['https_proxy','NO_PROXY']);
+ assert.equal(scrub({value:source.https_proxy,password:'proxypass'},p.secrets).password,'[redacted]');assert.equal(scrub({password:'x'},['x']).password,'[redacted]');
+ assert.throws(()=>proxyEnvironment({https_proxy:'file:///private'},true),/Unsupported/);
+ assert.throws(()=>proxyEnvironment({NO_PROXY:'localhost'},true),/requires/);
+ const old=process.env.https_proxy;process.env.https_proxy=source.https_proxy;
+ try{const absent=await run('no-proxy');assert.equal(absent.status,'completed');const r=await run('proxy',{inheritProxy:true});assert.equal(r.proxy_mode,'explicit-environment');assert.equal(r.status,'completed');assert(!JSON.stringify(r).includes('proxypass'))}finally{if(old===undefined)delete process.env.https_proxy;else process.env.https_proxy=old}
+});
+test('retained local proxy drill matches current launcher and one simulated request',async()=>{
+ const {createHash}=await import('node:crypto');const base=new URL('../../../../docs/research/runtime-preparations/2026-11-09-native-remote/codex-login-followup/proxy-offline-2026-11-09/',import.meta.url);
+ const record=JSON.parse(fs.readFileSync(new URL('record.json',base)));const proxy=JSON.parse(fs.readFileSync(new URL('proxy-observation.json',base)));
+ assert.equal(record.source_sha256,createHash('sha256').update(fs.readFileSync(new URL('./codex-login-smoke.mjs',import.meta.url))).digest('hex'));
+ assert.equal(record.simulation,true);assert.equal(record.proxy_mode,'explicit-environment');assert.equal(record.status,'completed');assert.equal(record.answer,'BROOKS_LOGIN_OK');assert.equal(proxy.observed.length,1);assert.equal(proxy.simulation,true);
 });
