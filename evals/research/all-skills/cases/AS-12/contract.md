@@ -1,0 +1,1 @@
+One address-field change requires the same mapping update in three modules. Among the last ten such changes, two omitted one mapping and eight updated all three successfully. Developers do not avoid this area, but report changes taking 2–3x longer than comparable single-mapping work. No loss of data is established.

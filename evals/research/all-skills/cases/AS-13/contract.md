@@ -1,0 +1,1 @@
+This isolated throwaway demo expires tomorrow and has no production consumers. The owner deliberately used a hardcoded three-item list to test aUI hypothesis; it is deleted after the demo. No future reuse is planned.

@@ -1,0 +1,1 @@
+Pain:3=actively avoided/regressions on most changes;2=noticeably slower;1=no current active pain. Spread:3=5+modules/all developers;2=2–4modules/subset;1=one module. Priority=Pain*Spread;7–9 critical debt,4–6 scheduled,1–3 monitored. Work priority does not override evidence-based finding severity.

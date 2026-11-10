@@ -13,6 +13,9 @@ review](skill-benchmark-methods.md), with the separately versioned
 [contract-sensitive runtime pack benchmark](runtime-pack-benchmark.md).
 The research question remains incremental domain-pack value with evidence and
 false-positive restraint; benchmark size or difficulty is not the objective.
+The subsequent [all-skill campaign](benchmark-campaign.md) also evaluates each
+existing skill separately at the maintainer's request; runtime extension results
+remain a distinct cohort and do not stand in for those product-level results.
 
 ## Problem and hypothesis
 

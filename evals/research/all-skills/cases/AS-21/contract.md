@@ -1,0 +1,1 @@
+Use base100, floor each dimension at0. Deduct per finding using strict20/8/2, balanced15/5/1, legacy-friendly8/3/1 for Critical/Warning/Suggestion. Weights PR .25, architecture .30, debt .25, test .20. Omit only PR when no diff and renormalize. Round final composite half-up. The supplied ledger is already adjudicated and capped; do not add findings.

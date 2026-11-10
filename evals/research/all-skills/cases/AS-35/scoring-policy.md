@@ -1,0 +1,1 @@
+Base100. Balanced deductions Critical15, Warning5, Suggestion1; floor per dimension0. At most3 findings per dimension. No PR diff: omitPR and renormalize Architecture.30,Debt.25,Test.20 by.75; round final half-up. Unknown severe production exposure must not be invented.

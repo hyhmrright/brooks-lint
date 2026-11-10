@@ -1,0 +1,1 @@
+address.postcode mapping is maintained in api/map.mjs, export/map.mjs and mail/map.mjs. Across ten field changes, export was omitted twice; eight changes updated every mapping. No avoidance behavior is reported. The attached current export mapping is one of the omitted updates.

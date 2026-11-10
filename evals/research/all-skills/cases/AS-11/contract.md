@@ -1,0 +1,1 @@
+Candidate facts are verified. Policy duplication causes regressions on most changes across6 modules. Parser naming inconsistency is isolated to1 module and causes no current pain. No serious production impact is established.

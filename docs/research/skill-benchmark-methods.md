@@ -134,3 +134,14 @@ controls for seven fixtures. It is a separate system-level study; its existing
 results must not be relabeled as native activation evidence for this runtime
 prototype. Reuse that machinery when a selectively activated pack is actually
 implemented, instead of creating a second independent activation harness.
+
+## Maintainer scope expansion, 2026-11-10
+
+The maintainer subsequently requested benchmark coverage for every current skill,
+not only the targeted review comparator. The [all-skill campaign](benchmark-campaign.md)
+adds per-skill product cases and a separate repository-maintenance cohort while
+retaining the frozen runtime comparison. These are two distinct research questions:
+whether each core skill meets its own promises, and whether the runtime extension
+adds value beyond its matched core comparator. Neither result substitutes for the
+other; report them separately. All live execution remains deferred until model
+selection and campaign authorization.

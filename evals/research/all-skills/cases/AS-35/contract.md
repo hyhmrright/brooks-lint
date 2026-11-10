@@ -1,0 +1,1 @@
+The supplied files are the complete project. There is no PR diff. Domain code must work independently ofHTTP adapters; only adapters may depend on domain. quote(cents) returns90% of validated finite nonnegative integer cents. Public behavior, not private identifier spelling, is the testing contract.

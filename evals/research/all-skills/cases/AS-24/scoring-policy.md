@@ -1,0 +1,1 @@
+Neutral scoring rules: start each reviewed dimension at100. Under balanced, subtract15 per Critical finding,5 per Warning and1 per Suggestion, with floor0. These deductions apply only to reviewed evidence. An unscanned dimension is unknown, not a clean score of100; do not publish a whole-project composite from incomplete scans.
