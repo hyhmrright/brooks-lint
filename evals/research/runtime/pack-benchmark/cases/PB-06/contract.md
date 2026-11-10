@@ -1,0 +1,1 @@
+The producer handoff describes amount as a monetary number but omits its business definition. Duplicate deliveries retain eventId. This bounded single-process batch is ordered and has no crash/restart.

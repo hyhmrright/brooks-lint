@@ -1,0 +1,1 @@
+Retail and wholesale are independently owned policies. Both happen to be 10 percent today. Either may change without the other. Their public behavior is correct. No common policy or shared-change obligation exists.

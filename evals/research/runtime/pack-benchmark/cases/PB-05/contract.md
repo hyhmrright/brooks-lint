@@ -1,0 +1,1 @@
+Each distinct event contains an additional booked amount: e1 adds 10 and e2 adds another 15. Duplicate deliveries retain eventId. This bounded single-process batch is ordered and has no crash/restart. The resulting order total must equal the sum of distinct booked amounts.

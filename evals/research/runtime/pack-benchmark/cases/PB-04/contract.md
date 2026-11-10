@@ -1,0 +1,1 @@
+Each distinct event contains the latest cumulative order amount. e1 means the order total is 10, e2 replaces it with 15. Duplicate deliveries retain eventId. This bounded single-process batch is ordered and has no crash/restart. The resulting order total must equal its latest event amount.

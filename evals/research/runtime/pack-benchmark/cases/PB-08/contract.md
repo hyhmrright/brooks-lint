@@ -1,0 +1,1 @@
+Acknowledgement accepts a pending update; it is not a visibility barrier. Reads are documented snapshots of the last flushed state. New data becomes visible after queue.flush(). No concurrency or failures occur.

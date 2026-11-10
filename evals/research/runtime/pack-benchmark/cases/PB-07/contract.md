@@ -1,0 +1,1 @@
+An acknowledged write is a visibility barrier. Any subsequent read in this serial session must return the acknowledged value. The queue is drained only by an explicit flush; flush has not occurred at the first read. No concurrency or failures occur.

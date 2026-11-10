@@ -8,6 +8,12 @@ by [@scottschreckengaust](https://github.com/scottschreckengaust).
 Research branch: [`research/domain-packs`](https://github.com/hyhmrright/brooks-lint/tree/research/domain-packs).
 Next: [runtime pilot research plan](runtime-pilot-plan.md).
 
+2026-11-10 methods follow-up: [skill evaluation research and original-purpose
+review](skill-benchmark-methods.md), with the separately versioned
+[contract-sensitive runtime pack benchmark](runtime-pack-benchmark.md).
+The research question remains incremental domain-pack value with evidence and
+false-positive restraint; benchmark size or difficulty is not the objective.
+
 ## Problem and hypothesis
 
 The current framework addresses maintainability and test quality. Discussion #45
