@@ -1,0 +1,37 @@
+{
+  "revision": 1,
+  "caseId": "HB-01",
+  "assessment": "defect",
+  "contract": "The ingress timestamp defines one absolute 50 ms admission deadline, covering queue residence and retry backoff. No attempt may start at or after that deadline. Already-running operations may settle after it.",
+  "expectedFindings": [
+    {
+      "id": "deadline-rebase",
+      "symptom": "Ingress at 0, dequeue at 35, first attempt fails at 45, retry backoff ends at 55.",
+      "source": "Ingress at 0, dequeue at 35, first attempt fails at 45, retry backoff ends at 55. Rebasing the deadline to 85 allows an attempt at 55; retaining 50 denies it. Checking only elapsed attempt time does not cover residence plus backoff.",
+      "consequence": "The supplied contract is violated in the bounded driver schedule; no production impact or permanent leakage is established.",
+      "remedy": "Carry the ingress absolute deadline across queue and retry boundaries; check it immediately before each transport admission.",
+      "allowedSeverity": [
+        "Warning"
+      ]
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: Ingress at 0, dequeue at 35, first attempt fails at 45, retry backoff ends at 55. Rebasing the deadline to 85 allows an attempt at 55; retaining 50 denies it. Checking only elapsed attempt time does not cover residence plus backoff."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: A fast dequeue permits two attempts within budget; exact-deadline admission is denied; a successful admitted operation may complete later without retroactively becoming an admission violation."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

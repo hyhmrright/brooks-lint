@@ -1,0 +1,678 @@
+{
+  "revision": 1,
+  "status": "public-development-hard-candidates",
+  "independent": false,
+  "privateCustody": false,
+  "humanReview": "pending",
+  "bookMapping": "unverified",
+  "difficultyMultiplier": null,
+  "liveRunnerIntegration": false,
+  "authorExposure": "Same development workflow, prior HC cases/results and runtime prototype available. No independent custodian.",
+  "families": [
+    {
+      "id": "deadline-rebase",
+      "title": "Queue residence, retry delay and deadline origin",
+      "split": "calibration",
+      "dimensions": [
+        "absolute-vs-relative-time",
+        "queue-plus-retry",
+        "admission-vs-completion"
+      ]
+    },
+    {
+      "id": "retry-token-ownership",
+      "title": "Layered retry after partial progress",
+      "split": "calibration",
+      "dimensions": [
+        "nested-retry-ownership",
+        "unknown-send-outcome",
+        "global-vs-local-budget"
+      ]
+    },
+    {
+      "id": "hedge-cancel-drain",
+      "title": "Hedged winner and cancellation acknowledgement",
+      "split": "calibration",
+      "dimensions": [
+        "client-vs-physical-lifecycle",
+        "hedge-fanout",
+        "cancel-ack-race"
+      ]
+    },
+    {
+      "id": "lease-fencing",
+      "title": "Expired lease holder crossing a transactional commit",
+      "split": "calibration",
+      "dimensions": [
+        "lease-expiry",
+        "identity-reuse",
+        "atomic-commit-fence"
+      ]
+    },
+    {
+      "id": "batch-item-expiry",
+      "title": "Batch delay with independently expiring entries",
+      "split": "development-reserved",
+      "dimensions": [
+        "coalescing",
+        "per-item-vs-envelope-contract",
+        "selective-expiry"
+      ]
+    },
+    {
+      "id": "singleflight-waiters",
+      "title": "Shared lookup with asymmetric cancellation",
+      "split": "development-reserved",
+      "dimensions": [
+        "shared-work-ownership",
+        "refcount-lifecycle",
+        "cross-key-isolation"
+      ]
+    },
+    {
+      "id": "weighted-reservation",
+      "title": "Weighted permit reservation cancelled during handoff",
+      "split": "development-reserved",
+      "dimensions": [
+        "two-phase-reservation",
+        "posted-handoff-interleaving",
+        "weighted-capacity-progress"
+      ]
+    },
+    {
+      "id": "breaker-probe-epoch",
+      "title": "Half-open breaker with a late prior-epoch completion",
+      "split": "development-reserved",
+      "dimensions": [
+        "breaker-state-machine",
+        "stale-epoch-completion",
+        "probe-lease-ownership"
+      ]
+    },
+    {
+      "id": "fanout-backpressure",
+      "title": "Fanout byte credits and unequal sink speeds",
+      "split": "development-reserved",
+      "dimensions": [
+        "fanout-byte-accounting",
+        "enqueue-vs-drain",
+        "slow-sink-backpressure"
+      ]
+    },
+    {
+      "id": "dedupe-retention",
+      "title": "Unknown commit, retry delay and deduplication retention",
+      "split": "development-reserved",
+      "dimensions": [
+        "unknown-commit",
+        "retry-vs-retention-horizon",
+        "idempotency-state-expiry"
+      ]
+    },
+    {
+      "id": "tenant-session-reuse",
+      "title": "Pool reuse while session reset acknowledgement is pending",
+      "split": "development-reserved",
+      "dimensions": [
+        "asynchronous-reset",
+        "tenant-isolation",
+        "lease-transfer-before-ack"
+      ]
+    },
+    {
+      "id": "shutdown-retry-drain",
+      "title": "Shutdown barrier with delayed retry ownership",
+      "split": "development-reserved",
+      "dimensions": [
+        "shutdown-linearization",
+        "delayed-retry-ownership",
+        "dequeued-callback-race"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "HB-01",
+      "family": "deadline-rebase",
+      "split": "calibration",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-01/clock.mjs",
+        "cases/HB-01/transport.mjs",
+        "cases/HB-01/service.mjs",
+        "cases/HB-01/context.md",
+        "cases/HB-01/task.md"
+      ],
+      "rubric": "cases/HB-01/rubric.json",
+      "driver": "drivers/deadline-rebase.mjs"
+    },
+    {
+      "id": "HB-02",
+      "family": "deadline-rebase",
+      "split": "calibration",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-02/clock.mjs",
+        "cases/HB-02/transport.mjs",
+        "cases/HB-02/service.mjs",
+        "cases/HB-02/context.md",
+        "cases/HB-02/task.md"
+      ],
+      "rubric": "cases/HB-02/rubric.json",
+      "driver": "drivers/deadline-rebase.mjs"
+    },
+    {
+      "id": "HB-03",
+      "family": "deadline-rebase",
+      "split": "calibration",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-03/clock.mjs",
+        "cases/HB-03/transport.mjs",
+        "cases/HB-03/service.mjs",
+        "cases/HB-03/context.md",
+        "cases/HB-03/task.md"
+      ],
+      "rubric": "cases/HB-03/rubric.json",
+      "driver": "drivers/deadline-rebase.mjs"
+    },
+    {
+      "id": "HB-04",
+      "family": "retry-token-ownership",
+      "split": "calibration",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-04/budget.mjs",
+        "cases/HB-04/transport.mjs",
+        "cases/HB-04/service.mjs",
+        "cases/HB-04/context.md",
+        "cases/HB-04/task.md"
+      ],
+      "rubric": "cases/HB-04/rubric.json",
+      "driver": "drivers/retry-token-ownership.mjs"
+    },
+    {
+      "id": "HB-05",
+      "family": "retry-token-ownership",
+      "split": "calibration",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-05/budget.mjs",
+        "cases/HB-05/transport.mjs",
+        "cases/HB-05/service.mjs",
+        "cases/HB-05/context.md",
+        "cases/HB-05/task.md"
+      ],
+      "rubric": "cases/HB-05/rubric.json",
+      "driver": "drivers/retry-token-ownership.mjs"
+    },
+    {
+      "id": "HB-06",
+      "family": "retry-token-ownership",
+      "split": "calibration",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-06/budget.mjs",
+        "cases/HB-06/transport.mjs",
+        "cases/HB-06/service.mjs",
+        "cases/HB-06/context.md",
+        "cases/HB-06/task.md"
+      ],
+      "rubric": "cases/HB-06/rubric.json",
+      "driver": "drivers/retry-token-ownership.mjs"
+    },
+    {
+      "id": "HB-07",
+      "family": "hedge-cancel-drain",
+      "split": "calibration",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-07/pool.mjs",
+        "cases/HB-07/transport.mjs",
+        "cases/HB-07/service.mjs",
+        "cases/HB-07/context.md",
+        "cases/HB-07/task.md"
+      ],
+      "rubric": "cases/HB-07/rubric.json",
+      "driver": "drivers/hedge-cancel-drain.mjs"
+    },
+    {
+      "id": "HB-08",
+      "family": "hedge-cancel-drain",
+      "split": "calibration",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-08/pool.mjs",
+        "cases/HB-08/transport.mjs",
+        "cases/HB-08/service.mjs",
+        "cases/HB-08/context.md",
+        "cases/HB-08/task.md"
+      ],
+      "rubric": "cases/HB-08/rubric.json",
+      "driver": "drivers/hedge-cancel-drain.mjs"
+    },
+    {
+      "id": "HB-09",
+      "family": "hedge-cancel-drain",
+      "split": "calibration",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-09/pool.mjs",
+        "cases/HB-09/transport.mjs",
+        "cases/HB-09/service.mjs",
+        "cases/HB-09/context.md",
+        "cases/HB-09/task.md"
+      ],
+      "rubric": "cases/HB-09/rubric.json",
+      "driver": "drivers/hedge-cancel-drain.mjs"
+    },
+    {
+      "id": "HB-10",
+      "family": "lease-fencing",
+      "split": "calibration",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-10/lease.mjs",
+        "cases/HB-10/store.mjs",
+        "cases/HB-10/service.mjs",
+        "cases/HB-10/context.md",
+        "cases/HB-10/task.md"
+      ],
+      "rubric": "cases/HB-10/rubric.json",
+      "driver": "drivers/lease-fencing.mjs"
+    },
+    {
+      "id": "HB-11",
+      "family": "lease-fencing",
+      "split": "calibration",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-11/lease.mjs",
+        "cases/HB-11/store.mjs",
+        "cases/HB-11/service.mjs",
+        "cases/HB-11/context.md",
+        "cases/HB-11/task.md"
+      ],
+      "rubric": "cases/HB-11/rubric.json",
+      "driver": "drivers/lease-fencing.mjs"
+    },
+    {
+      "id": "HB-12",
+      "family": "lease-fencing",
+      "split": "calibration",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-12/lease.mjs",
+        "cases/HB-12/store.mjs",
+        "cases/HB-12/service.mjs",
+        "cases/HB-12/context.md",
+        "cases/HB-12/task.md"
+      ],
+      "rubric": "cases/HB-12/rubric.json",
+      "driver": "drivers/lease-fencing.mjs"
+    },
+    {
+      "id": "HB-13",
+      "family": "batch-item-expiry",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-13/queue.mjs",
+        "cases/HB-13/transport.mjs",
+        "cases/HB-13/service.mjs",
+        "cases/HB-13/context.md",
+        "cases/HB-13/task.md"
+      ],
+      "rubric": "cases/HB-13/rubric.json",
+      "driver": "drivers/batch-item-expiry.mjs"
+    },
+    {
+      "id": "HB-14",
+      "family": "batch-item-expiry",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-14/queue.mjs",
+        "cases/HB-14/transport.mjs",
+        "cases/HB-14/service.mjs",
+        "cases/HB-14/context.md",
+        "cases/HB-14/task.md"
+      ],
+      "rubric": "cases/HB-14/rubric.json",
+      "driver": "drivers/batch-item-expiry.mjs"
+    },
+    {
+      "id": "HB-15",
+      "family": "batch-item-expiry",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-15/queue.mjs",
+        "cases/HB-15/transport.mjs",
+        "cases/HB-15/service.mjs",
+        "cases/HB-15/context.md",
+        "cases/HB-15/task.md"
+      ],
+      "rubric": "cases/HB-15/rubric.json",
+      "driver": "drivers/batch-item-expiry.mjs"
+    },
+    {
+      "id": "HB-16",
+      "family": "singleflight-waiters",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-16/flight.mjs",
+        "cases/HB-16/service.mjs",
+        "cases/HB-16/adapter.mjs",
+        "cases/HB-16/context.md",
+        "cases/HB-16/task.md"
+      ],
+      "rubric": "cases/HB-16/rubric.json",
+      "driver": "drivers/singleflight-waiters.mjs"
+    },
+    {
+      "id": "HB-17",
+      "family": "singleflight-waiters",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-17/flight.mjs",
+        "cases/HB-17/service.mjs",
+        "cases/HB-17/adapter.mjs",
+        "cases/HB-17/context.md",
+        "cases/HB-17/task.md"
+      ],
+      "rubric": "cases/HB-17/rubric.json",
+      "driver": "drivers/singleflight-waiters.mjs"
+    },
+    {
+      "id": "HB-18",
+      "family": "singleflight-waiters",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-18/flight.mjs",
+        "cases/HB-18/service.mjs",
+        "cases/HB-18/adapter.mjs",
+        "cases/HB-18/context.md",
+        "cases/HB-18/task.md"
+      ],
+      "rubric": "cases/HB-18/rubric.json",
+      "driver": "drivers/singleflight-waiters.mjs"
+    },
+    {
+      "id": "HB-19",
+      "family": "weighted-reservation",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-19/scheduler.mjs",
+        "cases/HB-19/pool.mjs",
+        "cases/HB-19/service.mjs",
+        "cases/HB-19/context.md",
+        "cases/HB-19/task.md"
+      ],
+      "rubric": "cases/HB-19/rubric.json",
+      "driver": "drivers/weighted-reservation.mjs"
+    },
+    {
+      "id": "HB-20",
+      "family": "weighted-reservation",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-20/scheduler.mjs",
+        "cases/HB-20/pool.mjs",
+        "cases/HB-20/service.mjs",
+        "cases/HB-20/context.md",
+        "cases/HB-20/task.md"
+      ],
+      "rubric": "cases/HB-20/rubric.json",
+      "driver": "drivers/weighted-reservation.mjs"
+    },
+    {
+      "id": "HB-21",
+      "family": "weighted-reservation",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-21/scheduler.mjs",
+        "cases/HB-21/pool.mjs",
+        "cases/HB-21/service.mjs",
+        "cases/HB-21/context.md",
+        "cases/HB-21/task.md"
+      ],
+      "rubric": "cases/HB-21/rubric.json",
+      "driver": "drivers/weighted-reservation.mjs"
+    },
+    {
+      "id": "HB-22",
+      "family": "breaker-probe-epoch",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-22/clock.mjs",
+        "cases/HB-22/breaker.mjs",
+        "cases/HB-22/service.mjs",
+        "cases/HB-22/context.md",
+        "cases/HB-22/task.md"
+      ],
+      "rubric": "cases/HB-22/rubric.json",
+      "driver": "drivers/breaker-probe-epoch.mjs"
+    },
+    {
+      "id": "HB-23",
+      "family": "breaker-probe-epoch",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-23/clock.mjs",
+        "cases/HB-23/breaker.mjs",
+        "cases/HB-23/service.mjs",
+        "cases/HB-23/context.md",
+        "cases/HB-23/task.md"
+      ],
+      "rubric": "cases/HB-23/rubric.json",
+      "driver": "drivers/breaker-probe-epoch.mjs"
+    },
+    {
+      "id": "HB-24",
+      "family": "breaker-probe-epoch",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-24/clock.mjs",
+        "cases/HB-24/breaker.mjs",
+        "cases/HB-24/service.mjs",
+        "cases/HB-24/context.md",
+        "cases/HB-24/task.md"
+      ],
+      "rubric": "cases/HB-24/rubric.json",
+      "driver": "drivers/breaker-probe-epoch.mjs"
+    },
+    {
+      "id": "HB-25",
+      "family": "fanout-backpressure",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-25/credits.mjs",
+        "cases/HB-25/sink.mjs",
+        "cases/HB-25/service.mjs",
+        "cases/HB-25/context.md",
+        "cases/HB-25/task.md"
+      ],
+      "rubric": "cases/HB-25/rubric.json",
+      "driver": "drivers/fanout-backpressure.mjs"
+    },
+    {
+      "id": "HB-26",
+      "family": "fanout-backpressure",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-26/credits.mjs",
+        "cases/HB-26/sink.mjs",
+        "cases/HB-26/service.mjs",
+        "cases/HB-26/context.md",
+        "cases/HB-26/task.md"
+      ],
+      "rubric": "cases/HB-26/rubric.json",
+      "driver": "drivers/fanout-backpressure.mjs"
+    },
+    {
+      "id": "HB-27",
+      "family": "fanout-backpressure",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-27/credits.mjs",
+        "cases/HB-27/sink.mjs",
+        "cases/HB-27/service.mjs",
+        "cases/HB-27/context.md",
+        "cases/HB-27/task.md"
+      ],
+      "rubric": "cases/HB-27/rubric.json",
+      "driver": "drivers/fanout-backpressure.mjs"
+    },
+    {
+      "id": "HB-28",
+      "family": "dedupe-retention",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-28/ledger.mjs",
+        "cases/HB-28/dedupe.mjs",
+        "cases/HB-28/service.mjs",
+        "cases/HB-28/policy.mjs",
+        "cases/HB-28/context.md",
+        "cases/HB-28/task.md"
+      ],
+      "rubric": "cases/HB-28/rubric.json",
+      "driver": "drivers/dedupe-retention.mjs"
+    },
+    {
+      "id": "HB-29",
+      "family": "dedupe-retention",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-29/ledger.mjs",
+        "cases/HB-29/dedupe.mjs",
+        "cases/HB-29/service.mjs",
+        "cases/HB-29/policy.mjs",
+        "cases/HB-29/context.md",
+        "cases/HB-29/task.md"
+      ],
+      "rubric": "cases/HB-29/rubric.json",
+      "driver": "drivers/dedupe-retention.mjs"
+    },
+    {
+      "id": "HB-30",
+      "family": "dedupe-retention",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-30/ledger.mjs",
+        "cases/HB-30/dedupe.mjs",
+        "cases/HB-30/service.mjs",
+        "cases/HB-30/policy.mjs",
+        "cases/HB-30/context.md",
+        "cases/HB-30/task.md"
+      ],
+      "rubric": "cases/HB-30/rubric.json",
+      "driver": "drivers/dedupe-retention.mjs"
+    },
+    {
+      "id": "HB-31",
+      "family": "tenant-session-reuse",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-31/scheduler.mjs",
+        "cases/HB-31/connection.mjs",
+        "cases/HB-31/service.mjs",
+        "cases/HB-31/context.md",
+        "cases/HB-31/task.md"
+      ],
+      "rubric": "cases/HB-31/rubric.json",
+      "driver": "drivers/tenant-session-reuse.mjs"
+    },
+    {
+      "id": "HB-32",
+      "family": "tenant-session-reuse",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-32/scheduler.mjs",
+        "cases/HB-32/connection.mjs",
+        "cases/HB-32/service.mjs",
+        "cases/HB-32/context.md",
+        "cases/HB-32/task.md"
+      ],
+      "rubric": "cases/HB-32/rubric.json",
+      "driver": "drivers/tenant-session-reuse.mjs"
+    },
+    {
+      "id": "HB-33",
+      "family": "tenant-session-reuse",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-33/scheduler.mjs",
+        "cases/HB-33/connection.mjs",
+        "cases/HB-33/service.mjs",
+        "cases/HB-33/context.md",
+        "cases/HB-33/task.md"
+      ],
+      "rubric": "cases/HB-33/rubric.json",
+      "driver": "drivers/tenant-session-reuse.mjs"
+    },
+    {
+      "id": "HB-34",
+      "family": "shutdown-retry-drain",
+      "split": "development-reserved",
+      "kind": "unresolved",
+      "inputs": [
+        "cases/HB-34/scheduler.mjs",
+        "cases/HB-34/transport.mjs",
+        "cases/HB-34/service.mjs",
+        "cases/HB-34/context.md",
+        "cases/HB-34/task.md"
+      ],
+      "rubric": "cases/HB-34/rubric.json",
+      "driver": "drivers/shutdown-retry-drain.mjs"
+    },
+    {
+      "id": "HB-35",
+      "family": "shutdown-retry-drain",
+      "split": "development-reserved",
+      "kind": "protected",
+      "inputs": [
+        "cases/HB-35/scheduler.mjs",
+        "cases/HB-35/transport.mjs",
+        "cases/HB-35/service.mjs",
+        "cases/HB-35/context.md",
+        "cases/HB-35/task.md"
+      ],
+      "rubric": "cases/HB-35/rubric.json",
+      "driver": "drivers/shutdown-retry-drain.mjs"
+    },
+    {
+      "id": "HB-36",
+      "family": "shutdown-retry-drain",
+      "split": "development-reserved",
+      "kind": "defect",
+      "inputs": [
+        "cases/HB-36/scheduler.mjs",
+        "cases/HB-36/transport.mjs",
+        "cases/HB-36/service.mjs",
+        "cases/HB-36/context.md",
+        "cases/HB-36/task.md"
+      ],
+      "rubric": "cases/HB-36/rubric.json",
+      "driver": "drivers/shutdown-retry-drain.mjs"
+    }
+  ]
+}

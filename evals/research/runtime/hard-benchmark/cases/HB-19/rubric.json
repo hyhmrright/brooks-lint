@@ -1,0 +1,37 @@
+{
+  "revision": 1,
+  "caseId": "HB-19",
+  "assessment": "defect",
+  "contract": "Capacity is three units. A queued request may reserve units before its delivery callback runs. Cancellation before delivery must return all reserved units; a later delivery callback must not transfer a cancelled reservation. Live delivered owners release their own units once.",
+  "expectedFindings": [
+    {
+      "id": "weighted-reservation",
+      "symptom": "A three-unit holder blocks a two-unit request.",
+      "source": "A three-unit holder blocks a two-unit request. Releasing the holder reserves two units and posts delivery. Cancellation in that handoff window removes the waiter but fails to roll back its reservation; delivery then skips it. A new two-unit request cannot be admitted despite no live owner. Returning reserved units on cancellation restores progress.",
+      "consequence": "The supplied contract is violated in the bounded driver schedule; no production impact or permanent leakage is established.",
+      "remedy": "Model queued, reserved and delivered ownership separately; cancellation rolls back reserved capacity exactly once before the posted delivery is allowed to transfer it.",
+      "allowedSeverity": [
+        "Warning"
+      ]
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: A three-unit holder blocks a two-unit request. Releasing the holder reserves two units and posts delivery. Cancellation in that handoff window removes the waiter but fails to roll back its reservation; delivery then skips it. A new two-unit request cannot be admitted despite no live owner. Returning reserved units on cancellation restores progress."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: Cancellation while still queued reserves nothing; delivered releases work; repeated cancel/release cannot over-credit; normal handoff admits the waiter; outer cleanup is an explicit alternative owner, not an assumed automatic fix."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

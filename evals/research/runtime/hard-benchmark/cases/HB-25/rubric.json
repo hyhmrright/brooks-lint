@@ -1,0 +1,34 @@
+{
+  "revision": 1,
+  "caseId": "HB-25",
+  "assessment": "unresolved",
+  "contract": "The 8-byte credit window bounds bytes still retained by any required sink. A frame is released only after every required sink has drained that frame. Enqueue acknowledgement is not drainage. Fast-sink completion cannot replenish the shared credit while the slow required sink still retains bytes. Optional sinks do not participate in this credit window.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: Two four-byte frames fill eight credits and both sinks enqueue them. Crediting at enqueue restores the whole window although the slow sink retains eight bytes. The producer sends a third frame, raising slow-sink retention to twelve. All-required-sink drain accounting denies the third until the slow sink acknowledges the first."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: A fast sink alone cannot release shared credits; slow drainage enables exactly one replacement frame; duplicate drainage cannot create credits; zero-length frames and full cleanup preserve bounds."
+    },
+    {
+      "id": "missing-artifact",
+      "description": "The accounting scope: does the 8-byte window bound retained frames across required sinks or only frames waiting to be enqueued?"
+    },
+    {
+      "id": "explicit-alternative-judgments",
+      "description": "Under this contract: The 8-byte credit window bounds bytes still retained by any required sink. A frame is released only after every required sink has drained that frame. Enqueue acknowledgement is not drainage. Fast-sink completion cannot replenish the shared credit while the slow required sink still retains bytes. Optional sinks do not participate in this credit window. the traced behavior is a defect. Alternative: If the window measures only enqueue admission and each sink separately owns its retained-byte budget, returning credits after enqueue is permitted; no shared retained-byte bound has then been promised."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

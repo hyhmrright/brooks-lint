@@ -1,0 +1,34 @@
+{
+  "revision": 1,
+  "caseId": "HB-33",
+  "assessment": "unresolved",
+  "contract": "A connection cannot be assigned to a different tenant until its asynchronous session reset has acknowledged. Query execution uses the physical connection session tenant, not the caller label. A completed lease has no further right to query. The pool holds one physical connection.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: Tenant A releases the only connection and starts reset, but the reset callback has not run. Publishing the connection as idle allows tenant B to acquire it. Binding B is queued after reset while a synchronous query executes with session A. Keeping the connection unavailable until reset acknowledgement denies that query window."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: After reset acknowledgement B binds and queries B; an active A lease blocks other acquisition; repeated release is inert; failed reset destroys the connection instead of publishing it."
+    },
+    {
+      "id": "missing-artifact",
+      "description": "The session binding contract: are queries scoped by the physical session tenant, or does the database enforce an independent per-query tenant envelope?"
+    },
+    {
+      "id": "explicit-alternative-judgments",
+      "description": "Under this contract: A connection cannot be assigned to a different tenant until its asynchronous session reset has acknowledged. Query execution uses the physical connection session tenant, not the caller label. A completed lease has no further right to query. The pool holds one physical connection. the traced behavior is a defect. Alternative: If the database independently scopes each query by the caller envelope and ignores residual session tenant for access, early reuse does not cross the tenant boundary under that alternative contract; the physical reset trace alone cannot establish data exposure."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

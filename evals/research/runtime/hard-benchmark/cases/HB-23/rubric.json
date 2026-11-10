@@ -1,0 +1,37 @@
+{
+  "revision": 1,
+  "caseId": "HB-23",
+  "assessment": "defect",
+  "contract": "A half-open probe lease can be settled only by the outcome for the exact epoch and probe sequence that acquired it. A late pre-open request may update its own metrics but cannot release or decide the half-open probe. At most one probe is admitted in that epoch.",
+  "expectedFindings": [
+    {
+      "id": "breaker-probe-epoch",
+      "symptom": "An old request starts in epoch0.",
+      "source": "An old request starts in epoch0. Another failure opens epoch1; the cooldown admits probe(epoch1,seq3). The old success invokes settle while half-open. Without matching the lease, it closes the breaker and clears the probe while the real probe still runs, allowing another request. A matched lease preserves half-open occupancy until its owner settles.",
+      "consequence": "The supplied contract is violated in the bounded driver schedule; no production impact or permanent leakage is established.",
+      "remedy": "Bind outcome mutation to the epoch and sequence recorded at admission, leaving old completion telemetry separate from breaker ownership.",
+      "allowedSeverity": [
+        "Warning"
+      ]
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: An old request starts in epoch0. Another failure opens epoch1; the cooldown admits probe(epoch1,seq3). The old success invokes settle while half-open. Without matching the lease, it closes the breaker and clears the probe while the real probe still runs, allowing another request. A matched lease preserves half-open occupancy until its owner settles."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: Current probe success closes; current probe failure reopens with fresh cooldown; old failure cannot reopen a later epoch; duplicate settlement cannot mutate a new probe."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

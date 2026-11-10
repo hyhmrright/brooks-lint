@@ -1,0 +1,27 @@
+{
+  "revision": 1,
+  "caseId": "HB-13",
+  "assessment": "protected",
+  "contract": "Each entry has its own absolute admission deadline. Sending a batch does not merge ownership or extend an entry deadline. At dispatch time entries with deadline <= now must not be sent; valid entries must remain eligible. Backend processing after admission is outside this contract.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Explain how the supplied guard preserves its contract across relevant ownership/time boundaries. Do not require knowledge of an unseen sibling. Evaluator counterfactual only: An entry expiring at 20 and another at 60 coalesce. At time 25 the batch maximum remains 60; filtering against only that maximum admits the expired first entry. Per-entry filtering sends only the live entry without dropping the whole batch."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: Both live entries send; all expired entries do not; exact expiry is excluded; removing an expired item does not cancel a live sibling."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified",
+  "protectedScope": "Each entry has its own absolute admission deadline. Sending a batch does not merge ownership or extend an entry deadline. At dispatch time entries with deadline <= now must not be sent; valid entries must remain eligible. Backend processing after admission is outside this contract. Both live entries send; all expired entries do not; exact expiry is excluded; removing an expired item does not cancel a live sibling."
+}

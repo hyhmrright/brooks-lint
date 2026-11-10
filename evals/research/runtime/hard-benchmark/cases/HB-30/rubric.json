@@ -1,0 +1,27 @@
+{
+  "revision": 1,
+  "caseId": "HB-30",
+  "assessment": "protected",
+  "contract": "A logical operation may be retried for 100 ms after its first send with the same idempotency key. Dedupe entries must cover that whole retry horizon, even when the first acknowledgement is lost. The ledger records business mutations; transport timeouts do not roll them back. No secondary durable dedupe exists.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Explain how the supplied guard preserves its contract across relevant ownership/time boundaries. Do not require knowledge of an unseen sibling. Evaluator counterfactual only: The first send commits and stores a key; its acknowledgement is lost. At time40 the local cache evicts a key with a 30 ms TTL, then the retry applies the mutation again. Retention of120 covers the declared100 ms horizon and returns the prior receipt instead. Reusing the same key is insufficient if storage forgets it too early."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: Immediate retry deduplicates; a different key applies independently; a retry just before100 stays deduplicated; events after120 are outside the contract and cannot establish a failure of the100 ms guarantee."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified",
+  "protectedScope": "A logical operation may be retried for 100 ms after its first send with the same idempotency key. Dedupe entries must cover that whole retry horizon, even when the first acknowledgement is lost. The ledger records business mutations; transport timeouts do not roll them back. No secondary durable dedupe exists. Immediate retry deduplicates; a different key applies independently; a retry just before100 stays deduplicated; events after120 are outside the contract and cannot establish a failure of the100 ms guarantee."
+}

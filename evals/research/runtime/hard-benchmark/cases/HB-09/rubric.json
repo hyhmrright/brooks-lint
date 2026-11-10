@@ -1,0 +1,37 @@
+{
+  "revision": 1,
+  "caseId": "HB-09",
+  "assessment": "defect",
+  "contract": "The pool capacity of two bounds physically running operations, not just unresolved client promises. Cancellation is a request; the transport remains running until acknowledgeCancel or complete. Winner delivery need not await loser drainage.",
+  "expectedFindings": [
+    {
+      "id": "hedge-cancel-drain",
+      "symptom": "Two hedges occupy both permits.",
+      "source": "Two hedges occupy both permits. A winner releases its own permit and requests loser cancellation. Releasing the loser before cancellation acknowledgement permits two replacements while the loser still runs: physical occupancy becomes three against capacity two.",
+      "consequence": "The supplied contract is violated in the bounded driver schedule; no production impact or permanent leakage is established.",
+      "remedy": "Release each physical lease only from terminal completion/cancellation acknowledgement, while settling the client winner independently.",
+      "allowedSeverity": [
+        "Warning"
+      ]
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: Two hedges occupy both permits. A winner releases its own permit and requests loser cancellation. Releasing the loser before cancellation acknowledgement permits two replacements while the loser still runs: physical occupancy becomes three against capacity two."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: A loser that completes before the winner must not double-release; acknowledgement restores capacity; a duplicate acknowledgement cannot underflow accounting."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

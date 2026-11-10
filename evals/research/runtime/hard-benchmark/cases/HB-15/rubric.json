@@ -1,0 +1,34 @@
+{
+  "revision": 1,
+  "caseId": "HB-15",
+  "assessment": "unresolved",
+  "contract": "Each entry has its own absolute admission deadline. Sending a batch does not merge ownership or extend an entry deadline. At dispatch time entries with deadline <= now must not be sent; valid entries must remain eligible. Backend processing after admission is outside this contract.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: An entry expiring at 20 and another at 60 coalesce. At time 25 the batch maximum remains 60; filtering against only that maximum admits the expired first entry. Per-entry filtering sends only the live entry without dropping the whole batch."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: Both live entries send; all expired entries do not; exact expiry is excluded; removing an expired item does not cancel a live sibling."
+    },
+    {
+      "id": "missing-artifact",
+      "description": "The batch admission policy: do entry deadlines remain independent, or does joining a coalesced batch transfer admission to the latest batch deadline?"
+    },
+    {
+      "id": "explicit-alternative-judgments",
+      "description": "Under this contract: Each entry has its own absolute admission deadline. Sending a batch does not merge ownership or extend an entry deadline. At dispatch time entries with deadline <= now must not be sent; valid entries must remain eligible. Backend processing after admission is outside this contract. the traced behavior is a defect. Alternative: If callers explicitly transfer admission to a batch whose deadline is the maximum member deadline, sending both entries at time 25 satisfies that aggregate policy; independent per-entry expiry is then not promised."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

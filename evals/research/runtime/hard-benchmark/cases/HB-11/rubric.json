@@ -1,0 +1,34 @@
+{
+  "revision": 1,
+  "caseId": "HB-11",
+  "assessment": "unresolved",
+  "contract": "A writer may commit only under the exact current monotonically increasing lease generation for the key. Worker names are reusable after restart. Read and write values are atomic in this in-memory store; the lease check and mutation occur synchronously in commit.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: Worker name w acquires generation 1 and prepares old data. After expiry the same name acquires generation 2 and commits new data. The generation-1 completion still passes name equality and overwrites new data. Comparing token generation at commit rejects it."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: A current token commits; a different owner is rejected; same-name restart must be distinguished; repeated current commits are permitted by the supplied contract."
+    },
+    {
+      "id": "missing-artifact",
+      "description": "The stale-write policy for lease generations: must each write hold the current generation, or are completed values from older generations accepted?"
+    },
+    {
+      "id": "explicit-alternative-judgments",
+      "description": "Under this contract: A writer may commit only under the exact current monotonically increasing lease generation for the key. Worker names are reusable after restart. Read and write values are atomic in this in-memory store; the lease check and mutation occur synchronously in commit. the traced behavior is a defect. Alternative: If completion writes intentionally use last-completion-wins and lease generations govern acquisition only, accepting the late old value obeys that different policy; the code alone does not establish a fencing requirement."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

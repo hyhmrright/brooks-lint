@@ -1,0 +1,34 @@
+{
+  "revision": 1,
+  "caseId": "HB-16",
+  "assessment": "unresolved",
+  "contract": "Each caller owns only its wait. Cancelling one waiter must not cancel a shared operation while any other waiter remains active. Once the last waiter cancels, transport cancellation is required. Completed responses settle active waiters only.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: Two callers join one lookup; caller a cancels and is removed. Unconditional abort cancels the transport even though b remains. Later completion rejects b as cancelled instead of delivering its result. Reference-counted cancellation preserves b and still aborts when the last waiter leaves."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: Last-waiter cancellation still aborts; cancelling twice is idempotent; another key is unaffected; completion after one cancellation delivers only to the remaining waiter."
+    },
+    {
+      "id": "missing-artifact",
+      "description": "Cancellation ownership for coalesced work: are waiters independent, or does any member have authority to cancel the group?"
+    },
+    {
+      "id": "explicit-alternative-judgments",
+      "description": "Under this contract: Each caller owns only its wait. Cancelling one waiter must not cancel a shared operation while any other waiter remains active. Once the last waiter cancels, transport cancellation is required. Completed responses settle active waiters only. the traced behavior is a defect. Alternative: Under explicit group-scoped cancellation, cancelling the shared transport when either member cancels obeys that policy; no independent-wait guarantee has been supplied."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

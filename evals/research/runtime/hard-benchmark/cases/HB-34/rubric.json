@@ -1,0 +1,34 @@
+{
+  "revision": 1,
+  "caseId": "HB-34",
+  "assessment": "unresolved",
+  "contract": "Shutdown closes admission and resolves only when no active attempt and no scheduled retry can later start. Retry timers are request work, not unrelated maintenance timers. Cancelling a timer removes it from the owned pending set. Shutdown does not require successful completion of cancelled requests.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Establish any valid causal witness from the supplied code and context; exact driver numbers/order are not required. One evaluator-only witness: A failed attempt schedules a retry at time10 and leaves active count zero. Shutdown sees no active work and resolves. The pending timer fires after resolution and starts another attempt unless closed admission is checked/cancelled. A drain over both active and owned timers plus cancellation prevents post-drain admission."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: Normal retry before shutdown remains allowed; shutdown with an active attempt waits for settlement; repeated shutdown is idempotent; a timer already dequeued before close is still rejected by the admission gate."
+    },
+    {
+      "id": "missing-artifact",
+      "description": "The shutdown ownership boundary: does drain cover delayed retry work or only the currently active transport attempts?"
+    },
+    {
+      "id": "explicit-alternative-judgments",
+      "description": "Under this contract: Shutdown closes admission and resolves only when no active attempt and no scheduled retry can later start. Retry timers are request work, not unrelated maintenance timers. Cancelling a timer removes it from the owned pending set. Shutdown does not require successful completion of cancelled requests. the traced behavior is a defect. Alternative: If drain promises only an active-attempt snapshot and delayed retries intentionally remain the responsibility of an outer supervisor, resolving with a pending retry obeys that narrower API; the outer supervisor must cancel it before process exit if it needs a stronger guarantee."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified"
+}

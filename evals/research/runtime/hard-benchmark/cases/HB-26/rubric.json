@@ -1,0 +1,27 @@
+{
+  "revision": 1,
+  "caseId": "HB-26",
+  "assessment": "protected",
+  "contract": "The 8-byte credit window bounds bytes still retained by any required sink. A frame is released only after every required sink has drained that frame. Enqueue acknowledgement is not drainage. Fast-sink completion cannot replenish the shared credit while the slow required sink still retains bytes. Optional sinks do not participate in this credit window.",
+  "expectedFindings": [],
+  "evidenceRequirements": [
+    {
+      "id": "causal-trace",
+      "description": "Explain how the supplied guard preserves its contract across relevant ownership/time boundaries. Do not require knowledge of an unseen sibling. Evaluator counterfactual only: Two four-byte frames fill eight credits and both sinks enqueue them. Crediting at enqueue restores the whole window although the slow sink retains eight bytes. The producer sends a third frame, raising slow-sink retention to twelve. All-required-sink drain accounting denies the third until the slow sink acknowledges the first."
+    },
+    {
+      "id": "boundary-control",
+      "description": "Explain at least one relevant boundary or benign path inferable from the supplied code/context; the following evaluator examples are alternatives, not a mandatory unseen checklist: A fast sink alone cannot release shared credits; slow drainage enables exactly one replacement frame; duplicate drainage cannot create credits; zero-length frames and full cleanup preserve bounds."
+    }
+  ],
+  "forbiddenClaims": [
+    "Production outage, real data exfiltration or universal safety without supplied evidence.",
+    "Temporary retention demonstrates permanent leakage.",
+    "A missing contract establishes either a definite defect or unconditional protection.",
+    "Simulated time or offline passing tests establish real scheduler/OS behavior or model improvement."
+  ],
+  "humanReview": "pending",
+  "independence": "non-independent, same-workflow authorship and public artifacts",
+  "bookMapping": "unverified",
+  "protectedScope": "The 8-byte credit window bounds bytes still retained by any required sink. A frame is released only after every required sink has drained that frame. Enqueue acknowledgement is not drainage. Fast-sink completion cannot replenish the shared credit while the slow required sink still retains bytes. Optional sinks do not participate in this credit window. A fast sink alone cannot release shared credits; slow drainage enables exactly one replacement frame; duplicate drainage cannot create credits; zero-length frames and full cleanup preserve bounds."
+}
