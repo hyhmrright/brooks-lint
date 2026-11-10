@@ -48,3 +48,20 @@ false. This is an **offline adapter and schedule draft**, not a live executor or
 frozen executable study plan. Model/budget confirmation and runner isolation review
 are still required. The 18 nominal families are not all statistically independent:
 new checkpoints/caches share ownership concepts with old lease/epoch families.
+
+## Codex login calibration executor
+
+`login-runner.mjs` now bridges the 18 calibration cases to the existing Codex
+ChatGPT-login text transport. `plan.mjs` remains a model-independent schedule
+draft; it is not itself live authorization. The new adapter separately freezes
+inputs, guidance, rubrics, scoring policy and execution limits, then requires an
+explicit model/effort/CLI-version registration and `--live` before calling Codex.
+No native tool-use or independent backend-identity claim is made.
+
+See [the frozen readiness record](../../../../docs/research/runtime-preparations/2026-11-10-benchmark-login/README.md)
+for the 54-turn calibration scope, budgets, exact prompt sizes, offline raw fixture
+archive and model-selection handoff. `login-review.md` is the frozen semantic
+review policy; successful transport is not semantic correctness. Tests run only
+fake app-server subprocesses, with no models or network requests. Regenerate the
+offline drill only into a new directory using `node
+ evals/research/runtime/benchmark-audit/login-drill.mjs NEW_DIRECTORY`.
