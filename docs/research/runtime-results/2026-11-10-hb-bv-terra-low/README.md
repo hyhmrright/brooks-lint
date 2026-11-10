@@ -1,0 +1,7 @@
+# HB/BV calibration: interrupted live run
+
+2026-11-10. Requested model `gpt-6.1-terra`, effort `low`, Codex CLI 0.167.0, ChatGPT login. The frozen protocol is `bc9a74b4cb3205a818756580f44a9a4b1240a829fef698aa5fcb08b70795ca78`. CLI model and effort were checked on completed turns; this is not independent backend attestation.
+
+The runner attempted 25 of 54 turns: 24 completed, one failed, and 29 were not run. Turn 25 failed at `account/read` with `workspace routing discovery failed`, before `thread/start` or model submission. Process group cleanup and temporary-home removal were confirmed. The harness stopped as designed and did not retry. Reported cumulative usage for the completed turns was 648,532 tokens; it is not an independently verified cost or hard usage cap.
+
+`raw-execution.tar.gz` contains the original registration, attempt intents, records, answers, event streams, checkpoints, response table and reviewer packets. Treat it as live output, not simulation. `execution.json` preserves the original execution summary. Semantic review remains pending: no accuracy, false-positive or false-negative rates or skill improvement can be inferred from this incomplete, unreviewed run. The incomplete run and public same-workflow cases cannot establish a general benchmark result. A continuation must be explicitly linked to this run, preserve its failure and missingness, and follow the frozen recovery policy; do not silently replay or replace turns.
