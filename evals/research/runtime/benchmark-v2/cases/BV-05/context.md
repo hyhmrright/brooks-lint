@@ -1,0 +1,1 @@
+After a write and its synchronous invalidation complete, no older in-flight fill may become the value returned by a subsequent cache hit. An in-flight caller may receive its captured old value. beginRead captures source state; finishRead runs later. All operations below are serialized; only the ordering of begin, write and finish varies.

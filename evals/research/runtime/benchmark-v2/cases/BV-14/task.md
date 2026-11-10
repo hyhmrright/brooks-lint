@@ -1,0 +1,1 @@
+Review the supplied modules and contract. Identify supported defects, explain existing protection, or state what missing evidence prevents a firm conclusion. Ground each finding in a causal execution and its consequence, and suggest a targeted remedy. Distinguish independent issues from multiple symptoms of one cause. Do not infer a production incident or universal safety.

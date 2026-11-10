@@ -1,0 +1,1 @@
+Tenant-local numeric user IDs may collide. A cached authorization decision must apply only to the same tenant and user. Registry lookup uses both tenant and user. Policy is immutable during this bounded request sequence, so revocation and TTL are outside scope. The gate guards access to that request tenant’s document.
