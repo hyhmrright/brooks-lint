@@ -6,6 +6,14 @@ Step 0 (pre-flight consent) — after approval the pipeline runs hands-free unti
 
 Every finding follows the Iron Law: **Symptom → Source → Consequence → Remedy**.
 
+**Runner and output contract:** The native workflow below edits and verifies the
+authorized workspace. If a task instead explicitly requests a bounded repair
+artifact, honor its supplied files, permitted paths, edit authority and output
+schema. Returning replacement text does not mean files were edited or tests ran;
+do not claim native pipeline steps occurred. A requested artifact is not blanket
+permission for wider fixes. Keep refused, ambiguous or unauthorized changes out
+of the replacement set and explain them through the permitted output fields.
+
 ---
 
 ### Step 0 — Pre-flight consent gate
@@ -220,6 +228,20 @@ applied (`public API break` / `no test coverage` / `3-retry budget` /
 
 Output the final report. Use the standard Report Template from
 `../_shared/common.md` with these additions:
+
+If the task explicitly requires a machine-readable artifact, that output contract
+takes precedence over this Markdown presentation. Finalize the intended repair
+before serializing, then return exactly one complete value matching the requested
+schema. For JSON, use valid escaping and emit no code fences, commentary outside
+the object, partial drafts, duplicate objects, or trailing text. Put explanations only
+in schema-permitted fields. Check the entire final value with a parser when tools
+are available and permitted; otherwise inspect the complete serialization without
+claiming it was parsed. Check allowed paths and edit authority separately from
+syntax, and intended behavioral correction separately from both. Valid JSON does
+not prove a repair works; a plausible repair in invalid JSON is not a usable
+artifact. Report verification actually performed and its limits in the allowed
+fields. Without an explicit structured-output request, retain the native report
+below rather than imposing JSON on ordinary sweep users.
 
 ```
 # Brooks-Lint — Full Sweep Report

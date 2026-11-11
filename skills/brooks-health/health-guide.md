@@ -13,6 +13,14 @@ For each dimension, run an abbreviated scan using the decay-risks definitions
 from `_shared/`. Do NOT read the individual mode guide files — use the abbreviated
 checklists below. Cap each dimension at 3 findings; for Debt: cap at 2 per risk code and 3 across all risk codes.
 
+If the task supplies an already adjudicated, capped finding ledger and requests
+its dashboard, use that ledger for Step 2. Do not add findings, infer missing
+diagnoses, or imply that a source scan was performed. For source diagnosis,
+separate demonstrated contract violations from missing facts: an input domain or
+upstream validation precondition is not itself a local validation obligation.
+Keep unresolved extra allegations outside the scored finding ledger and explain
+the missing fact and the alternative verdicts.
+
 **PR dimension (if changes exist):**
 - Apply Auto Scope Detection (common.md)
 - Scan for R2 (Change Propagation) and R1 (Cognitive Overload) in the diff
@@ -52,8 +60,8 @@ across the remaining three dimensions by dividing each remaining weight by
 | Dimension | Base Weight | Redistributed Weight |
 |-----------|------------|---------------------|
 | Architecture | 0.30 | 0.30 / 0.75 = 0.40 |
-| Debt | 0.25 | 0.25 / 0.75 = 0.33 |
-| Test | 0.20 | 0.20 / 0.75 = 0.27 |
+| Debt | 0.25 | 0.25 / 0.75 = 1/3 |
+| Test | 0.20 | 0.20 / 0.75 = 4/15 |
 
 **Score rules (must be deterministic — two runs on the same codebase must agree):**
 
@@ -64,6 +72,26 @@ across the remaining three dimensions by dividing each remaining weight by
 - A dimension with no findings scores **100** — it is never skipped. The **only** dimension
   ever omitted is PR, and only when no diff exists (its weight is then redistributed above).
 - Round the weighted composite to the nearest integer (half-up).
+
+Use one calculation ledger for the entire report:
+
+1. Resolve the configured strictness and count each retained severity per
+   dimension. Calculate `score = max(0, 100 - total deductions)` from that ledger.
+   An unassessed dimension is unknown, not a zero-finding dimension; suppress an
+   incomplete composite rather than silently assign 100 or drop its weight.
+2. Use equivalent integer weights PR 25, Architecture 30, Debt 25, Test 20.
+   Sum `N = Σ(weight × dimension score)` and `D = Σ(retained weights)`.
+   Thus D is 100 with PR or 75 without PR. Keep N/D exact through the calculation;
+   never reuse rounded display percentages as weights.
+3. Round once: `composite = floor((2*N + D) / (2*D))`. Verify the weighted sum
+   against its component products and confirm the result lies between the
+   smallest and largest retained dimension scores. When permitted and available,
+   use a calculator or small deterministic calculation; never claim tool execution
+   when it was unavailable. Text-only work must still show checkable arithmetic.
+4. Reuse this one rounded result in the headline, table, body and any summary.
+   Before emitting, check those occurrences agree, the preset deductions match
+   the ledger, and any displayed unrounded value agrees with N/D. A matching
+   rounded headline does not excuse an incorrect intermediate calculation.
 
 ### Step 3: Output Dashboard
 

@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {freeze,register,validateFreeze,validateRegistration,assemble,execute,digest} from './login-runner.mjs';
+import {validateHistoricalReadiness,base as historicalBase} from './login-history.mjs';
 const fixture=fileURLToPath(new URL('./login-fixture.cjs',import.meta.url));
 const config=()=>{const frozen=freeze();return {frozen,anchor:frozen.sha256,model:'gpt-fixture',effort:'low',cliVersion:'0.167.0',authorization:'Offline fixture only; not real-model authorization'};};
 const route=mode=>({fixtureEndpoint:'http://127.0.0.1:1/v1',executable:process.execPath,prefixArgs:[fixture,mode]});
@@ -76,16 +77,18 @@ test('spawn failure archives safe failure evidence without admitting next case',
   }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
-test('saved readiness freeze and compressed raw drill remain auditable',async()=>{
-  const {gunzipSync}=await import('node:zlib');
-  const base=new URL('../../../../docs/research/runtime-preparations/2026-11-10-benchmark-login/',import.meta.url);
-  const f=read(new URL('frozen-protocol.json',base));validateFreeze(f,f.sha256);
-  const readiness=read(new URL('readiness.json',base)),inventory=read(new URL('offline-raw-inventory.json',base));
-  assert.equal(readiness.protocolSha256,f.sha256);assert.equal(readiness.fixtureSourceSha256,digest(fs.readFileSync(fixture)));
-  const bytes=fs.readFileSync(new URL('offline-raw.json.gz',base));assert.equal(digest(bytes),inventory.archiveSha256);assert.equal(digest(bytes),readiness.archiveSha256);
-  const archive=JSON.parse(gunzipSync(bytes));assert.equal(archive.simulation,true);
-  assert.deepEqual(Object.keys(archive.files).sort(),inventory.files.map(x=>x.path).sort());
-  for(const item of inventory.files){assert.equal(digest(archive.files[item.path]),item.sha256);assert.equal(Buffer.byteLength(archive.files[item.path]),item.bytes);}
-  const execution=JSON.parse(archive.files['execution.json']);assert.deepEqual(execution,read(new URL('execution.json',base)));assert.equal(execution.executed,54);assert.equal(execution.accuracy,null);
-  assert.equal(JSON.parse(archive.files['registration.json']).registration.frozen.sha256,f.sha256);
+test('saved readiness freeze and compressed raw drill remain auditable through explicit pinned verification',()=>{
+  const result=validateHistoricalReadiness();assert.equal(result.verifiedTurns,54);assert.equal(result.observedTokens,5400);assert.equal(result.simulation,true);assert.equal(result.liveAuthorized,false);
+  const old=read(new URL('../../../../docs/research/runtime-preparations/2026-11-10-benchmark-login/frozen-protocol.json',import.meta.url));
+  assert.throws(()=>validateFreeze(old,old.sha256),/changed; create a versioned freeze/);
+  assert.throws(()=>register({...config(),frozen:old,anchor:old.sha256}),/changed; create a versioned freeze/);
+});
+test('historical readiness rejects changed frozen bytes and changed compressed raw records',()=>{
+  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'login-history-'));
+  try{
+    const original=fileURLToPath(new URL('../../../../docs/research/runtime-preparations/2026-11-10-benchmark-login/',import.meta.url)),target=path.join(tmp,historicalBase);
+    fs.mkdirSync(target,{recursive:true});for(const n of ['frozen-protocol.json','readiness.json','offline-raw-inventory.json','offline-raw.json.gz','execution.json'])fs.copyFileSync(path.join(original,n),path.join(target,n));
+    const f=path.join(target,'frozen-protocol.json');fs.appendFileSync(f,' ');assert.throws(()=>validateHistoricalReadiness({artifactRoot:tmp}),/readiness bytes changed/);fs.copyFileSync(path.join(original,'frozen-protocol.json'),f);
+    fs.appendFileSync(path.join(target,'offline-raw.json.gz'),' ');assert.throws(()=>validateHistoricalReadiness({artifactRoot:tmp}),/readiness bytes changed/);
+  }finally{fs.rmSync(tmp,{recursive:true,force:true});}
 });

@@ -36,6 +36,17 @@ Read the diff or files and answer:
   🟡 Warning: Change Propagation (a PR that touches many unrelated things is a sign
   that responsibilities are tangled).
 
+Record what the supplied scope establishes: a diff, complete module source, and
+a complete project/test inventory are different evidence boundaries. Do not infer
+that omitted files or tests do not exist. Inspect relevant callers and tests when
+access is available; otherwise state the limitation without a score deduction.
+Distinguish an input precondition from an obligation of the reviewed function:
+inputs described as already validated do not alone require this function to reject
+invalid inputs. If responsibility or expected behavior is missing, trace the
+observed behavior, identify the decisive missing fact, and explain the contrasting
+contract interpretations and their verdicts. Keep that question unresolved rather
+than presenting one interpretation as a demonstrated defect.
+
 ### Step 2: Scan for Change Propagation
 
 *Scan this first — it is the most visible risk in a diff.*
@@ -96,10 +107,20 @@ production logic changes → skip Step 7 entirely.
 **Signal 1: Do tests exist for the changed behavior?**
 
 - Does the diff modify production code?
-- Are corresponding test file changes included in the diff?
-- If new public behavior was added with no new tests:
-  → 🟡 Warning: Coverage Illusion — new behavior is untested
-  → Source: Feathers — Working Effectively with Legacy Code, Ch. 1
+- What do inspected tests actually protect, including unchanged tests? A diff with
+  no test edits is not proof that the changed behavior has no tests.
+- If the available inventory or explicit coverage contract establishes a gap in
+  new public behavior, describe the missed behavior and a regression that would
+  escape those tests. Apply the severity calibration below; use T5 Coverage
+  Illusion and Feathers — Working Effectively with Legacy Code, Ch. 1.
+- If coverage outside the supplied material is unknown, report that limitation
+  without a separate missing-test finding or deduction. Explain how existing
+  regression tests versus no such protection would change the conclusion. Test
+  suggestions may accompany the remedy for a supported code defect; they are not
+  automatically an additional scored defect.
+- A supplied test can demonstrably miss a branch or survive a relevant mutation.
+  Describe that local protection gap without asserting whole-suite absence;
+  distinguish strengthening that test from assuming no other tests cover it.
 - If the change is a pure refactor and existing tests cover the behavior → no finding.
 
 **Signal 2: Quick Mock Abuse sniff**

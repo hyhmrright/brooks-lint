@@ -1,5 +1,7 @@
 # Full campaign semantic results
 
+> **Collector correction (2026-11-11):** the reported sweep B artifact/completeness result of 14/15 was caused by joining an abandoned stream fragment to the completed answer. The completed-event result is **15/15**, tied with A; evidence is **45/45**. One runtime response also contained an abandoned prefix, without any score change. All 318 records were audited; other skill results are unchanged. The original results below are retained for audit. See [the correction](collector-correction/README.md).
+
 **The skills do not show a uniform benefit in this campaign.** Architecture audit improves completeness; test and debt review show smaller explanation/completeness gains; health introduces specific arithmetic regressions; sweep has one invalid repair envelope; ordinary review has no settled net benefit. The separate runtime prototype improves explanations of missing contracts, while defect recall and disposition agreement were already at ceiling. These are development-case observations, not proof of general production effectiveness.
 
 All **318 scheduled answers** have now been reviewed individually: 210 all-skills (186 product + 24 local maintenance), and 108 runtime. The original single published annotation is unchanged; the other 317 are newly assessed. There were no new model executions in this review task. Two original failed all-skills attempts remain in the archived recovery history and are not hidden by the recovered 210-answer view.

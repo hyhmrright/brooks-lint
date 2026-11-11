@@ -1,4 +1,4 @@
-/** Offline campaign inventory. This module never starts a model or a process. */
+/** Offline campaign inventory. No model calls; the explicit historical command reads local Git objects. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -67,6 +67,7 @@ export async function validate(sealed) {
 if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const [command,file]=process.argv.slice(2);assert(file,'Explicit campaign file required');
   if(command==='freeze')fs.writeFileSync(file,JSON.stringify(await build(),null,2)+'\n',{flag:'wx'});
+  else if(command==='validate-historical'){const {validateHistorical}=await import('./campaign-history.mjs');console.log(JSON.stringify(validateHistorical(JSON.parse(fs.readFileSync(file,'utf8'))),null,2));}
   else if(command==='validate')console.log(JSON.stringify(await validate(JSON.parse(fs.readFileSync(file,'utf8'))),null,2));
-  else throw Error('freeze NEW_FILE | validate CAMPAIGN_FILE');
+  else throw Error('freeze NEW_FILE | validate CAMPAIGN_FILE | validate-historical CAMPAIGN_FILE');
 }

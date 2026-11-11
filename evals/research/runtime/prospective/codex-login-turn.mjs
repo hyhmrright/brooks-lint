@@ -89,6 +89,26 @@ export function answerText(events,threadId,turnId){
  }
  return [...messages.values()].join('\n');
 }
+/** Completed items are authoritative; stream deltas are diagnostic, never final answers.
+ * Preserve every completed agent phase, including commentary and absent/unknown phases.
+ * A transport replay of the same completed item is idempotent; conflicting completions fail.
+ */
+export function completedAnswer(events,threadId,turnId){
+ const completed=new Map(),partials=new Map();
+ const policy='all-completed-agent-messages-v1';
+ if(typeof threadId!=='string'||!threadId||typeof turnId!=='string'||!turnId)return {text:'',policy,completedItems:[],partialItems:[]};
+ for(const e of events){const p=e.params;if(!p||p.threadId!==threadId||p.turnId!==turnId)continue;
+  if(e.method==='item/agentMessage/delta'&&typeof p.itemId==='string'&&typeof p.delta==='string')partials.set(p.itemId,(partials.get(p.itemId)??'')+p.delta);
+  if(e.method==='item/completed'&&p.item?.type==='agentMessage'){
+   const item=p.item;if(typeof item.id!=='string'||!item.id||typeof item.text!=='string'||item.phase!=null&&typeof item.phase!=='string')throw Error('Malformed completed agent message');
+   const value={id:item.id,phase:item.phase??null,text:item.text},prior=completed.get(item.id);
+   if(prior&&(prior.text!==value.text||prior.phase!==value.phase))throw Error('Conflicting completed agent message');
+   if(!prior)completed.set(item.id,value);
+  }
+ }
+ const items=[...completed.values()];
+ return {text:items.map(i=>i.text).join('\n'),policy,completedItems:items.map(({id,phase,text})=>({id,phase,textSha256:sha(text)})),partialItems:[...partials].filter(([id])=>!completed.has(id)).map(([id,text])=>({id,text,textSha256:sha(text)}))};
+}
 export function assertSupportedPlatform(platform=process.platform){if(platform!=='darwin')throw Error('Codex login study requires Darwin process-group confirmation');}
 /** fixtureEndpoint and executable exist solely for deterministic, offline verification. */
 export async function runLoginTurn({model,out,live=false,authHome=path.join(os.homedir(),'.codex'),fixtureEndpoint,executable='codex',prefixArgs=[],timeoutMs=LIMITS.turn_ms,inheritProxy=false,prompt,effort="low",cliVersion}={}) {
@@ -104,13 +124,14 @@ export async function runLoginTurn({model,out,live=false,authHome=path.join(os.h
   fs.mkdirSync(out,{recursive:true,mode:0o700});
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'brooks-login-smoke-'));fs.chmodSync(root,0o700);
   const home=path.join(root,'codex');fs.mkdirSync(home,{mode:0o700});
-  const record={version:1,simulation:!live,scope:'login-text-comparison-v1',requested_model:model,requested_effort:effort,proxy_mode:inheritProxy?'explicit-environment':'none',provider_reported_model:null,provider_identity_verified:false,cli_selected_model:null,auth_type:null,started_at:new Date().toISOString(),argv,prompt,limits:LIMITS,source_sha256:sha(fs.readFileSync(fileURLToPath(import.meta.url))),events:[],requests:[],rpc_responses:[],stderr:'',status:'failed',answer:null,usage:null,limitations:['One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.','ChatGPT usage and billing are not API dollar accounting.','Model selection is CLI metadata, not independent backend attestation.','Text smoke does not validate remote shell execution.','Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry.']};
+  const record={version:2,simulation:!live,scope:'login-text-comparison-v1',requested_model:model,requested_effort:effort,proxy_mode:inheritProxy?'explicit-environment':'none',provider_reported_model:null,provider_identity_verified:false,cli_selected_model:null,auth_type:null,started_at:new Date().toISOString(),argv,prompt,limits:LIMITS,source_sha256:sha(fs.readFileSync(fileURLToPath(import.meta.url))),events:[],requests:[],rpc_responses:[],stderr:'',status:'failed',answer:null,usage:null,limitations:['One submitted turn, not a hard backend-request/token/cost cap; built-in provider retries are not overridden.','ChatGPT usage and billing are not API dollar accounting.','Model selection is CLI metadata, not independent backend attestation.','Text smoke does not validate remote shell execution.','Fresh auth-only home; original refresh token is never copied. Expired access fails and requires refreshing the normal login before retry.']};
   // Diagnostic offsets are monotonic and never include RPC payloads or credentials.
   const origin=performance.now(),elapsed=()=>Math.round(performance.now()-origin);
   record.limits={...LIMITS,turn_ms:timeoutMs};
   record.timing={clock:'monotonic',events:[],last_phase:'setup',deadline_phase:null};
   const mark=(phase,kind='phase')=>{record.timing.last_phase=phase;record.timing.events.push({kind,name:phase,elapsed_ms:elapsed()})};
   let secrets=[...proxy.secrets],child,closed=Promise.resolve(true),timer,buffer='',size=0,next=0,pending=new Map(),resolveTurn,rejectTurn,fatal=null;
+  let savedResult;
   const decoder=new StringDecoder('utf8');
   const turn=new Promise((resolve,reject)=>{resolveTurn=resolve;rejectTurn=reject});turn.catch(()=>{});
   const fail=e=>{fatal??=e;for(const p of pending.values())p.reject(e);pending.clear();rejectTurn(e)};
@@ -153,12 +174,13 @@ export async function runLoginTurn({model,out,live=false,authHome=path.join(os.h
     const completed=await turn;
     if(fatal)throw fatal;
     if(completed.status!=='completed')throw Error('Turn did not complete');
-    record.answer=answerText(record.events,record.thread_id,record.turn_id);
+    const selected=completedAnswer(record.events,record.thread_id,record.turn_id);
+    if(!selected.completedItems.length||!selected.text.trim())throw Error('No nonempty completed agent answer');
+    record.answer=selected.text;
     record.status='completed';
   }catch(e){record.error=clean(String(e.message));}
   finally{
     clearTimeout(timer);
-    if(record.answer===null)record.answer=answerText(record.events,record.thread_id,record.turn_id);
     mark('cleanup');try{record.cleanup=await terminate(child,closed);}catch{record.cleanup={closed:false,group_absent:false,error:'cleanup-exception'};}
     record.timing.completed_elapsed_ms=elapsed();
     // Include any refreshed credentials in redaction before deleting the private home.
@@ -167,7 +189,17 @@ export async function runLoginTurn({model,out,live=false,authHome=path.join(os.h
     record.cleanup.private_home_removed=!fs.existsSync(root);
     if(record.unexpected_activity||!record.cleanup.closed||!record.cleanup.group_absent||!record.cleanup.private_home_removed)record.status='failed';
     record.completed_at=new Date().toISOString();
-    const saved=clean(record);fs.writeFileSync(path.join(out,'record.json'),JSON.stringify(saved,null,2)+'\n',{mode:0o600});fs.writeFileSync(path.join(out,'events.jsonl'),saved.events.map(e=>JSON.stringify(e)).join('\n')+'\n',{mode:0o600});if(saved.answer!==null)fs.writeFileSync(path.join(out,'answer.txt'),saved.answer,{mode:0o600});
+    const saved=clean(record);
+    saved.diagnostic_answer=answerText(saved.events,saved.thread_id,saved.turn_id);
+    try{
+      const selected=completedAnswer(saved.events,saved.thread_id,saved.turn_id);
+      saved.answer=selected.text;
+      saved.partial_answer=selected.partialItems.map(i=>i.text).join('\n');
+      saved.answer_selection={policy:selected.policy,phasePolicy:'Retain all completed agent phases in completion order; absent phase is retained as null',completedItems:selected.completedItems,excludedPartialItems:selected.partialItems,answerSha256:sha(saved.answer)};
+      if(saved.status==='completed'&&(!selected.completedItems.length||!selected.text.trim())){saved.status='failed';saved.error??='No nonempty completed agent answer';}
+    }catch(e){saved.status='failed';saved.answer='';saved.partial_answer=saved.diagnostic_answer;saved.answer_selection={policy:'all-completed-agent-messages-v1',error:String(e.message)};saved.error??=String(e.message);}
+    savedResult=saved;
+    fs.writeFileSync(path.join(out,'record.json'),JSON.stringify(saved,null,2)+'\n',{mode:0o600});fs.writeFileSync(path.join(out,'events.jsonl'),saved.events.map(e=>JSON.stringify(e)).join('\n')+'\n',{mode:0o600});if(saved.answer!==null)fs.writeFileSync(path.join(out,'answer.txt'),saved.answer,{mode:0o600});
   }
-  return clean(record);
+  return savedResult;
 }

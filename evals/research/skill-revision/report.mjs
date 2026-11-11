@@ -1,0 +1,15 @@
+/** Offline only: exact-evidence semantic annotations plus verified raw receipts. */
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+import {readRun} from './runner.mjs';
+import {digest,score} from './suite.mjs';
+import {summarize as existingSummary} from '../all-skills/report.mjs';
+export function summarize(run,annotations){
+ const all=existingSummary(run,annotations),lookup=new Map(annotations.map(a=>[a.responseId,a.review]));
+ const rows=run.records.filter(r=>r.status==='executed').map(r=>{const responseId=digest(`${run.sealed.sha256}/${r.ordinal}`).slice(0,20),c=run.sealed.registration.frozen.protocol.cases.find(c=>c.id===r.caseId),review=lookup.get(responseId),s=score(c,r.answer,review);return {...r,skill:c.skill,cohort:c.cohort,metricKind:c.metricKind,responseId,...s,completeSupported:s.complete===null?null:s.complete&&(!r.artifact||r.artifact.success),missingEvidence:c.rubric.evidence.flatMap((requirement,id)=>review.evidence.some(e=>e.id===id)?[]:[{id,requirement,rationale:review.missingEvidence?.find(e=>e.id===id)?.rationale??'No supported evidence credited; inspect annotation.'}])};});
+ const cohorts={};for(const cohort of ['historical-development','new-same-workflow-boundaries']){const selected=run.sealed.registration.frozen.protocol.cases.filter(c=>c.cohort===cohort),ids=new Set(selected.map(c=>c.id)),records=run.records.filter(r=>ids.has(r.caseId)),responseIds=new Set(records.filter(r=>r.status==='executed').map(r=>digest(`${run.sealed.sha256}/${r.ordinal}`).slice(0,20)));const sub={...run,sealed:{...run.sealed,registration:{...run.sealed.registration,frozen:{...run.sealed.registration.frozen,protocol:{...run.sealed.registration.frozen.protocol,cases:selected}}}},records};cohorts[cohort]=existingSummary(sub,annotations.filter(a=>responseIds.has(a.responseId)));}
+ const paired=run.sealed.registration.frozen.protocol.cases.flatMap(c=>[1,2,3].map(repeat=>{const a=rows.find(r=>r.caseId===c.id&&r.repeat===repeat&&r.arm==='A'),b=rows.find(r=>r.caseId===c.id&&r.repeat===repeat&&r.arm==='B');return {caseId:c.id,skill:c.skill,cohort:c.cohort,repeat,status:!a||!b?'incomplete':a.completeSupported===null||b.completeSupported===null?'pending':a.completeSupported===b.completeSupported?'tied':b.completeSupported?'improved':'regressed',...(a&&b?{evidenceDelta:b.evidenceFound-a.evidenceFound,unsupportedDelta:b.unsupportedClaims-a.unsupportedClaims}:{} )};}));
+ return {simulation:run.simulation,model:run.sealed.registration.model,effort:run.sealed.registration.effort,cliVersion:run.sealed.registration.cliVersion,arms:run.sealed.registration.frozen.protocol.arms,registrationSha256:run.sealed.sha256,freezeSha256:run.sealed.registration.anchor,all,cohorts,paired,rows};
+}
+if(process.argv[1]===fileURLToPath(import.meta.url)){const [dir,annotations,out]=process.argv.slice(2);assert(dir&&annotations&&out);const result=summarize(readRun(dir),JSON.parse(fs.readFileSync(annotations)).annotations);fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n',{flag:'wx',mode:0o600});}

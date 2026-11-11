@@ -1,5 +1,7 @@
 # Campaign collection and semantic review complete
 
+> **Collector correction (2026-11-11):** the reported sweep B artifact/completeness result of 14/15 was caused by joining an abandoned stream fragment to the completed answer. The completed-event result is **15/15**, tied with A; evidence is **45/45**. One runtime response also contained an abandoned prefix, without any score change. All 318 records were audited; other skill results are unchanged. The original results below are retained for audit. See [the correction](collector-correction/README.md).
+
 The maintainer authorized the frozen campaign and explicit recovery. The selected
 Codex CLI model and reasoning effort were `gpt-6.1-terra / low`; CLI-selected
 identity is not independently attested provider identity. All-skills collected
@@ -39,9 +41,19 @@ artifacts, not native skill discovery or the full autonomous workflow.
 
 ## Reproduce the arithmetic without model calls
 
-From the repository root, extract the original archive and recovery/runtime
+The historical executor deliberately verifies the exact current checkout sources.
+After later guide revisions, reproduce this completed study from its pinned
+assessment commit, rather than weakening that execution gate or replacing the
+frozen files:
+
+```bash
+git worktree add --detach ../brooks-campaign-37fd5a2 37fd5a282df17736541c7c36d109f4ab070bbc8a
+cd ../brooks-campaign-37fd5a2
+```
+
+From that pinned checkout, extract the original archive and recovery/runtime
 archive into a new private directory. Both archives contain top-level run folders.
-Use that directory as `RAW_ROOT`, then run:
+Use an absolute path to that directory as `RAW_ROOT`, then run:
 
 ```bash
 node docs/research/all-skills-results/2026-11-11-terra-low-campaign/reproduce.mjs RAW_ROOT NEW_OUTPUT_DIRECTORY
@@ -58,3 +70,15 @@ arithmetic; semantic truth still requires inspection of the judgments.
 The [validation record](validation-record.md) records the independent archive
 reconstruction and repository checks. Failed-attempt records remain in the
 original archives and are not removed from the execution history.
+
+On a revised checkout, the explicit historical integrity check is:
+
+```bash
+node evals/research/campaign-plan.mjs validate-historical evals/research/frozen-campaign.json
+```
+
+It compares the retained campaign and sub-study bytes, snapshots, cases and
+source hashes to the pinned Git objects. The pinned commit must already exist
+locally; the check does not fetch, run a model, grant execution permission or
+fall back to the revised sources. Normal current-source registration remains
+strict and rejects this historical freeze after a guide change.
