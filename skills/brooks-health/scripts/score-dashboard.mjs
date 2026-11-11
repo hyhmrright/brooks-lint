@@ -1,5 +1,6 @@
-import { readFileSync, realpathSync } from 'node:fs';
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const DIMENSIONS = [
   ['pr', 'Code Quality', 25],
@@ -152,6 +153,41 @@ export function verifyScoreBlock(ledger, report) {
   return { valid: true, scope: 'canonical score block only' };
 }
 
+export const SCORE_PLACEHOLDER = '<!-- BROOKS_HEALTH_SCORE -->';
+const sha256 = value => createHash('sha256').update(value).digest('hex');
+
+// Deliberately conservative surface checks, not a semantic proof over arbitrary prose.
+function assertScoreFree(text) {
+  if (/Composite\s+(?:Score|unavailable)/i.test(text) ||
+      /\b\d+(?:\.\d+)?\s*(?:\/\s*100|out\s+of\s+100)\b/i.test(text) ||
+      /(?:\b(?:score|composite|overall(?:\s+score)?)\b|总分|综合评分)\s*(?:\*\*)?\s*(?::|=|is\b|of\b|为|：)?\s*\d/i.test(text)) {
+    throw new Error('draft/prose must be score-free: remove numeric score restatements outside the canonical block');
+  }
+}
+
+/** Deterministically insert the only score block into a score-free draft. */
+export function finalizeDashboard(ledger, draft) {
+  if (typeof draft !== 'string') throw new Error('draft must be text');
+  const parts = draft.replaceAll('\r\n', '\n').split(SCORE_PLACEHOLDER);
+  if (parts.length !== 2) throw new Error('draft must contain the score placeholder exactly once');
+  assertScoreFree(parts.join(''));
+  const report = parts.join(renderScoreBlock(ledger).trimEnd());
+  verifyDashboard(ledger, report);
+  return report;
+}
+
+/** Bind final bytes to the ledger and reject conventional extra score surfaces. */
+export function verifyDashboard(ledger, report) {
+  verifyScoreBlock(ledger, report);
+  if (report.includes(SCORE_PLACEHOLDER)) throw new Error('final report still contains a score placeholder');
+  const block = renderScoreBlock(ledger).trimEnd();
+  const outside = report.replaceAll('\r\n', '\n').replace(block, '');
+  assertScoreFree(outside);
+  return { valid: true, scope: 'canonical block and score-free prose surface checks',
+    ledgerSha256: sha256(JSON.stringify(ledger)), reportSha256: sha256(report),
+    limitation: 'Does not validate diagnoses or detect every natural-language score paraphrase.' };
+}
+
 function isMainModule() {
   if (!process.argv[1]) return false;
   try {
@@ -164,14 +200,24 @@ function isMainModule() {
 
 if (isMainModule()) {
   try {
-    const [command, ledgerPath, reportPath, ...extra] = process.argv.slice(2);
-    if (!['render', 'check'].includes(command) || !ledgerPath || extra.length ||
-        (command === 'render' && reportPath) || (command === 'check' && !reportPath)) {
-      throw new Error('Usage: node score-dashboard.mjs render LEDGER.json | check LEDGER.json REPORT.md');
+    const [command, ledgerPath, reportPath, outputPath, ...extra] = process.argv.slice(2);
+    if (!['render', 'check', 'finalize', 'check-report'].includes(command) || !ledgerPath || extra.length ||
+        (command === 'render' && (reportPath || outputPath)) ||
+        (['check', 'check-report'].includes(command) && (!reportPath || outputPath)) ||
+        (command === 'finalize' && (!reportPath || !outputPath))) {
+      throw new Error('Usage: node score-dashboard.mjs render LEDGER.json | check LEDGER.json REPORT.md | finalize LEDGER.json DRAFT.md REPORT.md | check-report LEDGER.json REPORT.md');
     }
     const ledger = JSON.parse(readFileSync(ledgerPath, 'utf8'));
     if (command === 'render') process.stdout.write(renderScoreBlock(ledger));
-    else process.stdout.write(`${JSON.stringify(verifyScoreBlock(ledger, readFileSync(reportPath, 'utf8')))}\n`);
+    else if (command === 'finalize') {
+      const report = finalizeDashboard(ledger, readFileSync(reportPath, 'utf8'));
+      // Refuse overwriting evidence or an earlier final artifact. Choose a fresh path.
+      writeFileSync(outputPath, report, { flag: 'wx' });
+      process.stdout.write(`${JSON.stringify(verifyDashboard(ledger, report))}\n`);
+    } else {
+      const verify = command === 'check-report' ? verifyDashboard : verifyScoreBlock;
+      process.stdout.write(`${JSON.stringify(verify(ledger, readFileSync(reportPath, 'utf8')))}\n`);
+    }
   } catch (error) {
     process.stderr.write(`${error.message}\n`);
     process.exitCode = 1;

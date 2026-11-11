@@ -1,0 +1,11 @@
+/** Retained synthetic end-to-end exercise. Never contacts a model. */
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+import {freeze,register,execute,readRun} from './runner.mjs';
+import {summarize} from './report.mjs';
+import {digest} from '../skill-revision/suite.mjs';
+export function syntheticAnnotations(run){return run.records.filter(r=>r.status==='executed').map(r=>({responseId:digest(`${run.sealed.sha256}/${r.ordinal}`).slice(0,20),review:{answerSha256:digest(r.answer),reviewer:{identity:'SIMULATION',exposure:'fixture and all case criteria known',method:'Synthetic pipeline control; no semantic validity claimed'},assessment:'no-answer',assessmentSupport:{quote:r.answer,rationale:'SIMULATION: authored transport output is deliberately not adjudicated for case correctness.'},issues:[],evidence:[],unsupportedClaims:[],pendingClaims:[],novelConfirmedClaims:[]}}));}
+export async function drill(out){assert(!fs.existsSync(out),'New directory required');fs.mkdirSync(out,{recursive:true});const frozen=freeze(),sealed=register({frozen,anchor:frozen.sha256,model:'gpt-fixture',effort:'low',cliVersion:'0.167.1',authorization:'OFFLINE SIMULATION ONLY; no model call authorization'});const execution=await execute(sealed,sealed.sha256,path.join(out,'run'),{fixtureEndpoint:'http://127.0.0.1:1/v1',executable:process.execPath,prefixArgs:[fileURLToPath(new URL('./fake-cli.cjs',import.meta.url)),'success']});const run=readRun(path.join(out,'run')),annotations=syntheticAnnotations(run),summary=summarize(run,annotations);assert.equal(execution.executed,48);assert.equal(summary.rows.length,48);assert.equal(summary.paired.length,24);assert(summary.simulation);fs.writeFileSync(path.join(out,'annotations.json'),JSON.stringify({simulation:true,annotations},null,2)+'\n');fs.writeFileSync(path.join(out,'summary.json'),JSON.stringify(summary,null,2)+'\n');return {simulation:true,executed:execution.executed,reviewed:summary.rows.length,paired:summary.paired.length,limitation:'Synthetic authored responses and labels exercise plumbing only; no model or skill efficacy evidence.'};}
+if(process.argv[1]===fileURLToPath(import.meta.url)){assert(process.argv[2]);console.log(JSON.stringify(await drill(process.argv[2]),null,2));}

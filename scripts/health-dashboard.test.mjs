@@ -219,3 +219,54 @@ test('CLI render/check and symlink entry points produce output; invalid commands
   writeFileSync(ledgerPath, '{bad-json');
   assert.notEqual(spawnSync(process.execPath, [helper, 'render', ledgerPath], { encoding: 'utf8' }).status, 0);
 });
+
+test('finalization inserts one verified total and rejects competing score surfaces', async () => {
+  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-health/scripts/score-dashboard.mjs');
+  const ledger = strictExample();
+  const draft = `# Brooks-Lint Health Dashboard\n\n${SCORE_PLACEHOLDER}\n\n## Recommendation\nInvestigate architecture findings.\n`;
+  const report = finalizeDashboard(ledger, draft);
+  assert.equal((report.match(/Composite Score/g) ?? []).length, 1);
+  assert(report.includes('**Composite Score:** 80/100'));
+  assert(verifyDashboard(ledger, report + '\nR5 findings leave the score unchanged. There are a total of 3 dependencies. The score is unavailable for an unassessed dimension.').valid);
+  const receipt = verifyDashboard(ledger, report);
+  assert.equal(receipt.reportSha256, createHash('sha256').update(report).digest('hex'));
+  assert.equal(receipt.ledgerSha256, createHash('sha256').update(JSON.stringify(ledger)).digest('hex'));
+  for (const extra of ['Overall: 78', 'The score is 80.', 'Health: 80/100', '80 out of 100', '总分：78', '**Composite unavailable:** incomplete']) {
+    assert.throws(() => finalizeDashboard(ledger, draft + extra), /score-free/);
+    assert.throws(() => verifyDashboard(ledger, report + extra), /score-free/);
+  }
+  for (const invalid of [draft.replace(SCORE_PLACEHOLDER, ''), draft + SCORE_PLACEHOLDER]) {
+    assert.throws(() => finalizeDashboard(ledger, invalid), /exactly once/);
+  }
+  const changed = strictExample(); changed.strictness = 'balanced';
+  assert.throws(() => verifyDashboard(changed, report), /canonical/);
+  const unknown = strictExample(); unknown.dimensions.test = { status: 'unassessed', reason: 'Unavailable evidence' };
+  const incomplete = finalizeDashboard(unknown, draft);
+  assert(incomplete.includes('Composite unavailable'));
+  assert(!incomplete.includes('Composite Score'));
+  assert(verifyDashboard(unknown, incomplete).valid);
+});
+
+test('finalize/check-report CLI preserves inputs, refuses overwrites and binds final bytes', t => {
+  const dir = temporary(t), ledgerPath = path.join(dir, 'ledger.json'), draftPath = path.join(dir, 'draft.md'), reportPath = path.join(dir, 'report.md');
+  const ledgerBytes = JSON.stringify(strictExample());
+  const draft = '# Dashboard\n\n<!-- BROOKS_HEALTH_SCORE -->\n';
+  writeFileSync(ledgerPath, ledgerBytes); writeFileSync(draftPath, draft);
+  const run = (...args) => spawnSync(process.execPath, [helper, ...args], { encoding: 'utf8' });
+  const result = run('finalize', ledgerPath, draftPath, reportPath);
+  assert.equal(result.status, 0, result.stderr);
+  const checked = run('check-report', ledgerPath, reportPath);
+  assert.equal(checked.status, 0, checked.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), JSON.parse(checked.stdout));
+  assert.equal(readFileSync(ledgerPath, 'utf8'), ledgerBytes);
+  assert.equal(readFileSync(draftPath, 'utf8'), draft);
+  assert.notEqual(run('finalize', ledgerPath, draftPath, reportPath).status, 0);
+  writeFileSync(reportPath, readFileSync(reportPath, 'utf8') + '\nOverall: 78\n');
+  assert.notEqual(run('check-report', ledgerPath, reportPath).status, 0);
+  assert.notEqual(run('finalize', ledgerPath, draftPath, ledgerPath).status, 0);
+  writeFileSync(reportPath, readFileSync(reportPath, 'utf8').replace('\nOverall: 78\n', ''));
+  const changed = strictExample(); changed.strictness = 'balanced';
+  writeFileSync(ledgerPath, JSON.stringify(changed));
+  assert.notEqual(run('check-report', ledgerPath, reportPath).status, 0);
+  assert(readFileSync(reportPath, 'utf8').includes('**Composite Score:** 80/100'));
+});

@@ -93,20 +93,34 @@ Use one calculation ledger for the entire report:
    heading, recommendation or summary. A matching headline does not excuse an
    incorrect intermediate calculation.
 
-**Render from the ledger, not from a provisional headline.** When Node.js execution
-is available and permitted, read `score-ledger.md` and use the bundled
-`scripts/score-dashboard.mjs` to render the canonical score block. Copy it unchanged
-into the report, then run its `check` command against the final report. The helper
-validates capped ledger structure, calculates the scores and checks block integrity;
-it does not verify the diagnosis or unrelated prose. Resolve its path from this
-skill's directory. Do not silently fall back after a validation error: correct the
-ledger from evidence and rerun.
+**Required tool-enabled path:** when the bundled Node.js helper or a host scoring
+tool is available and permitted, read `score-ledger.md` and use its
+`finalize` → `check-report` workflow. Complete one ledger from the capped findings,
+then write a score-free report draft with exactly one
+`<!-- BROOKS_HEALTH_SCORE -->` placeholder. The helper inserts the canonical block;
+do not copy a separately calculated total into the draft. The host equivalent may
+accept `{ledger, draft}` and return the finalized report and verification receipt;
+it must invoke the same exported finalizer and verifier. No shell is necessary
+when that host tool is exposed.
+
+Keep the ledger, draft, final report and receipt together. Check the **final report
+bytes** against the **same ledger**, then deliver that artifact unchanged. If the
+report or ledger changes, finalize and check again before delivery. Do not rewrite
+or summarize the total after verification. Resolve the helper from this skill's
+directory rather than an assumed project path. Do not silently fall back after a
+validation error: correct the ledger from evidence or remove score restatements
+from the draft and rerun. If execution fails or the ledger cannot be established,
+report the limitation and omit the numeric composite.
+
 For an already adjudicated, capped supplied ledger with severities but no risk
 codes, use the helper's explicit supplied-ledger form described in `score-ledger.md`;
 retain missing risk codes and disclose any per-risk cap that cannot be verified.
 Do not invent diagnoses just to satisfy the helper's ordinary input schema.
+The checker verifies arithmetic and conventional duplicate score surfaces; it
+cannot prove diagnoses or detect every natural-language paraphrase. Inspect prose
+for any remaining restatement of the total before finalization.
 
-**Text-only fallback (no extra file or execution required):** use the four ledger
+**Text-only fallback (execution unavailable or explicitly prohibited):** use the four ledger
 steps above. Complete deductions, dimension scores, each integer-weight product,
 their sum N and denominator D before writing the score line. Check the products
 and sum in reverse, then apply the half-up formula once. Output one block containing
@@ -122,8 +136,9 @@ claim the bundled helper ran. This fallback is complete within this guide.
 ### Step 3: Output Dashboard
 
 Use the dashboard report template below instead of the standard common.md template.
-Insert the completed score block once; do not draft a separate score line ahead of
-it. Outside the block, explain findings and recommendations without repeating the
+In tool-enabled work, deliver the finalized, checked report unchanged. In
+text-only work, insert the completed score block once; do not draft a separate
+score line ahead of it. Outside the block, explain findings and recommendations without repeating the
 composite. Remove a contradictory draft instead of appending a second, corrected
 total. If verification is incomplete, report that limitation without a numeric
 composite. This output procedure reduces score drift; only real model evaluation
@@ -133,14 +148,16 @@ can establish whether a model follows it consistently.
 
 ## Dashboard Report Template
 
+This is the score-free draft template. The finalizer replaces its placeholder
+with the canonical score block. In the explicitly text-only fallback, replace
+the same placeholder with the verified calculation block before delivery.
+
 ````markdown
 # Brooks-Lint Health Dashboard
 
 **Mode:** Health Dashboard
 **Scope:** [project name or directory]
-[Canonical score block from the completed ledger, including its single
-Composite Score line, dimension table and exact weighted calculation;
-or Composite unavailable with the incomplete dimension table.]
+<!-- BROOKS_HEALTH_SCORE -->
 
 ## Module Dependency Graph
 [Mermaid graph from architecture scan]
