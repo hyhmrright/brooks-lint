@@ -96,6 +96,14 @@ objects and archived bytes; it is not a bypass for live current-source checks.
 Old live registration remains fail-closed after guide changes. Reproducing the
 old report requires its documented pinned checkout.
 
+After the [health-score consistency repair](health-score-consistency-fix.md),
+the third command for this original freeze must run from a clean checkout of
+`2e38033adcfff14bab568d4f5f77e95878bcd97d`. The original freeze is deliberately
+unchanged and no longer matches the newer health guide. The registration and
+execution commands below describe the original experiment in that checkout;
+they do not authorize testing the newer candidate. Freeze and register any
+newer candidate separately, without merging its answers into the stopped run.
+
 Create a private registration config with `frozen` (the complete frozen object),
 `anchor` (its SHA-256), `model`, `effort`, `cliVersion`, `authorization`, and optional
 `inheritProxy: true` only if needed and explicitly documented. No API key belongs

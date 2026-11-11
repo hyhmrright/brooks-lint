@@ -88,14 +88,46 @@ Use one calculation ledger for the entire report:
    smallest and largest retained dimension scores. When permitted and available,
    use a calculator or small deterministic calculation; never claim tool execution
    when it was unavailable. Text-only work must still show checkable arithmetic.
-4. Reuse this one rounded result in the headline, table, body and any summary.
-   Before emitting, check those occurrences agree, the preset deductions match
-   the ledger, and any displayed unrounded value agrees with N/D. A matching
-   rounded headline does not excuse an incorrect intermediate calculation.
+4. Finish this ledger **before drafting the report**. Emit the rounded composite
+   in exactly one `Composite Score:` line; do not independently restate it in a
+   heading, recommendation or summary. A matching headline does not excuse an
+   incorrect intermediate calculation.
+
+**Render from the ledger, not from a provisional headline.** When Node.js execution
+is available and permitted, read `score-ledger.md` and use the bundled
+`scripts/score-dashboard.mjs` to render the canonical score block. Copy it unchanged
+into the report, then run its `check` command against the final report. The helper
+validates capped ledger structure, calculates the scores and checks block integrity;
+it does not verify the diagnosis or unrelated prose. Resolve its path from this
+skill's directory. Do not silently fall back after a validation error: correct the
+ledger from evidence and rerun.
+For an already adjudicated, capped supplied ledger with severities but no risk
+codes, use the helper's explicit supplied-ledger form described in `score-ledger.md`;
+retain missing risk codes and disclose any per-risk cap that cannot be verified.
+Do not invent diagnoses just to satisfy the helper's ordinary input schema.
+
+**Text-only fallback (no extra file or execution required):** use the four ledger
+steps above. Complete deductions, dimension scores, each integer-weight product,
+their sum N and denominator D before writing the score line. Check the products
+and sum in reverse, then apply the half-up formula once. Output one block containing
+the final `Composite Score:` line, a table with columns `Dimension`, `Score`,
+`Deduction`, `Retained findings` (IDs or brief ledger references), and the explicit
+weighted products and exact N/D fraction. Show skipped PR as `Skipped (no diff)`;
+show unassessed dimensions as `Unassessed`, not 100. When a required dimension is
+unassessed or the arithmetic cannot be verified, omit the numeric composite and
+use `Composite unavailable` with the reason. Do not restate the rounded total
+outside that single line. State that no tool verification was performed; do not
+claim the bundled helper ran. This fallback is complete within this guide.
 
 ### Step 3: Output Dashboard
 
 Use the dashboard report template below instead of the standard common.md template.
+Insert the completed score block once; do not draft a separate score line ahead of
+it. Outside the block, explain findings and recommendations without repeating the
+composite. Remove a contradictory draft instead of appending a second, corrected
+total. If verification is incomplete, report that limitation without a numeric
+composite. This output procedure reduces score drift; only real model evaluation
+can establish whether a model follows it consistently.
 
 ---
 
@@ -106,14 +138,9 @@ Use the dashboard report template below instead of the standard common.md templa
 
 **Mode:** Health Dashboard
 **Scope:** [project name or directory]
-**Composite Score:** XX/100
-
-| Dimension | Score | Top Finding |
-|-----------|-------|------------|
-| Code Quality | XX/100 | [one-line summary or "Clean"] |
-| Architecture | XX/100 | [one-line summary or "Clean"] |
-| Tech Debt | XX/100 | [one-line summary or "Clean"] |
-| Test Quality | XX/100 | [one-line summary or "Clean"] |
+[Canonical score block from the completed ledger, including its single
+Composite Score line, dimension table and exact weighted calculation;
+or Composite unavailable with the incomplete dimension table.]
 
 ## Module Dependency Graph
 [Mermaid graph from architecture scan]

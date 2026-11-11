@@ -35,7 +35,9 @@ packets and execution totals. Its hash is in `archive-manifest.json`.
 evidence. `execution-context.json` inside the archive records preparation state;
 `run/execution.json` records the actual terminal outcome.
 
-From the repository root, extract into a new private directory and verify:
+Use a clean checkout of `2e38033adcfff14bab568d4f5f77e95878bcd97d`, which contains
+the original execution sources and these result artifacts. From that checkout's
+root, extract into a new private directory and verify:
 
 ```sh
 mkdir -m 700 /tmp/brooks-revision-results
@@ -45,10 +47,11 @@ node evals/research/skill-revision/report.mjs /tmp/brooks-revision-results/run d
 cmp /tmp/brooks-revision-results/summary.json docs/research/skill-revision-results/2026-11-11-terra-low/summary.json
 ```
 
-The runner checks current source hashes. If later maintenance changes those
-sources, reproduce from a clean checkout of `dfd1d5d` with these result artifacts
-available; do not regenerate a historical freeze. These commands make no model
-calls. Validation is recorded in [validation.md](validation.md).
+The runner checks current source hashes. Later health-guide maintenance has
+changed those inputs, so the pinned checkout is required; do not regenerate a
+historical freeze. These commands make no model calls. Original execution-source
+commit `dfd1d5d` also reproduces the report if these result artifacts are copied
+into that checkout. Validation is recorded in [validation.md](validation.md).
 
 ## Recovery plan (not executed)
 
@@ -77,3 +80,18 @@ authorized. Subsequent offline implementation is documented in
 [recovery-preparation.md](recovery-preparation.md), with its separate QA record in
 [recovery-validation.md](recovery-validation.md). It does not complete this study.
 The same-workflow and non-independent-review limitations remain.
+
+## Later health-score revision
+
+The subsequent [health-score consistency fix](../../health-score-consistency-fix.md)
+changes the health guide again. This stopped study still measures the earlier
+`dfd1d5d` candidate. Its frozen inputs, answers, annotations and summary remain
+unchanged; new-candidate answers must not be merged into this study.
+
+For original-run verification or any separately authorized original recovery, use
+a clean checkout of `2e38033adcfff14bab568d4f5f77e95878bcd97d`. It contains the
+original guide snapshots and the verified recovery implementation. The original
+parent evidence can remain at its registered absolute path. Running the old
+registration from a checkout containing the later health guide correctly fails
+with `Frozen source/input drift`; do not regenerate the old freeze or weaken that
+check. No original recovery or new-candidate live run has been authorized here.

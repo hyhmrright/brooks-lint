@@ -1,0 +1,99 @@
+# Dashboard score ledger
+
+Prepare this ledger **after diagnosis**, configuration and the finding caps. The
+helper calculates and renders scores; it does not diagnose code, choose findings,
+verify evidence, or decide whether an assessment was actually performed.
+
+## Input
+
+All four dimensions are required, even when one is unassessed. Use these exact keys:
+
+```json
+{
+  "strictness": "balanced",
+  "hasDiff": true,
+  "dimensions": {
+    "pr": {"status": "assessed", "findings": [{"id": "P1", "risk": "R1", "severity": "warning"}]},
+    "architecture": {"status": "assessed", "findings": []},
+    "debt": {"status": "assessed", "findings": []},
+    "test": {"status": "assessed", "findings": []}
+  }
+}
+```
+
+- `strictness` is the **resolved** `strict`, `balanced` or `legacy-friendly`
+  preset; omission means `balanced`. Apply `common.md` configuration validation
+  first, including its warning and balanced fallback for invalid config values.
+  This helper deliberately rejects invalid resolved presets; it does not read YAML.
+- `hasDiff` must be a boolean. With no diff, the PR entry must instead be
+  `{"status":"skipped","reason":"No diff"}`. No other dimension may be skipped.
+- For missing evidence or an unfinished assessment, use
+  `{"status":"unassessed","reason":"Test sources unavailable"}`. Explain that
+  reason in the report. Never encode unavailable evidence as `findings: []`.
+- Each assessed entry has at most three retained findings. Debt also has at most
+  two per risk code. An assessed empty list means the completed scan found none.
+  Finding IDs must be unique within their dimension, using only letters, digits,
+  dots, underscores or hyphens and starting with a letter or digit.
+- Each finding supplies an `R1`–`R6`, `T1`–`T6` or already configured `C<number>`
+  risk code and its resolved lowercase `critical`, `warning` or `suggestion`
+  severity. IDs refer to the diagnosed or supplied ledger. The helper validates
+  code syntax only; establish any custom risk's definition before using it.
+- Exception for an already adjudicated, capped **supplied** ledger that contains
+  only severities: set root `"suppliedCappedLedger": true` and omit unavailable
+  `risk` fields. Use positional IDs such as `A1` only as references to entries in
+  that source ledger; do not invent risk codes, diagnoses or source scans. The
+  renderer labels the provenance as an input assertion and unspecified risks as
+  such. It still enforces three findings per dimension and two per **known** debt
+  risk; if any debt risk is missing, it explicitly says the per-risk cap was not
+  verified. The assertion cannot override a known cap violation. Do not use it
+  for an uncapped or unadjudicated source; obtain the missing facts or leave the
+  affected dimension unassessed instead.
+- Unknown fields, duplicate IDs, invalid statuses, extra findings and missing
+  dimensions are errors. Correct the ledger from evidence; never truncate or
+  silently drop findings just to pass the helper.
+
+## Tool-assisted output
+
+Use Node.js when available and permitted. Resolve the helper from this skill's
+directory, not from an assumed project-relative installation path. For example:
+
+```sh
+node /absolute/path/to/brooks-health/scripts/score-dashboard.mjs render /tmp/health-ledger.json
+node /absolute/path/to/brooks-health/scripts/score-dashboard.mjs check /tmp/health-ledger.json /tmp/health-report.md
+```
+
+The first command writes a canonical Markdown block to stdout. Copy that entire
+block unchanged below the dashboard's scope/configuration lines. Do not write an
+earlier provisional total, and do not restate the composite later in the report.
+Add diagnosis, graph and recommendations outside the block. The block contains
+one numeric composite, dimension scores and deductions, retained finding IDs,
+integer-weight products and the exact fraction used for half-up rounding. Missing
+assessments suppress the composite instead of receiving 100 or losing weight.
+
+The second command checks that the final report contains that exact block once
+and has no additional `Composite Score:` labels. It rejects altered headlines,
+tables and arithmetic. It does **not** interpret unrelated prose, establish the
+truth of findings, detect every possible restatement of a number, or guarantee
+that a model followed the instructions. Inspect the surrounding text for repeated
+or conflicting totals; remove them rather than adding a corrective second score.
+If checking fails, regenerate the block from the adjudicated ledger and recheck.
+Do not repair the old failed evaluation response or its published score.
+
+## Text-only fallback
+
+When execution is unavailable or prohibited, use the same ledger and output
+order without claiming the helper ran:
+
+1. Finish the per-dimension deductions and scores before composing the report.
+2. Compute the integer products, their sum `N`, and the retained-weight sum `D`
+   (100 with PR, 75 without it). Keep `N/D` exact.
+3. Apply `floor((2*N + D)/(2*D))` once. Check products and their sum in reverse;
+   the result must lie within the assessed dimension scores.
+4. Fill one final `Composite Score:` line from that result. Show the dimension
+   ledger and exact `N/D` below it, with no repeated rounded total elsewhere.
+   When any required dimension is unassessed, use `Composite unavailable` instead
+   and omit the weighted calculation. Explain the missing assessment.
+
+If the calculation cannot be verified, state that scores are unverified and
+omit the numeric composite. A text-only benchmark evaluates this fallback, not
+helper execution. Offline helper tests cannot establish model adherence.

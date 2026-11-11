@@ -2,6 +2,12 @@
 
 This is an unexecuted amendment implementation, not authorization or a claim that the remaining model answers exist. No real recovery call was made while preparing it. Original stopped-run records and the 11 successful answers remain immutable.
 
+Later maintenance changes the health guide. The original recovery now requires a
+clean checkout of `2e38033adcfff14bab568d4f5f77e95878bcd97d`, with the original
+parent evidence at its bound absolute path. The current-source drift rejection
+remains intentional. See the [later-revision note](README.md#later-health-score-revision);
+the newer skill needs a separate freeze and cannot share this study's responses.
+
 `evals/research/skill-revision/recovery.mjs` requires a new, explicit authorization string and separate registration. The original protocol forbids automatic resume; this wrapper implements a separately authorized amendment. It keeps all original frozen source/input checks intact, seals the entire parent evidence tree and its own source hash, and rejects any parent/source drift. The original registration retains its response identities. Recovery results carry explicit per-record source directory, recovery registration identity and replacement status; the verified logical merge is never presented as an original raw run directory.
 
 ## Exact scope and limits
