@@ -72,5 +72,8 @@ calls. Validation is recorded in [validation.md](validation.md).
    denominators. If capacity failure recurs, stop and report it without switching
    model or launching another recovery automatically.
 
-This plan is a proposed amendment, not a tested recovery executor or a completed
-study. The same-workflow and non-independent-review limitations remain.
+The user chose to save the current results and run later; live recovery is not
+authorized. Subsequent offline implementation is documented in
+[recovery-preparation.md](recovery-preparation.md), with its separate QA record in
+[recovery-validation.md](recovery-validation.md). It does not complete this study.
+The same-workflow and non-independent-review limitations remain.
