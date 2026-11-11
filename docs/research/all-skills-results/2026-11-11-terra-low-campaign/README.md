@@ -1,4 +1,4 @@
-# Campaign collection complete; semantic review in progress
+# Campaign collection and semantic review complete
 
 The maintainer authorized the frozen campaign and explicit recovery. The selected
 Codex CLI model and reasoning effort were `gpt-6.1-terra / low`; CLI-selected
@@ -20,11 +20,41 @@ checking, not an independent provider attestation or tamper-proof signature.
 Common credential patterns and email addresses were scanned before archiving;
 this does not guarantee that every sensitive datum was detected.
 
-**Semantic assessment remains in progress.** `annotations-in-progress.json`
-contains one individually reviewed answer, with exact citations and exposure
-disclosed. The other 317 answers have not been reviewed. No full accuracy,
-recall, false-positive or skill-effect conclusion is available. In particular,
-completion of collection and raw-integrity verification are not proof of answer
-quality. The development fixtures are public and same-workflow authored, not
-independent holdouts. The studies measure supplied guidance and bounded artifacts,
-not native skill discovery or the full autonomous workflow.
+**All 318 answers now have individual semantic annotations.** The original single
+published review remains unchanged in `annotations-in-progress.json`; the completed
+inventories are `annotations-all-skills.json` (210) and `annotations-runtime.json`
+(108). Every credited item has an exact answer excerpt, with missing evidence and
+unresolved extra claims retained explicitly. See the [results report](report.md),
+[per-answer ledger](response-ledger.md), and [review protocol](review-protocol.md).
+
+The evaluated model was CLI-selected `gpt-6.1-terra / low` with Codex CLI
+`0.167.0`. The continuation semantic reviewer was `gpt-6-astra`; its reasoning
+effort was not independently recorded. Model review is not independent human
+validation. Frozen label agreement, issue recall, task criteria, causal evidence,
+artifact validity, arithmetic contradictions and pending claims are distinct
+outcomes. Complete collection and raw-integrity verification are not proof of
+answer quality. The development fixtures are public and same-workflow authored,
+not independent holdouts. The studies measure supplied guidance and bounded
+artifacts, not native skill discovery or the full autonomous workflow.
+
+## Reproduce the arithmetic without model calls
+
+From the repository root, extract the original archive and recovery/runtime
+archive into a new private directory. Both archives contain top-level run folders.
+Use that directory as `RAW_ROOT`, then run:
+
+```bash
+node docs/research/all-skills-results/2026-11-11-terra-low-campaign/reproduce.mjs RAW_ROOT NEW_OUTPUT_DIRECTORY
+```
+
+The output directory must not already exist. The script verifies the recovered
+raw chain and runtime artifacts, checks that the original published annotation
+is unchanged, validates all exact citations, and recomputes the two study
+summaries, per-response scores, per-skill comparisons, post-hoc witness-equivalence
+sensitivity and readable ledger. Compare the generated files to their committed
+counterparts. No model or network access is used. This verifies provenance and
+arithmetic; semantic truth still requires inspection of the judgments.
+
+The [validation record](validation-record.md) records the independent archive
+reconstruction and repository checks. Failed-attempt records remain in the
+original archives and are not removed from the execution history.
