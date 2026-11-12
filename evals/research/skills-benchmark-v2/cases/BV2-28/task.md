@@ -1,0 +1,2 @@
+Review whether existing tests distinguish cross-tenant isolation and shared-route reuse. Supply a concrete behavior mutation or request sequence; do not infer unknown suite-wide coverage.
+A single tenant price mismatch has competing explanations: authorization mapping, repository data and cache identity. Inspect all supplied files before diagnosing. Do not use a delimiter-concatenated key without showing it is collision free for opaque strings. Exact names and input values are not required if an equivalent executable witness demonstrates the same contract.

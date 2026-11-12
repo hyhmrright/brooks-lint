@@ -1,0 +1,5 @@
+Execute the bounded full-sweep workflow. Return allowed replacements and a phase/verification record. Resolve only demonstrated authorized changes; report existing failures and unknowns. The final health pass must use the final snapshot, not estimated improvements.
+
+Assess only supplied scope. Cite contracts and source evidence; identify unresolved assumptions. Do not infer missing project tests from an excerpt. Equivalent executable witnesses are accepted; explain why the witness preserves the relevant contract. No network, package installation or unrelated file edits.
+
+Artifact contract: return one JSON object with exactly report (Markdown narrative string), phases (array of phase names), replacements (path-to-complete-source object), rounds (integer total rounds), stopReason (no-actionable-findings, iteration-cap, no-progress, or verification-blocked). The phase list is a workflow claim, not proof of execution; put verification, diagnosis and limitations in the report string for semantic review.

@@ -1,0 +1,1 @@
+This is a generated-source excerpt. The active entrypoint and build substitutions are not supplied; both direct and substituted bindings are possible.

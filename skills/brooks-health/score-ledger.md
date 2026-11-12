@@ -74,6 +74,14 @@ whitespace) and `reportSha256` to the final report's exact UTF-8 bytes. The seco
 command must pass against the same ledger and actual final file. Deliver the final
 artifact unchanged; edits to either input require fresh finalization and checking.
 
+Determine capability from the actual session tool inventory and execution policy,
+not from an unrelated code-mode warning. A direct host scorer may work without a
+shell or code-mode wrapper. Use its exposed schema, preserve any attempted call's
+result, and distinguish "not exposed", "prohibited", "attempt failed" and "verified".
+Do not assert a call failed when no call was made. If tool use is required but
+cannot be completed, retain the ledger and diagnosis without a numeric composite;
+text-only arithmetic is not fulfillment of the required tool workflow.
+
 A host may expose an equivalent scoring tool instead of shell execution. Its input
 is `{ledger, draft}` with the JSON ledger described above and a draft string. It
 must call the exported `finalizeDashboard(ledger, draft)` and then

@@ -6,6 +6,7 @@ import { reportToSarif } from './sarif.mjs';
 import { assembleSystemPrompt } from './assemble-prompt.mjs';
 import { modesForRunner, assertRunnerMode } from './modes.mjs';
 import { fileURLToPath } from 'node:url';
+import {finalizeDashboard} from '../skills/brooks-health/scripts/score-dashboard.mjs';
 
 const finding = (code = 'R1') => `**${code} — Mixed concerns**\nSymptom: src/a.js:3 mixes unrelated responsibilities.\nSource: Code Complete — High-Quality Routines.\nConsequence: Changes require understanding unrelated paths.\nRemedy: Separate the calculation from persistence.`;
 const report = (code = 'R1') => `**Mode:** PR Review\n**Scope:** src/a.js\n**Health Score:** 95/100\n### 🟡 Warning\n${finding(code)}`;
@@ -19,6 +20,20 @@ test('score labels work for all report modes including bold and final sweep scor
   }
   assert.equal(readScore('**Composite Score:** 92/100', 'health').score, 92);
   assert.equal(readScore('## Health Score Delta\nBefore: 70/100 → After: 95/100', 'sweep').score, 95);
+});
+
+test('full sweep finalizer output is consumed as the single final composite score', () => {
+  const ledger = {hasDiff: false, dimensions: {
+    pr: {status: 'skipped', reason: 'No diff supplied'},
+    architecture: {status: 'assessed', findings: []},
+    debt: {status: 'assessed', findings: []},
+    test: {status: 'assessed', findings: []},
+  }};
+  const final = finalizeDashboard(ledger,
+    '# Brooks-Lint — Full Sweep Report\nMode: Full Sweep\nScope: src/\n<!-- BROOKS_HEALTH_SCORE -->\nNo findings within assessed scope.');
+  assert.equal(readScore(final, 'sweep').score, 100);
+  assert.equal(parseReport(final).valid, true);
+  assert.equal(parseReport(`${final}\nComposite Score: 95/100`).valid, false);
 });
 
 test('invalid, ambiguous and missing scores are not valid machine reports', () => {

@@ -1,0 +1,1 @@
+The public checkout accepts validated nonnegative integer cents and basis points only. Rounding policy (per line or per invoice) is not supplied; both are in production elsewhere.

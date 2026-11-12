@@ -27,16 +27,19 @@ Read in order:
 3. `../_shared/decay-risks.md` — production risk symptoms
 4. `../_shared/test-decay-risks.md` — test risk symptoms
 5. `sweep-guide.md` (this directory) — the unified scan and fix process
+6. Read each focused guide at its pass: `../brooks-review/pr-review-guide.md`,
+   `../brooks-test/test-guide.md`, `../brooks-debt/debt-guide.md`,
+   `../brooks-audit/architecture-guide.md`, then `../brooks-health/health-guide.md`
 
 ## Process
 
 **Scope:** if the user did not specify a project or directory, apply Auto Scope Detection
 (`../_shared/common.md`) first.
 
-1. Show the pre-flight consent notice and wait for one-time approval (Step 0 of the guide)
+1. Confirm scope and existing edit authorization; obtain approval only if missing (Step 0 of the guide)
 2. Enumerate scope and initialize pipeline state (Step 1 of the guide)
 3. Run the four dimensions in sequence — review, test, debt, audit — each scanning, classifying, fixing, and verifying (Steps 2–5 of the guide)
 4. Iterate over modified files and their consumers until a clean round or the cap (Step 6 of the guide)
-5. Aggregate residual and unresolvable items and output the Full Sweep Report (Steps 7–8 of the guide)
+5. Aggregate residuals, run the health dashboard from the final snapshot, and output the Full Sweep Report (Steps 7–8 of the guide)
 
 **Mode line in report:** `Full Sweep`

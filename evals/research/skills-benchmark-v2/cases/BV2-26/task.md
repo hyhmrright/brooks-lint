@@ -1,0 +1,2 @@
+Assess repeated cache-key policy and change propagation between preview and purchase. Explain why centralizing domain identity differs from coupling unrelated policies.
+A single tenant price mismatch has competing explanations: authorization mapping, repository data and cache identity. Inspect all supplied files before diagnosing. Do not use a delimiter-concatenated key without showing it is collision free for opaque strings. Exact names and input values are not required if an equivalent executable witness demonstrates the same contract.

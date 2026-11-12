@@ -1,0 +1,2 @@
+Review the cross-file identity and authorization/cache behavior. Trace two requests through different routes. Distinguish authentication failures from cache identity collisions.
+A single tenant price mismatch has competing explanations: authorization mapping, repository data and cache identity. Inspect all supplied files before diagnosing. Do not use a delimiter-concatenated key without showing it is collision free for opaque strings. Exact names and input values are not required if an equivalent executable witness demonstrates the same contract.

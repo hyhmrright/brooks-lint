@@ -6,7 +6,7 @@ is used by prompt assembly, scenario validation, and runner admission checks.
 
 | Entry point | Supported modes | Evidence and execution |
 |---|---|---|
-| Interactive agent | `review`, `audit`, `debt`, `test`, `health`, `sweep` | Uses the agent's project-reading tools; Full Sweep additionally requires editing and verification tools and its consent gate. |
+| Interactive agent | `review`, `audit`, `debt`, `test`, `health`, `sweep` | Uses the agent's project-reading tools; Full Sweep additionally requires editing and verification tools and established edit authorization. |
 | GitHub Action / `scripts/ci-review.mjs` | `review` | Reviews the collected Git diff only. No model-side file access, test execution, or edits. |
 | `scripts/run-codex-evals.mjs` | `review`, `audit`, `test`, plus non-trigger controls | Real isolated Codex sessions with paired skill/no-skill fixtures and a separate semantic judge; see [behavioral evaluation](codex-behavior-evals.md). |
 | `scripts/run-evals-live.mjs` | `review`, `audit`, `debt`, `test`, `health` | Diagnoses the supplied scenario prompt and fixtures only. Does not exercise repository discovery or file edits. |
@@ -51,8 +51,9 @@ Use an interactive skill for wider repository analysis.
 Scores are integers in the inclusive range 0–100. The Markdown labels are stable:
 
 - `Health Score` for review, audit, debt, and test.
-- `Composite Score` for health.
-- The final `After: N/100` value in Full Sweep's Health Score Delta.
+- `Composite Score` for health and Full Sweep's final dashboard.
+- Historical Full Sweep reports may use the final `After: N/100` value in the
+  Health Score Delta; the parser retains this compatibility.
 
 Plain and bold labels are supported. Onboarding and skipped runs do not have a
 score. Empty, truncated, malformed, or ambiguous reports must not pass quality

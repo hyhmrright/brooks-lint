@@ -1,0 +1,1 @@
+Round each line independently before summing. The public checkout accepts validated nonnegative integer cents and basis points only; input validation belongs to the HTTP caller.

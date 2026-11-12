@@ -96,10 +96,10 @@ maturity stages. One of:
 
 See **Health Score Calculation** below for the per-preset deduction weights.
 
-**`sweep`** — Full Sweep only. `max_iterations` (default 3) caps how many
-non-critical re-scan rounds the sweep pipeline runs before it stops and reports
-the remainder as unresolved. Critical findings are exempt from the cap — they
-iterate until resolved or retired. Ignored by every other mode.
+**`sweep`** — Full Sweep only. `max_iterations` (default 3) caps all repair
+rounds, including the initial and Critical-only rounds. Use a positive integer;
+warn and fall back to 3 otherwise. Stop earlier on no progress or a user budget,
+and report the remainder as unresolved. Ignored by every other mode.
 
 **Minimal example:**
 ```yaml
@@ -197,8 +197,8 @@ and fixed structural headers from the template below (`Findings`, `Summary`,
 
 **Machine-readable report contract:** Emit one integer score from 0 through 100 on
 the score line. Use `Health Score` for review/audit/debt/test, `Composite Score` for
-health, and the final `After: N/100` value in sweep's Health Score Delta. Keep those
-labels in English, including when prose is translated. Do not emit a score for
+health and sweep's final dashboard. Historical sweep reports may use
+`After: N/100`; the parser retains that compatibility. Keep current score labels in English, including when prose is translated. Do not emit a score for
 onboarding, skipped runs, or an incomplete review. Every finding must include its
 risk code in the bold title, an explicit severity, and non-empty Symptom, Source,
 Consequence, and Remedy fields. Include the literal English severity word in each

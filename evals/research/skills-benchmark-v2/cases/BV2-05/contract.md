@@ -1,0 +1,1 @@
+The domain layer may not import transport or persistence adapters; the composition root injects ports. Build includes every supplied .mjs source.

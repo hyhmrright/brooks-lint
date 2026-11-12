@@ -63,7 +63,7 @@ across the remaining three dimensions by dividing each remaining weight by
 | Debt | 0.25 | 0.25 / 0.75 = 1/3 |
 | Test | 0.20 | 0.20 / 0.75 = 4/15 |
 
-**Score rules (must be deterministic — two runs on the same codebase must agree):**
+**Score rules (the same resolved ledger must produce the same scores):**
 
 - Each dimension's score is computed from the **capped** finding set shown in the dashboard
   (the cap at Step 1 bounds both what is displayed and what is deducted — do not deduct for
@@ -92,6 +92,18 @@ Use one calculation ledger for the entire report:
    in exactly one `Composite Score:` line; do not independently restate it in a
    heading, recommendation or summary. A matching headline does not excuse an
    incorrect intermediate calculation.
+
+**Establish execution capability before finalization:** inspect the tools actually
+exposed in this session and the task's execution policy. A shell capability and a
+host scoring capability are separate routes: disabled code-mode or absent shell
+does not by itself establish that a directly exposed scorer is unavailable. Use
+the exposed scorer's actual schema; do not invent a tool name or wrapper. When a
+required scorer is exposed, attempt it and preserve its result or exact failure.
+If no route is exposed, report that observation narrowly, without claiming an
+attempt occurred or attributing a backend cause. Do not report a completed scoring
+workflow without a successful receipt. An explicit tool-required task cannot be
+satisfied by the text-only fallback: deliver the evidence and ledger, omit the
+numeric composite, and mark finalization incomplete.
 
 **Required tool-enabled path:** when the bundled Node.js helper or a host scoring
 tool is available and permitted, read `score-ledger.md` and use its

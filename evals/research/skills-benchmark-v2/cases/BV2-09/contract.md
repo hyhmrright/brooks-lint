@@ -1,0 +1,1 @@
+Retail and wholesale owner, change history, and whether rounding policy is shared are unknown. The two formulas currently coincide.

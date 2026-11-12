@@ -1,0 +1,1 @@
+Retail and wholesale are governed by ONE rounding policy and must change together. Two missed synchronized changes and 4 hours/release reconciliation are documented. Formula duplication is the same knowledge.

@@ -1,0 +1,1 @@
+import assert from 'node:assert/strict';import {route} from './routes.mjs';import {cache} from './cache.mjs';import {repository} from './repository.mjs';const c=cache(),r=repository();assert.equal(route('purchase','A','item',c,r).price,10);assert.equal(route('purchase','A','item',c,r).price,10);assert.equal(r.reads(),1);

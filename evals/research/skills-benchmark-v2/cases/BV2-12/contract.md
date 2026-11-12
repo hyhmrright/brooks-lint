@@ -1,0 +1,1 @@
+quote accepts finite validated cents from the caller; validation is explicitly upstream. The private local variable name is not an API contract. The supplied check is one excerpt; the remainder of the suite and integration coverage are not supplied.
