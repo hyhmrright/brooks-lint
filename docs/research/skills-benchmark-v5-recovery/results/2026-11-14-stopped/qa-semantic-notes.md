@@ -1,0 +1,12 @@
+# Targeted semantic QA
+
+This second-agent review is within the same workflow, not independent human validation. All 199 annotation identities, quotations and aggregates were replayed; semantic scrutiny sampled the requested contested boundaries and withheld credits rather than claiming a new independent annotation of every answer. Candidate code was not executed.
+
+- BV5-34 A/B/C explicitly require NaN/fraction rejection despite the finite-integer precondition; BV5-35 A/B retain the same false obligation and nonempty replacements on a protected case. Grouped FP treatment is supported. The in-domain [2,11] atomicity defect remains valid. BV5-35 C leaves outside-domain behavior conditional and unscored.
+- BV5-33/36 all arms have empty replacements but no-actionable-findings, violating the frozen unknown-case verification-blocked requirement. This is protocol failure, not a wrong unknown-domain semantic conclusion.
+- BV5-29 B first repeat has a real redundant branch, but no established meaningful maintenance burden. Pending is appropriately separated from confirmed FP. Sensitivity accepted/rejected alternatives preserve that uncertainty.
+- BV5-27 retention findings concern supplied fields lost under the name-only mutant. They do not establish leakage or whole-suite protection. Source contract and individual answers support local novelty despite frozen unresolved label.
+- Missing-remedy BV5-13 A second repeat (ordinal147) describes the correct coordinated-change problem without a scoped remedy; its differing result from original A is justified. BV5-15 A second repeat supplies only current equal outputs, not changed outputs. BV5-23 A second repeat gives an unresolved long-number witness without required mutation pair. BV5-24 A second repeat explicitly supplies baseline and mutant outcomes but withholds obligation; separate sensitivity retains this uncertainty.
+- All55 health/sweep receipts reproduce exact report hashes. Health C failures75,79,86,182,198 are delivery failures; all19 decoded sweep reports exact, shape failures separate.
+
+One documentation finding was resolved: sensitivity.json supported BV5-29 alternative originally omitted the criterion/evidence restoration recipe. The author added counterfactualEdits and verify-sensitivity.mjs; fresh-archive replay now reproduces every variant. Verdict-only switching remains58 passes, whereas the explicitly documented acceptance of the withheld task-outcome and prose-ledger-reconciliation yields59. Primary annotations were unchanged.
