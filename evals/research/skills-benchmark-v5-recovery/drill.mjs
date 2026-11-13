@@ -1,0 +1,4 @@
+/** Fully synthetic protocol drill; no credentials, provider, or Codex process. */
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';
+import {createPlan,execute} from './recovery.mjs';
+const [original,out]=process.argv.slice(2);assert(original&&out&&!fs.existsSync(out),'ORIGINAL FRESH_OUT');fs.mkdirSync(out,{recursive:true});const plan=createPlan(original),summary=[];fs.writeFileSync(path.join(out,'plan.json'),JSON.stringify(plan,null,2)+'\n');for(const scenario of ['success','failure','retry','identity','cleanup','usage','budget','deadline','proxy'])summary.push({scenario,...await execute(plan,original,path.join(out,scenario),{simulation:true,scenario})});fs.writeFileSync(path.join(out,'summary.json'),JSON.stringify(summary,null,2)+'\n');console.log(JSON.stringify(summary));
