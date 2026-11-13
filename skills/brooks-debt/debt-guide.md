@@ -50,6 +50,17 @@ Are there modules with no clear layering position?
 **Domain Model Distortion:** Is business logic in the right layer?
 Do code names match business names? Are domain objects anemic?
 
+For Knowledge Duplication, distinguish multiple owners of the same decision from
+similar mechanics governed by independent policies. A re-export or delegate to one
+authoritative implementation is not another owner. State the shared requirement
+and a concrete one-sided change: what changes in one place, what remains unchanged,
+and which observable result or required coordination demonstrates the burden.
+Include a runnable comparison or precise checks when feasible, labeling predicted
+outcomes honestly. Repeated syntax and the possibility of hypothetical future
+divergence alone do not establish debt; keep optional consolidation unscored when
+its maintenance obligation or benefit is not established. Do not couple unrelated
+policies merely to remove visually similar code.
+
 ### Step 2: Score Each Finding with Pain × Spread
 
 After listing all findings, score each one:

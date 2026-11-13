@@ -212,14 +212,24 @@ Read `../brooks-health/health-guide.md` and complete the fifth pass from the
 architecture graph/suite map; verify stale entries before reuse. Apply health's
 per-dimension caps to an explicit scoring view; keep all other residuals visible
 without secretly deducting for them. Do not run an abbreviated scan that discards
-known unresolved findings. An unassessed dimension stays unknown. Full-source
-review without a diff does not invent a PR dimension for the health calculation.
+known unresolved findings. For each dimension, record which final-source evidence
+actually completed its assessment; completing five passes by name is not evidence
+that every dimension is assessed. Missing ownership facts or test evidence can
+leave a dimension unassessed even when a local repair succeeded. Preserve those
+limitations, use health's unassessed status, and suppress the composite rather than
+assigning a clean score. Full-source review without a diff does not invent a PR
+dimension for the health calculation.
 
 Use health's single-ledger finalizer/check workflow when permitted and available.
 Omit numerical health estimates when verification is unavailable under a required
 tool workflow. Do not calculate a separate sweep score. Include exactly one final
-health score block in the combined report; report changes by finding status rather
-than fabricating a before/after score from snapshots that were not assessed alike.
+health score block in the combined report. Put the combined explanation into the
+score-free draft before finalization and preserve the full finalized report
+unchanged. For a structured artifact, embed that exact report string in its allowed
+report field; JSON escaping may change the serialization, not the decoded report.
+Do not append additional score-bearing commentary after verification. Report
+changes by finding status rather than fabricating a before/after score from
+snapshots that were not assessed alike.
 
 Output the final report. Use the standard Report Template from
 `../_shared/common.md` with these additions:

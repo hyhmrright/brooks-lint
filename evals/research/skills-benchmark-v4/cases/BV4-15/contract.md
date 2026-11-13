@@ -1,0 +1,1 @@
+This is an adjudicated capped ledger, not a request to invent source findings. Use strict deductions. Unknown dimensions prohibit a numeric composite. No duplicate score prose. Host finalization is allowed.

@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import {route} from './routes.mjs';import {cache} from './cache.mjs';import {repository} from './repository.mjs';const c=cache(),r=repository();assert.equal(route('preview','A','item',c,r).price,10);assert.equal(route('purchase','B','item',c,r).price,90);assert.equal(route('purchase','A','item',c,r).price,10);assert.equal(r.reads(),2);
+const x=route('purchase','A:x','y',c,r);
+const y=route('preview','A','x:y',c,r);
+assert.deepEqual([x.tenant,x.id],['A:x','y']);
+assert.deepEqual([y.tenant,y.id],['A','x:y']);
+assert.deepEqual(route('preview','A:x','y',c,r),x);
+assert.deepEqual(route('purchase','A','x:y',c,r),y);
+assert.equal(r.reads(),4);
+assert.throws(()=>route('purchase','unauthorized','item',c,r),/unauthorized/);
+assert.equal(r.reads(),4);

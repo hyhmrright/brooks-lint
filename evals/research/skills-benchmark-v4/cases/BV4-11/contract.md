@@ -1,0 +1,3 @@
+quote accepts finite validated cents from the caller; validation is explicitly upstream. The private local variable name is not an API contract. The supplied check is the complete test inventory for quote.
+
+Quote behavior contract: the caller supplies integer cents in 0..100 inclusive. Return cents minus a ten-percent discount (JavaScript cents - cents * 0.1). Other inputs are outside this API contract and rejected upstream. A private local rename must preserve this behavior for all 101 valid inputs. Adequacy is assessed against this stated finite domain, not arbitrary impossible inputs or a demand to reject every invented overfit mutant.

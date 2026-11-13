@@ -47,6 +47,13 @@ observed behavior, identify the decisive missing fact, and explain the contrasti
 contract interpretations and their verdicts. Keep that question unresolved rather
 than presenting one interpretation as a demonstrated defect.
 
+For a behavioral finding, show one concrete input sequence through the relevant
+callers and state the contract's expected outcome versus the implementation's
+outcome. Explain why plausible competing causes do not explain that witness.
+Provide runnable assertions or precise references to existing checks; mark a
+statically traced result as predicted when execution was unavailable. Do not omit
+the witness merely to fit the report template.
+
 ### Step 2: Scan for Change Propagation
 
 *Scan this first — it is the most visible risk in a diff.*
@@ -119,8 +126,11 @@ production logic changes → skip Step 7 entirely.
   suggestions may accompany the remedy for a supported code defect; they are not
   automatically an additional scored defect.
 - A supplied test can demonstrably miss a branch or survive a relevant mutation.
-  Describe that local protection gap without asserting whole-suite absence;
-  distinguish strengthening that test from assuming no other tests cover it.
+  Tie the mutation to an established behavior or change requirement; an arbitrary
+  implementation that special-cases the observed examples alone does not establish
+  an actionable coverage gap. Describe the local protection gap without asserting
+  whole-suite absence; distinguish strengthening that test from assuming no other
+  tests cover it.
 - If the change is a pure refactor and existing tests cover the behavior → no finding.
 
 **Signal 2: Quick Mock Abuse sniff**

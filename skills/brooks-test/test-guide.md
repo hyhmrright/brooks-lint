@@ -62,6 +62,14 @@ Look for:
   to the observable behavior?
 - Are tests coupled to private methods or internal state directly?
 
+For a brittleness claim, give a concrete behavior-preserving transformation and
+paired checks: the original and transformed forms, the unchanged public behavior,
+and which test passes or fails in each. A private rename is useful only if public
+outputs, side effects, and contractual interactions remain equivalent. A statement
+that renaming "would break tests" without the affected assertion and both predicted
+outcomes is insufficient evidence. Preserve this witness in the final report and
+state whether it was executed or only traced.
+
 Severity: use the T2 Severity Guide in `../_shared/test-decay-risks.md`.
 
 ### Step 2b: Scan for Mock Abuse
@@ -111,6 +119,16 @@ Look for Coverage Illusion:
   being changed?
 - Do the tests assert on side effects (DB writes, events emitted, state transitions)
   or only on return values?
+
+Before retaining a coverage finding, connect a surviving mutation or omitted case
+to an established requirement and a relevant failure mechanism. An arbitrary
+hardcoded implementation can fit any finite set of examples; its survival alone
+is not proof that a behavior-based test is inadequate. Identify the required
+behavior it violates and why the inspected protection should detect that change.
+If the contract or the rest of the suite is unknown, state the local observation
+and missing evidence without claiming whole-suite inadequacy or deducting for an
+unestablished obligation. Supplying a useful additional test is not itself proof
+of an existing scored defect.
 
 **Characterization Test check:** If legacy code is being modified without existing tests,
 the team needs Characterization Tests before making the change — not after. Look for

@@ -1,0 +1,2 @@
+Audit domain/transport dependency ownership and cache lifetime boundaries. A correct return value alone does not prove architecture is sound.
+A single tenant price mismatch has competing explanations: authorization mapping, repository data and cache identity. Inspect all supplied files before diagnosing. Do not use a delimiter-concatenated key without showing it is collision free for opaque strings. Exact names and input values are not required if an equivalent executable witness demonstrates the same contract.

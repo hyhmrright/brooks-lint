@@ -105,6 +105,15 @@ Look for:
 - Modules with fan-out > 5
 - Absence of a clear layering rule (no consistent answer to "what depends on what?")
 
+Before retaining a dependency finding, establish module responsibilities, the
+applicable dependency rule, and the active binding or the precise source-only
+scope being assessed. A database-like filename or an import arrow alone does not
+establish a domain-to-infrastructure violation. If ownership or binding is unknown,
+show the observed edge and the alternative interpretations as unscored investigation
+items; do not retain a Warning or deduct points while saying the violation is
+unestablished. Conversely, an explicit boundary violation in the supplied source
+can be scored locally without claiming production exposure.
+
 ### Step 3: Scan for Domain Model Distortion
 
 Look for:

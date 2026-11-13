@@ -21,6 +21,18 @@ upstream validation precondition is not itself a local validation obligation.
 Keep unresolved extra allegations outside the scored finding ledger and explain
 the missing fact and the alternative verdicts.
 
+For each dimension, record the inspected scope, governing facts, and assessment
+status before building the scoring ledger. Use `assessed` only after the required
+scan can support both the retained findings and the absence of other findings in
+that declared scope. An unresolved ownership rule, unavailable tests, or unfinished
+scan must not become an assessed empty list. If such a gap prevents a dimension's
+assessment, use `unassessed` with its reason and keep supported local observations
+in the prose; the helper does not accept findings on an unassessed dimension.
+Do not mark it assessed merely to retain those observations in a numeric total.
+Classify findings by the risk definitions, not by convenient code numbers, and
+assign each causal finding one scoring owner across the passes; separately
+supported mechanisms remain distinct even if their remedies overlap.
+
 **PR dimension (if changes exist):**
 - Apply Auto Scope Detection (common.md)
 - Scan for R2 (Change Propagation) and R1 (Cognitive Overload) in the diff
@@ -69,8 +81,10 @@ across the remaining three dimensions by dividing each remaining weight by
   (the cap at Step 1 bounds both what is displayed and what is deducted — do not deduct for
   findings beyond the cap).
 - Floor each dimension score at 0 **before** weighting.
-- A dimension with no findings scores **100** — it is never skipped. The **only** dimension
-  ever omitted is PR, and only when no diff exists (its weight is then redistributed above).
+- A completed, **assessed** dimension with no findings scores **100**. An
+  unassessed dimension has no numeric score and prevents a numeric composite.
+  The **only** dimension ever skipped is PR when no diff exists (its weight is
+  then redistributed above); missing evidence never redistributes weight.
 - Round the weighted composite to the nearest integer (half-up).
 
 Use one calculation ledger for the entire report:
@@ -118,8 +132,14 @@ when that host tool is exposed.
 Keep the ledger, draft, final report and receipt together. Check the **final report
 bytes** against the **same ledger**, then deliver that artifact unchanged. If the
 report or ledger changes, finalize and check again before delivery. Do not rewrite
-or summarize the total after verification. Resolve the helper from this skill's
-directory rather than an assumed project path. Do not silently fall back after a
+or summarize the total after verification. Put all explanation, scope limitations,
+graphs, and findings into the score-free draft **before** calling the finalizer.
+For a host result containing `finalReport`, return that entire string as the health
+report, not just its score block; do not add a preface, footer, or reconstructed
+table afterward. If an explanation was omitted, update the draft and finalize it
+again. A successful receipt for an earlier draft does not cover the delivered edit.
+Resolve the helper from this skill's directory rather than an assumed project
+path. Do not silently fall back after a
 validation error: correct the ledger from evidence or remove score restatements
 from the draft and rerun. If execution fails or the ledger cannot be established,
 report the limitation and omit the numeric composite.
