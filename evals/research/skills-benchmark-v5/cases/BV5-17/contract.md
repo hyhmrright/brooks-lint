@@ -1,0 +1,1 @@
+Export and archive own independently governed retention policies. Export uses the shared export policy of 30 days, while archive uses its own 30-day rule. The planned export policy change to 45 must NOT affect archive. Similar current values do not imply coordinated ownership.

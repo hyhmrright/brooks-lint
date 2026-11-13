@@ -1,0 +1,1 @@
+throw Error('PRE_EXISTING_LEGACY_FAILURE');

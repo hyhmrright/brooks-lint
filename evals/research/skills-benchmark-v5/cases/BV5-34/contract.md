@@ -1,0 +1,1 @@
+All batch increments must be validated before mutating account state; invalid input leaves state unchanged. Inputs are finite integers, allowed increments are 0..10. Only apply.mjs may be changed. Complete local tests are supplied; architecture and debt ownership are unavailable.

@@ -1,0 +1,1 @@
+Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.

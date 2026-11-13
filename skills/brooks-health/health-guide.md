@@ -33,6 +33,16 @@ Classify findings by the risk definitions, not by convenient code numbers, and
 assign each causal finding one scoring owner across the passes; separately
 supported mechanisms remain distinct even if their remedies overlap.
 
+Before selecting statuses, make a compact evidence map for each dimension:
+`declared scope → inspected inputs → governing obligation → remaining blocker`.
+Evaluate blockers against the requested scope. A complete supplied inventory and
+explicit contract can support a local assessment even when production history is
+unknown; do not invent missing broader obligations to withhold that assessment.
+Conversely, a small dependency graph alone cannot establish clean architecture.
+Use `unassessed` only when a named missing fact changes the verdict or prevents
+completion of that dimension's declared scan. State what additional evidence would
+resolve it. Keep any broader unknown scope separate from the completed local scan.
+
 **PR dimension (if changes exist):**
 - Apply Auto Scope Detection (common.md)
 - Scan for R2 (Change Propagation) and R1 (Cognitive Overload) in the diff
@@ -50,6 +60,8 @@ supported mechanisms remain distinct even if their remedies overlap.
 **Test dimension:**
 - Build the Test Suite Map (unit/integration/E2E counts)
 - Scan for T1 (Test Obscurity) and T2 (Test Brittleness) in test files
+- Check supplied explicit behavior obligations against that inventory for a
+  demonstrated T5 protection gap; distinguish a complete inventory from an excerpt
 
 ### Step 2: Compute Dashboard Scores
 
@@ -166,6 +178,22 @@ outside that single line. State that no tool verification was performed; do not
 claim the bundled helper ran. This fallback is complete within this guide.
 
 ### Step 3: Output Dashboard
+
+Treat delivery as a final state transition, not another drafting pass:
+
+1. Reconcile the draft with the ledger: every scored finding ID appears once in
+   its owning dimension; every prose claim of a scored finding has a matching
+   ledger entry and severity. Unscored observations are explicitly labeled.
+2. Confirm each `assessed`, `unassessed`, or skipped status matches the evidence
+   map. Resolve contradictions in the inputs before calling the finalizer.
+3. Finalize and verify those inputs. Select the successful returned `finalReport`
+   as the sole delivery source. Do not regenerate it from remembered content.
+4. If a delivery field is available, compare its exact content with that returned
+   string before sending. A discovered omission sends the workflow back to the
+   draft and a new receipt; it never permits an edited report under an old receipt.
+   With no comparison capability, copy the returned report without claiming that
+   a mechanical delivery check occurred.
+
 
 Use the dashboard report template below instead of the standard common.md template.
 In tool-enabled work, deliver the finalized, checked report unchanged. In

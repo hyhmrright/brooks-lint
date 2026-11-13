@@ -1,0 +1,1 @@
+On any rejected batch item, no prefix updates may remain in the supplied state. Values are finite integers; negative values reject. The entire local source and test inventory is supplied. No diff, architectural boundaries or maintenance history is supplied.

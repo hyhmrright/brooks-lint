@@ -1,0 +1,1 @@
+import assert from 'node:assert/strict';import {rank} from './rank.mjs';for(const xs of [[],[3,1,2],[2,2,-1]]){const before=[...xs];assert.deepEqual(rank(xs),[...xs].sort((a,b)=>a-b));assert.deepEqual(xs,before);}

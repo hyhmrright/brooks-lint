@@ -1,0 +1,1 @@
+The save operation must persist the supplied string. The supplied test is the COMPLETE task test inventory. A test that only sees validate run does not establish persistence. Valid inputs are strings.

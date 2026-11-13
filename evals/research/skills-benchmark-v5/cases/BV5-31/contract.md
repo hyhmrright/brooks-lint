@@ -1,0 +1,1 @@
+rank returns integers sorted ascending, preserving caller array and multiplicity. Inputs are finite integer arrays up to length 30. Only rank.mjs may be changed. The complete local test inventory is supplied; no architectural boundary or debt ownership is known.

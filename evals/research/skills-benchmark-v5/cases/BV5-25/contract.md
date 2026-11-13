@@ -1,0 +1,1 @@
+Public export must contain name only, never secret. All valid records have name and secret strings. This is the COMPLETE source and test inventory for the local export task. Architecture responsibility and maintenance ownership/history are not supplied. No PR diff is supplied. Assess test protection against this explicit local obligation.

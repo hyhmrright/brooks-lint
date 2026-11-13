@@ -5,6 +5,10 @@ health**. The first four passes diagnose and apply authorized repairs; health
 summarizes the verified final snapshot. Reuse their guides and one evidence ledger
 instead of treating five overlapping reports as five independent sets of defects.
 
+Sweep is an orchestration convenience, not a sixth independent diagnostic vote.
+Its value must be assessed through preserved user work, verified changes, bounded
+termination and usable residuals. Five pass names alone establish none of these.
+
 Every finding follows the Iron Law: **Symptom → Source → Consequence → Remedy**.
 
 **Runner and output contract:** The native workflow below edits and verifies the
@@ -219,6 +223,16 @@ leave a dimension unassessed even when a local repair succeeded. Preserve those
 limitations, use health's unassessed status, and suppress the composite rather than
 assigning a clean score. Full-source review without a diff does not invent a PR
 dimension for the health calculation.
+
+Before finalization, reconcile the report and scoring view in both directions:
+each scored finding must have one owning ledger entry and every retained ledger
+entry must have current source evidence. An assessed empty dimension cannot
+also contain a scored finding in prose. Carry unknown broader scope separately
+from completed local assessments, and never infer a clean architecture merely
+from a short dependency graph. Record proposed, applied, reverted and verified
+changes distinctly; a proposed patch does not change the source snapshot used
+for the dashboard. A separately verified candidate has its own snapshot and
+receipt, which cannot substitute for missing model execution evidence.
 
 Use health's single-ledger finalizer/check workflow when permitted and available.
 Omit numerical health estimates when verification is unavailable under a required

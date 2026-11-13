@@ -52,6 +52,17 @@ All four dimensions are required, even when one is unassessed. Use these exact k
   dimensions are errors. Correct the ledger from evidence; never truncate or
   silently drop findings just to pass the helper.
 
+## Semantic reconciliation before finalization
+
+Use one evidence map for scope, inspected inputs, governing obligations and any
+blocking unknowns. Check the draft's scored finding IDs, owning dimensions and
+severities against the ledger in both directions. A prose finding cannot coexist
+with an assessed empty list in its owning dimension. Label supported observations
+on unassessed dimensions as unscored; do not silently convert them to deductions.
+A complete local assessment can coexist with explicitly unknown broader scope.
+The arithmetic helper cannot perform this reconciliation: a successful receipt
+for a semantically inconsistent ledger is still an invalid assessment.
+
 ## Tool-enabled finalization (required when permitted and available)
 
 Resolve the helper from this skill's directory, not from an assumed project-relative

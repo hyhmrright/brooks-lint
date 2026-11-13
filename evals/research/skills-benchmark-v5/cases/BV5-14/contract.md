@@ -1,0 +1,1 @@
+The two exports implement the SAME centrally owned unit conversion policy. A planned correction changes multiplier 1000 to 1024 in that policy and must reach both consumers. Distinct callers need not otherwise be merged.

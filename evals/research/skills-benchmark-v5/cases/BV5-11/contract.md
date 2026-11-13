@@ -1,0 +1,1 @@
+Composition may import domain; domain must not import composition, even for configuration. The entry imports composition.mjs in production. Configuration is passed as a parameter; direct imports of bootstrap violate the dependency contract.
