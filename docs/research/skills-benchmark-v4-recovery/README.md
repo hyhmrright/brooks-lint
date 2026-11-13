@@ -13,3 +13,5 @@ node evals/research/skills-benchmark-v4/recovery.mjs verify docs/research/skills
 ```
 
 The test injects one synthetic failed response and makes no live model call. Source/plan changes invalidate the plan. Execution requires explicit `--live`, an unchanged original, current toolchain and proxy, and a fresh output path. Semantic adjudication remains separate; original completed answers and recovered answers must be reviewed together, retaining original failed attempt and unrun slots in reports.
+
+The completed individual review and six-skill comparison are in `annotations-108.json`, `assessment-108.json`, and `REPORT.md`. The earlier `PARTIAL-REVIEW.md` remains as a historical checkpoint.
