@@ -62,6 +62,12 @@ Stop and report the remainder on exhaustion rather than claiming convergence.
      any entry affected by an edit; moving line numbers do not make a new defect.
    - **`fix_log`** (list): each fix with file, line range, risk code, description, and outcome (`applied` / `reverted` / `retired`).
 
+Before diagnosis or edits, apply common.md's contract-domain check. Put explicit
+input preconditions and required rejection behavior in separate ledger fields.
+Only an in-domain violation or independently established validation duty can
+justify a repair; adding defensive checks changes behavior and is not automatically
+a safe cleanup. Missing obligations are blockers, not zero-finding evidence.
+
 1d. Record the scope file list and run the relevant existing test/lint commands
 before edits. Preserve command, exit status and failures as the baseline. An
 existing failure is not evidence this sweep caused it. Without a usable baseline,
@@ -183,10 +189,20 @@ cap, or no progress.
    verification results. Retired, unsafe and unresolved-contract items stay in
    the residual set, not an automatic retry queue.
 
-6c. Stop when no actionable findings remain, no progress was made, or the finite
-   round/time/tool cap is reached. A Critical finding does not bypass these caps.
-   Otherwise re-run Steps 2–5 on the re-scan scope. Retain unmodified scope's
-   evidence only where its dependencies and assumptions are unchanged.
+6c. Select the stop reason from the evidence, not from the replacement count:
+   - Stop on an exhausted round/time/tool budget; report that cap and any blockers.
+   - Otherwise, if an unknown governing obligation or missing verification prevents
+     the required assessment or safe next repair, stop as **verification blocked**.
+     Name the missing fact/check and leave the affected replacement set empty.
+   - Use **no actionable findings** only after the required scope is assessed and
+     no actionable findings or assessment blockers remain. Zero edits alone is
+     insufficient: protected behavior and unknown behavior are different states.
+   - With known actionable findings but no safe progress, use **no progress** and
+     retain the residuals. Otherwise repeat Steps 2–5 on the re-scan scope.
+   A Critical finding does not bypass any cap. Map these meanings to the exact
+   enum supplied by a structured-output task (for example, `verification-blocked`);
+   do not replace a blocked state with a clean state because both have no patches.
+   Retain unmodified evidence only where dependencies and assumptions are unchanged.
 
 6d. After three failed verification attempts for the same causal finding, retire
    it with `"3-retry budget exhausted"`. Count attempts across moved line numbers

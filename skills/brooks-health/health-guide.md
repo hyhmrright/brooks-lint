@@ -188,11 +188,20 @@ Treat delivery as a final state transition, not another drafting pass:
    map. Resolve contradictions in the inputs before calling the finalizer.
 3. Finalize and verify those inputs. Select the successful returned `finalReport`
    as the sole delivery source. Do not regenerate it from remembered content.
-4. If a delivery field is available, compare its exact content with that returned
+4. Preserve terminal newlines as well as visible content. If a delivery field is available, compare its exact content with that returned
    string before sending. A discovered omission sends the workflow back to the
    draft and a new receipt; it never permits an edited report under an old receipt.
    With no comparison capability, copy the returned report without claiming that
    a mechanical delivery check occurred.
+
+
+When local files or a host adapter permit deterministic delivery, use the delivery
+helper documented in `score-ledger.md`: check the candidate against the retained
+receipt, or assemble the structured report field directly from the final artifact.
+Do not retype a verified report into a fresh draft. A plain chat channel may alter
+terminal whitespace; local equality does not prove downstream transport equality.
+Report that limit rather than claiming a delivery guarantee. A receipt or checksum
+must not be substituted for the requested report itself.
 
 
 Use the dashboard report template below instead of the standard common.md template.

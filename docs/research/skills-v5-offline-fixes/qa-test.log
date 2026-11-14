@@ -1,0 +1,3135 @@
+
+> brooks-lint@1.9.1 test
+> node scripts/validate-repo.test.mjs && node --test scripts/dsh-provider.test.mjs && node --test scripts/npm-install.test.mjs scripts/health-dashboard.test.mjs scripts/dashboard-delivery.test.mjs evals/research/skills-v5-offline-fixes/sweep-boundaries.test.mjs scripts/dsh-market.test.mjs scripts/check-release-ci.test.mjs scripts/github-metadata.test.mjs scripts/report-contract.test.mjs scripts/runner-contract.test.mjs scripts/codex-evals.test.mjs evals/research/runtime/prospective/codex-login-study.test.mjs evals/research/runtime/prospective/codex-login-answer.test.mjs evals/research/runtime/runtime.test.mjs scripts/runtime-research.test.mjs evals/research/runtime/calibration/scoring.test.mjs evals/research/runtime/candidate-holdouts/candidates.test.mjs evals/research/runtime/prospective/study.test.mjs evals/research/runtime/prospective/drill.test.mjs evals/research/runtime/prospective/reviews.test.mjs evals/research/runtime/prospective/human-preparation.test.mjs evals/research/runtime/prospective/executor-preparation.test.mjs evals/research/runtime/prospective/process-executor.test.mjs evals/research/runtime/prospective/model-channel.test.mjs evals/research/runtime/prospective/codex-channel.test.mjs evals/research/runtime/prospective/codex-stream.test.mjs evals/research/runtime/prospective/codex-boundaries.test.mjs evals/research/runtime/prospective/executor-completion.test.mjs evals/research/runtime/prospective/controlled-read-adapter.test.mjs evals/research/runtime/prospective/docker-isolation.test.mjs evals/research/runtime/prospective/docker-lease.test.mjs evals/research/runtime/prospective/native-remote.test.mjs evals/research/runtime/prospective/native-smoke.test.mjs evals/research/runtime/prospective/native-upstream-transport.test.mjs evals/research/runtime/prospective/codex-login-validation.test.mjs evals/research/runtime/prospective/codex-login-stock-drill.test.mjs evals/research/runtime/prospective/codex-login-smoke.test.mjs && node --test evals/research/all-skills/recovery.test.mjs && npm run evals:runtime:hard && npm run evals:runtime:v2 && npm run evals:runtime:benchmark-audit && npm run evals:runtime:pack && npm run evals:all-skills && npm run evals:campaign:validate && npm run evals:skill-revision && npm run evals:health-tool && npm run evals:skills:v2 && npm run evals:health-workflow:v2 && npm run evals:health-transport:v3 && npm run evals:skills:transport:v3 && npm run evals:skills:v4 && npm run evals:skills:v5 && npm run evals:skills:v5:recovery && npm run evals:skills:v5:recovery2
+
+
+parseFrontmatterBooks
+  ✓ returns book titles from valid frontmatter
+  ✓ returns null when file has no frontmatter
+  ✓ returns null when frontmatter has no books key
+  ✓ returns null when books list is empty
+  ✓ handles 4-space indentation
+  ✓ handles CRLF line endings
+  ✓ handles titles containing colons
+  ✓ strips surrounding whitespace from titles
+  ✓ handles single-book list
+  ✓ ignores non-books frontmatter keys before books:
+  ✓ ignores non-books frontmatter keys after books:
+
+countBookSections
+  ✓ counts sections matching '## Author — *Title*'
+  ✓ returns 0 when no book sections exist
+  ✓ does not count lines without the em-dash separator
+
+countProductionRisks
+  ✓ counts '## Risk N:' headers
+  ✓ returns 0 when no production risk headers present
+  ✓ does not count test risk headers (Risk T…)
+
+countTestRisks
+  ✓ counts '## Risk TN:' headers
+  ✓ returns 0 when no test risk headers present
+  ✓ does not count production risk headers
+
+extractChangelogVersion
+  ✓ extracts version from standard changelog header
+  ✓ returns the first (latest) version when multiple entries exist
+  ✓ returns null when no version header found
+
+extractGuideStepLabels
+  ✓ extracts step labels from standard headings
+  ✓ extracts sub-step labels (a/b suffixes)
+  ✓ handles 0-indexed steps
+  ✓ returns empty array when no step headings exist
+  ✓ ignores non-step headings
+  ✓ handles mixed main and sub-steps
+  ✓ handles full pr-review-guide pattern
+
+assembleSystemPrompt
+  ✓ includes sweep in VALID_MODES
+  ✓ assembles sweep prompt with both risk catalogs and sweep guide
+
+hasOpencodeSlashFlag
+  ✓ accepts frontmatter carrying the opt-in flag
+  ✓ rejects frontmatter with no metadata block
+  ✓ rejects a metadata block that omits opencode/slash
+  ✓ rejects the flag set to false
+  ✓ accepts YAML's bare true, which parses to the same boolean
+  ✓ ignores an opencode/slash line outside the frontmatter
+  ✓ every shipped skill carries the flag
+
+readHistory
+  ✓ returns empty array when history file does not exist
+  ✓ returns parsed array when history file exists
+  ✓ returns empty array when history file contains invalid JSON
+
+appendHistory
+  ✓ creates history file with first record
+  ✓ appends to existing history without overwriting
+
+getTrend
+  ✓ returns null when history is empty
+  ✓ returns null when no records for the requested mode
+  ✓ returns lastScore and runCount for one prior record
+  ✓ returns most recent score when multiple records exist
+  ✓ ignores records for other modes
+  ✓ matches a canonical query against display-name records
+
+normalizeMode
+  ✓ maps display names to canonical modes
+  ✓ passes canonical names through unchanged
+  ✓ is case- and whitespace-insensitive
+  ✓ passes non-string input through unchanged
+
+sparkline
+  ✓ maps score extremes to the lowest and highest bars
+  ✓ renders one bar per score and clamps out-of-range values
+
+renderHistory
+  ✓ reports no history for an empty array
+  ✓ summarizes a single record as one run
+  ✓ collapses display-name and canonical records into one mode line
+
+extractRiskCodes
+  ✓ extracts R-codes from text
+  ✓ extracts T-codes from text
+  ✓ returns empty set when no risk codes present
+
+classify
+  ✓ returns 'pass' when all expected codes found with Iron Law and Health Score
+  ✓ returns 'partial' when a valid report omits one expected finding
+  ✓ returns 'fail' when no expected codes found in output
+  ✓ returns 'false-positive-pass' for no_health_score when output has no score
+  ✓ returns 'fail' for no_health_score when Health Score IS present in output
+  ✓ returns 'false-positive-pass' for no_risk_codes when expected code is absent
+  ✓ returns 'fail' for no_risk_codes when expected code IS present in output
+  ✓ rejects keyword-only output even when no forbidden code is present
+  ✓ returns 'fail' when codes found but Iron Law terms absent
+
+parseFindings
+  ✓ parses one finding per severity group
+  ✓ maps risk name to code and keeps severity
+  ✓ resolves an explicit (R1) code in the title
+  ✓ extracts file and line from the Symptom
+  ✓ ignores bold text outside any severity group
+  ✓ empty report yields no findings
+  ✓ tolerates plural / qualified severity headers
+  ✓ splits a colon-separated title and resolves its code
+  ✓ falls back to Consequence for the location when Symptom has none
+
+countFindings
+  ✓ counts findings by severity
+  ✓ empty report counts all zero
+
+extractLocation
+  ✓ captures path with line number
+  ✓ captures bare filename without a line
+  ✓ does not mistake prose for a file reference
+  ✓ captures newer-language extensions from bare filenames
+  ✓ prefers the longer of two prefix-sharing extensions
+  ✓ keeps the line number on a bare filename with a long extension
+  ✓ no extension shadows a longer one that starts with it
+
+reportToSarif
+  ✓ emits a SARIF 2.1.0 envelope
+  ✓ declares a deduped, PascalCased rule per risk code
+  ✓ maps severities to SARIF levels
+  ✓ attaches a physical location when a file is known
+  ✓ fingerprints are stable across runs
+  ✓ empty report yields no rules or results
+  ✓ routes T-code helpUri off the guide (no #t anchor) and R-code onto it
+  ✓ declares a BL000 rule when a finding is unmapped
+
+severityBreached
+  ✓ fail-on critical trips only on a critical finding
+  ✓ fail-on warning trips on critical or warning
+  ✓ fail-on none never trips
+  ✓ missing or partial findings are treated as zero
+
+isRegression
+  ✓ only a negative numeric delta is a regression
+
+parseMaxTokens
+  ✓ an absent flag falls back to the shared default
+  ✓ a positive integer string is accepted
+  ✓ a flag with no value of its own is rejected, not read as 1
+  ✓ non-integers, zero, and negatives are rejected
+  ✓ unsafe or overflowing token ceilings are rejected before the API call
+  ✓ the error message names the flag and a usable value
+
+warnIfTruncated
+  ✓ a response that stopped at the output ceiling is annotated
+  ✓ the annotation goes to stderr, never stdout
+  ✓ it warns rather than failing the build
+  ✓ a complete response is silent and reads as untruncated
+  ✓ the notice is a single line, as a workflow command requires
+  ✓ the notice names the knob to turn and which way the score is wrong
+
+Post PR Comment (action.yml)
+  ✓ the step posts the report and the trend to the pull request
+  ✓ a truncated report warns the reviewer in the comment itself
+  ✓ an untruncated report says nothing about truncation
+
+parser-fidelity benchmark (frozen real-report corpus)
+  ✓ corpus has >= 30 real reports spanning all six modes
+  ✓ corpus composition matches the documented numbers (30 total, 9 false-positive)
+  ✓ parser reproduces the graded severity counts on every report
+  ✓ every report emits valid SARIF 2.1.0
+  ✓ risk-code extraction has zero false positives / negatives on the corpus
+
+versionRefs
+  ✓ discovers every README translation, not a fixed list
+  ✓ renders the badge, action pin and JSON-LD text expected at the given version
+  ✓ requires the action pin wherever the action is documented
+  ✓ marks README references required and docs pages optional
+  ✓ ignores non-README markdown at the repo root
+  ✓ patterns match the real badge, action pin and JSON-LD shapes
+
+linkedSetupGuides
+  ✓ collects guides from README-style and sibling-style links alike
+  ✓ de-duplicates a guide linked more than once
+  ✓ returns an empty array when no guide is linked
+
+platformEnumeration
+  ✓ picks the enumeration line, not the earlier <platform> placeholder
+  ✓ keeps the continuation line, since getting-started wraps mid-list
+  ✓ matches the localized <平台> form
+  ✓ returns an empty string when the document has no enumeration
+
+namesPlatform
+  ✓ matches a platform delimited by list separators
+  ✓ does not match a platform buried in a hyphenated filename
+  ✓ does not match a platform that is only a substring
+
+parseInstallerPlatforms
+  ✓ reads the declared list and both directory mappings
+  ✓ omits a platform whose case arm is missing, so the validator can catch it
+  ✓ skips comments and the catch-all arm
+  ✓ parses the real installer, proving the patterns still match
+
+validate-repo integration
+  ✓ validate-repo.mjs exits 0 against the current repository
+  ✓ validate-repo.mjs runs the changelog coverage check and says what it did
+  ✓ validate-repo.mjs fails a release whose section never cites a merged pull request
+  ✓ validate-repo.mjs passes the same release once the section cites it
+  ✓ changelog-audit.mjs exits non-zero on an uncited pull request during a release
+  ✓ changelog-audit.mjs exits zero once the section cites it
+  ✓ changelog-audit.mjs reports a gap as backlog, not failure, between releases
+  ✓ changelog-audit.mjs audits the range from the last tag to HEAD
+  ✓ changelog-audit.mjs refuses a CHANGELOG with no release heading
+  ✓ changelog-audit.mjs refuses to derive a range from a repository it is not the root of
+  ✓ validate-repo.mjs ignores an inherited CLAUDE_PLUGIN_ROOT
+
+changelog audit
+  ✓ parseCommitLog keeps multi-line bodies intact
+  ✓ parseCommitLog reads a merge commit's two parents
+  ✓ parseCommitLog returns nothing for an empty range
+  ✓ exemption covers merges, release bumps and the star history refresh
+  ✓ exemption covers nothing else — internal hardening still needs an entry
+  ✓ exemption judges a bot commit by what it changed, not by its subject
+  ✓ pullRequestOf reads both GitHub merge subject conventions
+  ✓ pullRequestOf ignores a number that is only a reference
+  ✓ changelogTrailer reads the trailer and ignores prose about one
+  ✓ changelogTrailer takes the commit's own trailer, not one it quotes
+  ✓ changelogTrailer tolerates a commit with no body
+  ✓ auditRange flags a merged pull request the section never cites
+  ✓ auditRange clears a pull request the section cites
+  ✓ auditRange audits a merge commit's pull request despite the exemption
+  ✓ lastTag, isTagged and commitsSince read a real repository
+  ✓ lastTag ignores a tag that is not a release
+  ✓ lastTag returns null when no release tag is reachable
+  ✓ commitsSince reads the author and a real merge's two parents
+  ✓ coverageVerdict reports an uncited pull request while a release is in progress
+  ✓ coverageVerdict reports what it audited, so a clean pass is not silent
+  ✓ coverageVerdict stands down once the version is tagged
+  ✓ coverageVerdict stands down before the new section is written
+  ✓ coverageVerdict stands down outside a git work tree root
+  ✓ extractChangelogSection returns only the newest release
+  ✓ report names every uncited pull request in its FAIL line
+  ✓ report says so when nothing is provably missing
+  ✓ plural reads as English at zero, one and many
+  ✓ report says there is nothing to audit when the range is empty
+  ✓ report says so when a range holds nothing but exempt commits
+  ✓ extractChangelogSection returns an empty string when there is no release heading
+  ✓ coverageAnnouncement names the reason when the gate stands down
+  ✓ coverageAnnouncement names the range and its scope when it audits
+  ✓ auditRange surfaces a commit's Changelog trailer
+  ✓ a pull request cited only by a /pull/ URL counts as cited
+  ✓ pullRequestOf needs the merge subject to start with the merge phrase
+  ✓ pullRequestOf needs the squash marker to end the subject
+  ✓ the star history exemption needs a bot author
+  ✓ the star history exemption needs [bot] to end the author
+  ✓ the star history exemption needs the commit to have touched files
+  ✓ the release bump exemption is anchored to the start of the subject
+  ✓ lastTag ignores a tag that starts with v but is not a version
+  ✓ commitsSince excludes commits that HEAD never took in
+  ✓ coverageVerdict stands down when no release tag is reachable
+  ✓ coverageVerdict needs the section heading to open with the version
+  ✓ parseCommitLog gives a root commit no parents
+  ✓ parseCommitLog tolerates a record that carries no file block
+  ✓ extractChangelogSection ignores a heading that carries no date
+  ✓ report renders a walkable line for each commit needing an entry
+  ✓ report flags a deferred entry on the commit's own line
+  ✓ report flags an uncited pull request on the commit's own line
+  ✓ report lists every gap beneath its FAIL line
+  ✓ report names the next release's section between releases
+  ✓ report renders no verdict between releases
+  ✓ report does not flag a gap on a commit line between releases
+  ✓ report keeps a subject at the width whole and elides a longer one
+
+ci-config
+  ✓ baseRefCandidates prefers the remote-tracking ref for the PR base branch
+  ✓ baseRefCandidates falls back to the default branches off a pull_request
+  ✓ loadProjectConfig reads the base ref, not the working tree
+  ✓ loadProjectConfig skips a base candidate that does not resolve
+  ✓ loadProjectConfig runs on defaults when the base ref has no config
+  ✓ loadProjectConfig refuses unreviewed policy when the PR base is absent
+  ✓ loadProjectConfig keeps working-tree fallback outside a PR
+  ✓ loadProjectConfig with config-ref head never consults a git ref
+  ✓ loadProjectConfig reports no config when neither source has one
+  ✓ configSizeError refuses an absurdly large config and passes a normal one
+  ✓ hasCustomRisks only matches a top-level custom_risks key
+  ✓ configSystemBlock carries the config, its provenance, and the Config line
+  ✓ configSystemBlock tells the model to omit the Config line when there is none
+  ✓ customRisksBlock loads the shipped guide and tolerates a missing one
+
+222 tests: 222 passed, 0 failed
+✔ bundled provider discovers all six skills and loads their bodies and shared resources (10.171709ms)
+✔ custom roots skip directories without SKILL.md and non-directory entries (2.296625ms)
+✔ description formats used by skills load through the public provider (2.674166ms)
+✔ invalid frontmatter fails discovery with the affected file path (2.520958ms)
+✔ unexpected read failures are reported with file path and original cause (0.846292ms)
+✔ loading a candidate reports a file removed after discovery (0.79475ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.9365
+✔ all public authored calibration counters reproduce without semantic classification (6.6715ms)
+✔ issue misses, response misses, extra assertions and supplementary concerns remain distinct (1.258167ms)
+✔ absence and noncanonical severity are separate, uncertain concerns do not become definite (0.236333ms)
+✔ empty denominators are null and failed partials are not semantically graded (0.886292ms)
+✔ incomplete successful response remains paired while failure/pending/absent arms exclude triplets (2.669417ms)
+✔ malformed/duplicate annotations, quote drift and rubric drift are rejected (3.552875ms)
+✔ saved calibration summary reproduces from authored annotations (0.753416ms)
+✔ review packets retain exact answers/rubrics but omit authored ratings and rationale (3.213334ms)
+✔ CAL-03 false safety counts globally alongside its miss, outside unresolved-only certainty (0.163917ms)
+✔ HC-01: cancellation during awaited setup (0.95625ms)
+✔ HC-01: normal completion, running cancellation and idempotent cleanup (0.195292ms)
+✔ HC-01: pre-abort starts nothing; failed gate acquires nothing (0.293ms)
+✔ HC-02: cancellation during awaited setup (0.314667ms)
+✔ HC-02: normal completion, running cancellation and idempotent cleanup (0.968958ms)
+✔ HC-02: pre-abort starts nothing; failed gate acquires nothing (0.097875ms)
+✔ HC-03: cancellation during awaited setup (0.270292ms)
+✔ HC-03: normal completion, running cancellation and idempotent cleanup (0.106958ms)
+✔ HC-03: pre-abort starts nothing; failed gate acquires nothing (0.086625ms)
+✔ HC-04: asynchronous failure lifecycle (0.329334ms)
+✔ HC-04: asynchronous cancellation rejection lifecycle (0.089ms)
+✔ HC-04: success releases once and capacity rejection doesn't corrupt first owner (0.098208ms)
+✔ HC-05: asynchronous failure lifecycle (0.192083ms)
+✔ HC-05: asynchronous cancellation rejection lifecycle (0.065833ms)
+✔ HC-05: success releases once and capacity rejection doesn't corrupt first owner (0.055958ms)
+✔ HC-06: asynchronous failure lifecycle (0.181875ms)
+✔ HC-06: asynchronous cancellation rejection lifecycle (0.066125ms)
+✔ HC-06: success releases once and capacity rejection doesn't corrupt first owner (0.065ms)
+✔ HC-07: superseded completion and same-key admission (0.265792ms)
+✔ HC-07: current completion, separate keys, repeated completion (0.068042ms)
+✔ HC-07: replacement finishes before old handle (0.059ms)
+✔ HC-08: superseded completion and same-key admission (0.191208ms)
+✔ HC-08: current completion, separate keys, repeated completion (0.07275ms)
+✔ HC-08: replacement finishes before old handle (0.047458ms)
+✔ HC-09: superseded completion and same-key admission (0.186541ms)
+✔ HC-09: current completion, separate keys, repeated completion (0.050417ms)
+✔ HC-09: replacement finishes before old handle (0.049458ms)
+✔ unresolved HC-03/06/09: same visible executable traces permit opposing contracts (0.22475ms)
+✔ protected criteria reject the defective mechanism transplanted into each protected probe (0.229208ms)
+✔ candidate inventory enforces disclosed status, separate rubrics, exact digests and input boundaries (6.295125ms)
+✔ safe input reader rejects traversal, directories, symlinks and absolute paths (2.100709ms)
+✔ saved offline observations reproduce for all nine cases before and after teardown (10.418042ms)
+✔ predeclared boundary cases are immutable and never enable model or study eligibility (0.539459ms)
+✔ fixed tool declarations use non-login shell and only owned numeric destinations (4.736333ms)
+✔ authored malformed/failed/incomplete/duplicate and phase fixtures remain distinct bytes (0.764958ms)
+✔ owned broker rejects foreign routes and credentials and retains denial bytes (33.173ms)
+✔ saved actual CLI captures validate offline and retain study readiness false (88.696ms)
+✔ protocol result guard refuses empty/mismatched final, unknown termination and cleanup loss (0.890417ms)
+✔ protocol guard rejects contradictory upstream terminals and reported model despite successful CLI (0.370875ms)
+✔ archive detects raw byte, plan, summary and source pin drift (713.697583ms)
+✔ rehashing tampered records cannot authorize real credentials, missing cleanup or model identity (996.475625ms)
+✔ strict parent guard rejects absent responses, invalid UTF8, event reorder and terminal phase contradictions (0.836958ms)
+✔ required tool launch failure cannot be substituted by a synthetic successful final answer (1.999959ms)
+✔ owned broker keeps concurrent requests within one atomic forward budget (7.035542ms)
+✔ fixed nc control proves outer broker-only reachability separately from failed curl and inner sandbox (0.949041ms)
+✔ pure launch verification refuses extra policy content, arbitrary env, inner mode and output path drift (1.74175ms)
+✔ required tool auth presence cannot be hidden by a successful marker and exit (0.945459ms)
+✔ CLI declaration fixes no-auth custom provider and isolated controls without real credentials (1.068292ms)
+✔ external, ambiguous, credential-bearing or malformed endpoint cannot be declared (4.141417ms)
+✔ authored success payload is local SSE with explicit fixture model and deterministic terminal event (0.223ms)
+✔ saved real-CLI/local-stub archive is source-bound and never counts synthetic payload as model evidence (24.714583ms)
+✔ fixed local proxy only accepts its own response route and refuses arbitrary proxy targets (0.159333ms)
+✔ one shared runtime environment pins fresh state and proxy origins without inherited auth (0.347041ms)
+✔ summary counters, retry contract, auth/status and CLI version cannot contradict original records (60.099084ms)
+✔ development inventories reject traversal, absolute paths, duplicate keys and malformed schemas before file access (117.27775ms)
+✔ completed view excludes orphan reconnect draft while retaining independent partial diagnostics (1.847833ms)
+✔ completed same-item text replaces deltas and identical retransmissions dedupe (0.185458ms)
+✔ all legitimately completed phases and absent phase remain in completion order (0.102125ms)
+✔ selection is thread and turn scoped, malformed completed messages fail closed (0.110584ms)
+✔ isolated fake CLI completed-answer selection: same (180.586583ms)
+✔ isolated fake CLI completed-answer selection: reconnect (121.141709ms)
+✔ isolated fake CLI completed-answer selection: multiple (125.803042ms)
+✔ isolated fake CLI completed-answer selection: partial-failed (152.18925ms)
+✔ isolated fake CLI completed-answer selection: no-completed (130.240417ms)
+✔ isolated fake CLI completed-answer selection: empty-completed (131.082917ms)
+✔ isolated fake CLI completed-answer selection: missing-text (127.820833ms)
+✔ isolated fake CLI completed-answer selection: wrong-scope (127.449459ms)
+✔ isolated fake CLI completed-answer selection: conflict (132.466583ms)
+✔ explicit live gate, endpoint and model validation (1.127625ms)
+✔ only ChatGPT tokens admitted; API credentials excluded (0.512875ms)
+✔ successful fake CLI records response, usage, selection, private home cleanup (130.776709ms)
+✔ fails closed and cleans up: wrong-model (118.729709ms)
+✔ fails closed and cleans up: wrong-answer (167.773709ms)
+✔ fails closed and cleans up: failed-turn (129.62275ms)
+✔ fails closed and cleans up: tool (120.943208ms)
+✔ fails closed and cleans up: completed-tool (128.16275ms)
+✔ fails closed and cleans up: server-request (157.132708ms)
+✔ fails closed and cleans up: invalid (127.641208ms)
+✔ fails closed and cleans up: hang (172.802041ms)
+✔ spawn failure is bounded and recorded (8.080917ms)
+✔ refuses overwriting prior evidence (5.986167ms)
+✔ synthetic login lifecycle uses private auth-only home and never archives credentials (136.44625ms)
+✔ API account response cannot pass login smoke (126.528334ms)
+✔ archived real CLI fixture binds the launcher and selected-model RPC evidence (0.520958ms)
+✔ proxy inheritance is explicit, scoped and credentials are redacted (264.407542ms)
+✔ retained local proxy drill matches current launcher and one simulated request (0.802ms)
+✔ deadline records the last observed phase and actual timeout without fabricating an answer (541.822708ms)
+✔ deadline identifies an outstanding initialization RPC (387.488125ms)
+✔ stock code mode disabled: observed behavior and reproducible source (3.542416ms)
+✔ stock code mode disabled: opposite outcome rejected (5.558083ms)
+✔ stock disabled: reject real data (1.566125ms)
+✔ stock disabled: reject missing cleanup (1.063625ms)
+✔ stock disabled: reject catalog override (0.448042ms)
+✔ stock disabled: reject wrong worker (0.659834ms)
+✔ stock disabled: reject missing response (0.914042ms)
+✔ stock code mode enabled: observed behavior and reproducible source (1.656875ms)
+✔ stock code mode enabled: opposite outcome rejected (1.574125ms)
+✔ stock enabled: reject real data (0.51925ms)
+✔ stock enabled: reject missing cleanup (0.548625ms)
+✔ stock enabled: reject catalog override (0.395875ms)
+✔ stock enabled: reject wrong worker (0.552083ms)
+✔ stock enabled: reject missing response (0.538375ms)
+✔ drill refuses source drift (0.068833ms)
+✔ 81 turns, balanced arms, trusted source and registration drift rejection (11.764834ms)
+✔ assembly exports only whitelist and arm guidance (8.152125ms)
+✔ offline 81-turn end to end preserves exact answers and pending reviews (11085.529292ms)
+✔ identity failure stops subsequent turns with full not-run denominator (132.191834ms)
+✔ partial answer retains completed commentary and incomplete final item without duplicate deltas (0.151208ms)
+✔ fails closed and cleans private process state: wrong-thread (124.536417ms)
+✔ fails closed and cleans private process state: wrong-turn (122.826834ms)
+✔ fails closed and cleans private process state: wrong-effort (115.883917ms)
+✔ fails closed and cleans private process state: tool (110.6615ms)
+✔ fails closed and cleans private process state: timeout (1006.09725ms)
+✔ private login secrets are removed from archived failures (113.489042ms)
+✔ termination uses explicit group observation, never EPERM-prone signal-zero inference (27.374042ms)
+✔ permission denial and unknown observation cannot become absence or throw away evidence (0.168333ms)
+✔ leader exit prevents signaling a potentially reused process group (0.085ms)
+✔ platform preflight rejects unsupported hosts before auth or spawn (0.123125ms)
+✔ captured CLI fake-upstream worker execution and hostile probe validate as simulated observations only (5.149417ms)
+✔ simulated record guard rejects non-simulated record (1.899542ms)
+✔ simulated record guard rejects run error (0.899583ms)
+✔ simulated record guard rejects cleanup error (0.515334ms)
+✔ simulated record guard rejects missing requests (2.900959ms)
+✔ simulated record guard rejects foreign route (0.991584ms)
+✔ simulated record guard rejects wrong fixture model (0.553708ms)
+✔ simulated record guard rejects missing shell tool (0.739ms)
+✔ simulated record guard rejects additional namespaced tools (0.532083ms)
+✔ simulated record guard rejects extra tool (0.659208ms)
+✔ simulated record guard rejects wrong thread model (1.9745ms)
+✔ simulated record guard rejects wrong effort (0.471167ms)
+✔ simulated record guard rejects local fallback (0.473333ms)
+✔ simulated record guard rejects turn override (0.452042ms)
+✔ simulated record guard rejects thread request mismatch (0.409417ms)
+✔ simulated record guard rejects status for different environment (3.133875ms)
+✔ simulated record guard rejects missing ready (0.520625ms)
+✔ simulated record guard rejects RPC error (0.424709ms)
+✔ simulated record guard rejects failed turn (0.441417ms)
+✔ simulated record guard rejects wrong turn thread (0.460541ms)
+✔ simulated record guard rejects missing command (0.443ms)
+✔ simulated record guard rejects command failed (0.4335ms)
+✔ simulated record guard rejects command unfinished (0.602708ms)
+✔ simulated record guard rejects wrong command output (0.5115ms)
+✔ simulated record guard rejects wrong command turn (0.376916ms)
+✔ simulated record guard rejects wrong command thread (0.375667ms)
+✔ simulated record guard rejects no cleanup (0.3705ms)
+✔ simulated record guard rejects absence unconfirmed (0.401334ms)
+✔ simulated record guard rejects cleanup wrong worker (0.654792ms)
+✔ simulated record guard rejects inspect missing (0.592375ms)
+✔ simulated record guard rejects removed wrong worker (0.60475ms)
+✔ simulated record guard rejects removal failed (0.808417ms)
+✔ simulated record guard rejects absence deleted (1.555667ms)
+✔ simulated record guard rejects cleanup predates launch (0.630459ms)
+✔ hostile sentinel must remain outside worker (0.744333ms)
+✔ hostile observation cannot hide an exposed credential or successful network connection (6.350417ms)
+✔ luna catalog exposes unapproved namespaces and is rejected, despite a fake command event (1.068417ms)
+✔ explicit Luna direct-catalog simulation admits only the two observed command tools (6.412625ms)
+✔ probe exit status rejects failed and unconfirmed cleanup records (0.486ms)
+✔ child spawn errors are recorded and fail the probe (0.207833ms)
+✔ missing Codex binary fails before creating a supervisor (141.6005ms)
+✔ direct probe evidence names the checked-in probe source (1.556458ms)
+✔ stream controls are frozen, distinct and retain parent deadline above cleanup separately (1.75525ms)
+✔ CLI declarations pin both retry layers and idle setting without mutating inherited declarations (1.037834ms)
+✔ relay admission binds method, exact origin, route, host and public capability; rejects auth (0.3465ms)
+✔ actual owned relay spends its one-forward budget atomically and close is idempotent (61.426042ms)
+✔ saved actual native CLI observations match their predeclared criteria without invoking CLI (13.352208ms)
+✔ deadline assessment remains distinct from failed or completed CLI turns (0.254292ms)
+✔ archive rejects changed summaries, plan, byte captures and source pin removal (55.379166ms)
+✔ rehashing a tampered record cannot turn missing retries or credentials into passing evidence (91.546917ms)
+✔ idle attribution and service cleanup fail when timeout error, close ordering or sockets contradict evidence (1.118166ms)
+✔ parent transport completes authored read continuation without putting credential in tool/model payload (16.787292ms)
+✔ read capability is immutable and exact-path only; OS paths and non-read tools fail (5.975625ms)
+✔ ledger freezes caller config and rejects mid-run model/reasoning changes (0.233625ms)
+✔ unknown tool stops without continuation (4.031333ms)
+✔ traversal stops without continuation (1.24275ms)
+✔ model mismatch stops without continuation (1.357708ms)
+✔ effort mismatch stops without continuation (0.890875ms)
+✔ missing identity stops without continuation (1.111791ms)
+✔ auth echo stops without continuation (3.231875ms)
+✔ extra fields stops without continuation (1.441291ms)
+✔ HTTP 301 has no redirect, credential refresh or retry (0.870209ms)
+✔ HTTP 307 has no redirect, credential refresh or retry (1.031416ms)
+✔ HTTP 401 has no redirect, credential refresh or retry (1.579458ms)
+✔ HTTP 403 has no redirect, credential refresh or retry (0.8175ms)
+✔ HTTP 429 has no redirect, credential refresh or retry (2.781209ms)
+✔ HTTP 503 has no redirect, credential refresh or retry (1.886958ms)
+✔ request and reservation limits stop looping tools before another dispatch (3.627458ms)
+✔ absolute exchange deadline terminates drip response (50.12825ms)
+✔ response bytes and request bytes are bounded (2.9295ms)
+✔ malformed or incomplete responses never become answers (5.526625ms)
+✔ only owned exact endpoint and explicit fixture credentials accepted (0.529167ms)
+✔ fixture credential rotation belongs to new runs; no credential stored by ledger (1.730292ms)
+✔ one monotonic deadline spans both tool exchanges (120.780333ms)
+✔ packet file count, combined bytes and evaluation-only paths are refused (0.822292ms)
+✔ saved exploratory evidence validates without live model calls (8.277875ms)
+✔ deadline fixture awaits terminal server capture and retains separate client partial bytes (107.039375ms)
+✔ evidence validation rejects missing, corrupt and cross-layer raw receipts (2.666875ms)
+✔ locked-down launch has no bind mount/socket/privilege/network grant (0.697459ms)
+✔ reject mutable/untrusted image node:latest (0.425209ms)
+✔ reject mutable/untrusted image sha256:aaa (0.071ms)
+✔ reject mutable/untrusted image --privileged (0.059041ms)
+✔ reject unowned name other (0.096208ms)
+✔ reject unowned name brooks-rt-ab (0.05225ms)
+✔ reject unowned name ../x (0.060292ms)
+✔ reject arbitrary entrypoint (2.508333ms)
+✔ reject partial IDs (0.11175ms)
+✔ ownership validates known isolated declaration (0.487042ms)
+✔ refuse altered runtime NetworkMode (0.251209ms)
+✔ refuse altered runtime Privileged (0.083334ms)
+✔ refuse altered runtime ReadonlyRootfs (0.063209ms)
+✔ refuse altered runtime Binds (0.231167ms)
+✔ refuse altered runtime PidsLimit (0.079792ms)
+✔ refuse altered runtime Memory (0.065583ms)
+✔ refuse altered runtime NanoCpus (0.053708ms)
+✔ refuse altered runtime IpcMode (0.054375ms)
+✔ refuse altered runtime PidMode (0.056541ms)
+✔ refuse altered runtime Devices (0.087417ms)
+✔ refuse altered runtime Tmpfs (0.109875ms)
+✔ refuse unrelated container even if name looks owned (0.0895ms)
+✔ supervisor preserves exact process bytes (114.148ms)
+✔ supervisor deadline kills its owned command, confirms close (63.267042ms)
+✔ supervisor enforces retained combined output cap (114.832667ms)
+✔ saved native Docker evidence passes without daemon (61.1275ms)
+✔ rehashing fabricated cleanup does not bypass semantic evidence (383.854167ms)
+✔ missing raw command bytes rejected (444.421375ms)
+✔ QA1 bypass: six rehashed copies cannot replace six boundaries (465.54525ms)
+✔ omitted boundary rejected even with rehashed inventory (281.287916ms)
+✔ standalone case contradiction rejected (110.168792ms)
+✔ duplicate owned IDs rejected (199.97425ms)
+✔ overlapping command partitions rejected (129.695708ms)
+✔ global orphan command rejected (103.911833ms)
+✔ reordered case commands rejected (102.302875ms)
+✔ foreign file rejected even when inventoried (90.069291ms)
+✔ foreign command target rejected (87.783542ms)
+✔ inspection image mismatch rejected despite synchronized raw bytes (88.321792ms)
+✔ duplicate container name rejected (69.604583ms)
+✔ valid lease policy adds only unique owner label/name (20.025708ms)
+✔ reject mutable image (17.050083ms)
+✔ reject foreign name (11.304791ms)
+✔ reject extended deadline (11.475833ms)
+✔ reject excessive budget (14.246667ms)
+✔ reject negative heartbeat (11.277125ms)
+✔ reject path token (10.401625ms)
+✔ identity refusal: wrong label (12.719875ms)
+✔ identity refusal: wrong ID (11.442792ms)
+✔ identity refusal: name reuse (9.812167ms)
+✔ identity refusal: image replacement (9.558083ms)
+✔ identity refusal: birth replacement (10.364833ms)
+✔ identity refusal: host network (9.959166ms)
+✔ normal create persists identity before start and cancellation confirms absence (94.031084ms)
+✔ lost create acknowledgement reconciles exact random label without start (72.798333ms)
+✔ manager restart revokes unfinished leases even with fresh heartbeat (89.749958ms)
+✔ daemon outage stays unresolved and recovery cleans owned job (108.017333ms)
+✔ heartbeat replay cannot postpone launcher-loss cleanup (106.967916ms)
+✔ fresh heartbeats cannot extend absolute deadline (94.270292ms)
+✔ monotonic deadline survives wall clock rollback (11.718417ms)
+✔ stale intent never starts a container (42.571208ms)
+✔ TERM resistance escalates to KILL, removal only after stopped (101.637708ms)
+✔ unconfirmed KILL does not remove or report success (99.774042ms)
+✔ successful rm exit without actual absence is rejected (99.444083ms)
+✔ forged journal ID never signals unrelated container (94.281083ms)
+✔ concurrent leases retain separate IDs and unrelated sentinel survives (151.3225ms)
+✔ admission caps active jobs at four (252.06675ms)
+✔ ambiguous discovery cannot signal either candidate (63.597333ms)
+✔ kernel lock rejects concurrent manager and releases without PID files (6.062ms)
+✔ state symlink cannot be imported as journal (15.184709ms)
+✔ corrupt journal fails closed without Docker access (25.861125ms)
+✔ late heartbeat cannot revive a lease already expired at loop entry (98.884542ms)
+✔ restart of in-flight create stays pending until late owned container appears (80.5385ms)
+✔ recognize bounded Docker absence dialect Error response from daemon: No such object:  (0.09525ms)
+✔ recognize bounded Docker absence dialect error: no such object:  (0.037834ms)
+✔ late daemon completion after deadline can still be identified for cleanup (11.632125ms)
+✔ saved eight-case real Docker drill validates offline (14.840416ms)
+✔ rehashed duplicate case cannot stand in for missing boundary (37.389958ms)
+✔ rehashed final state cannot claim absence without Docker observation (35.122958ms)
+✔ rehashed foreign signal target rejected (36.535583ms)
+✔ rehashed manager crash omission rejected (42.209625ms)
+✔ forged nonexistent journal ID cannot hide an existing owned container (95.179375ms)
+✔ QA1: rehashed early state/event cannot disagree with facts and Docker (39.872708ms)
+✔ synchronized early facts/state/event still cannot precede Docker absence (46.1825ms)
+✔ facts completion cannot drift independently from final state (43.477834ms)
+✔ unsupported late state/facts completion cannot follow completion event (46.727291ms)
+✔ final absence observation must precede state completion even inside event gap (41.142125ms)
+✔ reordered removal and final absence events rejected (40.979792ms)
+✔ late completion event outside recorded case rejected (35.799166ms)
+✔ non-integer completion timestamp rejected (35.062125ms)
+✔ negative launcher recovery duration rejected (29.454583ms)
+✔ duplicate completion events rejected (32.193209ms)
+✔ case completion reason and identity must agree with final state (29.43425ms)
+✔ stale intent completion cannot precede empty ownership discovery (36.705709ms)
+✔ saved all-nine archive reproduces byte-for-byte including actual offline CLI workflow (1085.213084ms)
+✔ synthetic complete stage uses identical authored answers and labels per case, no arm advantage (28.65525ms)
+✔ separate perturbations retain failure, interruption, pending, absence, incomplete, FN, FP and evidence counters (27.861958ms)
+✔ review packets expose only supplied input blobs and exact synthetic answers, omitting answer labels and arm mapping (27.500083ms)
+✔ actual offline CLI runs all preparation/import commands without invoking model executor (1087.492167ms)
+✔ archive writer refuses existing archive and validator detects raw answer tampering (2421.947792ms)
+✔ inventory cannot omit retained artifacts to bypass exact reproduction (2114.623458ms)
+✔ older accepted frozen inputs, protocol and guidance validate end-to-end without replacement (2158.3275ms)
+✔ bounded capture retains exact cap prefix and tracks all observed chunk bytes/digest (0.907042ms)
+✔ predeclared cases and interfaces remain owned-only/no-live (3.748959ms)
+✔ admission binds visible token/model/effort/prompt and atomically refuses reuse or retirement (0.291417ms)
+✔ owned HTTP concurrent and delayed callbacks cannot consume another turn budget (62.726417ms)
+✔ authored SSE explicitly declares final phase and synthetic identity only (0.19675ms)
+✔ saved native CLI matrix and81-turn rehearsal validate offline (784.219916ms)
+✔ native cap negative controls never become study results (2.424916ms)
+✔ saved current guard refuses terminal/cleanup/auth/mapping mutation (0.671167ms)
+✔ pure saved launch validator rejects broad reads, arbitrary env, inner mode and turn token drift (12.225333ms)
+✔ full rehearsal import refuses reorder/retry/material drift and leaves all model turns not-run (17.61775ms)
+✔ archive refuses raw, receipt, source, schedule and readiness drift (2312.909208ms)
+✔ proper native TLS trust positive controls bracket rejected CA and hostname controls (0.862959ms)
+✔ curl correction and detached controls retain distinct scoped outcomes (1.11525ms)
+✔ TLS env and redirect evidence mutation cannot be blessed by rehashed summaries (12.2055ms)
+✔ capture limits must equal declared policy, including standalone protocol import (35.312917ms)
+✔ regular final-file capture bounds import prefixes and records missing files (1.346958ms)
+✔ final-file symlink and directory fail closed before reading (0.751958ms)
+✔ oversized final-file refuses without reading the suffix (1.087875ms)
+✔ post-stat growth cannot extend final-file read work beyond initial snapshot (2.008375ms)
+✔ FIFO final-file returns under a separate hard child timeout without a writer (174.190833ms)
+✔ explicit final import error cannot be promoted by a matching successful answer (6.335334ms)
+✔ all81 exact input/guidance packets export into separate scratch workspaces; no scorer or rubric (2233.3525ms)
+✔ existing/symlinked/altered/traversal staging is refused (10.064209ms)
+✔ real registration remains unbound; pending review, sentinels, mismatched anchors and absent authorization block (0.3925ms)
+✔ synthetic81-turn replay roundtrips existing importer, keeps all reviews pending and no efficacy claim (118.571208ms)
+✔ empty successful answer is executed; plausible text without completion is failed; nonzero exit keeps partial (3.891584ms)
+✔ 900second deadline preserves raw/partial and leaves unstarted primary schedule not-run (3.494333ms)
+✔ observed identity mismatch/missing blocks subsequent turn; never substitute intended identity (5.252125ms)
+✔ no retry/order bypass or non-simulation events; malformed/late completion refused (8.434084ms)
+✔ empty answer event cannot precede identity, and elapsed boundary requires explicit exact deadline (5.689458ms)
+✔ durable offline archive byte-compares to deterministic rebuild and source snapshots (225.652958ms)
+✔ frozen design and public external anchor preserve exact artifact bytes (6.199959ms)
+✔ first-pass pair contains exact whitelisted source bytes and blank fixture judgments (0.554667ms)
+✔ all 81 primary turns are frozen once with counterbalanced positions and no executed response (99.925167ms)
+✔ future execution registration is explicitly unbound and design has no live results (0.291042ms)
+✔ valid one-turn dispatch has parent-only dummy auth, separate identity evidence and immutable request (13.695916ms)
+✔ simultaneous duplicates and later primary reuse cannot dispatch twice (2.779542ms)
+✔ capability, method, route, host, headers and exact model/reasoning/body pin reject without upstream (6.943ms)
+✔ cross-session capability and closed session never allow a primary dispatch (1.67725ms)
+✔ 401,429 and503 consume one primary without retry or auth refresh (5.184209ms)
+✔ redirect is never followed and echoed credential/header is absent from client/evidence (1.184167ms)
+✔ SSE completion preserves request/report distinction and never invents provider identity (1.857292ms)
+✔ SSE disconnection retains sanitized partial bytes with no stream reconnect (23.91775ms)
+✔ total upstream deadline stops a drip stream; response byte overflow is explicit and not retried (102.713625ms)
+✔ inbound slow body and slow headers are bounded without consuming upstream attempt (204.117583ms)
+✔ request size cap, malformed shape, external origin and real-looking credentials fail closed (2.923792ms)
+✔ missing/mismatched reports and model self-description stay unverified; config has no credentials (0.208209ms)
+✔ dynamic configuration update stays unreviewed rather than reporting actual selected effort (1.673583ms)
+✔ actual sandbox grants only relay port; provider key absent in child and direct upstream refused (183.917875ms)
+✔ caller mutation after binding cannot alter request or intended model/reasoning (1.331042ms)
+✔ absolute-form route and external body destinations cannot turn relay into arbitrary proxy (0.900667ms)
+✔ saved channel archive binds exact sources/sanitized bytes without model evidence claims (5.733375ms)
+✔ untrusted Content-Type and common JSON unicode credential echoes cannot escape sanitization (4.859458ms)
+✔ close before dispatch settles as not-attempted; close during dispatch settles failure without retry (6.324ms)
+✔ saved native cases validate without Docker or network (98.352084ms)
+✔ archive rejects live (1.921167ms)
+✔ archive rejects model (1.421583ms)
+✔ archive rejects identity (1.468292ms)
+✔ archive rejects cleanup (1.4745ms)
+✔ archive rejects completed_time (3.504416ms)
+✔ archive rejects missing_event (1.461959ms)
+✔ archive rejects rm_failed (1.738083ms)
+✔ archive rejects upstream_auth (2.304166ms)
+✔ archive rejects upstream_extra (1.407791ms)
+✔ archive rejects admission_model (1.535625ms)
+✔ archive rejects tool_added (1.692875ms)
+✔ archive rejects false_worker (4.251709ms)
+✔ archive rejects client_final (6.35975ms)
+✔ archive rejects client_sentinel (2.087333ms)
+✔ archive rejects run_failed (1.866958ms)
+✔ request rejects method (1.572959ms)
+✔ request rejects path (1.154583ms)
+✔ request rejects auth (1.132834ms)
+✔ request rejects model (1.27925ms)
+✔ request rejects effort (1.640375ms)
+✔ request rejects extra (1.687875ms)
+✔ request rejects tool (1.537583ms)
+✔ request rejects type (1.320459ms)
+✔ request rejects store (1.387791ms)
+✔ request rejects stream (1.459ms)
+✔ request rejects input (1.650416ms)
+✔ request rejects include (1.3215ms)
+✔ request rejects schema (1.777ms)
+✔ budget reserves before dispatch and prevents simultaneous call (1.538167ms)
+✔ one byte budget rejects before consumption (1.191375ms)
+✔ invalid deadline NaN (0.0745ms)
+✔ invalid deadline Infinity (0.04575ms)
+✔ invalid deadline -1 (0.037083ms)
+✔ invalid deadline 0 (0.046041ms)
+✔ invalid deadline 12001 (0.032542ms)
+✔ floating monotonic deadline is valid (0.032042ms)
+✔ deadline expiry and rollback deny (2.600667ms)
+✔ late callback is denied (1.632ms)
+✔ cancel seals budget and callbacks (2.492792ms)
+✔ response rejects identity (1.508208ms)
+✔ response rejects missing_usage (1.235125ms)
+✔ response rejects bad_usage (1.213584ms)
+✔ response rejects overflow (1.347291ms)
+✔ response rejects total (1.49825ms)
+✔ response rejects incomplete (1.404333ms)
+✔ duplicate response cannot consume second reservation (2.544417ms)
+✔ policy refuses actual model or expensive fallback (0.056708ms)
+✔ same tool name cannot replace native schema (1.443042ms)
+✔ executed client source binding cannot drift (1.48625ms)
+✔ archive rejects inflated request cap (1.358209ms)
+✔ archive rejects unclosed Docker removal (1.496625ms)
+✔ clock returning nonfinite is rejected (0.117208ms)
+✔ three-session real native offline smoke validates (23.278167ms)
+✔ smoke registration unchanged and hash frozen (3.615916ms)
+✔ live refuses missing enabled (2.070459ms)
+✔ live refuses missing registration_sha256 (1.941583ms)
+✔ live refuses missing budget_nano_usd (1.677875ms)
+✔ live refuses missing user_reference (1.548125ms)
+✔ live refuses missing model (1.574875ms)
+✔ live refuses missing effort (1.631625ms)
+✔ live missing approval fails before transport or Docker (1.791042ms)
+✔ registration source mutation fails before execution (6.564417ms)
+✔ native idle workload is fixed and unknown workloads rejected (21.589042ms)
+✔ native idle workload inspection rejects command drift (1.607208ms)
+✔ smoke cannot accept pending cleanup (1.217375ms)
+✔ smoke cannot accept missing remote read (3.909291ms)
+✔ rehashed smoke rejects QA1 count body different model (165.016ms)
+✔ rehashed smoke rejects QA1 all raw SSE deleted (142.929167ms)
+✔ rehashed smoke rejects QA1 raw child stdout deleted (147.662125ms)
+✔ rehashed smoke rejects QA1 cleanup before launch (147.654959ms)
+✔ rehashed smoke rejects count body different prompt (133.726583ms)
+✔ rehashed smoke rejects count ledger hash unrelated (121.800041ms)
+✔ rehashed smoke rejects count raw receipt missing (130.806709ms)
+✔ rehashed smoke rejects count raw receipt inconsistent usage (62.847125ms)
+✔ rehashed smoke rejects raw FINAL parsed state mismatch (37.79475ms)
+✔ rehashed smoke rejects raw SSE reversed (35.802459ms)
+✔ rehashed smoke rejects cross-session raw SSE (36.92975ms)
+✔ rehashed smoke rejects response bytes missing from ledger (74.953ms)
+✔ rehashed smoke rejects response identity contradiction (78.517209ms)
+✔ rehashed smoke rejects cumulative prefix corrupted (49.006792ms)
+✔ rehashed smoke rejects cumulative requests oversized (35.839875ms)
+✔ rehashed smoke rejects reservation underreported (39.36975ms)
+✔ rehashed smoke rejects import before cleanup (39.230292ms)
+✔ rehashed smoke rejects import after journal close (44.345375ms)
+✔ rehashed smoke rejects nonfinite cleanup time (37.651375ms)
+✔ rehashed smoke rejects completion after session close (32.246917ms)
+✔ rehashed smoke rejects duplicate complete event (38.538875ms)
+✔ rehashed smoke rejects missing complete event (34.246875ms)
+✔ rehashed smoke rejects failed exact removal (33.464875ms)
+✔ rehashed smoke rejects unclosed exact removal (40.751583ms)
+✔ rehashed smoke rejects wrong removal identity (41.318583ms)
+✔ rehashed smoke rejects absence before removal (36.310958ms)
+✔ rehashed smoke rejects state before final absence (33.4785ms)
+✔ rehashed smoke rejects cross-session journal records (36.813833ms)
+✔ rehashed smoke rejects native final missing after valid SSE (33.636625ms)
+✔ real transport cannot start without explicit live authorization and reviewed counter (0.96325ms)
+✔ local TLS success retains safe evidence, enforces output cap/tier and reserves before dispatch (25.056833ms)
+✔ TLS HTTP301 never redirects/retries/refunds (4.683209ms)
+✔ TLS HTTP302 never redirects/retries/refunds (4.354625ms)
+✔ TLS HTTP307 never redirects/retries/refunds (4.07475ms)
+✔ TLS HTTP308 never redirects/retries/refunds (3.964208ms)
+✔ TLS HTTP401 never redirects/retries/refunds (3.325292ms)
+✔ TLS HTTP403 never redirects/retries/refunds (4.016167ms)
+✔ TLS HTTP429 never redirects/retries/refunds (3.512333ms)
+✔ TLS HTTP503 never redirects/retries/refunds (3.67825ms)
+✔ untrusted TLS certificate never reaches HTTP handler and consumes one reservation (3.459959ms)
+✔ reject model before network (0.590958ms)
+✔ reject effort before network (0.46325ms)
+✔ reject tier before network (0.461416ms)
+✔ reject output cap before network (0.423958ms)
+✔ reject unknown field before network (0.433625ms)
+✔ reject unknown tool before network (0.862083ms)
+✔ reject duplicate tool before network (0.663375ms)
+✔ reject secret in prompt before network (0.77175ms)
+✔ reject oversized input before network (1.060916ms)
+✔ unverified/out-of-budget counter undefined (0.643625ms)
+✔ unverified/out-of-budget counter NaN (0.504666ms)
+✔ unverified/out-of-budget counter -1 (0.901458ms)
+✔ unverified/out-of-budget counter 32769 (0.558625ms)
+✔ unverified/out-of-budget counter [object Promise] (0.44325ms)
+✔ six sequential reservations exhaust the run without a seventh request (14.74925ms)
+✔ parallel dispatch fails closed without a second HTTP attempt (1.296084ms)
+✔ absolute timer interrupts response drips (71.962917ms)
+✔ explicit cancellation closes active response without retry (18.887833ms)
+✔ one run deadline spans both TLS exchanges (102.127917ms)
+✔ response cap, malformed body and missing terminal are rejected (13.107792ms)
+✔ reported identity closes the run (3.174125ms)
+✔ reported missing usage closes the run (3.129209ms)
+✔ reported usage sum closes the run (2.894167ms)
+✔ reported excess output closes the run (2.827458ms)
+✔ reported unexpected tool closes the run (2.756959ms)
+✔ duplicate completions and terminal suffix are rejected by the SSE parser (0.099292ms)
+✔ duplicate response identity across exchanges stops continuation (4.809917ms)
+✔ credential echo literal is excluded from returned data and evidence (3.376583ms)
+✔ credential echo unicode is excluded from returned data and evidence (3.630917ms)
+✔ credential echo base64 is excluded from returned data and evidence (2.861958ms)
+✔ credential echo hex is excluded from returned data and evidence (3.029208ms)
+✔ provider token-count preflight binds the complete text/tool input before inference (5.50525ms)
+✔ invalid count receipt prevents inference {"object":"wrong","input_tokens":12} (3.668042ms)
+✔ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":32769} (2.931583ms)
+✔ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":"fixture-only-public-upstream-key"} (4.281375ms)
+✔ invalid count receipt prevents inference {} (3.406083ms)
+✔ token-count redirect is refused before inference (2.873042ms)
+✔ token-count drip is bounded by shared deadline (71.317291ms)
+✔ unknown counter error never leaks arbitrary diagnostic text (1.007584ms)
+✔ configuration changes and image inputs are refused before network (1.046541ms)
+✔ unadvertised streamed tool cannot hide behind a valid final message (0.088417ms)
+✔ actual native packet uses the same parent gateway and local TLS transport seam (17.840875ms)
+✔ fresh private state, exact frozen bytes and no inherited personal env/config/skills/memory (483.16825ms)
+✔ actual Seatbelt blocks repository/ancestor/home reads, outside writes, workspace mutation and symlink escape (394.41325ms)
+✔ actual Seatbelt refuses loopback network, including child process use (898.510375ms)
+✔ unsupported platform and unsafe runtime paths fail closed; restrictive profile contains no network allow (33.949542ms)
+✔ argv is passed literally, no shell; chunks retain exact UTF8 bytes and stderr bytes (417.491666ms)
+✔ deadline interrupts TERM-resistant process, escalates KILL and preserves partial evidence (1088.717958ms)
+✔ leader exit with TERM-resistant child holding pipes is cleaned despite leader exit/close (600.53175ms)
+✔ leader exit with closed-stdio child still escalates rather than cancelling on close (540.447209ms)
+✔ abort before launch spawns nothing; active abort preserves partial; nonzero process failure retained (1508.476667ms)
+✔ output overflow stops bounded process and explicitly records truncation (469.759ms)
+✔ actual raw bytes archive exclusively outside model-readable state (347.019667ms)
+✔ documented Codex events project separately from identity; self-described model never counted as observed (0.632709ms)
+✔ malformed, failed, duplicate, late, unknown and invalid UTF8 JSONL retain errors, never successful (0.1905ms)
+✔ future argv freezes explicit intent, no inherited catalog, declares no retry and never runs (5.4035ms)
+✔ frozen registration and apparently complete declaration cannot unlock live execution; no retry/order skip (2.361834ms)
+✔ unsupported OS isolation refuses before filesystem or subprocess use (0.072958ms)
+✔ saved process archive verifies source/raw hashes and zero model claims on every platform (13.941042ms)
+✔ archived Darwin containment stays POSIX when the validating host uses Win32 separators (0.912791ms)
+✔ bounded confirmation waits for running members to disappear and records every injected transition (0.131917ms)
+✔ zombie-only is explicitly nonrunning but unreaped; mixed/running and ownership loss stay distinct (0.076583ms)
+✔ running, probe error and timeout remain unconfirmed at the injected deadline; late absent cannot pass (0.118916ms)
+✔ unknown probe and hanging probe exhaust one total budget while preserving completed observations (523.452583ms)
+✔ real group probe refuses an expired deadline before starting ps (0.131667ms)
+✔ normal success drains large exact bytes; TERM trailing bytes survive bounded cleanup (1509.547833ms)
+✔ fixture has no guardian IPC and stdout cannot spoof a fixture exit (332.739458ms)
+✔ unexpected guardian exit never causes another signal to a possibly reused group (529.834958ms)
+✔ fixed guardian kills its still-owned group if the parent-only IPC disconnects (131.728792ms)
+✔ predeclared parallel open/closed-stdio orphan stress verifies no running members under load (794.108333ms)
+✔ historical QA and observations stay anchored while corrected guardian archive binds separate sources (24.578375ms)
+✔ primary completion before its deadline stays successful during a separate bounded confirmation (2237.571541ms)
+✔ late abort after normal guardian release records interruption without any further group signal (330.612334ms)
+✔ saved exchange reconstructs exactly and all actual offline commands run (4957.919916ms)
+✔ blank forms are not completed reviews and source remains unchanged (174.690166ms)
+✔ exact source,plan,answer and provenance bind submitted annotations (287.242083ms)
+✔ annotations validate against case rubric and require rationale (977.749ms)
+✔ set and object order do not manufacture disagreement (1030.731334ms)
+✔ conflicts stay pending without adjudication; both reviews and old reviews retained (1038.797625ms)
+✔ adjudication binds review revisions, exact quotes and explicit choices (2040.064291ms)
+✔ missing reviewer entries remain pending and duplicate reviewer identities rejected (1072.894ms)
+✔ failed records never become reviewable or lose partial text (199.157042ms)
+✔ exact empty executed answer can be reviewed incomplete (182.63875ms)
+✔ archive generator refuses overwrite and validation detects tampering (5822.598875ms)
+✔ a pending reviewer cannot be silently selected and custom labels are schema-validated (1046.923833ms)
+✔ review CLI refuses to overwrite an existing form (288.516834ms)
+✔ plan freezes exact candidate bytes and revision-2 guidance without live integration (17.84325ms)
+✔ turn inputs preserve arm isolation and exclude all rubric/metadata bytes (15.193791ms)
+✔ each frozen snapshot rejects byte drift against trusted plan (20.890084ms)
+✔ frozen candidate/protocol/guidance snapshots need not match a newer checkout (18.943833ms)
+✔ rehashed changed plan rejected by external trusted digest (16.000125ms)
+✔ rehashing cannot promote independence or leak rubric to input (51.6795ms)
+✔ unknown cases, duplicate case and invalid repetitions rejected (12.152958ms)
+✔ response template represents all 18 planned arms as not run (18.782125ms)
+✔ wholly absent triplets remain explicit exclusions (17.618584ms)
+✔ pending executed review and failed partial remain separate (28.070166ms)
+✔ executed incomplete answer remains paired and detected issue is not erased (14.785875ms)
+✔ evidenced successful empty and whitespace answers remain paired when annotated incomplete (26.313167ms)
+✔ unknown/duplicate arm, unplanned repetition, status and extra fields rejected (17.901792ms)
+✔ plan, exact answer, review binding and provenance drift rejected (20.968291ms)
+✔ review packets omit arm, guidance, expected labels, reviewer and partial failures (13.024416ms)
+✔ CLI creates offline artifacts exclusively and refuses overwrite (469.364459ms)
+✔ RT-01: deadline response and underlying work are measured separately (32.0995ms)
+✔ RT-01: success before deadline releases work and cancels the timer (1.179042ms)
+✔ RT-01: a pre-aborted request starts no work or timers (24.568083ms)
+✔ RT-01: parent cancellation removes boundary listener and deadline (0.9665ms)
+✔ RT-02: deadline response and underlying work are measured separately (0.531958ms)
+✔ RT-02: success before deadline releases work and cancels the timer (0.174625ms)
+✔ RT-02: a pre-aborted request starts no work or timers (0.121542ms)
+✔ RT-02: parent cancellation removes boundary listener and deadline (0.266292ms)
+✔ transport honors pre-aborted signals without acquiring a slot (0.332583ms)
+✔ protected contract rejects mutant: dropped leaf signal (0.807375ms)
+✔ protected contract rejects mutant: transport ignores abort (0.169333ms)
+✔ protected contract rejects mutant: only outward promise is cancelled (0.173625ms)
+✔ manifest keeps model inputs separate from grading artifacts (28.437083ms)
+✔ manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics (1119.441375ms)
+✔ RT-03: all transient failures expose the exact total-attempt budget (0.867ms)
+✔ RT-03: success after 0 failures stops without extra attempts (0.243667ms)
+✔ RT-03: success after 2 failures stops without extra attempts (0.072375ms)
+✔ RT-03: nonretryable failure terminates every layer (0.055292ms)
+✔ RT-03: deadline after two failures cancels the active third attempt (13.4715ms)
+✔ RT-03: parent after two failures cancels the active third attempt (0.375208ms)
+✔ RT-03: cancellation between failure and next attempt prevents restart (0.45275ms)
+✔ RT-03: pre-aborted caller starts no dependency attempts (0.091417ms)
+✔ RT-04: all transient failures expose the exact total-attempt budget (0.10275ms)
+✔ RT-04: success after 0 failures stops without extra attempts (0.03175ms)
+✔ RT-04: success after 2 failures stops without extra attempts (0.039125ms)
+✔ RT-04: nonretryable failure terminates every layer (0.028417ms)
+✔ RT-04: deadline after two failures cancels the active third attempt (0.448125ms)
+✔ RT-04: parent after two failures cancels the active third attempt (0.167833ms)
+✔ RT-04: cancellation between failure and next attempt prevents restart (0.303792ms)
+✔ RT-04: pre-aborted caller starts no dependency attempts (0.054125ms)
+✔ single-owner budget oracle rejects mutant: nested retry ownership (0.433708ms)
+✔ single-owner budget oracle rejects mutant: three retries interpreted as four total attempts (0.148667ms)
+✔ retry artifact validation rejects changed budgets, leaked rubrics and incomplete diagnosis (997.245125ms)
+✔ RT-05: same offered optional saturation exposes essential admission (1.383917ms)
+✔ RT-05: optional success releases a worker and admits FIFO successor (0.373791ms)
+✔ RT-05: optional failure releases a worker and admits FIFO successor (0.098334ms)
+✔ RT-05: optional abort releases a worker and admits FIFO successor (0.067791ms)
+✔ RT-05: queued cancellation removes admission without starting work (0.31325ms)
+✔ RT-05: pre-aborted optional and essential callers acquire nothing (0.062084ms)
+✔ RT-06: same offered optional saturation exposes essential admission (0.836209ms)
+✔ RT-06: optional success releases a worker and admits FIFO successor (0.0685ms)
+✔ RT-06: optional failure releases a worker and admits FIFO successor (0.066542ms)
+✔ RT-06: optional abort releases a worker and admits FIFO successor (0.042291ms)
+✔ RT-06: queued cancellation removes admission without starting work (0.570459ms)
+✔ RT-06: pre-aborted optional and essential callers acquire nothing (0.056125ms)
+✔ isolated admission oracle rejects shared-pool wiring (0.514875ms)
+✔ bounded optional admission oracle rejects excessive queue capacity (0.385916ms)
+✔ pool exposes own-route overload and releases synchronous task exceptions (0.107083ms)
+✔ isolation artifact validation rejects resource tampering and grading leakage (709.781333ms)
+✔ RT-07: same leaf permits cancellable completion; no completion is the case truth (0.530417ms)
+✔ RT-07: same leaf permits ignoresAbort completion; no completion is the case truth (0.406708ms)
+✔ RT-08: same leaf permits singleOwner completion with separately supplied budget (0.449708ms)
+✔ RT-08: same leaf permits nestedOwners completion with separately supplied budget (0.212625ms)
+✔ RT-08: same leaf permits permittedNestedOwners completion with separately supplied budget (0.208416ms)
+✔ RT-08: private nested completion cancels without further attempts or leaked resources (0.258291ms)
+✔ incomplete-context artifacts reject certainty, omitted obligations and private input leaks (743.62975ms)
+✔ RT-09: finite long-running archive respects two-worker bound and completes in order (0.752334ms)
+✔ RT-09: failure of a releases capacity and remaining finite work completes (0.377667ms)
+✔ RT-09: failure of c releases capacity and remaining finite work completes (0.269041ms)
+✔ RT-09: failure of e releases capacity and remaining finite work completes (0.335708ms)
+✔ RT-09: occupancy oracle rejects concurrent unbounded launch despite finite completion (0.175583ms)
+✔ RT-10: await/destructuring example priced returns the specified value (0.185208ms)
+✔ RT-10: await/destructuring example missing returns the specified value (0.090875ms)
+✔ RT-10: await/destructuring example undefined returns the specified value (0.087042ms)
+✔ RT-10: await/destructuring example null returns the specified value (0.07525ms)
+✔ RT-10: transport rejection propagates through async without applying the default (0.068792ms)
+✔ batch/syntax artifacts reject changed contract, activation, answer leakage and missing completion (849.385917ms)
+✔ research prototype has explicit negative task boundary and sequential guide references (0.55875ms)
+✔ RT-11: setup and work share the stated total boundary only when covered (0.227083ms)
+✔ RT-11: early completion clears both phase and deadline (0.062125ms)
+✔ RT-11: setup failure clears owned resources (0.065291ms)
+✔ RT-11: work failure clears owned resources (0.025166ms)
+✔ RT-11: parent cancellation at 0 starts no later phases (0.061ms)
+✔ RT-11: parent cancellation at 30 starts no later phases (0.02725ms)
+✔ RT-11: parent cancellation at 90 starts no later phases (0.027083ms)
+✔ RT-12: setup and work share the stated total boundary only when covered (0.046417ms)
+✔ RT-12: early completion clears both phase and deadline (0.041167ms)
+✔ RT-12: setup failure clears owned resources (0.030166ms)
+✔ RT-12: work failure clears owned resources (0.025ms)
+✔ RT-12: parent cancellation at 0 starts no later phases (0.023375ms)
+✔ RT-12: parent cancellation at 30 starts no later phases (0.034375ms)
+✔ RT-12: parent cancellation at 90 starts no later phases (0.028208ms)
+✔ total deadline oracle rejects reset-after-setup mutant despite eventual bounded completion (0.234833ms)
+✔ RT-13: identical local leaf permits uncovered caller completion (0.9905ms)
+✔ RT-13: identical local leaf permits permitted caller completion (0.167792ms)
+✔ RT-13: identical local leaf permits outerBounded caller completion (0.156667ms)
+✔ RT-14: queued expiry changes admission, not merely outward result (0.902416ms)
+✔ RT-14: active success admits live FIFO successors and cleans listeners (0.646ms)
+✔ RT-14: active failure admits live FIFO successors and cleans listeners (0.938ms)
+✔ RT-14: active abort admits live FIFO successors and cleans listeners (0.372083ms)
+✔ RT-14: finite overload, queued cancellation and pre-abort start no extra work (0.268ms)
+✔ RT-15: queued expiry changes admission, not merely outward result (0.409875ms)
+✔ RT-15: active success admits live FIFO successors and cleans listeners (0.397958ms)
+✔ RT-15: active failure admits live FIFO successors and cleans listeners (0.310125ms)
+✔ RT-15: active abort admits live FIFO successors and cleans listeners (0.571542ms)
+✔ RT-15: finite overload, queued cancellation and pre-abort start no extra work (0.242959ms)
+✔ RT-15: already expired submissions do not enter empty admission or acquire timers (0.236208ms)
+✔ waiting-expiry oracle rejects ignore-expiry mutant under identical finite capacity (0.415625ms)
+✔ RT-16: identical visible admission permits requestOwned completion with different usefulness contract (0.460083ms)
+✔ RT-16: identical visible admission permits durableJob completion with different usefulness contract (0.369708ms)
+✔ deadline/queue artifacts reject modified outcomes, private leakage and uncertainty omissions (817.5995ms)
+✔ RT-15: waiting expiry at the exact release boundary removes work before admission (0.521083ms)
+✔ RT-15: multiple expired entries release timers and admission without later dependency starts (0.746958ms)
+✔ RT-17: all owned fan-out children are independently measured (0.633375ms)
+✔ RT-17: fan-out success settles every child (0.11725ms)
+✔ RT-17: fan-out failure settles every child (0.049625ms)
+✔ RT-17: fan-out pre-abort settles every child (0.057084ms)
+✔ RT-18: all owned fan-out children are independently measured (0.212583ms)
+✔ RT-18: fan-out success settles every child (0.045542ms)
+✔ RT-18: fan-out failure settles every child (0.05475ms)
+✔ RT-18: fan-out pre-abort settles every child (0.060916ms)
+✔ RT-19: identical visible extract admits request-owned and durable child countermodels (0.281833ms)
+✔ RT-20: ten local retry caps versus shared extra-attempt allowance (0.407667ms)
+✔ RT-20: success, permanent errors and cancellation cannot consume an extra attempt (0.171083ms)
+✔ RT-21: ten local retry caps versus shared extra-attempt allowance (0.225125ms)
+✔ RT-21: success, permanent errors and cancellation cannot consume an extra attempt (0.105833ms)
+✔ RT-21: fixed window does not refill early and resets exactly at boundary (0.250334ms)
+✔ RT-22: local retry extract cannot decide an omitted aggregate contract (0.245416ms)
+✔ RT-23: committed response loss measures effects rather than response status alone (0.257542ms)
+✔ RT-23: normal response, pre-cancel and permanent failure (0.133125ms)
+✔ RT-23: cancellation after commit retains effect and prevents a second attempt (0.140334ms)
+✔ RT-24: committed response loss measures effects rather than response status alone (0.211667ms)
+✔ RT-24: normal response, pre-cancel and permanent failure (0.053875ms)
+✔ RT-24: cancellation after commit retains effect and prevents a second attempt (0.046167ms)
+✔ RT-24: concurrent same-key writes deduplicate atomically and conflicting intent is rejected (0.159083ms)
+✔ RT-25: stable identity alone cannot establish backend deduplication (0.234334ms)
+✔ RT-26: injected eight-client schedule is measured per logical slot (0.419125ms)
+✔ RT-26: retry timer cancel-before cleans timer and listener (0.07725ms)
+✔ RT-26: retry timer cancel-waiting cleans timer and listener (0.042458ms)
+✔ RT-26: retry timer throw cleans timer and listener (0.0395ms)
+✔ RT-26: retry timer success cleans timer and listener (0.038334ms)
+✔ RT-27: injected eight-client schedule is measured per logical slot (0.206917ms)
+✔ RT-27: retry timer cancel-before cleans timer and listener (0.031625ms)
+✔ RT-27: retry timer cancel-waiting cleans timer and listener (0.032625ms)
+✔ RT-27: retry timer throw cleans timer and listener (0.030375ms)
+✔ RT-27: retry timer success cleans timer and listener (0.025541ms)
+✔ RT-28: identical local retry delay permits synchronized and staggered arrival countermodels (0.239542ms)
+✔ RT-29: distinct wrappers are checked at the actual two-slot resource (0.372458ms)
+✔ RT-29: transport success releases all admission (0.073916ms)
+✔ RT-29: transport failure releases all admission (0.03725ms)
+✔ RT-29: transport cancel releases all admission (0.036834ms)
+✔ RT-30: distinct wrappers are checked at the actual two-slot resource (0.188375ms)
+✔ RT-30: transport success releases all admission (0.038833ms)
+✔ RT-30: transport failure releases all admission (0.033542ms)
+✔ RT-30: transport cancel releases all admission (0.034625ms)
+✔ RT-31: injected wrapper instances admit shared and reserved underlying transports (0.235458ms)
+✔ RT-32: simultaneous cooldown callers measure recovery admission (0.265583ms)
+✔ RT-32: successful probe closes; failed probe reopens and restarts cooldown (0.088209ms)
+✔ RT-33: simultaneous cooldown callers measure recovery admission (0.174292ms)
+✔ RT-33: successful probe closes; failed probe reopens and restarts cooldown (0.049958ms)
+✔ RT-33: cancelled probe permits replacement and pre-cancel never starts work (0.080542ms)
+✔ RT-32: stale concurrent success cannot close a generation reopened by another failed probe (0.074042ms)
+✔ RT-34: omitted controller and external admission permit different recovery concurrency (0.231125ms)
+✔ RT-35: optional admission must preserve a useful essential degraded response (0.224333ms)
+✔ RT-35: detail success releases capacity for next work (0.079291ms)
+✔ RT-35: detail failure releases capacity for next work (0.059208ms)
+✔ RT-35: detail cancel releases capacity for next work (0.045625ms)
+✔ RT-36: optional admission must preserve a useful essential degraded response (0.188542ms)
+✔ RT-36: detail success releases capacity for next work (0.048375ms)
+✔ RT-36: detail failure releases capacity for next work (0.053917ms)
+✔ RT-36: detail cancel releases capacity for next work (0.038667ms)
+✔ RT-37: the same degraded payload satisfies an omission-permitted contract and violates required detail (0.1685ms)
+✔ RT-21: causal mutation to RT-20 fails the protected criterion (0.209958ms)
+✔ RT-24: causal mutation to RT-23 fails the protected criterion (0.074125ms)
+✔ RT-27: causal mutation to RT-26 fails the protected criterion (0.115792ms)
+✔ RT-30: causal mutation to RT-29 fails the protected criterion (0.716417ms)
+✔ RT-36: causal mutation to RT-35 fails the protected criterion (0.129542ms)
+✔ RT-18/33: dropped child signal and unlimited half-open admission fail protected criteria (0.15725ms)
+✔ Expanded manifest rejects kind drift (720.361833ms)
+✔ Expanded manifest rejects expected drift (691.97125ms)
+✔ Expanded manifest rejects input-test drift (692.315ms)
+✔ Expanded manifest rejects input-rubric drift (657.41775ms)
+✔ Expanded manifest rejects missing-context drift (767.702125ms)
+✔ Expanded manifest rejects finding-evidence drift (671.836875ms)
+✔ RT-20: one transient error followed by recovery uses exactly one extra attempt (0.255041ms)
+✔ RT-21: one transient error followed by recovery uses exactly one extra attempt (0.058083ms)
+✔ RT-23: repeated ambiguous failures stop at two calls (0.08975ms)
+✔ RT-24: repeated ambiguous failures stop at two calls (0.04125ms)
+✔ RT-36: reject-all and incorrect-success mutations fail the useful response criterion (0.114291ms)
+✔ dispute RT-02: transport completion before expiry can lose to synchronous clock advancement (0.079834ms)
+✔ dispute RT-02: observing success before advancing the clock preserves the value (0.046333ms)
+✔ dispute RT-12: rejected setup duration -1 retains deadline and parent listener until expiry (0.071083ms)
+✔ dispute RT-12: rejected setup duration NaN retains deadline and parent listener until expiry (0.023458ms)
+✔ dispute RT-12: rejected setup duration Infinity retains deadline and parent listener until expiry (0.021333ms)
+✔ dispute RT-12: parent abort releases resources left after setup scheduling throws (0.041917ms)
+✔ dispute RT-12: invalid work duration throws during advancement and the original deadline still cleans up (0.05375ms)
+✔ dispute RT-12: validating durations before acquisition avoids the exception cleanup path (0.118292ms)
+✔ RT-38: settlement99 with same-turn deadline (0.364375ms)
+✔ RT-38: settlement99 with awaited delivery (0.039958ms)
+✔ RT-38: completion exactly100, completion-first (0.070916ms)
+✔ RT-38: completion exactly100, deadline-first (0.045166ms)
+✔ RT-38: timeout releases pending operation (0.058834ms)
+✔ RT-38: parent-abort releases pending operation (0.034625ms)
+✔ RT-38: pre-abort releases pending operation (0.033541ms)
+✔ RT-39: settlement99 with same-turn deadline (0.198667ms)
+✔ RT-39: settlement99 with awaited delivery (0.034792ms)
+✔ RT-39: completion exactly100, completion-first (0.039459ms)
+✔ RT-39: completion exactly100, deadline-first (0.034084ms)
+✔ RT-39: timeout releases pending operation (0.039083ms)
+✔ RT-39: parent-abort releases pending operation (0.032541ms)
+✔ RT-39: pre-abort releases pending operation (0.030708ms)
+✔ RT-40: settlement99 with same-turn deadline (0.158833ms)
+✔ RT-40: settlement99 with awaited delivery (0.032ms)
+✔ RT-40: completion exactly100, completion-first (0.030666ms)
+✔ RT-40: completion exactly100, deadline-first (0.033916ms)
+✔ RT-40: timeout releases pending operation (0.04025ms)
+✔ RT-40: parent-abort releases pending operation (0.063625ms)
+✔ RT-40: pre-abort releases pending operation (0.0405ms)
+✔ RT-40: same visible trace admits opposing success contracts (0.061375ms)
+✔ RT-41: setupDuration=-1 rejection lifecycle (0.198583ms)
+✔ RT-41: setupDuration=NaN rejection lifecycle (0.039458ms)
+✔ RT-41: setupDuration=Infinity rejection lifecycle (0.033542ms)
+✔ RT-41: setupDuration=-Infinity rejection lifecycle (0.040125ms)
+✔ RT-41: setupDuration=10 rejection lifecycle (0.054584ms)
+✔ RT-41: setupDuration=null rejection lifecycle (0.031167ms)
+✔ RT-41: workDuration=-1 rejection lifecycle (0.044708ms)
+✔ RT-41: workDuration=NaN rejection lifecycle (0.034ms)
+✔ RT-41: workDuration=Infinity rejection lifecycle (0.038125ms)
+✔ RT-41: workDuration=-Infinity rejection lifecycle (0.042625ms)
+✔ RT-41: workDuration=10 rejection lifecycle (0.0425ms)
+✔ RT-41: workDuration=null rejection lifecycle (0.032208ms)
+✔ RT-41: standard setup rejection observation matches manifest or remains conditional (0.077458ms)
+✔ RT-41: valid durations 0/0 (0.048334ms)
+✔ RT-41: valid durations 20/30 (0.031875ms)
+✔ RT-41: valid durations 80/60 (0.03975ms)
+✔ RT-41: valid durations 40/60 (0.032208ms)
+✔ RT-41: valid durations 0/100 (0.030667ms)
+✔ RT-41: valid durations 100/0 (0.028042ms)
+✔ RT-41: cancellation during pre-abort (0.065667ms)
+✔ RT-41: cancellation during setup (0.029833ms)
+✔ RT-41: cancellation during work (0.031291ms)
+✔ RT-41: undefined durations keep defaults (0.049458ms)
+✔ RT-42: setupDuration=-1 rejection lifecycle (0.176333ms)
+✔ RT-42: setupDuration=NaN rejection lifecycle (0.03175ms)
+✔ RT-42: setupDuration=Infinity rejection lifecycle (0.029208ms)
+✔ RT-42: setupDuration=-Infinity rejection lifecycle (0.026375ms)
+✔ RT-42: setupDuration=10 rejection lifecycle (0.026417ms)
+✔ RT-42: setupDuration=null rejection lifecycle (0.026958ms)
+✔ RT-42: workDuration=-1 rejection lifecycle (0.027625ms)
+✔ RT-42: workDuration=NaN rejection lifecycle (0.026625ms)
+✔ RT-42: workDuration=Infinity rejection lifecycle (0.025125ms)
+✔ RT-42: workDuration=-Infinity rejection lifecycle (0.02725ms)
+✔ RT-42: workDuration=10 rejection lifecycle (0.030167ms)
+✔ RT-42: workDuration=null rejection lifecycle (0.026833ms)
+✔ RT-42: standard setup rejection observation matches manifest or remains conditional (0.041291ms)
+✔ RT-42: valid durations 0/0 (0.033125ms)
+✔ RT-42: valid durations 20/30 (0.030416ms)
+✔ RT-42: valid durations 80/60 (0.030917ms)
+✔ RT-42: valid durations 40/60 (0.037875ms)
+✔ RT-42: valid durations 0/100 (0.037041ms)
+✔ RT-42: valid durations 100/0 (0.0295ms)
+✔ RT-42: cancellation during pre-abort (0.03925ms)
+✔ RT-42: cancellation during setup (0.037542ms)
+✔ RT-42: cancellation during work (0.033ms)
+✔ RT-42: undefined durations keep defaults (0.036708ms)
+✔ RT-43: setupDuration=-1 rejection lifecycle (0.178875ms)
+✔ RT-43: setupDuration=NaN rejection lifecycle (0.031ms)
+✔ RT-43: setupDuration=Infinity rejection lifecycle (0.032708ms)
+✔ RT-43: setupDuration=-Infinity rejection lifecycle (0.034292ms)
+✔ RT-43: setupDuration=10 rejection lifecycle (0.027625ms)
+✔ RT-43: setupDuration=null rejection lifecycle (0.026291ms)
+✔ RT-43: workDuration=-1 rejection lifecycle (0.029583ms)
+✔ RT-43: workDuration=NaN rejection lifecycle (0.029208ms)
+✔ RT-43: workDuration=Infinity rejection lifecycle (0.029959ms)
+✔ RT-43: workDuration=-Infinity rejection lifecycle (0.031792ms)
+✔ RT-43: workDuration=10 rejection lifecycle (0.026833ms)
+✔ RT-43: workDuration=null rejection lifecycle (0.035166ms)
+✔ RT-43: standard setup rejection observation matches manifest or remains conditional (0.030583ms)
+✔ RT-43: valid durations 0/0 (0.027542ms)
+✔ RT-43: valid durations 20/30 (0.032666ms)
+✔ RT-43: valid durations 80/60 (0.051666ms)
+✔ RT-43: valid durations 40/60 (0.133ms)
+✔ RT-43: valid durations 0/100 (0.0535ms)
+✔ RT-43: valid durations 100/0 (0.052375ms)
+✔ RT-43: cancellation during pre-abort (0.050667ms)
+✔ RT-43: cancellation during setup (0.0485ms)
+✔ RT-43: cancellation during work (0.040875ms)
+✔ RT-43: undefined durations keep defaults (0.046959ms)
+✔ RT-42: invalid inputs reject before even pre-aborted parent admission (0.129167ms)
+✔ RT-41/43: parent abort cleans resources retained after initial scheduling exception (0.101959ms)
+✔ RT-43: private validity policies produce opposing judgments without supplying a validator (0.086ms)
+✔ same implementation satisfies bounded integer witness but violates explicit validation witness (1.054417ms)
+✔ calibration inventory preserves distinct stop-boundary annotations (not a semantic evaluator) (0.107041ms)
+✔ a completed successful run for the exact release commit permits publication (0.392208ms)
+✔ a green different commit, missing CI, and incomplete or unsuccessful CI block publication (0.22625ms)
+✔ an older green run cannot override the latest failed run for the same commit (0.649584ms)
+✔ behavioral corpus keeps task prompts blind to skill selection and judgment (1.116125ms)
+✔ judge output contract requires every field and rejects extra keys at every object (0.095333ms)
+✔ rule-drift ground truth is executable and confined to the documented interval (3.509125ms)
+✔ coverage fixture has correct new behavior but its tests miss a removed branch (300.200542ms)
+✔ mocked-subject fixture passes even if the real calculation throws (301.653875ms)
+✔ clean architecture and local severity fixtures satisfy their functional contracts (126.6235ms)
+✔ case validation rejects traversal and instruction injection fixture paths (1.56425ms)
+✔ observed trigger requires successful content-read evidence rather than claims or mentions (1.1955ms)
+✔ trace records failed turns and malformed logs instead of treating them as completed (0.258208ms)
+✔ judge accepts substantively complete baseline prose without Brooks labels (0.635209ms)
+✔ judge evidence and matched/missed IDs must be grounded and internally consistent (0.819125ms)
+✔ paired summaries exclude missing or failed arms and reject duplicate pair records (0.3695ms)
+✔ metrics distinguish unlabeled severity, uncertain findings, and nontrigger denominators (0.289667ms)
+✔ runner environment retains transport settings while isolating identity and configuration (0.206834ms)
+✔ runner materializes identical committed fixtures and installs skills only in treatment (600.258875ms)
+✔ process execution captures input/output and reports timeout, exit failures, and missing binary (346.004666ms)
+✔ CLI offline validation does not need Codex binary, auth, or live model settings (136.397334ms)
+✔ offline fake Codex exercises isolated treatment, baseline, and blind judge sessions (2935.249167ms)
+✔ session rejects preflight skill mismatch before execution and removes temporary credentials (522.591125ms)
+✔ session preserves failed-turn evidence without publishing a successful final answer (618.06375ms)
+✔ discovery reads only developer skill catalogs and never user or judge answer mentions (0.262083ms)
+✔ matched finding severity calibration cannot contradict the fixed rubric (0.112417ms)
+✔ process cancellation terminates an active process and rejects a pre-aborted launch (1.3735ms)
+✔ aborted session removes temporary credentials and never writes a completed answer (1090.52625ms)
+✔ frozen Codex pilot-2026-11-04 judgments, paired summary, and observed reads remain reproducible (1.637791ms)
+✔ frozen Codex calibration-2026-11-04 judgments, paired summary, and observed reads remain reproducible (1.099875ms)
+✔ severity calibration rerun preserves the original evaluation criteria and controls (0.715666ms)
+✔ three-run severity archive preserves fixed criteria, complete attempts, and recovery provenance (3.776292ms)
+✔ three-run archive keeps grounded grades and replayable skill-read evidence (2.119708ms)
+✔ delivery accepts exact artifact and rejects lost terminal LF, added prose and stale content (3.625292ms)
+✔ receipt binds valid ledger and report, not only a valid-looking score (1.651625ms)
+✔ assembly round-trips Unicode, escapes and newline without overriding the report (1.042542ms)
+✔ CLI assembles fresh file, checks actual bytes and never overwrites an existing artifact (554.977167ms)
+✔ all eight retained strict failures differ only by terminal LF; checked assembly preserves it (1539.767167ms)
+✔ market pins the published npm version and its registry publication time (0.699083ms)
+✔ unpublished or invalid releases cannot produce installable market entries (0.156209ms)
+✔ metadata checks ignore topic order and preserve unrelated labels (0.697833ms)
+✔ missing and changed repository metadata and managed labels are reported (0.132959ms)
+✔ literal strict, balanced and legacy witnesses agree with the documented deduction table (3.114416ms)
+✔ SR-03 half-up and no-diff witnesses keep exact weights; clean is distinct from skipped (0.944833ms)
+✔ SR-04 and every required unknown dimension suppress the composite without redistributing its weight (0.902917ms)
+✔ canonical report rejects the observed stale headline, altered table/arithmetic and duplicate totals (0.573208ms)
+✔ preserved AS-21 completed response exposes both disagreeing score labels and fails the new block contract (22.641375ms)
+✔ the actual AS-21 severity-only supplied ledger is supported without inventing risk codes (2.986708ms)
+✔ capped ledgers reject excess deductions, duplicate IDs and invalid or missing schema fields (0.542834ms)
+✔ CLI render/check and symlink entry points produce output; invalid commands/reports fail nonzero (2420.071125ms)
+✔ finalization inserts one verified total and rejects competing score surfaces (1.699042ms)
+✔ finalize/check-report CLI preserves inputs, refuses overwrites and binds final bytes (695.859167ms)
+✔ every canonical global and project mapping installs flat bundled skills (4185.53825ms)
+✔ DSH_HOME override and custom destination preserve unrelated files (418.3615ms)
+✔ help, list and version do not install anything (1273.29725ms)
+✔ invalid arguments fail before writing (1122.283083ms)
+✔ source overlap and symlink aliases are rejected (550.33725ms)
+✔ npm packed artifact can install without repository files or network (974.636458ms)
+✔ shell-installed health helper works in a standalone skill directory (387.766583ms)
+✔ score labels work for all report modes including bold and final sweep score (3.365333ms)
+✔ full sweep finalizer output is consumed as the single final composite score (4.930958ms)
+✔ invalid, ambiguous and missing scores are not valid machine reports (0.638ms)
+✔ fenced examples are not interpreted as report scores or findings (0.489916ms)
+✔ custom findings preserve severity and code through parser and SARIF (1.146292ms)
+✔ missing severity and incomplete findings cannot silently become clean reports (0.3305ms)
+✔ no-risk scenarios reject unrelated findings while targeted exclusions permit them (0.240666ms)
+✔ prose mentions are not findings and keyword soup cannot earn a pass (0.130291ms)
+✔ every finding needs all Iron Law fields and onboarding cannot contain bold scores (0.101083ms)
+✔ mode registry shares review test knowledge and restricts tool-less runners (0.881ms)
+✔ suppressed-only reports keep score 100 and emit no active findings or SARIF results (0.247833ms)
+✔ suppression boundaries exclude inner findings and require fresh active severity afterward (0.243417ms)
+✔ malformed suppression blocks cannot silently hide subsequent active findings (0.266ms)
+✔ strict parsing rejects contradictory header and inline severity signals (0.122833ms)
+✔ literal title severity labels preserve tiers through parser and SARIF without headings (0.281958ms)
+✔ literal severity labels must agree with markers and never leak into following findings (0.202167ms)
+✔ PR event SHAs select a non-main merge-base diff and trusted base policy (803.05725ms)
+✔ explicit refs, staged and unstaged inputs are honored without a main branch (294.08075ms)
+✔ missing refs, merge bases and Git repositories fail instead of pretending to scan (399.82875ms)
+✔ empty diff is skipped without loading SDK or writing SARIF; unsupported modes fail before API (1138.289541ms)
+✔ CI emits complete structured results, but malformed and truncated responses fail closed (1203.03125ms)
+✔ gate recomputes custom severities and rejects invalid report envelopes (616.2435ms)
+✔ API eval rejects explicit sweep and reports excluded sweep scenarios without API calls for them (519.519917ms)
+✔ API eval fails the process for partial and truncated results (344.772833ms)
+✔ scenario schema accepts review test risks and rejects conflicting or malformed boundaries (891.031708ms)
+✔ critical gate accepts suppressed-only reports but rejects ambiguous or malformed severity boundaries (569.325417ms)
+✔ default validation and plan mode never require Codex or credentials (736.047875ms)
+✔ plans freeze exact artifacts, reject edits and invalid settings, and rotate three arms (530.008084ms)
+✔ fake CLI exercises A/B/C isolation, same tasks, private cleanup and blind packets (3217.05025ms)
+✔ mismatch: preserve failure evidence and exclude incomplete triplet (1637.999209ms)
+✔ execution-failure: preserve failure evidence and exclude incomplete triplet (1755.008583ms)
+✔ offline judgments validate quotes, completeness, severity, and only new C-over-B issues count (101.284625ms)
+✔ trace read proxy excludes echo/search claims and failed commands (0.194834ms)
+✔ all expanded cases freeze visible inputs and count unresolved controls by manifest kind (110.899375ms)
+✔ pre-aborted execution records interruption without starting fake CLI (184.762625ms)
+✔ six dispute cases plan independently without a model process and keep private policies outside inputs (1641.658542ms)
+ℹ tests 946
+ℹ suites 0
+ℹ pass 946
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21112.830209
+✔ one explicit recovery preserves failure and verifies each remaining answer (1850.5275ms)
+✔ recovery failure stops without admitting later calls (330.29775ms)
+✔ completed parent answers are not replayed and parent failure is bound (3035.864917ms)
+✔ chained recovery binds both failures, accumulates budget and never repeats completed turns (3367.835083ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8701.722458
+
+> brooks-lint@1.9.1 evals:runtime:hard
+> node evals/research/runtime/hard-benchmark/cli.mjs validate && node --test evals/research/runtime/hard-benchmark/hard-benchmark.test.mjs
+
+{
+  "status": "PASS",
+  "families": 12,
+  "cases": 36,
+  "freezeSha256": "00fd5a575c0db2249b96103faec48e74914f2eadd0d5da00294e4fbc82b5b682",
+  "modelCalls": 0
+}
+✔ HB-01: actual modules preserve controls and distinguish the contract (1.953083ms)
+✔ HB-02: actual modules preserve controls and distinguish the contract (0.951334ms)
+✔ HB-03: actual modules preserve controls and distinguish the contract (0.667917ms)
+✔ HB-04: actual modules preserve controls and distinguish the contract (0.683541ms)
+✔ HB-05: actual modules preserve controls and distinguish the contract (0.808ms)
+✔ HB-06: actual modules preserve controls and distinguish the contract (0.814125ms)
+✔ HB-07: actual modules preserve controls and distinguish the contract (0.938666ms)
+✔ HB-08: actual modules preserve controls and distinguish the contract (0.473333ms)
+✔ HB-09: actual modules preserve controls and distinguish the contract (0.714ms)
+✔ HB-10: actual modules preserve controls and distinguish the contract (0.7985ms)
+✔ HB-11: actual modules preserve controls and distinguish the contract (0.620791ms)
+✔ HB-12: actual modules preserve controls and distinguish the contract (0.70525ms)
+✔ HB-13: actual modules preserve controls and distinguish the contract (0.695375ms)
+✔ HB-14: actual modules preserve controls and distinguish the contract (0.53225ms)
+✔ HB-15: actual modules preserve controls and distinguish the contract (0.611541ms)
+✔ HB-16: actual modules preserve controls and distinguish the contract (0.850083ms)
+✔ HB-17: actual modules preserve controls and distinguish the contract (0.425ms)
+✔ HB-18: actual modules preserve controls and distinguish the contract (0.161041ms)
+✔ HB-19: actual modules preserve controls and distinguish the contract (0.591709ms)
+✔ HB-20: actual modules preserve controls and distinguish the contract (0.887875ms)
+✔ HB-21: actual modules preserve controls and distinguish the contract (0.461875ms)
+✔ HB-22: actual modules preserve controls and distinguish the contract (0.583708ms)
+✔ HB-23: actual modules preserve controls and distinguish the contract (0.399834ms)
+✔ HB-24: actual modules preserve controls and distinguish the contract (0.54675ms)
+✔ HB-25: actual modules preserve controls and distinguish the contract (0.959084ms)
+✔ HB-26: actual modules preserve controls and distinguish the contract (0.46025ms)
+✔ HB-27: actual modules preserve controls and distinguish the contract (0.455083ms)
+✔ HB-28: actual modules preserve controls and distinguish the contract (0.632292ms)
+✔ HB-29: actual modules preserve controls and distinguish the contract (0.543834ms)
+✔ HB-30: actual modules preserve controls and distinguish the contract (0.528708ms)
+✔ HB-31: actual modules preserve controls and distinguish the contract (0.489667ms)
+✔ HB-32: actual modules preserve controls and distinguish the contract (0.379958ms)
+✔ HB-33: actual modules preserve controls and distinguish the contract (0.448875ms)
+✔ HB-34: actual modules preserve controls and distinguish the contract (0.86725ms)
+✔ HB-35: actual modules preserve controls and distinguish the contract (0.626375ms)
+✔ HB-36: actual modules preserve controls and distinguish the contract (0.187916ms)
+✔ deadline-rebase: protected mechanism mutation is rejected (3.942375ms)
+✔ retry-token-ownership: protected mechanism mutation is rejected (3.530291ms)
+✔ hedge-cancel-drain: protected mechanism mutation is rejected (3.161042ms)
+✔ lease-fencing: protected mechanism mutation is rejected (3.221917ms)
+✔ batch-item-expiry: protected mechanism mutation is rejected (2.912792ms)
+✔ singleflight-waiters: protected mechanism mutation is rejected (2.896542ms)
+✔ weighted-reservation: protected mechanism mutation is rejected (2.784ms)
+✔ breaker-probe-epoch: protected mechanism mutation is rejected (2.890708ms)
+✔ fanout-backpressure: protected mechanism mutation is rejected (3.18975ms)
+✔ dedupe-retention: protected mechanism mutation is rejected (3.155833ms)
+✔ tenant-session-reuse: protected mechanism mutation is rejected (2.769459ms)
+✔ shutdown-retry-drain: protected mechanism mutation is rejected (2.895375ms)
+✔ family-level split, frozen inventory, full offline observations (60.532458ms)
+✔ all 36 exported input bundles exclude evaluator metadata and close imports (1298.774625ms)
+✔ source byte drift is rejected before export (102.230667ms)
+✔ additional files are rejected by frozen inventory (107.307167ms)
+✔ rubric masquerading as an input is rejected even before freeze (63.88475ms)
+✔ absolute and traversal input paths are rejected (0.0965ms)
+✔ symlink source and unexpected symlink inventory are rejected (60.222792ms)
+✔ split drift and inflated independence are rejected (62.536042ms)
+✔ hidden imports and evaluator references cannot be exported (61.676917ms)
+✔ unknown case and policy are rejected (38.043541ms)
+✔ an extra symlink outside visible inputs is rejected by inventory (89.036917ms)
+✔ fanout required/optional accounting contract is consistent in all three cases (0.228ms)
+✔ static import scanner handles supported bindings, comments and side effects (0.083458ms)
+✔ allowlisted side-effect import survives explicit freeze and input export (131.563542ms)
+✔ unclosed side-effect import ./missing.mjs is rejected before freeze and export (62.754042ms)
+✔ unclosed side-effect import ../outside.mjs is rejected before freeze and export (62.948958ms)
+✔ unclosed side-effect import node:fs is rejected before freeze and export (62.036875ms)
+✔ unclosed side-effect import /tmp/outside.mjs is rejected before freeze and export (61.377ms)
+✔ unsupported import syntax rejected: import("./clock.mjs"); (0.066083ms)
+✔ unsupported import syntax rejected: import.meta.url; (0.026792ms)
+✔ unsupported import syntax rejected: import "./clock.mjs" with {type:"json"}; (0.037583ms)
+✔ unsupported import syntax rejected: import { Clock } from "./clock.mjs" assert {type:"json"}; (0.023708ms)
+✔ unsupported import syntax rejected: export * from "./clock.mjs"; (0.026416ms)
+✔ unsupported import syntax rejected: export { Clock } from "./clock.mjs"; (0.019916ms)
+✔ unsupported import syntax rejected: import Clock, from "./clock.mjs"; (0.019792ms)
+✔ unsupported import syntax rejected: import Clock from "./clock.mjs" (0.021208ms)
+✔ unsupported import syntax rejected: import "./\u0063lock.mjs"; (0.02025ms)
+ℹ tests 75
+ℹ suites 0
+ℹ pass 75
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2507.304208
+
+> brooks-lint@1.9.1 evals:runtime:v2
+> node evals/research/runtime/benchmark-v2/cli.mjs validate && node --test evals/research/runtime/benchmark-v2/suite.test.mjs
+
+PASS: 18 cases, 6 families; offline only
+✔ structure and immutable dependency freeze (18.758792ms)
+✔ committed evidence equals actual execution (20.164541ms)
+✔ BV-01 executes actual fixture and benign boundary (0.303542ms)
+✔ BV-01 exports only model-visible closed bundle (14.526458ms)
+✔ BV-02 executes actual fixture and benign boundary (0.284833ms)
+✔ BV-02 exports only model-visible closed bundle (14.020083ms)
+✔ BV-03 executes actual fixture and benign boundary (0.281083ms)
+✔ BV-03 exports only model-visible closed bundle (14.005708ms)
+✔ BV-04 executes actual fixture and benign boundary (0.345917ms)
+✔ BV-04 exports only model-visible closed bundle (13.98275ms)
+✔ BV-05 executes actual fixture and benign boundary (0.290417ms)
+✔ BV-05 exports only model-visible closed bundle (14.373708ms)
+✔ BV-06 executes actual fixture and benign boundary (0.330166ms)
+✔ BV-06 exports only model-visible closed bundle (14.319417ms)
+✔ BV-07 executes actual fixture and benign boundary (0.239583ms)
+✔ BV-07 exports only model-visible closed bundle (13.655875ms)
+✔ BV-08 executes actual fixture and benign boundary (0.23175ms)
+✔ BV-08 exports only model-visible closed bundle (13.620625ms)
+✔ BV-09 executes actual fixture and benign boundary (0.220084ms)
+✔ BV-09 exports only model-visible closed bundle (13.470541ms)
+✔ BV-10 executes actual fixture and benign boundary (0.225542ms)
+✔ BV-10 exports only model-visible closed bundle (13.653583ms)
+✔ BV-11 executes actual fixture and benign boundary (0.231958ms)
+✔ BV-11 exports only model-visible closed bundle (13.77075ms)
+✔ BV-12 executes actual fixture and benign boundary (0.219084ms)
+✔ BV-12 exports only model-visible closed bundle (14.224916ms)
+✔ BV-13 executes actual fixture and benign boundary (0.26025ms)
+✔ BV-13 exports only model-visible closed bundle (14.077792ms)
+✔ BV-14 executes actual fixture and benign boundary (0.233958ms)
+✔ BV-14 exports only model-visible closed bundle (13.638ms)
+✔ BV-15 executes actual fixture and benign boundary (0.226875ms)
+✔ BV-15 exports only model-visible closed bundle (13.392083ms)
+✔ BV-16 executes actual fixture and benign boundary (0.332666ms)
+✔ BV-16 exports only model-visible closed bundle (13.109875ms)
+✔ BV-17 executes actual fixture and benign boundary (0.274875ms)
+✔ BV-17 exports only model-visible closed bundle (13.256917ms)
+✔ BV-18 executes actual fixture and benign boundary (0.2535ms)
+✔ BV-18 exports only model-visible closed bundle (13.239459ms)
+✔ outbox-delivery unresolved implementation matches defective sibling (26.316125ms)
+✔ cache-publish unresolved implementation matches defective sibling (26.307458ms)
+✔ tenant-cache unresolved implementation matches defective sibling (25.813792ms)
+✔ checkpoint-epoch unresolved implementation matches defective sibling (26.188084ms)
+✔ rollout-snapshot unresolved implementation matches defective sibling (26.129916ms)
+✔ test-oracle unresolved implementation matches defective sibling (27.72175ms)
+✔ outbox partial fixes isolate independent issues (0.5475ms)
+✔ test oracle partial fixes independently kill mutants (0.415666ms)
+✔ rollout unresolved has executable compatible deployment completions (0.099958ms)
+✔ multi-issue recall and open-set pending are distinct (0.241708ms)
+✔ rubric cannot be exported through whitelist (41.856375ms)
+✔ reject import ./missing.mjs (33.071459ms)
+✔ reject import ../../rubric.json (32.689375ms)
+✔ reject import node:fs (32.73925ms)
+✔ reject input symlink (38.46725ms)
+✔ freeze catches content and added files (31.3605ms)
+✔ every unresolved case executes two compatible contract completions (2.069917ms)
+✔ export fails on stale source freeze (33.739334ms)
+✔ precision bounds preserve pending and novel findings (0.1295ms)
+✔ BV-04 guard transplant kills bounded defect (0.354375ms)
+✔ BV-07 guard transplant kills bounded defect (0.246459ms)
+✔ BV-10 guard transplant kills bounded defect (0.383917ms)
+✔ BV-13 guard transplant kills bounded defect (0.189917ms)
+✔ rejected and pending duplicate causal findings count once (0.047291ms)
+✔ global identity uniqueness does not imply tenant authorization binding (0.6075ms)
+✔ permissive tenant completion enforces immutable binding before cache access in both orders (0.387917ms)
+✔ cue audit pins six revised contexts and common task instructions (1.968958ms)
+✔ context changes require renewed cue audit (46.581417ms)
+✔ copying entire evaluator alternatives is rejected even if audit digest updated (39.624083ms)
+ℹ tests 67
+ℹ suites 0
+ℹ pass 67
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 910.438
+
+> brooks-lint@1.9.1 evals:runtime:benchmark-audit
+> node --test evals/research/runtime/benchmark-audit/audit.test.mjs evals/research/runtime/benchmark-audit/plan.test.mjs evals/research/runtime/benchmark-audit/login-runner.test.mjs
+
+✔ saved inventory matches every frozen local case and pinned external source (13.23475ms)
+✔ model-independent freeze covers exactly 18 calibration cases and 54 balanced turns (4088.360125ms)
+✔ assembly never exports rubric/labels/IDs; arm B and C share exact core guidance (2016.217459ms)
+✔ tamper and rehashed drift fail closed for corpus, guidance, prompts, budget, source and schedule (8031.511375ms)
+✔ registration requires explicit model, effort, version and provenance; binding is immutable (7954.551125ms)
+✔ no implicit live route, mixed route or remote fixture can create outputs (6751.715958ms)
+✔ 54-turn process fixture preserves raw evidence, identities, intents and pending semantics (10262.714084ms)
+✔ offline wrong-model stops admission and preserves full denominator (3449.122584ms)
+✔ offline malformed stops admission and preserves full denominator (3461.643709ms)
+✔ offline missing-usage stops admission and preserves full denominator (3504.976667ms)
+✔ offline token-stop stops admission and preserves full denominator (3519.551083ms)
+✔ spawn failure archives safe failure evidence without admitting next case (3382.531541ms)
+✔ saved readiness freeze and compressed raw drill remain auditable through explicit pinned verification (3994.968125ms)
+✔ historical readiness rejects changed frozen bytes and changed compressed raw records (462.921875ms)
+✔ combined catalog preserves both frozen suites without admitting external labels (136.931875ms)
+✔ canonical input interface contains no evaluator envelope (101.384958ms)
+✔ schedule is reproducible, fully paired, randomized and explicitly not executable (6060.390375ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61012.1355
+
+> brooks-lint@1.9.1 evals:runtime:pack
+> node evals/research/runtime/pack-benchmark/suite.mjs validate && node --test evals/research/runtime/pack-benchmark/suite.test.mjs
+
+{
+  "cases": 12,
+  "runtime": 9,
+  "coreGuardrails": 2,
+  "routingGuardrails": 1,
+  "independentHoldouts": 0
+}
+✔ 12 cases preserve runtime versus guardrail denominators (1.989041ms)
+✔ actual cancellation code violates independence and satisfies cohort ownership (1.107583ms)
+✔ duplicate delivery is protected; business meaning changes verdict (1.029625ms)
+✔ flush actually refreshes; only acknowledgement contract changes verdict (0.973625ms)
+✔ core and routing witnesses execute (0.71975ms)
+✔ paired runtime source is byte-identical and only contract varies (0.927916ms)
+✔ weak policies cannot receive complete or expected-issue credit (3.805834ms)
+✔ semantic scoring requires per-judgment evidence and separates pending adjudication (0.937959ms)
+✔ full and smoke freezes bind budget, repetition, scope and inputs without model calls (53.815459ms)
+✔ prompt export omits rubric, labels, case id, arm and evaluator-only artifacts (27.83025ms)
+✔ registration requires explicit selected model effort CLI and provenance (19.963167ms)
+✔ review packet shuffles and strips group/order labels; mapping is separate (10.49725ms)
+✔ offline real adapter archives nine fixture turns without network or auth (1010.516667ms)
+✔ adapter stops at first failed model identity and preserves intent (120.842875ms)
+✔ report keeps runtime and guardrail denominators separate and fails missing annotations (14.716334ms)
+✔ review mapping rejects swapped or forged opaque identities (6.882541ms)
+✔ run verifier rejects summary forgery, raw corruption, identity/usage drift and unsafe paths (1034.529042ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2425.410042
+
+> brooks-lint@1.9.1 evals:all-skills
+> node evals/research/all-skills/suite.mjs validate && node --test evals/research/all-skills/suite.test.mjs
+
+{"productSkills":["brooks-audit","brooks-debt","brooks-health","brooks-review","brooks-sweep","brooks-test"],"productCases":31,"maintenanceCases":4,"independentHoldouts":0}
+✔ catalog derives all six product skills, scoped maintenance and five kinds (4.433458ms)
+✔ authored visible tests expose surviving mutant and implementation-coupling (710.867458ms)
+✔ health score strictness, clean dimensions and no-diff weights are exact (0.795875ms)
+✔ restricted arithmetic evaluator follows numeric/boolean equality and rejects code execution (0.590375ms)
+✔ sweep positive repairs change actual temporary files and pass independent literals (2.790625ms)
+✔ sweep no-op, wrong behavior, malformed envelope and unsafe paths are task failures (4.540792ms)
+✔ protected, unknown and refusal sweep controls preserve all bytes (5.251416ms)
+✔ task criteria never become bug recall or finding precision (0.406083ms)
+✔ semantic excerpts, hashes, duplicate credit and pending adjudication are guarded (0.593167ms)
+✔ simulated blanket policies cannot earn complete credit (10.418833ms)
+✔ full and smoke freezes leave model unset, bind all sources and require registration (322.012833ms)
+✔ responder exports exclude evaluators and target only required skill text (51.782667ms)
+✔ full statistics separate skill, metric kind, maintenance and artifacts (52.373916ms)
+✔ fake CLI end-to-end14 turns, raw verification, masked packets and mutation rejection (1613.666916ms)
+✔ wrong identity stops after first attempted turn, preserving13not-run (158.844542ms)
+✔ sweep rejects JavaScript updates and return ASI, preserves valid unary/exponent syntax (16.357458ms)
+✔ partial health evidence exports neutral scoring policy equally to both arms (22.964416ms)
+✔ debt priority history consistently supports Pain2 and Spread2 (715.331166ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3810.653875
+
+> brooks-lint@1.9.1 evals:campaign:validate
+> node --test evals/research/campaign-plan.test.mjs
+
+✔ completed campaign verifies explicitly against pinned source without authorizing current execution (2753.537666ms)
+✔ historical gate rejects altered and rehashed scope, budgets and omitted studies (0.845459ms)
+✔ historical gate checks preserved file bytes, not only self-reported hashes (37.891792ms)
+✔ current-source validation never falls back to historical acceptance after guide revision (291.143833ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3205.942916
+
+> brooks-lint@1.9.1 evals:skill-revision
+> node --test evals/research/skill-revision/case-witnesses.test.mjs evals/research/skill-revision/suite.test.mjs
+
+✔ six authored boundary cases distinguish source inventory, exact ledgers and edit authority (433.8085ms)
+✔ artifact controls reject draft prefixes, unauthorized fixes, no-op positives and wrong behavior (439.786166ms)
+✔ 22 cases retain immutable16 originals and separate6 new cases; prospective witness deltas are explicit (66.600709ms)
+✔ 132turn freeze binds both guidance versions and identity-free strict budget (489.853125ms)
+✔ both arms receive equal case/rule inputs and no rubric, oracle, caseID or arm labels (56.550208ms)
+✔ rehashed source, policy, budget, old/new guidance and schedule changes fail closed (574.732958ms)
+✔ offline arithmetic reports old/new arms and cohorts separately with failures retained (72.153042ms)
+✔ 132turn fake CLI end-to-end reconstructs identities, receipts and masked packets (14788.067375ms)
+✔ wrong model and missing usage stop admission without retry; token limit allows only one-turn overshoot (952.701708ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17124.104042
+
+> brooks-lint@1.9.1 evals:health-tool
+> node --test evals/research/health-tool-retest/suite.test.mjs
+
+✔ freeze covers eight cases, both flows, three paired repeats and bounded budget (32.386167ms)
+✔ host tool is deterministic; two snapshots and missing evidence preserve separate ledgers (3.407708ms)
+✔ workflow success does not excuse absent tool or edited model final (0.191042ms)
+✔ new final selection retains raw commentary but scores completed final phase only (0.1745ms)
+✔ isolated fake CLI success (142.46775ms)
+✔ isolated fake CLI coalesced (102.071041ms)
+✔ isolated fake CLI omitted-tool (107.903958ms)
+✔ isolated fake CLI edited-answer (110.238166ms)
+✔ isolated fake CLI incomplete-ledger (107.823333ms)
+✔ isolated fake CLI invalid-ledger (109.42175ms)
+✔ isolated fake CLI foreign-scope (107.730417ms)
+✔ isolated fake CLI foreign-tool (115.204459ms)
+✔ isolated fake CLI foreign-item (112.131791ms)
+✔ isolated fake CLI wrong-model (102.441625ms)
+✔ isolated fake CLI timeout (102.993792ms)
+✔ full 48-turn synthetic execution, receipts and tamper rejection (5542.507916ms)
+✔ unknown usage stops admission after one completed answer; explicit live required (190.648708ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7107.964542
+
+> brooks-lint@1.9.1 evals:skills:v2
+> node evals/research/skills-benchmark-v2/suite.mjs validate && node --test evals/research/skills-benchmark-v2/suite.test.mjs evals/research/skills-benchmark-v2/campaign.test.mjs
+
+{
+  "structure": {
+    "cases": 36,
+    "skills": 6,
+    "families": 7,
+    "regressionCases": 18,
+    "challengeCases": 18,
+    "independentHoldouts": 0,
+    "liveCalls": 0
+  },
+  "witnesses": [
+    {
+      "id": "BV2-01",
+      "observed": 1,
+      "perLine": 2,
+      "perInvoice": 1,
+      "classificationDependsOnContract": false
+    },
+    {
+      "id": "BV2-02",
+      "observed": 2,
+      "perLine": 2,
+      "perInvoice": 1,
+      "classificationDependsOnContract": false
+    },
+    {
+      "id": "BV2-03",
+      "observed": 1,
+      "perLine": 2,
+      "perInvoice": 1,
+      "classificationDependsOnContract": true
+    },
+    {
+      "id": "BV2-04",
+      "value": 90,
+      "domainImportsAdapter": true,
+      "activeBuildKnown": true
+    },
+    {
+      "id": "BV2-05",
+      "value": 90,
+      "domainImportsAdapter": false,
+      "activeBuildKnown": true
+    },
+    {
+      "id": "BV2-06",
+      "value": 90,
+      "domainImportsAdapter": true,
+      "activeBuildKnown": false
+    },
+    {
+      "id": "BV2-07",
+      "before": [
+        90,
+        90
+      ],
+      "afterOneSided": [
+        80,
+        90
+      ],
+      "sharedPolicy": true
+    },
+    {
+      "id": "BV2-08",
+      "before": [
+        90,
+        90
+      ],
+      "afterOneSided": [
+        80,
+        90
+      ],
+      "sharedPolicy": false
+    },
+    {
+      "id": "BV2-09",
+      "before": [
+        90,
+        90
+      ],
+      "afterOneSided": [
+        80,
+        90
+      ],
+      "sharedPolicy": null
+    },
+    {
+      "id": "BV2-10",
+      "originalPass": true,
+      "renamePass": false,
+      "behaviorPreserved": true,
+      "localIssue": true,
+      "suiteKnown": true
+    },
+    {
+      "id": "BV2-11",
+      "originalPass": true,
+      "renamePass": true,
+      "behaviorPreserved": true,
+      "localIssue": false,
+      "suiteKnown": true
+    },
+    {
+      "id": "BV2-12",
+      "originalPass": true,
+      "renamePass": false,
+      "behaviorPreserved": true,
+      "localIssue": true,
+      "suiteKnown": false
+    },
+    {
+      "id": "BV2-13",
+      "composite": 80
+    },
+    {
+      "id": "BV2-14",
+      "composite": 100
+    },
+    {
+      "id": "BV2-15",
+      "composite": null
+    },
+    {
+      "id": "BV2-16",
+      "baselinePass": false,
+      "repairAuthorized": true,
+      "legacyPass": false,
+      "roundLimit": 2
+    },
+    {
+      "id": "BV2-17",
+      "baselinePass": true,
+      "repairAuthorized": false,
+      "legacyPass": false,
+      "roundLimit": 2
+    },
+    {
+      "id": "BV2-18",
+      "baselinePass": false,
+      "repairAuthorized": false,
+      "legacyPass": false,
+      "roundLimit": 2
+    },
+    {
+      "id": "BV2-19",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-20",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-21",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV2-22",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-23",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-24",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV2-25",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-26",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-27",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV2-28",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-29",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-30",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV2-31",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-32",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-33",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV2-34",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-35",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV2-36",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    }
+  ]
+}
+✔ simulation registration seals identity, shared capabilities, explicit budgets and no patch execution (187.837791ms)
+✔ live registration rejects missing retained probe before execution (55.667917ms)
+✔ a simulated registration cannot be switched to live; output cannot be overwritten (95.753792ms)
+✔ all 108 authored turns collect and verify raw records, packets and per-skill/cohort report; no model patches run (13237.006416ms)
+✔ first unknown-usage stops and retains every not-run turn (241.844666ms)
+✔ first wrong-model stops and retains every not-run turn (235.527667ms)
+✔ observed token admission stops before a second turn at the cap (221.247583ms)
+✔ simulation probe artifacts cannot register a live campaign even with matching hashes (57.322042ms)
+✔ health and sweep mechanical completion requires an actual retained receipt, including unknown dimensions (0.848791ms)
+✔ every shipped analysis mode has a near-miss and unresolved sibling; no independent holdout claim (11.707958ms)
+✔ all thirty-six authored contracts have executable offline witnesses (6600.396792ms)
+✔ sweep repair passes runnable checks while preserving pre-existing failures and user work (616.779208ms)
+✔ sweep rejects unauthorized edits, unfinished fifth phase, unlimited critical rounds, bad repair and blocked edits (106.974042ms)
+✔ three arms share task contracts, hide rubric/oracle and retain unequal context cost (0.968625ms)
+✔ freeze is deterministic, counterbalances order, locks all prompts and refuses tampering (114.613417ms)
+✔ semantic review separates local issue recall, global unresolved label and false-defect claims (0.745875ms)
+✔ report retains failure and unknown usage separately from semantic recall (14.811666ms)
+✔ multi-file challenge repairs retain both routes, isolate opaque identities and preserve reuse (423.684584ms)
+✔ authored fixture materialization rejects traversal and absolute paths before execution (0.879375ms)
+✔ supplied sealed rubrics determine denominators even when current-development rubrics differ (0.541875ms)
+✔ protected shared repository tests kill delimiter-collision mutation and preserve cross-route reuse (1922.032417ms)
+✔ symlink suite CLI really writes its freeze rather than silently succeeding (190.575042ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14456.800084
+
+> brooks-lint@1.9.1 evals:health-workflow:v2
+> node --test evals/research/health-workflow-v2/workflow.test.mjs
+
+✔ host rendering retains raw identity, yields one verified score and never claims a model tool call (1.917458ms)
+✔ a missing dimension stays unavailable, not a perfect score (0.577375ms)
+✔ wrong report count, malformed output, invalid ledger and hand-written scores fail closed (0.86975ms)
+✔ required probe rejects no-call explanations, mismatched receipts, edited final and incomplete cleanup (0.900708ms)
+✔ host execution rejects unspecified binding before executing anything (0.157958ms)
+✔ new adapter enables code-mode without enabling shell, plugins or account refresh (0.123334ms)
+✔ pinning includes executable companion and rejects missing or changed companion (1.592125ms)
+✔ probe freezes one turn and rejects unapproved execution, altered plan and stale anchor (1.486708ms)
+✔ probe CLI freeze executes through a symlink rather than silently returning (106.486334ms)
+✔ prospective adapter retains isolation boundary: success (140.022666ms)
+✔ prospective adapter retains isolation boundary: foreign-scope (111.860917ms)
+✔ prospective adapter retains isolation boundary: foreign-tool (112.254125ms)
+✔ prospective adapter retains isolation boundary: foreign-item (108.348542ms)
+✔ prospective adapter retains isolation boundary: wrong-model (101.261084ms)
+✔ prospective adapter retains isolation boundary: timeout (133.569ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 939.131542
+
+> brooks-lint@1.9.1 evals:health-transport:v3
+> node --test evals/research/health-transport-v3/transport.test.mjs
+
+✔ official login provider stays unoverridden; proxy is an explicit opt-in (0.80525ms)
+✔ prospective isolated fixture success (140.227709ms)
+✔ prospective isolated fixture retry (110.325667ms)
+✔ prospective isolated fixture timeout (104.628209ms)
+✔ prospective isolated fixture foreign-scope (108.36575ms)
+✔ prospective isolated fixture wrong-model (101.968125ms)
+✔ new probe binds proxy fingerprint without storing its URL and rejects drift/no live flag (2.365125ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 681.527875
+
+> brooks-lint@1.9.1 evals:skills:transport:v3
+> node --test evals/research/skills-benchmark-v2/campaign-v3.test.mjs
+
+✔ retained real evidence verifies without reading the current proxy (5.862958ms)
+✔ a forged probe, edited receipt, resealed plan, or different identity is rejected (1.53925ms)
+✔ registration anchor and explicit live mode are required (44.100791ms)
+✔ full v3 simulation preserves 108 records, packets, and frozen-rubric reporting (13383.835792ms)
+✔ v3 stops after one turn on transport-retry (193.415375ms)
+✔ v3 stops after one turn on execution-failure (185.002334ms)
+✔ v3 stops after one turn on usage-unavailable (223.422125ms)
+✔ v3 stops after one turn on budget (192.617042ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14401.231125
+
+> brooks-lint@1.9.1 evals:skills:v4
+> node evals/research/skills-benchmark-v4/suite.mjs validate && node --test evals/research/skills-benchmark-v4/suite.test.mjs evals/research/skills-benchmark-v4/campaign.test.mjs evals/research/skills-benchmark-v4/artifact-sandbox.test.mjs evals/research/skills-benchmark-v4/artifact-check.test.mjs
+
+{
+  "structure": {
+    "cases": 36,
+    "skills": 6,
+    "families": 7,
+    "regressionCases": 18,
+    "challengeCases": 18,
+    "independentHoldouts": 0,
+    "liveCalls": 0
+  },
+  "witnesses": [
+    {
+      "id": "BV4-01",
+      "observed": 1,
+      "perLine": 2,
+      "perInvoice": 1,
+      "classificationDependsOnContract": false
+    },
+    {
+      "id": "BV4-02",
+      "observed": 2,
+      "perLine": 2,
+      "perInvoice": 1,
+      "classificationDependsOnContract": false
+    },
+    {
+      "id": "BV4-03",
+      "observed": 1,
+      "perLine": 2,
+      "perInvoice": 1,
+      "classificationDependsOnContract": true
+    },
+    {
+      "id": "BV4-04",
+      "value": 90,
+      "domainImportsAdapter": true,
+      "activeBuildKnown": true
+    },
+    {
+      "id": "BV4-05",
+      "value": 90,
+      "domainImportsAdapter": false,
+      "activeBuildKnown": true
+    },
+    {
+      "id": "BV4-06",
+      "value": 90,
+      "domainImportsAdapter": true,
+      "activeBuildKnown": false
+    },
+    {
+      "id": "BV4-07",
+      "before": [
+        90,
+        90
+      ],
+      "afterOneSided": [
+        80,
+        90
+      ],
+      "sharedPolicy": true
+    },
+    {
+      "id": "BV4-08",
+      "before": [
+        90,
+        90
+      ],
+      "afterOneSided": [
+        80,
+        90
+      ],
+      "sharedPolicy": false
+    },
+    {
+      "id": "BV4-09",
+      "before": [
+        90,
+        90
+      ],
+      "afterOneSided": [
+        80,
+        90
+      ],
+      "sharedPolicy": null
+    },
+    {
+      "id": "BV4-10",
+      "originalPass": true,
+      "renamePass": false,
+      "behaviorPreserved": true,
+      "localIssue": true,
+      "suiteKnown": true
+    },
+    {
+      "id": "BV4-11",
+      "originalPass": true,
+      "renamePass": true,
+      "behaviorPreserved": true,
+      "localIssue": false,
+      "suiteKnown": true
+    },
+    {
+      "id": "BV4-12",
+      "originalPass": true,
+      "renamePass": false,
+      "behaviorPreserved": true,
+      "localIssue": true,
+      "suiteKnown": false
+    },
+    {
+      "id": "BV4-13",
+      "composite": 80
+    },
+    {
+      "id": "BV4-14",
+      "composite": 100
+    },
+    {
+      "id": "BV4-15",
+      "composite": null
+    },
+    {
+      "id": "BV4-16",
+      "baselinePass": false,
+      "repairAuthorized": true,
+      "legacyPass": false,
+      "roundLimit": 2
+    },
+    {
+      "id": "BV4-17",
+      "baselinePass": true,
+      "repairAuthorized": false,
+      "legacyPass": false,
+      "roundLimit": 2
+    },
+    {
+      "id": "BV4-18",
+      "baselinePass": false,
+      "repairAuthorized": false,
+      "legacyPass": false,
+      "roundLimit": 2
+    },
+    {
+      "id": "BV4-19",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-20",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-21",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV4-22",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-23",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-24",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV4-25",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-26",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-27",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV4-28",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-29",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-30",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV4-31",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-32",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-33",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    },
+    {
+      "id": "BV4-34",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-35",
+      "existingPass": true,
+      "tenantBPrice": 90,
+      "reads": 2,
+      "protected": true,
+      "productionContractKnown": true
+    },
+    {
+      "id": "BV4-36",
+      "existingPass": true,
+      "tenantBPrice": 10,
+      "reads": 1,
+      "protected": false,
+      "productionContractKnown": false
+    }
+  ]
+}
+✔ candidate check refuses wrong receipt before sandbox execution (1.706459ms)
+✔ candidate check refuses traversal and unauthorized modifications (0.577916ms)
+✔ authorized regression payload receives only supplied files and trusted checks (0.83375ms)
+✔ unknown contract records scope-only result and never executes candidate (0.648125ms)
+✔ sandbox failure remains a failed repair verification (0.379416ms)
+✔ payload rejects traversal, unknown edits, duplicate names and oversized data (1.390125ms)
+✔ immutable no-network container has no host mounts or credential forwarding (0.535ms)
+✔ boundary rejects host networking and injected environment (0.756334ms)
+✔ completed execution requires confirmed cleanup (0.758167ms)
+✔ timeout is failed and owned container is removed (0.205292ms)
+✔ tampered isolation prevents start but still cleans owned resource (0.229834ms)
+✔ create deadline reconciles unique owned name (0.155167ms)
+✔ unconfirmed cleanup cannot be a pass (0.183459ms)
+✔ payload digest tampering rejected before Docker (0.192291ms)
+✔ ambiguous delayed creation cannot be declared cleaned from one absent probe (0.157125ms)
+✔ near-limit payload reserves a larger bounded inspection budget (0.330459ms)
+✔ retained real evidence verifies without reading the current proxy (4.009375ms)
+✔ a forged probe, edited receipt, resealed plan, or different identity is rejected (1.845833ms)
+✔ registration anchor and explicit live mode are required (56.724792ms)
+✔ full v4 simulation preserves 108 records, packets, and frozen-rubric reporting (14096.766833ms)
+✔ v4 stops after one turn on transport-retry (239.959292ms)
+✔ v4 stops after one turn on execution-failure (200.051625ms)
+✔ v4 stops after one turn on usage-unavailable (240.704125ms)
+✔ v4 stops after one turn on budget (207.01925ms)
+✔ the new collector does not admit an arbitrary re-sealed live freeze or budget (67.677458ms)
+✔ 36 exposed revised cases preserve every skill and paired defect/protected/unresolved scope (6633.089833ms)
+✔ historical sources, cases, raw answers, annotations and report remain byte-identical (21.7725ms)
+✔ public vocabulary, numeric preset and exact report contract are present identically in every arm (36.534208ms)
+✔ every sweep task is self-contained with full shape and stop rules (1.517625ms)
+✔ bounded caller rejects prior real numeric counterexamples and sparse/out-of-domain inputs (623.186792ms)
+✔ protected finite-domain tests preserve rename and kill an in-domain hardcoded survivor (315.609584ms)
+✔ known shared identity and protected independent lookup ownership are explicit paired obligations (0.989667ms)
+✔ shape accepts authorized complete source and rejects blocked edits, round0, unknown enum and path traversal (211.96575ms)
+✔ unknown dimensions suppress composite and health/sweep delivery requires exact finalReport (2.438ms)
+✔ freeze seals calibration, neutral contract, revised guidance and budget-independent prompt provenance (156.809375ms)
+✔ calibration preserves novel valid findings and distinguishes optional advice from false allegations (0.181167ms)
+✔ semantic admission demands scoped label basis and prevents supported novel discoveries being counted as FP (59.486917ms)
+✔ supplied guidance includes revised general guardrails, without benchmark IDs or fixture answers (65.957709ms)
+✔ claim counts and affected-answer denominators remain distinct in all skill groups (61.062583ms)
+✔ historical v4 freeze retains its original source and live-authorization boundary (15.814584ms)
+✔ every frozen credit ID has an operational definition, without equating proposed repair to executed repair (59.6915ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15322.604291
+
+> brooks-lint@1.9.1 evals:skills:v5
+> node evals/research/skills-benchmark-v5/suite.mjs validate && node evals/research/skills-v5-offline-fixes/archive-lifecycle.mjs && node --test evals/research/skills-v5-offline-fixes/archive-lifecycle.test.mjs evals/research/skills-benchmark-v5/campaign.test.mjs evals/research/skills-benchmark-v5/artifact-sandbox.test.mjs evals/research/skills-benchmark-v5/artifact-check.test.mjs
+
+{
+  "structure": {
+    "cases": 36,
+    "families": 12,
+    "skills": 6,
+    "independentHoldouts": 0,
+    "modelCalls": 0
+  },
+  "witnesses": [
+    {
+      "id": "BV5-01",
+      "observation": {
+        "balance": 14,
+        "seen": 1
+      }
+    },
+    {
+      "id": "BV5-02",
+      "observation": {
+        "balance": 7,
+        "seen": 1
+      }
+    },
+    {
+      "id": "BV5-03",
+      "observation": {
+        "balance": 14,
+        "seen": 1
+      }
+    },
+    {
+      "id": "BV5-04",
+      "observation": [
+        1,
+        2,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "BV5-05",
+      "observation": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "BV5-06",
+      "observation": [
+        1,
+        2,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "BV5-07",
+      "observation": {
+        "production": "sent:ok",
+        "output": "sent:ok",
+        "injectedCalls": 0
+      }
+    },
+    {
+      "id": "BV5-08",
+      "observation": {
+        "production": "sent:ok",
+        "output": "sent:ok",
+        "injectedCalls": 1
+      }
+    },
+    {
+      "id": "BV5-09",
+      "observation": {
+        "production": "sent:ok",
+        "output": "sent:ok",
+        "injectedCalls": 0
+      }
+    },
+    {
+      "id": "BV5-10",
+      "observation": {
+        "active": 6,
+        "alternate": 6
+      }
+    },
+    {
+      "id": "BV5-11",
+      "observation": {
+        "active": 6,
+        "alternate": 12
+      }
+    },
+    {
+      "id": "BV5-12",
+      "observation": {
+        "active": 6,
+        "alternate": 6
+      }
+    },
+    {
+      "id": "BV5-13",
+      "observation": [
+        2000,
+        2000
+      ],
+      "afterMutation": [
+        2048,
+        2000
+      ]
+    },
+    {
+      "id": "BV5-14",
+      "observation": [
+        2000,
+        2000
+      ],
+      "afterMutation": [
+        2048,
+        2048
+      ]
+    },
+    {
+      "id": "BV5-15",
+      "observation": [
+        2000,
+        2000
+      ],
+      "afterMutation": [
+        2048,
+        2000
+      ]
+    },
+    {
+      "id": "BV5-16",
+      "observation": [
+        40,
+        40
+      ],
+      "afterMutation": [
+        55,
+        40
+      ]
+    },
+    {
+      "id": "BV5-17",
+      "observation": [
+        40,
+        40
+      ],
+      "afterMutation": [
+        55,
+        40
+      ]
+    },
+    {
+      "id": "BV5-18",
+      "observation": [
+        40,
+        40
+      ],
+      "afterMutation": [
+        55,
+        40
+      ]
+    },
+    {
+      "id": "BV5-19",
+      "observation": {
+        "baselinePass": true
+      },
+      "mutantPass": true
+    },
+    {
+      "id": "BV5-20",
+      "observation": {
+        "baselinePass": true
+      },
+      "mutantPass": false
+    },
+    {
+      "id": "BV5-21",
+      "observation": {
+        "baselinePass": true
+      },
+      "mutantPass": true
+    },
+    {
+      "id": "BV5-22",
+      "observation": {
+        "baselinePass": true
+      },
+      "mutantPass": true
+    },
+    {
+      "id": "BV5-23",
+      "observation": {
+        "baselinePass": true
+      },
+      "mutantPass": false
+    },
+    {
+      "id": "BV5-24",
+      "observation": {
+        "baselinePass": true
+      },
+      "mutantPass": true
+    },
+    {
+      "id": "BV5-25",
+      "observation": {
+        "name": "n",
+        "secret": "s"
+      }
+    },
+    {
+      "id": "BV5-26",
+      "observation": {
+        "name": "n"
+      }
+    },
+    {
+      "id": "BV5-27",
+      "observation": {
+        "name": "n",
+        "secret": "s"
+      }
+    },
+    {
+      "id": "BV5-28",
+      "observation": {
+        "total": 9
+      }
+    },
+    {
+      "id": "BV5-29",
+      "observation": {
+        "total": 5
+      }
+    },
+    {
+      "id": "BV5-30",
+      "observation": {
+        "total": 9
+      }
+    },
+    {
+      "id": "BV5-31",
+      "observation": {
+        "input": [
+          1,
+          2,
+          3
+        ],
+        "out": [
+          1,
+          2,
+          3
+        ]
+      },
+      "authoredRepairPassed": true
+    },
+    {
+      "id": "BV5-32",
+      "observation": {
+        "input": [
+          3,
+          1,
+          2
+        ],
+        "out": [
+          1,
+          2,
+          3
+        ]
+      },
+      "authoredRepairPassed": true
+    },
+    {
+      "id": "BV5-33",
+      "observation": {
+        "input": [
+          1,
+          2,
+          3
+        ],
+        "out": [
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "BV5-34",
+      "observation": {
+        "balance": 6
+      },
+      "authoredRepairPassed": true
+    },
+    {
+      "id": "BV5-35",
+      "observation": {
+        "balance": 4
+      },
+      "authoredRepairPassed": true
+    },
+    {
+      "id": "BV5-36",
+      "observation": {
+        "balance": 6
+      }
+    }
+  ]
+}
+✔ six modes have two distinct families and paired contract boundaries (5272.22025ms)
+✔ three repeated treatments are balanced; hidden oracle never enters prompts (94.429625ms)
+✔ current prospective freeze is exact while history stays immutable (46.907709ms)
+✔ scoring rejects false evidence, duplicate credits and altered answers (2.574625ms)
+✔ exact retained report is independent from a successful scorer call (1.541375ms)
+✔ protected and unknown sweep fixtures cannot propose edits (0.8405ms)
+✔ primary outcome distinguishes complete task, pending review and correct-label-only response (47.049375ms)
+✔ no-answer cannot pass primary outcome even when contradictory credits are supplied (41.246459ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5627.5095
+{"historicalFreeze":"1dabadb774478e3d80b38ecab492c002f02038f20abbc962a9b48aaa11d5b1fe","currentProspectiveFreeze":"7a5532d40556ddb2047737c9b33e93b1306da5926277c4e7b6de9e84f286d58d","guidanceFiles":20,"liveCalls":0}
+✔ receipt mismatch and unauthorized edits are rejected before code execution (2.499209ms)
+✔ behavior checker binds source, user preservation and preexisting failure (0.774917ms)
+✔ unknown contract never executes and failed sandbox never becomes a repair success (0.594875ms)
+✔ negative control needs an admitted completed assertion failure, not infrastructure rejection (0.172041ms)
+✔ admission refusal is not candidate execution or repair verification (0.277625ms)
+✔ payload rejects traversal, unknown edits, duplicate names and oversized data (1.473834ms)
+✔ immutable no-network container has no host mounts or credential forwarding (0.60325ms)
+✔ boundary rejects host networking and injected environment (0.810291ms)
+✔ completed execution requires confirmed cleanup (0.779584ms)
+✔ timeout is failed and owned container is removed (0.204375ms)
+✔ tampered isolation prevents start but still cleans owned resource (0.236625ms)
+✔ create deadline reconciles unique owned name (0.161375ms)
+✔ unconfirmed cleanup cannot be a pass (0.179333ms)
+✔ payload digest tampering rejected before Docker (0.196542ms)
+✔ ambiguous delayed creation cannot be declared cleaned from one absent probe (0.153083ms)
+✔ near-limit payload reserves a larger bounded inspection budget (0.321041ms)
+✔ retained real evidence verifies without reading the current proxy (3.8575ms)
+✔ a forged probe, edited receipt, resealed plan, or different identity is rejected (1.704917ms)
+✔ registration anchor and explicit live mode are required (76.411542ms)
+✔ full v5 simulation preserves 324 records, packets, and frozen-rubric reporting (39596.148584ms)
+✔ v5 stops after one turn on transport-retry (324.24625ms)
+✔ v5 stops after one turn on execution-failure (279.189125ms)
+✔ v5 stops after one turn on usage-unavailable (288.9405ms)
+✔ v5 stops after one turn on budget (281.382291ms)
+✔ the new collector does not admit an arbitrary re-sealed live freeze or budget (43.065625ms)
+✔ execute-time validation rechecks guidance and fixture source bytes (77.447667ms)
+✔ retained guidance resolves exact anchored bytes without reading current shipped guides (81.475083ms)
+✔ corruption, resealed drift, path injection and anchor drift reject before writing snapshot (80.126209ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41155.18275
+
+> brooks-lint@1.9.1 evals:skills:v5:recovery
+> node --test evals/research/skills-benchmark-v5-recovery/recovery.test.mjs
+
+✖ frozen plan retains exactly78 and binds246 remaining, original time/tokens and failure (56.899125ms)
+✖ implicit execution or live synthetic injection rejected before launch (53.638ms)
+✖ synthetic success preserves stop and denominator (52.265ms)
+✖ synthetic failure preserves stop and denominator (53.985917ms)
+✖ synthetic retry preserves stop and denominator (53.407875ms)
+✖ synthetic identity preserves stop and denominator (52.543416ms)
+✖ synthetic cleanup preserves stop and denominator (50.544167ms)
+✖ synthetic usage preserves stop and denominator (51.610375ms)
+✖ synthetic budget preserves stop and denominator (51.529083ms)
+✖ synthetic deadline preserves stop and denominator (51.657083ms)
+✖ synthetic proxy preserves stop and denominator (51.779833ms)
+✖ raw, intent, stop, identity, tokens and time state tampering are rejected (53.057417ms)
+✖ early unexplained stop and synthetic-to-live flag tampering fail closed (50.967084ms)
+✖ original completed response identities and adjudications remain bound to same registration (51.228875ms)
+✖ recovery output cannot be placed within original directory (50.827834ms)
+✔ original judgments cannot be missing or silently regraded (9.206542ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 1
+ℹ fail 15
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1152.484291
+
+✖ failing tests:
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:13:1
+✖ frozen plan retains exactly78 and binds246 remaining, original time/tokens and failure (56.899125ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:13:108)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:14:1
+✖ implicit execution or live synthetic injection rejected before launch (53.638ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:14:96)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic success preserves stop and denominator (52.265ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic failure preserves stop and denominator (53.985917ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic retry preserves stop and denominator (53.407875ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic identity preserves stop and denominator (52.543416ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic cleanup preserves stop and denominator (50.544167ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic usage preserves stop and denominator (51.610375ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic budget preserves stop and denominator (51.529083ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic deadline preserves stop and denominator (51.657083ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:304
+✖ synthetic proxy preserves stop and denominator (51.779833ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:15:382)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:16:1
+✖ raw, intent, stop, identity, tokens and time state tampering are rejected (53.057417ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:16:100)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:17:1
+✖ early unexplained stop and synthetic-to-live flag tampering fail closed (50.967084ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:17:98)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:18:1
+✖ original completed response identities and adjudications remain bound to same registration (51.228875ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:18:112)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:19:1
+✖ recovery output cannot be placed within original directory (50.827834ms)
+  AssertionError [ERR_ASSERTION]: Frozen guidance or fixture changed since registration
+  + actual - expected
+  
+  + '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd'
+  - 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25'
+  
+      at validateRegistration (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:133:199)
+      at readRun (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5/campaign.mjs:181:58)
+      at createPlan (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.mjs:23:12)
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/skills-benchmark-v5-recovery/recovery.test.mjs:19:106)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '25745394178fde6e142db96d49135a94efadc5231acf1af187dc79c02b7f93cd',
+    expected: 'd2ab92d8bad24c74bf380f6e83694b437cc1cecd3fea5e2f6047a9e7232f6a25',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -38,6 +38,24 @@ categories is not. Keep this evidence even when shortening the report. Distingui
 executed results with tool receipts from predictions derived by inspection. A
 scoring-tool receipt proves score calculation, not that tests or witnesses ran.
 
+## Contract domain and validation duties
+
+Before constructing a defect witness, distinguish caller preconditions from
+callee obligations: record the permitted input domain, promised behavior within
+that domain, and any explicit obligation to reject other inputs. A function
+specified for finite integers need not validate arbitrary JavaScript values unless
+that validation duty is separately established. An out-of-domain counterexample
+cannot justify a defect, coverage deduction or repair. Conversely, do not invent
+an unstated bound to dismiss a witness inside the supplied domain.
+
+If contract wording supports competing readings, explain the readings and the
+fact needed to choose between them; keep the disputed allegation unscored and do
+not broaden behavior by patching it. For test-quality claims, compare the supplied
+baseline with a concrete contract-breaking mutant under the same assertions;
+state predicted results when execution is unavailable. A novel issue is admissible
+only with its own obligation and causal witness, not merely because a checklist
+or frozen expected-finding inventory omits it.
+
 ## Severity Calibration
 
 After completing each Iron Law diagnosis, choose severity from its evidenced

@@ -141,3 +141,29 @@ order without claiming the helper ran:
 If the calculation cannot be verified, state that scores are unverified and
 omit the numeric composite. A text-only benchmark evaluates this fallback, not
 helper execution. Offline helper tests cannot establish model adherence.
+
+## Exact delivery after finalization
+
+Use `scripts/deliver-dashboard.mjs` with the saved ledger, final artifact and
+finalizer/check-report JSON receipt. It rejects a changed ledger, stale report,
+omitted terminal newline, additional prose or any other byte difference:
+
+```sh
+node /absolute/path/to/brooks-health/scripts/deliver-dashboard.mjs check /tmp/health-ledger.json /tmp/health-final.md /tmp/health-receipt.json /tmp/health-delivered.md
+```
+
+For an explicitly requested JSON artifact, prepare its other allowed fields in
+an object **without** `report`, then assemble directly from the checked artifact:
+
+```sh
+node /absolute/path/to/brooks-health/scripts/deliver-dashboard.mjs assemble /tmp/health-ledger.json /tmp/health-final.md /tmp/health-receipt.json /tmp/other-fields.json /tmp/health-output.json
+```
+
+The fresh output file contains the unchanged report string with JSON escaping;
+validate the task's complete schema separately. Read or transmit that artifact
+rather than reconstructing it. Host adapters can call `assembleDelivery` and
+`verifyDelivery` from this helper on the final outgoing field. The receipt proves
+only the bytes supplied to the check: chat rendering or later transport may still
+change them. Do not silently normalize failed historical answers or replace strict
+receipt equality with score-block equality. If a future consumer permits newline
+normalization, define that separate transport policy before evaluating it.
