@@ -1,0 +1,5 @@
+# QA round 1 — FAIL
+
+The new mechanical assessor at review.mjs:8 assumes a finalizer report exists when a successful assembly exists. Reproduction: take an injected record, retain only the assemble call, change the final JSON checks, then call mechanical(). It throws `Cannot read properties of undefined (reading 'endsWith')`. A missing required finalizer must be a recorded tool-compliance failure, not an exception aborting all packets. Repair belongs to eval-curator: guard absent/non-string final reports and exercise missing-tool combinations.
+
+`npm run validate` passed. The initial full npm test was deliberately terminated (exit143) before source repair to avoid mixing revisions; `qa-round1-test-cancelled.log` preserves its partial output and is not a passing gate. No live model call was made. Independent source review found no additional concrete defect in scope guidance, symmetric tool requirements, input pairing, budget admission, identity or isolation logic. Complete gate must be rerun after re-freezing.

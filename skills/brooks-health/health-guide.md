@@ -43,6 +43,31 @@ Use `unassessed` only when a named missing fact changes the verdict or prevents
 completion of that dimension's declared scan. State what additional evidence would
 resolve it. Keep any broader unknown scope separate from the completed local scan.
 
+**Dimension admission gate:** select the assessment boundary before looking for a
+score. For each dimension, state what that dimension needs to evaluate and which
+supplied facts establish it. A function's correct output and a complete local test
+inventory establish neither a maintenance assessment nor architectural boundaries.
+If ownership/change constraints or maintenance context needed for the requested
+Debt assessment are absent, keep Debt unassessed; do not narrow it after the scan
+to “this function looks simple” to obtain 100. Likewise, an import edge alone is
+not an Architecture assessment. A deliberately requested local maintainability
+assessment can be assessed when its relevant obligations and inventory are supplied;
+unknown unrelated project history does not block that explicitly limited scope.
+Missing historical intent alone is not a blocker for a present, demonstrated burden.
+
+Complete the applicable dimension's scan before choosing `assessed`. “No finding
+was reported,” “not relevant to this function,” and “no evidence was supplied” are
+not evidence of a completed clean scan. Use `unassessed` with a concrete reason
+for missing evidence; reserve PR's `skipped` status for the no-diff rule. Do not
+produce a numeric score in prose for a dimension the ledger leaves unassessed.
+
+Assign deductions to the mechanism actually diagnosed. A local input-validation
+failure does not establish architectural decay without a boundary/dependency
+mechanism; a test-protection gap belongs to Test. Neither an R-code nor the need
+to repair code automatically establishes a Debt assessment. Keep an established
+local defect as an unscored observation if no dashboard dimension has sufficient
+assessment evidence; do not invent a scored owner to fit the arithmetic schema.
+
 **PR dimension (if changes exist):**
 - Apply Auto Scope Detection (common.md)
 - Scan for R2 (Change Propagation) and R1 (Cognitive Overload) in the diff

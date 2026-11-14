@@ -28,6 +28,13 @@ Honor authorization already given in the conversation; do not ask the user to
 approve the same work again. If edit authority is absent, request it before
 mutations. A read-only request belongs to health or the focused analysis skills.
 
+Separate the requested work from dashboard coverage. Record (a) the local or
+project-wide obligations the user asks to assess/repair, (b) checks required to
+support that assessment or an authorized edit, and (c) broader dimensions for which
+only a limitation can be reported. The five passes do not expand a bounded request
+into a whole-project audit. An unassessed dashboard dimension is not automatically
+a blocker to the requested work.
+
 Preserve existing user changes. Never require a clean tree as permission to erase
 or stash user work. Record the starting file state so each reversal can target only
 this sweep's patch. Do not commit or push implicitly because the skill was invoked;
@@ -66,7 +73,7 @@ Before diagnosis or edits, apply common.md's contract-domain check. Put explicit
 input preconditions and required rejection behavior in separate ledger fields.
 Only an in-domain violation or independently established validation duty can
 justify a repair; adding defensive checks changes behavior and is not automatically
-a safe cleanup. Missing obligations are blockers, not zero-finding evidence.
+a safe cleanup. Missing obligations required by the requested assessment are blockers, not zero-finding evidence. Missing facts about unrelated broader dimensions remain reporting limitations.
 
 1d. Record the scope file list and run the relevant existing test/lint commands
 before edits. Preserve command, exit status and failures as the baseline. An
@@ -193,10 +200,18 @@ cap, or no progress.
    - Stop on an exhausted round/time/tool budget; report that cap and any blockers.
    - Otherwise, if an unknown governing obligation or missing verification prevents
      the required assessment or safe next repair, stop as **verification blocked**.
-     Name the missing fact/check and leave the affected replacement set empty.
+     Name the missing fact/check and the requested conclusion or authorized repair
+     it prevents; leave the affected replacement set empty. If the missing fact
+     cannot change that conclusion or repair safety, it is a coverage limitation,
+     not a reason to block. Do not invent a wider assessment as a dependency.
    - Use **no actionable findings** only after the required scope is assessed and
      no actionable findings or assessment blockers remain. Zero edits alone is
      insufficient: protected behavior and unknown behavior are different states.
+     A completed local assessment can stop cleanly while broader Architecture or
+     Debt remains unassessed. Keep those limits in the dashboard; do not change a
+     supported local clean stop into verification-blocked merely to make every
+     dashboard row assessable. Conversely, an explicit required test/replay that
+     is unavailable remains a blocker even when static inspection looks clean.
    - With known actionable findings but no safe progress, use **no progress** and
      retain the residuals. Otherwise repeat Steps 2–5 on the re-scan scope.
    A Critical finding does not bypass any cap. Map these meanings to the exact
@@ -249,6 +264,13 @@ from a short dependency graph. Record proposed, applied, reverted and verified
 changes distinctly; a proposed patch does not change the source snapshot used
 for the dashboard. A separately verified candidate has its own snapshot and
 receipt, which cannot substitute for missing model execution evidence.
+
+Do not recompute the work stop reason from the final dashboard's completeness.
+Report the scoped work disposition and dashboard assessment statuses separately.
+Unknown broader dimensions suppress their scores/composite as health requires;
+they do not retroactively invalidate a completed local assessment. If the fifth
+pass discovers a genuine blocker to the requested obligation, explain that causal
+link and update the disposition from evidence, not merely from an empty score.
 
 Use health's single-ledger finalizer/check workflow when permitted and available.
 Omit numerical health estimates when verification is unavailable under a required

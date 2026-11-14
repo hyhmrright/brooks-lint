@@ -60,6 +60,13 @@ severities against the ledger in both directions. A prose finding cannot coexist
 with an assessed empty list in its owning dimension. Label supported observations
 on unassessed dimensions as unscored; do not silently convert them to deductions.
 A complete local assessment can coexist with explicitly unknown broader scope.
+For every assessed empty entry, retain a reason in the report explaining why the
+requested dimension was assessable and what completed scan found no findings.
+This justification is prose evidence, not an extra helper field. An empty list in
+the input example demonstrates syntax only; it is not a default assessment.
+Correct local behavior must not silently supply missing maintenance or boundary
+evidence. A dimension marked unassessed has no numerical estimate anywhere in the
+report, even if a different dimension was assessed successfully.
 The arithmetic helper cannot perform this reconciliation: a successful receipt
 for a semantically inconsistent ledger is still an invalid assessment.
 
