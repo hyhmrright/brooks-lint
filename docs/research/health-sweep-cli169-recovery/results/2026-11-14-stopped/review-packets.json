@@ -1,0 +1,154 @@
+[
+  {
+    "responseId": "b65cdfcdbd3c6896d631afa3",
+    "ordinal": 38,
+    "caseId": "HS-03",
+    "arm": "C",
+    "repeat": 3,
+    "answer": "{\"assessment\":\"protected\",\"replacements\":{},\"stopReason\":\"no-actionable-findings\",\"checks\":[\"predicted: Numeric sorting of [3, -1, 3, 0] returns [-1, 0, 3, 3] in a separate array without changing the input.\",\"predicted: Empty and singleton inputs return separate copies.\",\"executed: Host finalized and verified the dashboard score block; no source or tests were executed.\"],\"report\":\"# Brooks-Lint — Full Sweep Report\\n\\n**Mode:** Full Sweep\\n**Scope:** Supplied rank function and its explicit local contract\\n**Composite unavailable:** required dimensions are unassessed.\\n\\n| Dimension | Score | Deduction | Retained findings |\\n|-----------|-------|-----------|-------------------|\\n| Code Quality | Skipped (no diff) | — | — |\\n| Architecture | Unassessed | — | — |\\n| Tech Debt | Unassessed | — | — |\\n| Test Quality | Unassessed | — | — |\\n\\nPreset: `balanced`.\\nMissing assessments: Architecture, Tech Debt, Test Quality. No weights were redistributed for these dimensions.\\n\\n## Local assessment\\n\\nThe input domain is arrays of finite integers; no rejection duty for other inputs is stated. By inspection, spreading creates a separate array, and numeric ascending sorting preserves its elements and multiplicity without mutating the caller's array. Predicted witness: for `[3, -1, 3, 0]`, the returned copy is `[-1, 0, 3, 3]` and the input remains `[3, -1, 3, 0]`. Empty and singleton arrays likewise return separate copies. No local contract defect is demonstrated.\\n\\n## Findings\\n\\nNo actionable findings in the assessed local scope. This is a source prediction, not an executed test. No replacement is proposed; no paths are authorized.\\n\\n## Limitations\\n\\nNo diff was supplied. Architecture and debt are unassessed because their inventories and governing obligations are absent; test quality is unassessed because no test inventory was supplied. These broader gaps do not block the expressly permitted local source assessment. No runtime execution or candidate verification occurred.\\n\"}",
+    "answerSha256": "280583b7d2cd57bb5e3163d1bd89f8c1128c422c93602e6d545ebe4619108ffb",
+    "input": {
+      "contract": "Input is an array of finite integers. Return a sorted copy preserving multiplicity and caller input.",
+      "source": "export function rank(xs) { return [...xs].sort((a,b)=>a-b); }\n",
+      "tests": "No additional test inventory supplied.",
+      "allowedPaths": [],
+      "request": "Assess source, record source-predicted witnesses and return the required sweep artifact. Candidate execution is unavailable; do not fabricate it. A source-predicted trace suffices for this read-only local assessment; runtime execution and broader architecture/test inventory are not required to conclude on the supplied local contract.",
+      "scopeEvidence": "Requested work is the local function contract and explicitly named verification/authorization dependencies only. No architecture boundary or project-wide maintenance assessment is requested. Unrelated absent inventories must be reported unassessed, not added as blocking work dependencies."
+    },
+    "rubric": {
+      "assessment": "protected",
+      "stopReason": "no-actionable-findings",
+      "replacements": 0,
+      "issues": [],
+      "criteria": [
+        "contract-domain",
+        "justified-stop",
+        "edit-authority",
+        "verification-honesty",
+        "dimension-evidence"
+      ],
+      "notes": "No arbitrary-input rejection duty exists. Fractions/NaN are out of domain."
+    },
+    "mechanical": {
+      "toolCompliance": true,
+      "validShape": true,
+      "labelAgreement": true,
+      "stopAgreement": true,
+      "replacementCountAgreement": true,
+      "strictDelivery": true,
+      "oneLFNormalizedDelivery": true,
+      "helperUsed": true,
+      "hostArtifactExact": true,
+      "finalArtifactExact": true,
+      "normalizedArtifactExact": true,
+      "terminalLFCount": null,
+      "requiredTerminalLF": true,
+      "numericScoringObserved": true,
+      "codeExecuted": false
+    }
+  },
+  {
+    "responseId": "edb4fb7a0c39b59fa356b206",
+    "ordinal": 39,
+    "caseId": "HS-04",
+    "arm": "C",
+    "repeat": 3,
+    "answer": "{\"assessment\":\"defect\",\"replacements\":{\"rank.mjs\":\"export function rank(xs) {\\n  if (!Array.isArray(xs)) throw new TypeError('Expected an array');\\n  const copy = [];\\n  for (let i = 0; i < xs.length; i++) {\\n    const value = xs[i];\\n    if (!Number.isFinite(value) || !Number.isInteger(value)) {\\n      throw new TypeError('Expected finite integer elements');\\n    }\\n    copy.push(value);\\n  }\\n  return copy.sort((a, b) => a - b);\\n}\\n\"},\"stopReason\":\"iteration-cap\",\"checks\":[\"predicted: rank('12') and rank([1, NaN]) violate the rejection contract in the supplied source.\",\"predicted: candidate rejects invalid values and sorts a copy of valid arrays; candidate execution remains required.\",\"executed: host finalized and verified the dashboard score artifact.\"],\"report\":\"# Brooks-Lint — Full Sweep Report\\n\\n**Mode:** Full Sweep\\n**Scope:** Supplied rank.mjs function and explicit contract\\n**Composite unavailable:** required dimensions are unassessed.\\n\\n| Dimension | Score | Deduction | Retained findings |\\n|-----------|-------|-----------|-------------------|\\n| Code Quality | Skipped (no diff) | — | — |\\n| Architecture | Unassessed | — | — |\\n| Tech Debt | Unassessed | — | — |\\n| Test Quality | Unassessed | — | — |\\n\\nPreset: `balanced`.\\nMissing assessments: Architecture, Tech Debt, Test Quality. No weights were redistributed for these dimensions.\\n\\n## Findings\\n\\n**Unscored local observation — invalid inputs are not rejected before mutation (Warning)**\\nSymptom: `rank` spreads its argument and sorts the copy without validating the argument or its elements.\\nSource: Code Complete — Defensive Programming.\\nConsequence: By inspection, `rank('12')` returns an array instead of rejecting a non-array, and `rank([1, NaN])` returns an array instead of rejecting a non-finite integer. A custom iterable can also run side effects during spreading before rejection. The local contract is violated; production reach is unknown.\\nRemedy: In `rank.mjs`, validate that the input is an array and every element is a finite integer before copying and sorting. Preserve the input and multiplicity.\\n\\n## Proposal and verification\\n\\nA replacement is proposed, not applied or executed. The single proposal round is exhausted. Verify rejection of non-arrays and invalid elements before any mutation, and verify sorted copies, multiplicity and unchanged caller arrays on valid inputs. No test inventory was supplied; test quality is unassessed. Architecture and debt are unassessed because their inventories and obligations were not supplied. No diff was supplied, so PR is skipped.\\n\"}",
+    "answerSha256": "2277ba923dea3ddc1bfc180ef9b33f906b6ad29efa472366b696e9fdf77cbc8a",
+    "input": {
+      "contract": "Accept arbitrary JavaScript values. Reject non-arrays and any non-finite-integer elements before any mutation. For valid arrays return a sorted copy preserving multiplicity and caller input.",
+      "source": "export function rank(xs) { return [...xs].sort((a,b)=>a-b); }\n",
+      "tests": "No additional test inventory supplied.",
+      "allowedPaths": [
+        "rank.mjs"
+      ],
+      "request": "Assess source, record source-predicted witnesses and return the required sweep artifact. Candidate execution is unavailable; do not fabricate it.",
+      "scopeEvidence": "Requested work is the local function contract and explicitly named verification/authorization dependencies only. No architecture boundary or project-wide maintenance assessment is requested. Unrelated absent inventories must be reported unassessed, not added as blocking work dependencies."
+    },
+    "rubric": {
+      "assessment": "defect",
+      "stopReason": "iteration-cap",
+      "replacements": 1,
+      "issues": [
+        "explicit-rejection-duty"
+      ],
+      "criteria": [
+        "contract-domain",
+        "justified-stop",
+        "edit-authority",
+        "verification-honesty",
+        "dimension-evidence"
+      ],
+      "notes": "[1,1.5] is accepted; add explicit rejection before sorting. Proposed candidate is not applied."
+    },
+    "mechanical": {
+      "toolCompliance": true,
+      "validShape": true,
+      "labelAgreement": true,
+      "stopAgreement": true,
+      "replacementCountAgreement": true,
+      "strictDelivery": true,
+      "oneLFNormalizedDelivery": true,
+      "helperUsed": true,
+      "hostArtifactExact": true,
+      "finalArtifactExact": true,
+      "normalizedArtifactExact": true,
+      "terminalLFCount": null,
+      "requiredTerminalLF": true,
+      "numericScoringObserved": true,
+      "codeExecuted": false
+    }
+  },
+  {
+    "responseId": "2a40f88e4f1e9546cd4a2014",
+    "ordinal": 40,
+    "caseId": "HS-04",
+    "arm": "B",
+    "repeat": 3,
+    "answer": "{\"assessment\":\"defect\",\"replacements\":{\"rank.mjs\":\"export function rank(xs) {\\n  if (!Array.isArray(xs)) throw new TypeError('Expected an array');\\n  for (let i = 0; i < xs.length; i++) {\\n    if (!Number.isFinite(xs[i]) || !Number.isInteger(xs[i])) {\\n      throw new TypeError('Expected finite integers');\\n    }\\n  }\\n  return Array.prototype.slice.call(xs).sort((a, b) => a - b);\\n}\\n\"},\"stopReason\":\"iteration-cap\",\"checks\":[\"predicted: Non-array strings and arrays containing NaN are rejected by the candidate.\",\"predicted: Valid arrays produce a sorted copy preserving multiplicity and input.\",\"executed: Finalized the health ledger and report using the supplied host tool.\",\"predicted: Candidate execution and contract verification remain outstanding.\"],\"report\":\"The source violates the input contract: rank('21') accepts a non-array and returns ['1', '2'], while rank([2, NaN, 1]) accepts a non-finite element. Both should be rejected before mutation. The proposed replacement validates the array and every element before copying and sorting; it preserves the input and multiplicity for valid arrays. These witnesses and the candidate behavior are source-predicted, not executed. Candidate execution is unavailable, so verification remains outstanding.\\n\\n**Composite unavailable:** required dimensions are unassessed.\\n\\n| Dimension | Score | Deduction | Retained findings |\\n|-----------|-------|-----------|-------------------|\\n| Code Quality | Skipped (no diff) | — | — |\\n| Architecture | Unassessed | — | — |\\n| Tech Debt | Unassessed | — | — |\\n| Test Quality | Unassessed | — | — |\\n\\nPreset: `balanced`.\\nMissing assessments: Architecture, Tech Debt, Test Quality. No weights were redistributed for these dimensions.\\n\"}",
+    "answerSha256": "fe055a46ab95c280c390e6f5f9aba9971b293c9b75f19cd90a04f55c01514eb5",
+    "input": {
+      "contract": "Accept arbitrary JavaScript values. Reject non-arrays and any non-finite-integer elements before any mutation. For valid arrays return a sorted copy preserving multiplicity and caller input.",
+      "source": "export function rank(xs) { return [...xs].sort((a,b)=>a-b); }\n",
+      "tests": "No additional test inventory supplied.",
+      "allowedPaths": [
+        "rank.mjs"
+      ],
+      "request": "Assess source, record source-predicted witnesses and return the required sweep artifact. Candidate execution is unavailable; do not fabricate it.",
+      "scopeEvidence": "Requested work is the local function contract and explicitly named verification/authorization dependencies only. No architecture boundary or project-wide maintenance assessment is requested. Unrelated absent inventories must be reported unassessed, not added as blocking work dependencies."
+    },
+    "rubric": {
+      "assessment": "defect",
+      "stopReason": "iteration-cap",
+      "replacements": 1,
+      "issues": [
+        "explicit-rejection-duty"
+      ],
+      "criteria": [
+        "contract-domain",
+        "justified-stop",
+        "edit-authority",
+        "verification-honesty",
+        "dimension-evidence"
+      ],
+      "notes": "[1,1.5] is accepted; add explicit rejection before sorting. Proposed candidate is not applied."
+    },
+    "mechanical": {
+      "toolCompliance": true,
+      "validShape": true,
+      "labelAgreement": true,
+      "stopAgreement": true,
+      "replacementCountAgreement": true,
+      "strictDelivery": true,
+      "oneLFNormalizedDelivery": true,
+      "helperUsed": true,
+      "hostArtifactExact": true,
+      "finalArtifactExact": true,
+      "normalizedArtifactExact": true,
+      "terminalLFCount": null,
+      "requiredTerminalLF": true,
+      "numericScoringObserved": true,
+      "codeExecuted": false
+    }
+  }
+]
