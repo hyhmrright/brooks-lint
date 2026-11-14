@@ -1,0 +1,6 @@
+// Evidence classification only: no endpoint attribution, retry, or network probe.
+export function diagnose(raw) {
+ const errors=(raw.events??[]).filter(e=>e.method==='error').map(e=>({emittedAtMs:e.emittedAtMs??null,willRetry:e.params?.willRetry===true,message:e.params?.error?.message??null,details:e.params?.error?.additionalDetails??null,code:e.params?.error?.codexErrorInfo??null}));
+ const refused=errors.some(e=>/Connection refused \(os error 61\)/.test(e.details??''));
+ return {schema:1,classification:refused?'connection-refused-unattributed':errors.length?'transport-error-observed':'no-error-notification',retryNotificationObserved:raw.transport_retry_observed===true||errors.some(e=>e.willRetry),errors,observedTokens:raw.usage?.total?.totalTokens??null,acceptedToolRequests:(raw.tool_calls??[]).length,cleanupConfirmed:!!(raw.cleanup?.closed&&raw.cleanup?.group_absent&&raw.cleanup?.private_home_removed),providerRequestCount:null,endpointAttribution:null,limitations:['CLI notifications may omit earlier internal reconnect attempts.','Connection refused does not identify the refusing endpoint or prove proxy, provider, or local service causality.','Observed tokens do not establish complete billing.']};
+}
