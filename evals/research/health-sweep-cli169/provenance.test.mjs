@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {anchored,read,root} from './suite.mjs';import path from 'node:path';
+test('CLI migration retains original prompts, cases, rubric, schedule, budget and model',()=>{const old=read(path.join(root,'evals/research/health-sweep-scope-retest/freeze.json')),n=anchored();assert.equal(old.sha256,'1daab46dd93ef747b71a56146dea3f6513045ca5f31a96d0fed3885ef00778a1');for(const k of ['cases','schedule','budget','model','effort','policy'])assert.deepEqual(n[k],old[k],k);assert.equal(n.cliVersion,'0.169.0');});
