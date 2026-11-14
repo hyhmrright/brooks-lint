@@ -1,0 +1,5 @@
+# Stopped targeted retest
+
+The frozen live run stopped on its first submission, HS-01 arm B repeat 1. One attempted, zero completed, one failed, 47 not run. No retry occurred. Requested and CLI-selected model were gpt-6.1-terra / low, Codex CLI 0.167.1, ChatGPT login; provider serving identity is not independently attested. Observed usage was 37,409 tokens and elapsed time 28,192 ms. The collector reports `Unexpected or duplicate scoring request scope`: the model made four rejected finalize calls with incomplete ledgers, and a subsequent tool request triggered the collector error. No completed answer exists; no semantic assessment or comparison is possible. Cleanup reported process group absent and private home removed. The failure must not be treated as a successful response.
+
+`raw-run.tar.gz` SHA-256: `e9c96fd80ef07f9d583ea2b2425f2342a2d0ce384de2f14703e143f28048327c`. Offline `runner.mjs verify` returned the same counts and stopped reason. This preserves the failure; a new recovery or retry requires a separately frozen plan.
