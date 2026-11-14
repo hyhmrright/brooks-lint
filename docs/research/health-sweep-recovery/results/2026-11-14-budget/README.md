@@ -1,0 +1,5 @@
+# Recovery collection stopped at budget
+
+The amended protocol collected 42 completed answers with no new failure; six slots were not run. The collector stopped at its observed-token admission budget. Including the retained prior failure, cumulative observed usage is 3,090,792 tokens and recorded execution time 1,380,080 ms. The last admitted turn caused a 90,792-token overshoot, which the frozen protocol explicitly permits; this is not a strict billing cap. The new segment alone used 3,053,383 observed tokens and 1,351,888 ms. There were 43 lifetime submissions including the retained failure. No automatic retry occurred.
+
+Requested and selected configuration: gpt-6.1-terra / low, Codex CLI 0.167.1; backend serving identity is not independently attested. The earlier failure remains in `docs/research/health-sweep-retest/results/2026-11-14-stopped/`. Offline `runner.mjs verify` passed. Raw archive SHA-256: `b0b52bf9dde3a52baeb5d299390efef331d53825b3a7981e0465a1aed7693d8f`. Semantic adjudication and two-arm results remain pending; this collection record makes no effectiveness claim.
