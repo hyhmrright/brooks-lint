@@ -1,0 +1,7 @@
+# Offline QA loopback
+
+The first author freeze (`e08631ebb363b42cc8f3d3400a36a9a469bf0d0c8f7ad47245295b4c702fb26d`) passed the initial mechanical checks but independent review found a scoring-gate ambiguity: a definite failure could mask a separate unresolved primary axis, permitting a premature practical-lift decision. The first archive and its logs are retained as `v1-offline-*`. Its original manifest retains the original archive filename; that same archive is now `v1-offline-evidence.tar.gz` and its SHA-256 is unchanged.
+
+The final scorer requires every primary axis, expected-issue decision and pending claim to be resolved before any practical-lift decision. Fail plus unresolved remains a failed response but leaves the dataset ineligible for a lift conclusion. Two additional regressions cover this gate and retained malformed completed records. Delivery is recomputed against the actual latest-receipt chain rather than inferred from completed transport status; missing finalization returns a null review ledger and a failed delivery metric instead of crashing the reviewer. JSON primitives are treated as malformed report shapes safely.
+
+The final freeze is `45422dd46f7b5bd11c19a688f0441fbf4f46ef594a81687a0f29d075c6003ac1`. Final source-bound offline fake-transport and Docker witness records replace no historical live evidence. No models were called during the loopback. Final QA must use this freeze and the unprefixed offline evidence/logs, not the superseded v1 simulation.

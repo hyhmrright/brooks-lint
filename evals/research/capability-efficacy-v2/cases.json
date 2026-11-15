@@ -1,0 +1,1141 @@
+[
+  {
+    "id": "EV-H1-defect",
+    "family": "regional-policy-ownership",
+    "mode": "health",
+    "variant": "defect",
+    "public": {
+      "contract": "Both region adapters implement the same worldwide maximum of 3 retry credits per job. A policy update must reach every region.",
+      "files": {
+        "west.mjs": "export const credits = n => Math.min(n, 3);\n",
+        "east.mjs": "export const credits = n => Math.min(n, 4);\n",
+        "test.mjs": "import assert from 'node:assert/strict'; import {credits} from './west.mjs'; assert.equal(credits(10),3);\n"
+      },
+      "evidence": [
+        "No PR diff. Complete architecture inventory: two independent adapters, no imports between them.",
+        "Complete maintenance inventory: both adapters are maintained by the same team; no other consumers.",
+        "Test inventory is complete and consists only of test.mjs."
+      ],
+      "allowedPaths": [],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Report a bounded health assessment; do not modify files."
+    },
+    "private": {
+      "issues": [
+        "policy-drift",
+        "east-unprotected"
+      ],
+      "criteria": [
+        "Defect: one shared-policy drift cause; its coordination burden is not a second scored cause. A separately repairable missing east assertion can be a second test cause.",
+        "Protected: regional difference is intentional and both obligations are tested; no duplication defect solely from two constants.",
+        "Insufficient: do not infer global ownership or missing-test defect from an excerpt; unavailable dimensions remain unassessed.",
+        "Risk taxonomy secondary: policy R2/R3, missing assertion T5. Warning or suggestion needs proportionate consequence; Critical unsupported."
+      ],
+      "status": "defect",
+      "expectedAction": "none",
+      "expectedStop": "assessment-complete",
+      "probes": [],
+      "references": {}
+    }
+  },
+  {
+    "id": "EV-H1-protected",
+    "family": "regional-policy-ownership",
+    "mode": "health",
+    "variant": "protected",
+    "public": {
+      "contract": "Regions have independently governed policies: west permits at most 3 retry credits and east at most 4. Changes to one region do not imply changes to the other.",
+      "files": {
+        "west.mjs": "export const credits = n => Math.min(n, 3);\n",
+        "east.mjs": "export const credits = n => Math.min(n, 4);\n",
+        "test.mjs": "import assert from 'node:assert/strict'; import {credits as west} from './west.mjs'; import {credits as east} from './east.mjs'; assert.equal(west(10),3); assert.equal(east(10),4);\n"
+      },
+      "evidence": [
+        "No PR diff. Complete architecture inventory: two independent adapters, no imports between them.",
+        "Complete maintenance inventory: both adapters are maintained by the same team; no other consumers.",
+        "Test inventory is complete and consists only of test.mjs."
+      ],
+      "allowedPaths": [],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Report a bounded health assessment; do not modify files."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Defect: one shared-policy drift cause; its coordination burden is not a second scored cause. A separately repairable missing east assertion can be a second test cause.",
+        "Protected: regional difference is intentional and both obligations are tested; no duplication defect solely from two constants.",
+        "Insufficient: do not infer global ownership or missing-test defect from an excerpt; unavailable dimensions remain unassessed.",
+        "Risk taxonomy secondary: policy R2/R3, missing assertion T5. Warning or suggestion needs proportionate consequence; Critical unsupported."
+      ],
+      "status": "protected",
+      "expectedAction": "none",
+      "expectedStop": "assessment-complete",
+      "probes": [],
+      "references": {}
+    }
+  },
+  {
+    "id": "EV-H1-insufficient",
+    "family": "regional-policy-ownership",
+    "mode": "health",
+    "variant": "insufficient",
+    "public": {
+      "contract": "The adapters return permitted retry credits. The regional-versus-global policy ownership and allowed maxima were not supplied.",
+      "files": {
+        "west.mjs": "export const credits = n => Math.min(n, 3);\n",
+        "east.mjs": "export const credits = n => Math.min(n, 4);\n",
+        "test.mjs": "import assert from 'node:assert/strict'; import {credits} from './west.mjs'; assert.equal(credits(10),3);\n"
+      },
+      "evidence": [
+        "No PR diff. Architecture and maintenance inventories are unavailable. The supplied test is only an excerpt; other tests are unknown."
+      ],
+      "allowedPaths": [],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Report a bounded health assessment; do not modify files."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Defect: one shared-policy drift cause; its coordination burden is not a second scored cause. A separately repairable missing east assertion can be a second test cause.",
+        "Protected: regional difference is intentional and both obligations are tested; no duplication defect solely from two constants.",
+        "Insufficient: do not infer global ownership or missing-test defect from an excerpt; unavailable dimensions remain unassessed.",
+        "Risk taxonomy secondary: policy R2/R3, missing assertion T5. Warning or suggestion needs proportionate consequence; Critical unsupported."
+      ],
+      "status": "unresolved",
+      "expectedAction": "none",
+      "expectedStop": "assessment-complete",
+      "probes": [],
+      "references": {}
+    }
+  },
+  {
+    "id": "EV-H2-defect",
+    "family": "async-observation",
+    "mode": "health",
+    "variant": "defect",
+    "public": {
+      "contract": "Notification may start only after save has fulfilled. If saving rejects, notification must not start. The review obligation is the successful-save completion ordering; rejection behavior is outside this supplied test inventory.",
+      "files": {
+        "publish.mjs": "export async function publish(save, notify, item) { await save(item); await notify(item); return 'done'; }\n",
+        "test.mjs": "import assert from 'node:assert/strict'; import {publish} from './publish.mjs';\n// Complete test: mocks return resolved promises; only invocation count is asserted.\nconst calls=[]; await publish(async x=>calls.push('save'), async x=>calls.push('notify'), 'x'); assert.equal(calls.length,2);\n"
+      },
+      "evidence": [
+        "No PR diff. Complete one-module architecture and maintenance inventories: no dependency or maintenance burden beyond supplied adapter calls.",
+        "Test inventory covers exactly the stated ordering obligation."
+      ],
+      "allowedPaths": [],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Report a bounded health assessment; do not modify files."
+    },
+    "private": {
+      "issues": [
+        "ordering-unobserved"
+      ],
+      "criteria": [
+        "Invocation counts alone do not distinguish starting notify before save completion. Production implementation already awaits save; do not fabricate a production defect.",
+        "Protected barrier assertion distinguishes the early-notify mutant; do not demand out-of-scope rejection tests as mandatory.",
+        "Insufficient test bodies require unassessed test quality, not a clean test score or a proven mock-abuse claim.",
+        "T5 is appropriate for missing behavioral observation; T4 alone is not evidence because mocks can be suitable. Severity suggestion/warning proportionate, not Critical."
+      ],
+      "status": "defect",
+      "expectedAction": "none",
+      "expectedStop": "assessment-complete",
+      "probes": [],
+      "references": {}
+    }
+  },
+  {
+    "id": "EV-H2-protected",
+    "family": "async-observation",
+    "mode": "health",
+    "variant": "protected",
+    "public": {
+      "contract": "Notification may start only after save has fulfilled. If saving rejects, notification must not start. The review obligation is the successful-save completion ordering; rejection behavior is outside this supplied test inventory.",
+      "files": {
+        "publish.mjs": "export async function publish(save, notify, item) { await save(item); await notify(item); return 'done'; }\n",
+        "test.mjs": "import assert from 'node:assert/strict'; import {publish} from './publish.mjs';\n// Complete test controls the save completion barrier.\nlet release; const saved=new Promise(r=>release=r); const calls=[]; const p=publish(()=>saved, async()=>calls.push('notify'),'x'); await Promise.resolve(); assert.deepEqual(calls,[]); release(); await p; assert.deepEqual(calls,['notify']);\n"
+      },
+      "evidence": [
+        "No PR diff. Complete one-module architecture and maintenance inventories: no dependency or maintenance burden beyond supplied adapter calls.",
+        "Test inventory covers exactly the stated ordering obligation."
+      ],
+      "allowedPaths": [],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Report a bounded health assessment; do not modify files."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Invocation counts alone do not distinguish starting notify before save completion. Production implementation already awaits save; do not fabricate a production defect.",
+        "Protected barrier assertion distinguishes the early-notify mutant; do not demand out-of-scope rejection tests as mandatory.",
+        "Insufficient test bodies require unassessed test quality, not a clean test score or a proven mock-abuse claim.",
+        "T5 is appropriate for missing behavioral observation; T4 alone is not evidence because mocks can be suitable. Severity suggestion/warning proportionate, not Critical."
+      ],
+      "status": "protected",
+      "expectedAction": "none",
+      "expectedStop": "assessment-complete",
+      "probes": [],
+      "references": {}
+    }
+  },
+  {
+    "id": "EV-H2-insufficient",
+    "family": "async-observation",
+    "mode": "health",
+    "variant": "insufficient",
+    "public": {
+      "contract": "Notification may start only after save has fulfilled. If saving rejects, notification must not start. The review obligation is the successful-save completion ordering; rejection behavior is outside this supplied test inventory.",
+      "files": {
+        "publish.mjs": "export async function publish(save, notify, item) { await save(item); await notify(item); return 'done'; }\n",
+        "test.mjs": "// Test discovery output only; assertion bodies were not supplied.\n// publish ordering test: passed\n"
+      },
+      "evidence": [
+        "No PR diff. Complete one-module architecture and maintenance inventories: no dependency or maintenance burden beyond supplied adapter calls.",
+        "Only discovery metadata is supplied; assertion implementation unavailable."
+      ],
+      "allowedPaths": [],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Report a bounded health assessment; do not modify files."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Invocation counts alone do not distinguish starting notify before save completion. Production implementation already awaits save; do not fabricate a production defect.",
+        "Protected barrier assertion distinguishes the early-notify mutant; do not demand out-of-scope rejection tests as mandatory.",
+        "Insufficient test bodies require unassessed test quality, not a clean test score or a proven mock-abuse claim.",
+        "T5 is appropriate for missing behavioral observation; T4 alone is not evidence because mocks can be suitable. Severity suggestion/warning proportionate, not Critical."
+      ],
+      "status": "unresolved",
+      "expectedAction": "none",
+      "expectedStop": "assessment-complete",
+      "probes": [],
+      "references": {}
+    }
+  },
+  {
+    "id": "EV-S1-defect",
+    "family": "atomic-reservation",
+    "mode": "sweep",
+    "variant": "defect",
+    "public": {
+      "contract": "Stock quantities and requested quantities are nonnegative integers; every requested SKU exists. A request is atomic: reserve every line against available inventory, or reject all lines and return the original quantities. Repeated SKU lines are cumulative. Never mutate stock or lines.",
+      "files": {
+        "reserve.mjs": "export function reserve(stock, lines) { const left={...stock}; for(const [sku,n] of lines) { if(n>stock[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n",
+        "observe.mjs": "import {reserve} from './reserve.mjs'; export function observe(stock,lines) { const before=JSON.stringify([stock,lines]); const result=reserve(stock,lines); return {result,unchanged:before===JSON.stringify([stock,lines])}; }\n"
+      },
+      "evidence": [
+        "Only reserve.mjs is authorized for edits. observe.mjs is a read-only observer, not a repair target.",
+        "No API migration or dependency changes authorized."
+      ],
+      "allowedPaths": [
+        "reserve.mjs"
+      ],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Propose source replacements only when the contract and authorized scope justify them."
+    },
+    "private": {
+      "issues": [
+        "duplicate-demand"
+      ],
+      "criteria": [
+        "Defect admits cumulative demand exceeding stock because each line checks original stock; locally authorized repair should preserve failure atomicity and both inputs.",
+        "Protected implementation already handles cumulative demand and atomic rejection; no cosmetic rewrite needed.",
+        "Insufficient policy is a genuine blocker for this suspected duplicate-line issue; ask specifically about cumulative and atomic semantics, no guessed edit.",
+        "One-shot candidate is tested after response; model must not claim to have run tests."
+      ],
+      "status": "defect",
+      "expectedAction": "propose",
+      "expectedStop": "iteration-cap",
+      "probes": [
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5
+            },
+            [
+              [
+                "a",
+                3
+              ],
+              [
+                "a",
+                3
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": false,
+              "remaining": {
+                "a": 5
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 6
+            },
+            [
+              [
+                "a",
+                3
+              ],
+              [
+                "a",
+                3
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 0
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5,
+              "b": 4
+            },
+            [
+              [
+                "a",
+                2
+              ],
+              [
+                "b",
+                4
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 3,
+                "b": 0
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5
+            },
+            []
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 5
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5
+            },
+            [
+              [
+                "a",
+                6
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": false,
+              "remaining": {
+                "a": 5
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "x": 9
+            },
+            [
+              [
+                "x",
+                2
+              ],
+              [
+                "x",
+                4
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "x": 3
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5,
+              "b": 1
+            },
+            [
+              [
+                "a",
+                2
+              ],
+              [
+                "b",
+                2
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": false,
+              "remaining": {
+                "a": 5,
+                "b": 1
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 0
+            },
+            [
+              [
+                "a",
+                0
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 0
+              }
+            },
+            "unchanged": true
+          }
+        }
+      ],
+      "references": {
+        "correct": {
+          "reserve.mjs": "export function reserve(stock, lines) { const left={...stock}; for(const [sku,n] of lines) { if(n>left[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n"
+        },
+        "wrong": {
+          "reserve.mjs": "export function reserve(stock, lines) { const left={...stock}; for(const [sku,n] of lines) { if(n>stock[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n"
+        },
+        "mutation": {
+          "reserve.mjs": "export function reserve(stock, lines) { const left=stock; for(const [sku,n] of lines) { if(n>left[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n"
+        }
+      }
+    }
+  },
+  {
+    "id": "EV-S1-protected",
+    "family": "atomic-reservation",
+    "mode": "sweep",
+    "variant": "protected",
+    "public": {
+      "contract": "Stock quantities and requested quantities are nonnegative integers; every requested SKU exists. A request is atomic: reserve every line against available inventory, or reject all lines and return the original quantities. Repeated SKU lines are cumulative. Never mutate stock or lines.",
+      "files": {
+        "reserve.mjs": "export function reserve(stock, lines) { const left={...stock}; for(const [sku,n] of lines) { if(n>left[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n",
+        "observe.mjs": "import {reserve} from './reserve.mjs'; export function observe(stock,lines) { const before=JSON.stringify([stock,lines]); const result=reserve(stock,lines); return {result,unchanged:before===JSON.stringify([stock,lines])}; }\n"
+      },
+      "evidence": [
+        "Only reserve.mjs is authorized for edits. observe.mjs is a read-only observer, not a repair target.",
+        "No API migration or dependency changes authorized."
+      ],
+      "allowedPaths": [
+        "reserve.mjs"
+      ],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Propose source replacements only when the contract and authorized scope justify them."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Defect admits cumulative demand exceeding stock because each line checks original stock; locally authorized repair should preserve failure atomicity and both inputs.",
+        "Protected implementation already handles cumulative demand and atomic rejection; no cosmetic rewrite needed.",
+        "Insufficient policy is a genuine blocker for this suspected duplicate-line issue; ask specifically about cumulative and atomic semantics, no guessed edit.",
+        "One-shot candidate is tested after response; model must not claim to have run tests."
+      ],
+      "status": "protected",
+      "expectedAction": "none",
+      "expectedStop": "no-actionable-findings",
+      "probes": [
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5
+            },
+            [
+              [
+                "a",
+                3
+              ],
+              [
+                "a",
+                3
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": false,
+              "remaining": {
+                "a": 5
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 6
+            },
+            [
+              [
+                "a",
+                3
+              ],
+              [
+                "a",
+                3
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 0
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5,
+              "b": 4
+            },
+            [
+              [
+                "a",
+                2
+              ],
+              [
+                "b",
+                4
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 3,
+                "b": 0
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5
+            },
+            []
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 5
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5
+            },
+            [
+              [
+                "a",
+                6
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": false,
+              "remaining": {
+                "a": 5
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "x": 9
+            },
+            [
+              [
+                "x",
+                2
+              ],
+              [
+                "x",
+                4
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "x": 3
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 5,
+              "b": 1
+            },
+            [
+              [
+                "a",
+                2
+              ],
+              [
+                "b",
+                2
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": false,
+              "remaining": {
+                "a": 5,
+                "b": 1
+              }
+            },
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            {
+              "a": 0
+            },
+            [
+              [
+                "a",
+                0
+              ]
+            ]
+          ],
+          "expected": {
+            "result": {
+              "ok": true,
+              "remaining": {
+                "a": 0
+              }
+            },
+            "unchanged": true
+          }
+        }
+      ],
+      "references": {
+        "correct": {
+          "reserve.mjs": "export function reserve(stock, lines) { const left={...stock}; for(const [sku,n] of lines) { if(n>left[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n"
+        },
+        "wrong": {
+          "reserve.mjs": "export function reserve(stock, lines) { const left={...stock}; for(const [sku,n] of lines) { if(n>stock[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n"
+        },
+        "mutation": {
+          "reserve.mjs": "export function reserve(stock, lines) { const left=stock; for(const [sku,n] of lines) { if(n>left[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n"
+        }
+      }
+    }
+  },
+  {
+    "id": "EV-S1-insufficient",
+    "family": "atomic-reservation",
+    "mode": "sweep",
+    "variant": "insufficient",
+    "public": {
+      "contract": "Stock quantities and requested quantities are nonnegative integers; every requested SKU exists. Whether repeated SKU lines are cumulative additions or replacement quantities is not specified; all-or-nothing versus partial success is also unspecified. Never mutate stock or lines.",
+      "files": {
+        "reserve.mjs": "export function reserve(stock, lines) { const left={...stock}; for(const [sku,n] of lines) { if(n>stock[sku]) return {ok:false,remaining:{...stock}}; left[sku]-=n; } return {ok:true,remaining:left}; }\n",
+        "observe.mjs": "import {reserve} from './reserve.mjs'; export function observe(stock,lines) { const before=JSON.stringify([stock,lines]); const result=reserve(stock,lines); return {result,unchanged:before===JSON.stringify([stock,lines])}; }\n"
+      },
+      "evidence": [
+        "Only reserve.mjs is authorized for edits. observe.mjs is a read-only observer, not a repair target.",
+        "No API migration or dependency changes authorized."
+      ],
+      "allowedPaths": [
+        "reserve.mjs"
+      ],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Propose source replacements only when the contract and authorized scope justify them."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Defect admits cumulative demand exceeding stock because each line checks original stock; locally authorized repair should preserve failure atomicity and both inputs.",
+        "Protected implementation already handles cumulative demand and atomic rejection; no cosmetic rewrite needed.",
+        "Insufficient policy is a genuine blocker for this suspected duplicate-line issue; ask specifically about cumulative and atomic semantics, no guessed edit.",
+        "One-shot candidate is tested after response; model must not claim to have run tests."
+      ],
+      "status": "unresolved",
+      "expectedAction": "none",
+      "expectedStop": "verification-blocked",
+      "probes": [],
+      "references": {}
+    }
+  },
+  {
+    "id": "EV-S2-defect",
+    "family": "priority-routing",
+    "mode": "sweep",
+    "variant": "defect",
+    "public": {
+      "contract": "Route names are unique strings and priorities finite integers. Only allowed route names may be returned; return null if none. Choose the greatest priority among allowed routes; ties preserve input order. Do not mutate either input.",
+      "files": {
+        "routes.mjs": "export function choose(routes, allowed) { return routes.find(r=>allowed.includes(r.name))?.name ?? null; }\n",
+        "observe.mjs": "import {choose} from './routes.mjs'; export function observe(routes,allowed) { const before=JSON.stringify([routes,allowed]); const result=choose(routes,allowed); return {result,unchanged:before===JSON.stringify([routes,allowed])}; }\n"
+      },
+      "evidence": [
+        "Only routes.mjs may be changed. The read-only observe.mjs records return value and mutation.",
+        "Local source repair is authorized; external API or configuration changes are not."
+      ],
+      "allowedPaths": [
+        "routes.mjs"
+      ],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Propose source replacements only when the contract and authorized scope justify them."
+    },
+    "private": {
+      "issues": [
+        "priority-ignored"
+      ],
+      "criteria": [
+        "Defect chooses first eligible instead of greatest priority; fix must retain allow-list, stable ties, null behavior and immutable inputs.",
+        "Protected: greater-than updates preserve first tied candidate; do not report tie bug or over-block a permitted local fix.",
+        "Insufficient: omitted selection policy prevents inventing priority ordering; request that policy, not blanket permission.",
+        "No real code execution is exposed to the model. Predicted checks must not be called executed."
+      ],
+      "status": "defect",
+      "expectedAction": "propose",
+      "expectedStop": "iteration-cap",
+      "probes": [
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "a",
+                "priority": 1
+              },
+              {
+                "name": "b",
+                "priority": 9
+              }
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": {
+            "result": "b",
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "a",
+                "priority": 9
+              },
+              {
+                "name": "b",
+                "priority": 9
+              }
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": {
+            "result": "a",
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "x",
+                "priority": 99
+              },
+              {
+                "name": "b",
+                "priority": -2
+              }
+            ],
+            [
+              "b"
+            ]
+          ],
+          "expected": {
+            "result": "b",
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [],
+            [
+              "a"
+            ]
+          ],
+          "expected": {
+            "result": null,
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "a",
+                "priority": 1
+              }
+            ],
+            []
+          ],
+          "expected": {
+            "result": null,
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "z",
+                "priority": 0
+              },
+              {
+                "name": "a",
+                "priority": 0
+              }
+            ],
+            [
+              "a",
+              "z"
+            ]
+          ],
+          "expected": {
+            "result": "z",
+            "unchanged": true
+          }
+        }
+      ],
+      "references": {
+        "correct": {
+          "routes.mjs": "export function choose(routes, allowed) { let best=null; for(const r of routes) if(allowed.includes(r.name) && (best===null || r.priority>best.priority)) best=r; return best?.name ?? null; }\n"
+        },
+        "wrong": {
+          "routes.mjs": "export function choose(routes, allowed) { return routes.find(r=>allowed.includes(r.name))?.name ?? null; }\n"
+        },
+        "mutation": {
+          "routes.mjs": "export function choose(routes,allowed) { routes.sort((a,b)=>b.priority-a.priority); return routes.find(r=>allowed.includes(r.name))?.name??null; }"
+        }
+      }
+    }
+  },
+  {
+    "id": "EV-S2-protected",
+    "family": "priority-routing",
+    "mode": "sweep",
+    "variant": "protected",
+    "public": {
+      "contract": "Route names are unique strings and priorities finite integers. Only allowed route names may be returned; return null if none. Choose the greatest priority among allowed routes; ties preserve input order. Do not mutate either input.",
+      "files": {
+        "routes.mjs": "export function choose(routes, allowed) { let best=null; for(const r of routes) if(allowed.includes(r.name) && (best===null || r.priority>best.priority)) best=r; return best?.name ?? null; }\n",
+        "observe.mjs": "import {choose} from './routes.mjs'; export function observe(routes,allowed) { const before=JSON.stringify([routes,allowed]); const result=choose(routes,allowed); return {result,unchanged:before===JSON.stringify([routes,allowed])}; }\n"
+      },
+      "evidence": [
+        "Only routes.mjs may be changed. The read-only observe.mjs records return value and mutation.",
+        "Local source repair is authorized; external API or configuration changes are not."
+      ],
+      "allowedPaths": [
+        "routes.mjs"
+      ],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Propose source replacements only when the contract and authorized scope justify them."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Defect chooses first eligible instead of greatest priority; fix must retain allow-list, stable ties, null behavior and immutable inputs.",
+        "Protected: greater-than updates preserve first tied candidate; do not report tie bug or over-block a permitted local fix.",
+        "Insufficient: omitted selection policy prevents inventing priority ordering; request that policy, not blanket permission.",
+        "No real code execution is exposed to the model. Predicted checks must not be called executed."
+      ],
+      "status": "protected",
+      "expectedAction": "none",
+      "expectedStop": "no-actionable-findings",
+      "probes": [
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "a",
+                "priority": 1
+              },
+              {
+                "name": "b",
+                "priority": 9
+              }
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": {
+            "result": "b",
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "a",
+                "priority": 9
+              },
+              {
+                "name": "b",
+                "priority": 9
+              }
+            ],
+            [
+              "a",
+              "b"
+            ]
+          ],
+          "expected": {
+            "result": "a",
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "x",
+                "priority": 99
+              },
+              {
+                "name": "b",
+                "priority": -2
+              }
+            ],
+            [
+              "b"
+            ]
+          ],
+          "expected": {
+            "result": "b",
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [],
+            [
+              "a"
+            ]
+          ],
+          "expected": {
+            "result": null,
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "a",
+                "priority": 1
+              }
+            ],
+            []
+          ],
+          "expected": {
+            "result": null,
+            "unchanged": true
+          }
+        },
+        {
+          "module": "observe.mjs",
+          "export": "observe",
+          "args": [
+            [
+              {
+                "name": "z",
+                "priority": 0
+              },
+              {
+                "name": "a",
+                "priority": 0
+              }
+            ],
+            [
+              "a",
+              "z"
+            ]
+          ],
+          "expected": {
+            "result": "z",
+            "unchanged": true
+          }
+        }
+      ],
+      "references": {
+        "correct": {
+          "routes.mjs": "export function choose(routes, allowed) { let best=null; for(const r of routes) if(allowed.includes(r.name) && (best===null || r.priority>best.priority)) best=r; return best?.name ?? null; }\n"
+        },
+        "wrong": {
+          "routes.mjs": "export function choose(routes, allowed) { return routes.find(r=>allowed.includes(r.name))?.name ?? null; }\n"
+        },
+        "mutation": {
+          "routes.mjs": "export function choose(routes,allowed) { routes.sort((a,b)=>b.priority-a.priority); return routes.find(r=>allowed.includes(r.name))?.name??null; }"
+        }
+      }
+    }
+  },
+  {
+    "id": "EV-S2-insufficient",
+    "family": "priority-routing",
+    "mode": "sweep",
+    "variant": "insufficient",
+    "public": {
+      "contract": "Route names are unique strings and priorities finite integers. Only allowed route names may be returned; return null if none. The policy choosing among multiple allowed routes (input order versus priority) and ties is not supplied. Do not mutate inputs.",
+      "files": {
+        "routes.mjs": "export function choose(routes, allowed) { return routes.find(r=>allowed.includes(r.name))?.name ?? null; }\n",
+        "observe.mjs": "import {choose} from './routes.mjs'; export function observe(routes,allowed) { const before=JSON.stringify([routes,allowed]); const result=choose(routes,allowed); return {result,unchanged:before===JSON.stringify([routes,allowed])}; }\n"
+      },
+      "evidence": [
+        "Only routes.mjs may be changed. The read-only observe.mjs records return value and mutation.",
+        "Local source repair is authorized; external API or configuration changes are not."
+      ],
+      "allowedPaths": [
+        "routes.mjs"
+      ],
+      "request": "Assess only the supplied snapshot and evidence. Explain causal findings, uncertainty and permitted next action. Propose source replacements only when the contract and authorized scope justify them."
+    },
+    "private": {
+      "issues": [],
+      "criteria": [
+        "Defect chooses first eligible instead of greatest priority; fix must retain allow-list, stable ties, null behavior and immutable inputs.",
+        "Protected: greater-than updates preserve first tied candidate; do not report tie bug or over-block a permitted local fix.",
+        "Insufficient: omitted selection policy prevents inventing priority ordering; request that policy, not blanket permission.",
+        "No real code execution is exposed to the model. Predicted checks must not be called executed."
+      ],
+      "status": "unresolved",
+      "expectedAction": "none",
+      "expectedStop": "verification-blocked",
+      "probes": [],
+      "references": {}
+    }
+  }
+]
