@@ -1,0 +1,12 @@
+// Synthetic app-server; no network or model. Real successor dispatch handles every tool call.
+const rl=require('node:readline');const mode=process.argv[2]||'valid',emit=x=>process.stdout.write(JSON.stringify(x)+'\n');let n=700,stage=0,first,last,assembly;
+const ledger={hasDiff:true,dimensions:Object.fromEntries(['pr','architecture','debt','test'].map(k=>[k,{status:'assessed',findings:[]}]))};
+function call(args){emit({id:n++,method:'item/tool/call',params:{threadId:mode==='wrong-scope'?'other':'thread',turnId:'turn',callId:mode==='duplicate'?'repeat':'call-'+n,tool:'brooks_health_finalize',arguments:args}})}
+const fin=draft=>call({action:'finalize',dashboards:[{ledger,draft:'<!-- BROOKS_HEALTH_SCORE -->\n'+draft}]});
+const assemble=r=>call({action:'assemble',ledger,finalReport:r.finalReport,receipt:r.reports[0].receipt,fields:{assessment:'protected',checks:['predicted: fixture'],replacements:{},stopReason:'assessment-complete'}});
+function finish(text){emit({method:'item/completed',params:{threadId:'thread',turnId:'turn',item:{id:'answer',type:'agentMessage',phase:'final_answer',text}}});emit({method:'thread/tokenUsage/updated',params:{threadId:'thread',tokenUsage:{total:{totalTokens:100}}}});emit({method:'turn/completed',params:{threadId:'thread',turn:{id:'turn',status:'completed'}}});}
+rl.createInterface({input:process.stdin}).on('line',line=>{const q=JSON.parse(line);if(q.id>=700&&q.result){let r=JSON.parse(q.result.contentItems[0].text);stage++;if(mode==='cap')return call({action:'finalize',dashboards:[]});
+ if(stage===1){first=r;if(mode==='failed-finalize')return call({action:'finalize',dashboards:[{ledger:{},draft:'bad'}]});if(mode==='valid'||mode==='modified'||mode==='after-assembly')return assemble(first);return fin('second');}
+ if(stage===2){if(mode==='stale')return assemble(first);if(mode==='latest')return assemble(r);if(mode==='failed-finalize')return assemble(first);assembly=r.deliveryJson;if(mode==='after-assembly')return fin('newer');return finish(assembly+(mode==='modified'?' ':''));}
+ if(stage===3){if(mode==='after-assembly')return finish(assembly);return finish(r.deliveryJson||'stale rejected');}return;
+ }if(!q.id||!q.method)return;emit({id:q.id,result:q.method==='initialize'?{userAgent:'codex/0.169.0'}:q.method==='thread/start'?{model:q.params.model,reasoningEffort:'low',thread:{id:'thread'}}:q.method==='turn/start'?{turn:{id:'turn'}}:{}});if(q.method==='turn/start')setTimeout(()=>fin('first'),5);});

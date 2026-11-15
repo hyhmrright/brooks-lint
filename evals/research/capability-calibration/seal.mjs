@@ -1,0 +1,2 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import{hash}from'./review.mjs';
+const seal=JSON.parse(fs.readFileSync(new URL('./freeze.json',import.meta.url)));for(const[k,v]of Object.entries(seal.sources))assert.equal(hash(fs.readFileSync(k)),v,k);for(const[k,v]of Object.entries(JSON.parse(fs.readFileSync(new URL('./history.json',import.meta.url)))))assert.equal(hash(fs.readFileSync(k)),v,k);console.log('Calibration sources and historical files unchanged.');
