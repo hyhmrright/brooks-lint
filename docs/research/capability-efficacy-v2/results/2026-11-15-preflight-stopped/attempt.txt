@@ -1,0 +1,24 @@
+Frozen suite validation:
+$ node evals/research/capability-efficacy-v2/suite.mjs validate
+{"calls":72,"budget":{"calls":72,"observedTokens":10000000,"totalMs":21600000,"turnMs":120000},"model":"gpt-6.1-terra","effort":"low"}
+exit 0
+
+Formal attempt (sandboxed):
+$ node evals/research/capability-efficacy-v2/runner.mjs execute formal _workspace/capability-efficacy-v2-live --live _workspace/latest-receipt-live
+AssertionError [ERR_ASSERTION]: Pinned Docker image unavailable
+1 !== 0
+    at preflight (file:///Users/hyh/code/brooks-lint/evals/research/health-sweep-capability-live/isolation.mjs:10:91)
+    at async execute (file:///Users/hyh/code/brooks-lint/evals/research/capability-efficacy-v2/runner.mjs:23:239)
+    at async file:///Users/hyh/code/brooks-lint/evals/research/capability-efficacy-v2/runner.mjs:61:239
+Node.js v26.13.1
+exit 1
+
+Same-sandbox diagnostic, docker info (server line):
+permission denied while trying to connect to the docker API at unix:///Users/hyh/.docker/run/docker.sock
+
+Authorized outside-sandbox diagnostic (read-only):
+$ docker image inspect sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d --format '{{.Id}} {{.Os}} {{.Architecture}}'
+sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d linux arm64
+exit 0
+
+The output above is a transcription of the captured tool output; it is not a collector-generated raw log. No response or live output directory was generated.
