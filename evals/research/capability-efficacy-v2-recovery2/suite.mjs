@@ -1,0 +1,13 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';
+import {anchored as original,hash,read,write,root} from '../capability-efficacy-v2/suite.mjs';
+import {load as firstRecovery} from '../capability-efficacy-v2-recovery/plan.mjs';
+import {results,verifyArchive} from './archive.mjs';
+export {hash,read,write,root};export const directory=path.dirname(fileURLToPath(import.meta.url));
+export const budget={calls:34,observedTokens:7574558,totalMs:20300693,turnMs:120000};
+const names=['suite.mjs','runner.mjs','archive.mjs','diagnostics.mjs','review.mjs','protocol.test.mjs'].map(p=>'evals/research/capability-efficacy-v2-recovery2/'+p).concat('docs/research/capability-efficacy-v2-recovery2/README.md');
+function files(p){return fs.readdirSync(p,{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(path.join(p,e.name)):[path.join(p,e.name)]);}
+const hashes=ps=>Object.fromEntries(ps.sort().map(p=>[path.relative(root,p),hash(fs.readFileSync(p))]));
+export function freeze(){const base=original(),prior=firstRecovery();verifyArchive();const body={...base,version:2,originalPlanSha256:base.sha256,priorRecoverySha256:prior.sha256,independentCampaign:false,budget,schedule:base.schedule.slice(38),prior:{attempts:39,completed:38,observedTokens:2425442,elapsedMs:1299307,unknownUsageAttempts:[39]},lifetimeAttemptCeiling:73,clockPolicy:'Remaining collector time is cumulative active collection time; offline work and waiting between campaigns are excluded. The original zero-call admission failure has unknown duration and is excluded as already frozen.',unknownUsagePolicy:'Attempt 39 has no observed turn/start or usage. Keep unknown provider work and billing; the explicitly renewed budget measures only observed tokens. No dollar estimate.',recoverySources:hashes(names.map(p=>path.join(root,p))),history:hashes(files(results))};delete body.sha256;return{...body,sha256:hash(JSON.stringify(body))};}
+export function validate(f){assert.deepEqual(f,freeze(),'Second recovery freeze drift');return true;}
+export function anchored(stage='formal'){assert.equal(stage,'formal');const f=read(path.join(directory,'freeze.json'));validate(f);assert.equal(f.sha256,read(path.join(directory,'anchor.json')).sha256);return f;}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){if(process.argv[2]==='freeze'){const f=freeze();write(path.join(directory,'freeze.json'),f);write(path.join(directory,'anchor.json'),{sha256:f.sha256});console.log(f.sha256);}else{const f=anchored();console.log(JSON.stringify({sha256:f.sha256,model:f.model,effort:f.effort,budget:f.budget,prior:f.prior}));}}
