@@ -1,5 +1,6 @@
 /** Replay the historical suite against its retained skill snapshot, never today's files. */
 import fs from 'node:fs';
+import {restoreScorer} from '../health-scorer-history/archive-tests.mjs';
 import path from 'node:path';
 import os from 'node:os';
 import assert from 'node:assert/strict';
@@ -50,6 +51,7 @@ export function replayHistoricalSuite(group = 'suite'){
   // Remove current Markdown first so newly added guidance cannot enter the historical snapshot.
   for(const sub of fs.readdirSync(path.join(dir,'skills'),{withFileTypes:true}))if(sub.isDirectory())for(const p of fs.readdirSync(path.join(dir,'skills',sub.name)))if(p.endsWith('.md'))fs.unlinkSync(path.join(dir,'skills',sub.name,p));
   for(const [file,content] of Object.entries(snapshot)){const target=path.join(dir,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,content);}
+  restoreScorer(dir);
   const historyCount=verifyHistoricalFiles(dir);
   for(const testFile of tests){
    const r=spawnSync(process.execPath,['--test',testFile],{cwd:dir,encoding:'utf8',timeout:900000,maxBuffer:8*1024*1024});

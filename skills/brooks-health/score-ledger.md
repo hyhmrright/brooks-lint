@@ -32,8 +32,11 @@ All four dimensions are required, even when one is unassessed. Use these exact k
   reason in the report. Never encode unavailable evidence as `findings: []`.
 - Each assessed entry has at most three retained findings. Debt also has at most
   two per risk code. An assessed empty list means the completed scan found none.
-  Finding IDs must be unique within their dimension, using only letters, digits,
-  dots, underscores or hyphens and starting with a letter or digit.
+  Finding IDs must be unique across the entire ledger, using only letters, digits,
+  dots, underscores or hyphens and starting with a letter or digit. Assign one
+  scoring owner to each causal finding. Reusing its ID in another dimension is an
+  error, including in supplied ledgers; renaming it does not establish an independent
+  cause. The helper cannot detect semantic duplication under distinct IDs.
 - Each finding supplies an `R1`–`R6`, `T1`–`T6` or already configured `C<number>`
   risk code and its resolved lowercase `critical`, `warning` or `suggestion`
   severity. IDs refer to the diagnosed or supplied ledger. The helper validates

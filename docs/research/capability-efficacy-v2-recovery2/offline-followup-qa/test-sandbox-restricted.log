@@ -1,0 +1,3455 @@
+
+> brooks-lint@1.9.1 test
+> node scripts/validate-repo.test.mjs && node --test scripts/dsh-provider.test.mjs && node --test scripts/npm-install.test.mjs scripts/health-dashboard.test.mjs scripts/dashboard-delivery.test.mjs evals/research/skills-v5-offline-fixes/sweep-boundaries.test.mjs scripts/dsh-market.test.mjs scripts/check-release-ci.test.mjs scripts/github-metadata.test.mjs scripts/report-contract.test.mjs scripts/runner-contract.test.mjs scripts/codex-evals.test.mjs evals/research/runtime/prospective/codex-login-study.test.mjs evals/research/runtime/prospective/codex-login-answer.test.mjs evals/research/runtime/runtime.test.mjs scripts/runtime-research.test.mjs evals/research/runtime/calibration/scoring.test.mjs evals/research/runtime/candidate-holdouts/candidates.test.mjs evals/research/runtime/prospective/study.test.mjs evals/research/runtime/prospective/drill.test.mjs evals/research/runtime/prospective/reviews.test.mjs evals/research/runtime/prospective/human-preparation.test.mjs evals/research/runtime/prospective/executor-preparation.test.mjs evals/research/runtime/prospective/process-executor.test.mjs evals/research/runtime/prospective/model-channel.test.mjs evals/research/runtime/prospective/codex-channel.test.mjs evals/research/runtime/prospective/codex-stream.test.mjs evals/research/runtime/prospective/codex-boundaries.test.mjs evals/research/runtime/prospective/executor-completion.test.mjs evals/research/runtime/prospective/controlled-read-adapter.test.mjs evals/research/runtime/prospective/docker-isolation.test.mjs evals/research/runtime/prospective/docker-lease.test.mjs evals/research/runtime/prospective/native-remote.test.mjs evals/research/runtime/prospective/native-smoke.test.mjs evals/research/runtime/prospective/native-upstream-transport.test.mjs evals/research/runtime/prospective/codex-login-validation.test.mjs evals/research/runtime/prospective/codex-login-stock-drill.test.mjs evals/research/runtime/prospective/codex-login-smoke.test.mjs && node --test evals/research/all-skills/recovery.test.mjs && npm run evals:runtime:hard && npm run evals:runtime:v2 && npm run evals:runtime:benchmark-audit && npm run evals:runtime:pack && npm run evals:all-skills && npm run evals:campaign:validate && npm run evals:skill-revision && npm run evals:health-tool && npm run evals:skills:v2 && npm run evals:health-workflow:v2 && npm run evals:health-transport:v3 && npm run evals:skills:transport:v3 && npm run evals:skills:v4 && npm run evals:skills:v5 && npm run evals:skills:v5:recovery && npm run evals:skills:v5:recovery2 && npm run evals:health-sweep:retest && npm run evals:health-sweep:recovery && npm run evals:health-sweep:scope
+
+
+parseFrontmatterBooks
+  ✓ returns book titles from valid frontmatter
+  ✓ returns null when file has no frontmatter
+  ✓ returns null when frontmatter has no books key
+  ✓ returns null when books list is empty
+  ✓ handles 4-space indentation
+  ✓ handles CRLF line endings
+  ✓ handles titles containing colons
+  ✓ strips surrounding whitespace from titles
+  ✓ handles single-book list
+  ✓ ignores non-books frontmatter keys before books:
+  ✓ ignores non-books frontmatter keys after books:
+
+countBookSections
+  ✓ counts sections matching '## Author — *Title*'
+  ✓ returns 0 when no book sections exist
+  ✓ does not count lines without the em-dash separator
+
+countProductionRisks
+  ✓ counts '## Risk N:' headers
+  ✓ returns 0 when no production risk headers present
+  ✓ does not count test risk headers (Risk T…)
+
+countTestRisks
+  ✓ counts '## Risk TN:' headers
+  ✓ returns 0 when no test risk headers present
+  ✓ does not count production risk headers
+
+extractChangelogVersion
+  ✓ extracts version from standard changelog header
+  ✓ returns the first (latest) version when multiple entries exist
+  ✓ returns null when no version header found
+
+extractGuideStepLabels
+  ✓ extracts step labels from standard headings
+  ✓ extracts sub-step labels (a/b suffixes)
+  ✓ handles 0-indexed steps
+  ✓ returns empty array when no step headings exist
+  ✓ ignores non-step headings
+  ✓ handles mixed main and sub-steps
+  ✓ handles full pr-review-guide pattern
+
+assembleSystemPrompt
+  ✓ includes sweep in VALID_MODES
+  ✓ assembles sweep prompt with both risk catalogs and sweep guide
+
+hasOpencodeSlashFlag
+  ✓ accepts frontmatter carrying the opt-in flag
+  ✓ rejects frontmatter with no metadata block
+  ✓ rejects a metadata block that omits opencode/slash
+  ✓ rejects the flag set to false
+  ✓ accepts YAML's bare true, which parses to the same boolean
+  ✓ ignores an opencode/slash line outside the frontmatter
+  ✓ every shipped skill carries the flag
+
+readHistory
+  ✓ returns empty array when history file does not exist
+  ✓ returns parsed array when history file exists
+  ✓ returns empty array when history file contains invalid JSON
+
+appendHistory
+  ✓ creates history file with first record
+  ✓ appends to existing history without overwriting
+
+getTrend
+  ✓ returns null when history is empty
+  ✓ returns null when no records for the requested mode
+  ✓ returns lastScore and runCount for one prior record
+  ✓ returns most recent score when multiple records exist
+  ✓ ignores records for other modes
+  ✓ matches a canonical query against display-name records
+
+normalizeMode
+  ✓ maps display names to canonical modes
+  ✓ passes canonical names through unchanged
+  ✓ is case- and whitespace-insensitive
+  ✓ passes non-string input through unchanged
+
+sparkline
+  ✓ maps score extremes to the lowest and highest bars
+  ✓ renders one bar per score and clamps out-of-range values
+
+renderHistory
+  ✓ reports no history for an empty array
+  ✓ summarizes a single record as one run
+  ✓ collapses display-name and canonical records into one mode line
+
+extractRiskCodes
+  ✓ extracts R-codes from text
+  ✓ extracts T-codes from text
+  ✓ returns empty set when no risk codes present
+
+classify
+  ✓ returns 'pass' when all expected codes found with Iron Law and Health Score
+  ✓ returns 'partial' when a valid report omits one expected finding
+  ✓ returns 'fail' when no expected codes found in output
+  ✓ returns 'false-positive-pass' for no_health_score when output has no score
+  ✓ returns 'fail' for no_health_score when Health Score IS present in output
+  ✓ returns 'false-positive-pass' for no_risk_codes when expected code is absent
+  ✓ returns 'fail' for no_risk_codes when expected code IS present in output
+  ✓ rejects keyword-only output even when no forbidden code is present
+  ✓ returns 'fail' when codes found but Iron Law terms absent
+
+parseFindings
+  ✓ parses one finding per severity group
+  ✓ maps risk name to code and keeps severity
+  ✓ resolves an explicit (R1) code in the title
+  ✓ extracts file and line from the Symptom
+  ✓ ignores bold text outside any severity group
+  ✓ empty report yields no findings
+  ✓ tolerates plural / qualified severity headers
+  ✓ splits a colon-separated title and resolves its code
+  ✓ falls back to Consequence for the location when Symptom has none
+
+countFindings
+  ✓ counts findings by severity
+  ✓ empty report counts all zero
+
+extractLocation
+  ✓ captures path with line number
+  ✓ captures bare filename without a line
+  ✓ does not mistake prose for a file reference
+  ✓ captures newer-language extensions from bare filenames
+  ✓ prefers the longer of two prefix-sharing extensions
+  ✓ keeps the line number on a bare filename with a long extension
+  ✓ no extension shadows a longer one that starts with it
+
+reportToSarif
+  ✓ emits a SARIF 2.1.0 envelope
+  ✓ declares a deduped, PascalCased rule per risk code
+  ✓ maps severities to SARIF levels
+  ✓ attaches a physical location when a file is known
+  ✓ fingerprints are stable across runs
+  ✓ empty report yields no rules or results
+  ✓ routes T-code helpUri off the guide (no #t anchor) and R-code onto it
+  ✓ declares a BL000 rule when a finding is unmapped
+
+severityBreached
+  ✓ fail-on critical trips only on a critical finding
+  ✓ fail-on warning trips on critical or warning
+  ✓ fail-on none never trips
+  ✓ missing or partial findings are treated as zero
+
+isRegression
+  ✓ only a negative numeric delta is a regression
+
+parseMaxTokens
+  ✓ an absent flag falls back to the shared default
+  ✓ a positive integer string is accepted
+  ✓ a flag with no value of its own is rejected, not read as 1
+  ✓ non-integers, zero, and negatives are rejected
+  ✓ unsafe or overflowing token ceilings are rejected before the API call
+  ✓ the error message names the flag and a usable value
+
+warnIfTruncated
+  ✓ a response that stopped at the output ceiling is annotated
+  ✓ the annotation goes to stderr, never stdout
+  ✓ it warns rather than failing the build
+  ✓ a complete response is silent and reads as untruncated
+  ✓ the notice is a single line, as a workflow command requires
+  ✓ the notice names the knob to turn and which way the score is wrong
+
+Post PR Comment (action.yml)
+  ✓ the step posts the report and the trend to the pull request
+  ✓ a truncated report warns the reviewer in the comment itself
+  ✓ an untruncated report says nothing about truncation
+
+parser-fidelity benchmark (frozen real-report corpus)
+  ✓ corpus has >= 30 real reports spanning all six modes
+  ✓ corpus composition matches the documented numbers (30 total, 9 false-positive)
+  ✓ parser reproduces the graded severity counts on every report
+  ✓ every report emits valid SARIF 2.1.0
+  ✓ risk-code extraction has zero false positives / negatives on the corpus
+
+versionRefs
+  ✓ discovers every README translation, not a fixed list
+  ✓ renders the badge, action pin and JSON-LD text expected at the given version
+  ✓ requires the action pin wherever the action is documented
+  ✓ marks README references required and docs pages optional
+  ✓ ignores non-README markdown at the repo root
+  ✓ patterns match the real badge, action pin and JSON-LD shapes
+
+linkedSetupGuides
+  ✓ collects guides from README-style and sibling-style links alike
+  ✓ de-duplicates a guide linked more than once
+  ✓ returns an empty array when no guide is linked
+
+platformEnumeration
+  ✓ picks the enumeration line, not the earlier <platform> placeholder
+  ✓ keeps the continuation line, since getting-started wraps mid-list
+  ✓ matches the localized <平台> form
+  ✓ returns an empty string when the document has no enumeration
+
+namesPlatform
+  ✓ matches a platform delimited by list separators
+  ✓ does not match a platform buried in a hyphenated filename
+  ✓ does not match a platform that is only a substring
+
+parseInstallerPlatforms
+  ✓ reads the declared list and both directory mappings
+  ✓ omits a platform whose case arm is missing, so the validator can catch it
+  ✓ skips comments and the catch-all arm
+  ✓ parses the real installer, proving the patterns still match
+
+validate-repo integration
+  ✓ validate-repo.mjs exits 0 against the current repository
+  ✓ validate-repo.mjs runs the changelog coverage check and says what it did
+  ✓ validate-repo.mjs fails a release whose section never cites a merged pull request
+  ✓ validate-repo.mjs passes the same release once the section cites it
+  ✓ changelog-audit.mjs exits non-zero on an uncited pull request during a release
+  ✓ changelog-audit.mjs exits zero once the section cites it
+  ✓ changelog-audit.mjs reports a gap as backlog, not failure, between releases
+  ✓ changelog-audit.mjs audits the range from the last tag to HEAD
+  ✓ changelog-audit.mjs refuses a CHANGELOG with no release heading
+  ✓ changelog-audit.mjs refuses to derive a range from a repository it is not the root of
+  ✓ validate-repo.mjs ignores an inherited CLAUDE_PLUGIN_ROOT
+
+changelog audit
+  ✓ parseCommitLog keeps multi-line bodies intact
+  ✓ parseCommitLog reads a merge commit's two parents
+  ✓ parseCommitLog returns nothing for an empty range
+  ✓ exemption covers merges, release bumps and the star history refresh
+  ✓ exemption covers nothing else — internal hardening still needs an entry
+  ✓ exemption judges a bot commit by what it changed, not by its subject
+  ✓ pullRequestOf reads both GitHub merge subject conventions
+  ✓ pullRequestOf ignores a number that is only a reference
+  ✓ changelogTrailer reads the trailer and ignores prose about one
+  ✓ changelogTrailer takes the commit's own trailer, not one it quotes
+  ✓ changelogTrailer tolerates a commit with no body
+  ✓ auditRange flags a merged pull request the section never cites
+  ✓ auditRange clears a pull request the section cites
+  ✓ auditRange audits a merge commit's pull request despite the exemption
+  ✓ lastTag, isTagged and commitsSince read a real repository
+  ✓ lastTag ignores a tag that is not a release
+  ✓ lastTag returns null when no release tag is reachable
+  ✓ commitsSince reads the author and a real merge's two parents
+  ✓ coverageVerdict reports an uncited pull request while a release is in progress
+  ✓ coverageVerdict reports what it audited, so a clean pass is not silent
+  ✓ coverageVerdict stands down once the version is tagged
+  ✓ coverageVerdict stands down before the new section is written
+  ✓ coverageVerdict stands down outside a git work tree root
+  ✓ extractChangelogSection returns only the newest release
+  ✓ report names every uncited pull request in its FAIL line
+  ✓ report says so when nothing is provably missing
+  ✓ plural reads as English at zero, one and many
+  ✓ report says there is nothing to audit when the range is empty
+  ✓ report says so when a range holds nothing but exempt commits
+  ✓ extractChangelogSection returns an empty string when there is no release heading
+  ✓ coverageAnnouncement names the reason when the gate stands down
+  ✓ coverageAnnouncement names the range and its scope when it audits
+  ✓ auditRange surfaces a commit's Changelog trailer
+  ✓ a pull request cited only by a /pull/ URL counts as cited
+  ✓ pullRequestOf needs the merge subject to start with the merge phrase
+  ✓ pullRequestOf needs the squash marker to end the subject
+  ✓ the star history exemption needs a bot author
+  ✓ the star history exemption needs [bot] to end the author
+  ✓ the star history exemption needs the commit to have touched files
+  ✓ the release bump exemption is anchored to the start of the subject
+  ✓ lastTag ignores a tag that starts with v but is not a version
+  ✓ commitsSince excludes commits that HEAD never took in
+  ✓ coverageVerdict stands down when no release tag is reachable
+  ✓ coverageVerdict needs the section heading to open with the version
+  ✓ parseCommitLog gives a root commit no parents
+  ✓ parseCommitLog tolerates a record that carries no file block
+  ✓ extractChangelogSection ignores a heading that carries no date
+  ✓ report renders a walkable line for each commit needing an entry
+  ✓ report flags a deferred entry on the commit's own line
+  ✓ report flags an uncited pull request on the commit's own line
+  ✓ report lists every gap beneath its FAIL line
+  ✓ report names the next release's section between releases
+  ✓ report renders no verdict between releases
+  ✓ report does not flag a gap on a commit line between releases
+  ✓ report keeps a subject at the width whole and elides a longer one
+
+ci-config
+  ✓ baseRefCandidates prefers the remote-tracking ref for the PR base branch
+  ✓ baseRefCandidates falls back to the default branches off a pull_request
+  ✓ loadProjectConfig reads the base ref, not the working tree
+  ✓ loadProjectConfig skips a base candidate that does not resolve
+  ✓ loadProjectConfig runs on defaults when the base ref has no config
+  ✓ loadProjectConfig refuses unreviewed policy when the PR base is absent
+  ✓ loadProjectConfig keeps working-tree fallback outside a PR
+  ✓ loadProjectConfig with config-ref head never consults a git ref
+  ✓ loadProjectConfig reports no config when neither source has one
+  ✓ configSizeError refuses an absurdly large config and passes a normal one
+  ✓ hasCustomRisks only matches a top-level custom_risks key
+  ✓ configSystemBlock carries the config, its provenance, and the Config line
+  ✓ configSystemBlock tells the model to omit the Config line when there is none
+  ✓ customRisksBlock loads the shipped guide and tolerates a missing one
+
+222 tests: 222 passed, 0 failed
+✔ bundled provider discovers all six skills and loads their bodies and shared resources (10.951208ms)
+✔ custom roots skip directories without SKILL.md and non-directory entries (2.933542ms)
+✔ description formats used by skills load through the public provider (22.192084ms)
+✔ invalid frontmatter fails discovery with the affected file path (7.238167ms)
+✔ unexpected read failures are reported with file path and original cause (1.115417ms)
+✔ loading a candidate reports a file removed after discovery (0.836375ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 157.350458
+✔ all public authored calibration counters reproduce without semantic classification (3.106334ms)
+✔ issue misses, response misses, extra assertions and supplementary concerns remain distinct (0.289458ms)
+✔ absence and noncanonical severity are separate, uncertain concerns do not become definite (0.177167ms)
+✔ empty denominators are null and failed partials are not semantically graded (0.726583ms)
+✔ incomplete successful response remains paired while failure/pending/absent arms exclude triplets (1.536125ms)
+✔ malformed/duplicate annotations, quote drift and rubric drift are rejected (5.148375ms)
+✔ saved calibration summary reproduces from authored annotations (2.928125ms)
+✔ review packets retain exact answers/rubrics but omit authored ratings and rationale (2.650833ms)
+✔ CAL-03 false safety counts globally alongside its miss, outside unresolved-only certainty (0.336959ms)
+✔ HC-01: cancellation during awaited setup (1.070083ms)
+✔ HC-01: normal completion, running cancellation and idempotent cleanup (0.179125ms)
+✔ HC-01: pre-abort starts nothing; failed gate acquires nothing (0.287167ms)
+✔ HC-02: cancellation during awaited setup (0.729625ms)
+✔ HC-02: normal completion, running cancellation and idempotent cleanup (0.230458ms)
+✔ HC-02: pre-abort starts nothing; failed gate acquires nothing (0.158042ms)
+✔ HC-03: cancellation during awaited setup (0.4505ms)
+✔ HC-03: normal completion, running cancellation and idempotent cleanup (0.122834ms)
+✔ HC-03: pre-abort starts nothing; failed gate acquires nothing (0.094708ms)
+✔ HC-04: asynchronous failure lifecycle (0.394917ms)
+✔ HC-04: asynchronous cancellation rejection lifecycle (0.084125ms)
+✔ HC-04: success releases once and capacity rejection doesn't corrupt first owner (0.096625ms)
+✔ HC-05: asynchronous failure lifecycle (0.213333ms)
+✔ HC-05: asynchronous cancellation rejection lifecycle (0.056292ms)
+✔ HC-05: success releases once and capacity rejection doesn't corrupt first owner (0.047208ms)
+✔ HC-06: asynchronous failure lifecycle (0.206917ms)
+✔ HC-06: asynchronous cancellation rejection lifecycle (0.047042ms)
+✔ HC-06: success releases once and capacity rejection doesn't corrupt first owner (0.054667ms)
+✔ HC-07: superseded completion and same-key admission (1.062958ms)
+✔ HC-07: current completion, separate keys, repeated completion (0.28375ms)
+✔ HC-07: replacement finishes before old handle (0.172375ms)
+✔ HC-08: superseded completion and same-key admission (0.256333ms)
+✔ HC-08: current completion, separate keys, repeated completion (0.061583ms)
+✔ HC-08: replacement finishes before old handle (0.033417ms)
+✔ HC-09: superseded completion and same-key admission (0.194625ms)
+✔ HC-09: current completion, separate keys, repeated completion (0.034666ms)
+✔ HC-09: replacement finishes before old handle (0.030791ms)
+✔ unresolved HC-03/06/09: same visible executable traces permit opposing contracts (0.217708ms)
+✔ protected criteria reject the defective mechanism transplanted into each protected probe (0.181042ms)
+✔ candidate inventory enforces disclosed status, separate rubrics, exact digests and input boundaries (6.627459ms)
+✔ safe input reader rejects traversal, directories, symlinks and absolute paths (0.825375ms)
+✔ saved offline observations reproduce for all nine cases before and after teardown (11.67725ms)
+✔ predeclared boundary cases are immutable and never enable model or study eligibility (0.757166ms)
+✔ fixed tool declarations use non-login shell and only owned numeric destinations (3.428583ms)
+✔ authored malformed/failed/incomplete/duplicate and phase fixtures remain distinct bytes (0.339666ms)
+✖ owned broker rejects foreign routes and credentials and retains denial bytes (4.470792ms)
+✔ saved actual CLI captures validate offline and retain study readiness false (116.185083ms)
+✔ protocol result guard refuses empty/mismatched final, unknown termination and cleanup loss (1.028583ms)
+✔ protocol guard rejects contradictory upstream terminals and reported model despite successful CLI (0.410958ms)
+✔ archive detects raw byte, plan, summary and source pin drift (853.942375ms)
+✔ rehashing tampered records cannot authorize real credentials, missing cleanup or model identity (1002.051417ms)
+✔ strict parent guard rejects absent responses, invalid UTF8, event reorder and terminal phase contradictions (1.000125ms)
+✔ required tool launch failure cannot be substituted by a synthetic successful final answer (2.22175ms)
+✖ owned broker keeps concurrent requests within one atomic forward budget (0.540084ms)
+✔ fixed nc control proves outer broker-only reachability separately from failed curl and inner sandbox (0.43525ms)
+✔ pure launch verification refuses extra policy content, arbitrary env, inner mode and output path drift (2.071208ms)
+✔ required tool auth presence cannot be hidden by a successful marker and exit (0.98ms)
+✔ CLI declaration fixes no-auth custom provider and isolated controls without real credentials (0.571916ms)
+✔ external, ambiguous, credential-bearing or malformed endpoint cannot be declared (3.96575ms)
+✔ authored success payload is local SSE with explicit fixture model and deterministic terminal event (0.20225ms)
+✔ saved real-CLI/local-stub archive is source-bound and never counts synthetic payload as model evidence (40.801875ms)
+✔ fixed local proxy only accepts its own response route and refuses arbitrary proxy targets (0.173334ms)
+✔ one shared runtime environment pins fresh state and proxy origins without inherited auth (0.369416ms)
+✔ summary counters, retry contract, auth/status and CLI version cannot contradict original records (69.455916ms)
+✔ development inventories reject traversal, absolute paths, duplicate keys and malformed schemas before file access (155.787541ms)
+✔ completed view excludes orphan reconnect draft while retaining independent partial diagnostics (3.103667ms)
+✔ completed same-item text replaces deltas and identical retransmissions dedupe (0.430666ms)
+✔ all legitimately completed phases and absent phase remain in completion order (0.42325ms)
+✔ selection is thread and turn scoped, malformed completed messages fail closed (0.155166ms)
+✖ isolated fake CLI completed-answer selection: same (134.61375ms)
+✖ isolated fake CLI completed-answer selection: reconnect (145.891542ms)
+✖ isolated fake CLI completed-answer selection: multiple (133.740625ms)
+✖ isolated fake CLI completed-answer selection: partial-failed (127.614417ms)
+✖ isolated fake CLI completed-answer selection: no-completed (136.613625ms)
+✖ isolated fake CLI completed-answer selection: empty-completed (134.741125ms)
+✖ isolated fake CLI completed-answer selection: missing-text (140.701333ms)
+✖ isolated fake CLI completed-answer selection: wrong-scope (130.443792ms)
+✖ isolated fake CLI completed-answer selection: conflict (126.615542ms)
+✔ explicit live gate, endpoint and model validation (1.280375ms)
+✔ only ChatGPT tokens admitted; API credentials excluded (0.501917ms)
+✖ successful fake CLI records response, usage, selection, private home cleanup (142.359291ms)
+✖ fails closed and cleans up: wrong-model (130.46875ms)
+✖ fails closed and cleans up: wrong-answer (135.21425ms)
+✖ fails closed and cleans up: failed-turn (133.670167ms)
+✖ fails closed and cleans up: tool (137.036625ms)
+✖ fails closed and cleans up: completed-tool (146.737ms)
+✖ fails closed and cleans up: server-request (135.385291ms)
+✖ fails closed and cleans up: invalid (123.750333ms)
+✖ fails closed and cleans up: hang (168.8215ms)
+✔ spawn failure is bounded and recorded (18.062292ms)
+✔ refuses overwriting prior evidence (0.815ms)
+✖ synthetic login lifecycle uses private auth-only home and never archives credentials (128.08625ms)
+✔ API account response cannot pass login smoke (127.607208ms)
+✔ archived real CLI fixture binds the launcher and selected-model RPC evidence (0.596333ms)
+✖ proxy inheritance is explicit, scoped and credentials are redacted (123.627209ms)
+✔ retained local proxy drill matches current launcher and one simulated request (0.672875ms)
+✖ deadline records the last observed phase and actual timeout without fabricating an answer (514.160542ms)
+✔ deadline identifies an outstanding initialization RPC (362.021167ms)
+✔ stock code mode disabled: observed behavior and reproducible source (5.160084ms)
+✔ stock code mode disabled: opposite outcome rejected (3.084541ms)
+✔ stock disabled: reject real data (0.699291ms)
+✔ stock disabled: reject missing cleanup (0.92725ms)
+✔ stock disabled: reject catalog override (0.435958ms)
+✔ stock disabled: reject wrong worker (0.631875ms)
+✔ stock disabled: reject missing response (0.403125ms)
+✔ stock code mode enabled: observed behavior and reproducible source (1.47225ms)
+✔ stock code mode enabled: opposite outcome rejected (1.15525ms)
+✔ stock enabled: reject real data (0.483375ms)
+✔ stock enabled: reject missing cleanup (0.572917ms)
+✔ stock enabled: reject catalog override (0.401291ms)
+✔ stock enabled: reject wrong worker (0.551208ms)
+✔ stock enabled: reject missing response (1.170083ms)
+✔ drill refuses source drift (0.180541ms)
+✔ 81 turns, balanced arms, trusted source and registration drift rejection (9.272958ms)
+✔ assembly exports only whitelist and arm guidance (5.211291ms)
+✖ offline 81-turn end to end preserves exact answers and pending reviews (195.929667ms)
+✔ identity failure stops subsequent turns with full not-run denominator (168.393666ms)
+✔ partial answer retains completed commentary and incomplete final item without duplicate deltas (0.152958ms)
+✖ fails closed and cleans private process state: wrong-thread (139.874917ms)
+✖ fails closed and cleans private process state: wrong-turn (130.048709ms)
+✖ fails closed and cleans private process state: wrong-effort (131.115875ms)
+✖ fails closed and cleans private process state: tool (129.457333ms)
+✖ fails closed and cleans private process state: timeout (1020.561416ms)
+✖ private login secrets are removed from archived failures (127.025292ms)
+✔ termination uses explicit group observation, never EPERM-prone signal-zero inference (26.181208ms)
+✔ permission denial and unknown observation cannot become absence or throw away evidence (0.218792ms)
+✔ leader exit prevents signaling a potentially reused process group (0.087459ms)
+✔ platform preflight rejects unsupported hosts before auth or spawn (0.118584ms)
+✔ captured CLI fake-upstream worker execution and hostile probe validate as simulated observations only (4.983542ms)
+✔ simulated record guard rejects non-simulated record (0.935542ms)
+✔ simulated record guard rejects run error (0.390584ms)
+✔ simulated record guard rejects cleanup error (0.369667ms)
+✔ simulated record guard rejects missing requests (0.342958ms)
+✔ simulated record guard rejects foreign route (1.5435ms)
+✔ simulated record guard rejects wrong fixture model (1.489917ms)
+✔ simulated record guard rejects missing shell tool (1.515542ms)
+✔ simulated record guard rejects additional namespaced tools (0.933875ms)
+✔ simulated record guard rejects extra tool (0.594708ms)
+✔ simulated record guard rejects wrong thread model (0.538209ms)
+✔ simulated record guard rejects wrong effort (1.443ms)
+✔ simulated record guard rejects local fallback (1.226417ms)
+✔ simulated record guard rejects turn override (1.101708ms)
+✔ simulated record guard rejects thread request mismatch (1.007ms)
+✔ simulated record guard rejects status for different environment (5.2645ms)
+✔ simulated record guard rejects missing ready (1.372584ms)
+✔ simulated record guard rejects RPC error (0.480083ms)
+✔ simulated record guard rejects failed turn (0.563ms)
+✔ simulated record guard rejects wrong turn thread (0.840125ms)
+✔ simulated record guard rejects missing command (0.502125ms)
+✔ simulated record guard rejects command failed (0.809333ms)
+✔ simulated record guard rejects command unfinished (2.821459ms)
+✔ simulated record guard rejects wrong command output (0.751708ms)
+✔ simulated record guard rejects wrong command turn (3.245083ms)
+✔ simulated record guard rejects wrong command thread (1.058875ms)
+✔ simulated record guard rejects no cleanup (0.947625ms)
+✔ simulated record guard rejects absence unconfirmed (0.7995ms)
+✔ simulated record guard rejects cleanup wrong worker (1.131083ms)
+✔ simulated record guard rejects inspect missing (0.530667ms)
+✔ simulated record guard rejects removed wrong worker (0.599916ms)
+✔ simulated record guard rejects removal failed (0.699625ms)
+✔ simulated record guard rejects absence deleted (0.551792ms)
+✔ simulated record guard rejects cleanup predates launch (0.788167ms)
+✔ hostile sentinel must remain outside worker (0.676875ms)
+✔ hostile observation cannot hide an exposed credential or successful network connection (2.913208ms)
+✔ luna catalog exposes unapproved namespaces and is rejected, despite a fake command event (2.03575ms)
+✔ explicit Luna direct-catalog simulation admits only the two observed command tools (9.332833ms)
+✔ probe exit status rejects failed and unconfirmed cleanup records (0.562125ms)
+✔ child spawn errors are recorded and fail the probe (0.21075ms)
+✔ missing Codex binary fails before creating a supervisor (163.202583ms)
+✔ direct probe evidence names the checked-in probe source (2.365ms)
+✔ stream controls are frozen, distinct and retain parent deadline above cleanup separately (0.555917ms)
+✔ CLI declarations pin both retry layers and idle setting without mutating inherited declarations (3.146959ms)
+✔ relay admission binds method, exact origin, route, host and public capability; rejects auth (0.338875ms)
+✖ actual owned relay spends its one-forward budget atomically and close is idempotent (4.802958ms)
+✔ saved actual native CLI observations match their predeclared criteria without invoking CLI (25.247917ms)
+✔ deadline assessment remains distinct from failed or completed CLI turns (0.308292ms)
+✔ archive rejects changed summaries, plan, byte captures and source pin removal (52.495125ms)
+✔ rehashing a tampered record cannot turn missing retries or credentials into passing evidence (50.368417ms)
+✔ idle attribution and service cleanup fail when timeout error, close ordering or sockets contradict evidence (0.706916ms)
+✖ parent transport completes authored read continuation without putting credential in tool/model payload (7.495209ms)
+✔ read capability is immutable and exact-path only; OS paths and non-read tools fail (6.585875ms)
+✔ ledger freezes caller config and rejects mid-run model/reasoning changes (0.333292ms)
+✖ unknown tool stops without continuation (0.467042ms)
+✖ traversal stops without continuation (0.858167ms)
+✖ model mismatch stops without continuation (0.285542ms)
+✖ effort mismatch stops without continuation (0.207458ms)
+✖ missing identity stops without continuation (0.166542ms)
+✖ auth echo stops without continuation (0.166833ms)
+✖ extra fields stops without continuation (0.1945ms)
+✖ HTTP 301 has no redirect, credential refresh or retry (0.203791ms)
+✖ HTTP 307 has no redirect, credential refresh or retry (2.383625ms)
+✖ HTTP 401 has no redirect, credential refresh or retry (1.366916ms)
+✖ HTTP 403 has no redirect, credential refresh or retry (0.557042ms)
+✖ HTTP 429 has no redirect, credential refresh or retry (0.354042ms)
+✖ HTTP 503 has no redirect, credential refresh or retry (0.294083ms)
+✖ request and reservation limits stop looping tools before another dispatch (0.43175ms)
+✖ absolute exchange deadline terminates drip response (1.068333ms)
+✖ response bytes and request bytes are bounded (0.858416ms)
+✖ malformed or incomplete responses never become answers (0.491625ms)
+✔ only owned exact endpoint and explicit fixture credentials accepted (1.479042ms)
+✖ fixture credential rotation belongs to new runs; no credential stored by ledger (0.5565ms)
+✖ one monotonic deadline spans both tool exchanges (0.373625ms)
+✔ packet file count, combined bytes and evaluation-only paths are refused (1.415709ms)
+✔ saved exploratory evidence validates without live model calls (9.112875ms)
+✖ deadline fixture awaits terminal server capture and retains separate client partial bytes (0.261333ms)
+✖ evidence validation rejects missing, corrupt and cross-layer raw receipts (0.770667ms)
+✔ locked-down launch has no bind mount/socket/privilege/network grant (0.837625ms)
+✔ reject mutable/untrusted image node:latest (1.257875ms)
+✔ reject mutable/untrusted image sha256:aaa (0.441875ms)
+✔ reject mutable/untrusted image --privileged (0.073834ms)
+✔ reject unowned name other (0.111958ms)
+✔ reject unowned name brooks-rt-ab (0.062125ms)
+✔ reject unowned name ../x (0.067ms)
+✔ reject arbitrary entrypoint (3.186959ms)
+✔ reject partial IDs (0.371166ms)
+✔ ownership validates known isolated declaration (1.142542ms)
+✔ refuse altered runtime NetworkMode (0.75725ms)
+✔ refuse altered runtime Privileged (0.278417ms)
+✔ refuse altered runtime ReadonlyRootfs (0.171791ms)
+✔ refuse altered runtime Binds (0.626375ms)
+✔ refuse altered runtime PidsLimit (0.179792ms)
+✔ refuse altered runtime Memory (0.14875ms)
+✔ refuse altered runtime NanoCpus (0.170875ms)
+✔ refuse altered runtime IpcMode (0.145167ms)
+✔ refuse altered runtime PidMode (0.213958ms)
+✔ refuse altered runtime Devices (0.136583ms)
+✔ refuse altered runtime Tmpfs (0.142042ms)
+✔ refuse unrelated container even if name looks owned (0.138208ms)
+✔ supervisor preserves exact process bytes (120.808125ms)
+✔ supervisor deadline kills its owned command, confirms close (64.061958ms)
+✔ supervisor enforces retained combined output cap (116.081708ms)
+✔ saved native Docker evidence passes without daemon (63.398042ms)
+✔ rehashing fabricated cleanup does not bypass semantic evidence (503.600667ms)
+✔ missing raw command bytes rejected (459.102125ms)
+✔ QA1 bypass: six rehashed copies cannot replace six boundaries (474.776875ms)
+✔ omitted boundary rejected even with rehashed inventory (279.918542ms)
+✔ standalone case contradiction rejected (142.585708ms)
+✔ duplicate owned IDs rejected (167.017916ms)
+✔ overlapping command partitions rejected (113.94475ms)
+✔ global orphan command rejected (85.509291ms)
+✔ reordered case commands rejected (86.925291ms)
+✔ foreign file rejected even when inventoried (72.522833ms)
+✔ foreign command target rejected (59.2015ms)
+✔ inspection image mismatch rejected despite synchronized raw bytes (73.510583ms)
+✔ duplicate container name rejected (65.252875ms)
+✔ valid lease policy adds only unique owner label/name (17.350833ms)
+✔ reject mutable image (17.965209ms)
+✔ reject foreign name (12.070625ms)
+✔ reject extended deadline (12.041459ms)
+✔ reject excessive budget (12.841292ms)
+✔ reject negative heartbeat (12.491875ms)
+✔ reject path token (12.446042ms)
+✔ identity refusal: wrong label (13.438834ms)
+✔ identity refusal: wrong ID (11.003542ms)
+✔ identity refusal: name reuse (11.018833ms)
+✔ identity refusal: image replacement (11.206209ms)
+✔ identity refusal: birth replacement (11.001125ms)
+✔ identity refusal: host network (14.785292ms)
+✔ normal create persists identity before start and cancellation confirms absence (103.176458ms)
+✔ lost create acknowledgement reconciles exact random label without start (77.435667ms)
+✔ manager restart revokes unfinished leases even with fresh heartbeat (104.266041ms)
+✔ daemon outage stays unresolved and recovery cleans owned job (138.115708ms)
+✔ heartbeat replay cannot postpone launcher-loss cleanup (120.1515ms)
+✔ fresh heartbeats cannot extend absolute deadline (108.882666ms)
+✔ monotonic deadline survives wall clock rollback (11.678ms)
+✔ stale intent never starts a container (41.993125ms)
+✔ TERM resistance escalates to KILL, removal only after stopped (96.243167ms)
+✔ unconfirmed KILL does not remove or report success (104.750916ms)
+✔ successful rm exit without actual absence is rejected (105.184333ms)
+✔ forged journal ID never signals unrelated container (95.974708ms)
+✔ concurrent leases retain separate IDs and unrelated sentinel survives (165.713917ms)
+✔ admission caps active jobs at four (271.607167ms)
+✔ ambiguous discovery cannot signal either candidate (62.029583ms)
+✖ kernel lock rejects concurrent manager and releases without PID files (3.574833ms)
+✔ state symlink cannot be imported as journal (15.144208ms)
+✔ corrupt journal fails closed without Docker access (23.6365ms)
+✔ late heartbeat cannot revive a lease already expired at loop entry (95.148833ms)
+✔ restart of in-flight create stays pending until late owned container appears (91.806042ms)
+✔ recognize bounded Docker absence dialect Error response from daemon: No such object:  (0.109875ms)
+✔ recognize bounded Docker absence dialect error: no such object:  (0.028042ms)
+✔ late daemon completion after deadline can still be identified for cleanup (13.322416ms)
+✔ saved eight-case real Docker drill validates offline (13.887292ms)
+✔ rehashed duplicate case cannot stand in for missing boundary (34.488667ms)
+✔ rehashed final state cannot claim absence without Docker observation (31.420292ms)
+✔ rehashed foreign signal target rejected (40.59975ms)
+✔ rehashed manager crash omission rejected (38.867583ms)
+✔ forged nonexistent journal ID cannot hide an existing owned container (78.808875ms)
+✔ QA1: rehashed early state/event cannot disagree with facts and Docker (42.398417ms)
+✔ synchronized early facts/state/event still cannot precede Docker absence (39.485625ms)
+✔ facts completion cannot drift independently from final state (41.434292ms)
+✔ unsupported late state/facts completion cannot follow completion event (38.601167ms)
+✔ final absence observation must precede state completion even inside event gap (41.647708ms)
+✔ reordered removal and final absence events rejected (32.584166ms)
+✔ late completion event outside recorded case rejected (28.437667ms)
+✔ non-integer completion timestamp rejected (25.950792ms)
+✔ negative launcher recovery duration rejected (28.48775ms)
+✔ duplicate completion events rejected (27.739333ms)
+✔ case completion reason and identity must agree with final state (31.209ms)
+✔ stale intent completion cannot precede empty ownership discovery (30.573041ms)
+✔ saved all-nine archive reproduces byte-for-byte including actual offline CLI workflow (1131.742042ms)
+✔ synthetic complete stage uses identical authored answers and labels per case, no arm advantage (30.807917ms)
+✔ separate perturbations retain failure, interruption, pending, absence, incomplete, FN, FP and evidence counters (27.9965ms)
+✔ review packets expose only supplied input blobs and exact synthetic answers, omitting answer labels and arm mapping (30.247708ms)
+✔ actual offline CLI runs all preparation/import commands without invoking model executor (1041.415833ms)
+✔ archive writer refuses existing archive and validator detects raw answer tampering (2201.954208ms)
+✔ inventory cannot omit retained artifacts to bypass exact reproduction (2259.974459ms)
+✔ older accepted frozen inputs, protocol and guidance validate end-to-end without replacement (2158.745583ms)
+✔ bounded capture retains exact cap prefix and tracks all observed chunk bytes/digest (1.010375ms)
+✔ predeclared cases and interfaces remain owned-only/no-live (3.41175ms)
+✔ admission binds visible token/model/effort/prompt and atomically refuses reuse or retirement (0.300792ms)
+✖ owned HTTP concurrent and delayed callbacks cannot consume another turn budget (6.307792ms)
+✔ authored SSE explicitly declares final phase and synthetic identity only (0.169959ms)
+✔ saved native CLI matrix and81-turn rehearsal validate offline (859.010958ms)
+✔ native cap negative controls never become study results (1.533958ms)
+✔ saved current guard refuses terminal/cleanup/auth/mapping mutation (0.771916ms)
+✔ pure saved launch validator rejects broad reads, arbitrary env, inner mode and turn token drift (13.224917ms)
+✔ full rehearsal import refuses reorder/retry/material drift and leaves all model turns not-run (19.275958ms)
+✔ archive refuses raw, receipt, source, schedule and readiness drift (2359.816625ms)
+✔ proper native TLS trust positive controls bracket rejected CA and hostname controls (0.803333ms)
+✔ curl correction and detached controls retain distinct scoped outcomes (0.466959ms)
+✔ TLS env and redirect evidence mutation cannot be blessed by rehashed summaries (11.194875ms)
+✔ capture limits must equal declared policy, including standalone protocol import (29.021917ms)
+✔ regular final-file capture bounds import prefixes and records missing files (1.378125ms)
+✔ final-file symlink and directory fail closed before reading (0.890459ms)
+✔ oversized final-file refuses without reading the suffix (1.121459ms)
+✔ post-stat growth cannot extend final-file read work beyond initial snapshot (1.716459ms)
+✔ FIFO final-file returns under a separate hard child timeout without a writer (134.564417ms)
+✔ explicit final import error cannot be promoted by a matching successful answer (0.340209ms)
+✔ all81 exact input/guidance packets export into separate scratch workspaces; no scorer or rubric (2356.337084ms)
+✔ existing/symlinked/altered/traversal staging is refused (7.817875ms)
+✔ real registration remains unbound; pending review, sentinels, mismatched anchors and absent authorization block (0.387333ms)
+✔ synthetic81-turn replay roundtrips existing importer, keeps all reviews pending and no efficacy claim (109.984291ms)
+✔ empty successful answer is executed; plausible text without completion is failed; nonzero exit keeps partial (2.698875ms)
+✔ 900second deadline preserves raw/partial and leaves unstarted primary schedule not-run (2.871875ms)
+✔ observed identity mismatch/missing blocks subsequent turn; never substitute intended identity (5.194375ms)
+✔ no retry/order bypass or non-simulation events; malformed/late completion refused (9.644625ms)
+✔ empty answer event cannot precede identity, and elapsed boundary requires explicit exact deadline (6.18925ms)
+✔ durable offline archive byte-compares to deterministic rebuild and source snapshots (215.868666ms)
+✔ frozen design and public external anchor preserve exact artifact bytes (6.013459ms)
+✔ first-pass pair contains exact whitelisted source bytes and blank fixture judgments (0.576125ms)
+✔ all 81 primary turns are frozen once with counterbalanced positions and no executed response (99.522916ms)
+✔ future execution registration is explicitly unbound and design has no live results (0.273834ms)
+✖ valid one-turn dispatch has parent-only dummy auth, separate identity evidence and immutable request (4.260416ms)
+✖ simultaneous duplicates and later primary reuse cannot dispatch twice (0.528667ms)
+✖ capability, method, route, host, headers and exact model/reasoning/body pin reject without upstream (0.830709ms)
+✖ cross-session capability and closed session never allow a primary dispatch (0.26025ms)
+✖ 401,429 and503 consume one primary without retry or auth refresh (0.242916ms)
+✖ redirect is never followed and echoed credential/header is absent from client/evidence (0.195041ms)
+✖ SSE completion preserves request/report distinction and never invents provider identity (0.198875ms)
+✖ SSE disconnection retains sanitized partial bytes with no stream reconnect (0.17275ms)
+✖ total upstream deadline stops a drip stream; response byte overflow is explicit and not retried (0.232208ms)
+✖ inbound slow body and slow headers are bounded without consuming upstream attempt (0.518542ms)
+✖ request size cap, malformed shape, external origin and real-looking credentials fail closed (2.358916ms)
+✔ missing/mismatched reports and model self-description stay unverified; config has no credentials (0.222875ms)
+✖ dynamic configuration update stays unreviewed rather than reporting actual selected effort (0.1515ms)
+✖ actual sandbox grants only relay port; provider key absent in child and direct upstream refused (21.995084ms)
+✖ caller mutation after binding cannot alter request or intended model/reasoning (0.2525ms)
+✖ absolute-form route and external body destinations cannot turn relay into arbitrary proxy (0.233792ms)
+✔ saved channel archive binds exact sources/sanitized bytes without model evidence claims (8.788ms)
+✖ untrusted Content-Type and common JSON unicode credential echoes cannot escape sanitization (0.310875ms)
+✖ close before dispatch settles as not-attempted; close during dispatch settles failure without retry (0.144166ms)
+✔ saved native cases validate without Docker or network (98.403375ms)
+✔ archive rejects live (1.9965ms)
+✔ archive rejects model (1.4515ms)
+✔ archive rejects identity (1.809041ms)
+✔ archive rejects cleanup (1.575958ms)
+✔ archive rejects completed_time (3.558791ms)
+✔ archive rejects missing_event (1.439958ms)
+✔ archive rejects rm_failed (1.68125ms)
+✔ archive rejects upstream_auth (1.732208ms)
+✔ archive rejects upstream_extra (1.409666ms)
+✔ archive rejects admission_model (1.427333ms)
+✔ archive rejects tool_added (1.529125ms)
+✔ archive rejects false_worker (3.681458ms)
+✔ archive rejects client_final (5.531916ms)
+✔ archive rejects client_sentinel (2.085959ms)
+✔ archive rejects run_failed (1.740208ms)
+✔ request rejects method (1.762875ms)
+✔ request rejects path (1.310167ms)
+✔ request rejects auth (1.29525ms)
+✔ request rejects model (1.425ms)
+✔ request rejects effort (1.526834ms)
+✔ request rejects extra (1.321042ms)
+✔ request rejects tool (1.327209ms)
+✔ request rejects type (1.429667ms)
+✔ request rejects store (1.47925ms)
+✔ request rejects stream (1.860458ms)
+✔ request rejects input (1.639667ms)
+✔ request rejects include (1.347625ms)
+✔ request rejects schema (1.880708ms)
+✔ budget reserves before dispatch and prevents simultaneous call (1.53575ms)
+✔ one byte budget rejects before consumption (1.232ms)
+✔ invalid deadline NaN (0.067791ms)
+✔ invalid deadline Infinity (0.047667ms)
+✔ invalid deadline -1 (0.038792ms)
+✔ invalid deadline 0 (0.050875ms)
+✔ invalid deadline 12001 (0.034125ms)
+✔ floating monotonic deadline is valid (0.033958ms)
+✔ deadline expiry and rollback deny (2.675708ms)
+✔ late callback is denied (1.273875ms)
+✔ cancel seals budget and callbacks (2.394542ms)
+✔ response rejects identity (1.438625ms)
+✔ response rejects missing_usage (1.252ms)
+✔ response rejects bad_usage (1.18525ms)
+✔ response rejects overflow (1.226916ms)
+✔ response rejects total (1.403125ms)
+✔ response rejects incomplete (1.240958ms)
+✔ duplicate response cannot consume second reservation (2.7695ms)
+✔ policy refuses actual model or expensive fallback (0.073417ms)
+✔ same tool name cannot replace native schema (2.885167ms)
+✔ executed client source binding cannot drift (1.427375ms)
+✔ archive rejects inflated request cap (1.413459ms)
+✔ archive rejects unclosed Docker removal (1.805917ms)
+✔ clock returning nonfinite is rejected (0.133084ms)
+✔ three-session real native offline smoke validates (32.26075ms)
+✔ smoke registration unchanged and hash frozen (4.223458ms)
+✔ live refuses missing enabled (2.187583ms)
+✔ live refuses missing registration_sha256 (2.433542ms)
+✔ live refuses missing budget_nano_usd (1.7305ms)
+✔ live refuses missing user_reference (2.291125ms)
+✔ live refuses missing model (1.776667ms)
+✔ live refuses missing effort (2.457667ms)
+✔ live missing approval fails before transport or Docker (1.876875ms)
+✔ registration source mutation fails before execution (6.282916ms)
+✔ native idle workload is fixed and unknown workloads rejected (25.988667ms)
+✔ native idle workload inspection rejects command drift (1.223875ms)
+✔ smoke cannot accept pending cleanup (1.535583ms)
+✔ smoke cannot accept missing remote read (3.220125ms)
+✔ rehashed smoke rejects QA1 count body different model (160.3085ms)
+✔ rehashed smoke rejects QA1 all raw SSE deleted (147.711375ms)
+✔ rehashed smoke rejects QA1 raw child stdout deleted (133.652ms)
+✔ rehashed smoke rejects QA1 cleanup before launch (142.042917ms)
+✔ rehashed smoke rejects count body different prompt (149.832875ms)
+✔ rehashed smoke rejects count ledger hash unrelated (138.598792ms)
+✔ rehashed smoke rejects count raw receipt missing (139.435917ms)
+✔ rehashed smoke rejects count raw receipt inconsistent usage (141.5425ms)
+✔ rehashed smoke rejects raw FINAL parsed state mismatch (117.183666ms)
+✔ rehashed smoke rejects raw SSE reversed (114.916125ms)
+✔ rehashed smoke rejects cross-session raw SSE (121.858291ms)
+✔ rehashed smoke rejects response bytes missing from ledger (37.053791ms)
+✔ rehashed smoke rejects response identity contradiction (35.198541ms)
+✔ rehashed smoke rejects cumulative prefix corrupted (38.830333ms)
+✔ rehashed smoke rejects cumulative requests oversized (35.996ms)
+✔ rehashed smoke rejects reservation underreported (95.602375ms)
+✔ rehashed smoke rejects import before cleanup (39.297416ms)
+✔ rehashed smoke rejects import after journal close (42.54775ms)
+✔ rehashed smoke rejects nonfinite cleanup time (41.168375ms)
+✔ rehashed smoke rejects completion after session close (36.03325ms)
+✔ rehashed smoke rejects duplicate complete event (38.461625ms)
+✔ rehashed smoke rejects missing complete event (36.766667ms)
+✔ rehashed smoke rejects failed exact removal (30.275209ms)
+✔ rehashed smoke rejects unclosed exact removal (31.566042ms)
+✔ rehashed smoke rejects wrong removal identity (30.944709ms)
+✔ rehashed smoke rejects absence before removal (34.623208ms)
+✔ rehashed smoke rejects state before final absence (28.436667ms)
+✔ rehashed smoke rejects cross-session journal records (31.454583ms)
+✔ rehashed smoke rejects native final missing after valid SSE (28.351625ms)
+✔ real transport cannot start without explicit live authorization and reviewed counter (0.845583ms)
+✖ local TLS success retains safe evidence, enforces output cap/tier and reserves before dispatch (13.331459ms)
+✖ TLS HTTP301 never redirects/retries/refunds (1.17175ms)
+✖ TLS HTTP302 never redirects/retries/refunds (0.551167ms)
+✖ TLS HTTP307 never redirects/retries/refunds (0.459833ms)
+✖ TLS HTTP308 never redirects/retries/refunds (0.421375ms)
+✖ TLS HTTP401 never redirects/retries/refunds (0.39175ms)
+✖ TLS HTTP403 never redirects/retries/refunds (0.408584ms)
+✖ TLS HTTP429 never redirects/retries/refunds (0.512916ms)
+✖ TLS HTTP503 never redirects/retries/refunds (0.760042ms)
+✖ untrusted TLS certificate never reaches HTTP handler and consumes one reservation (0.768375ms)
+✖ reject model before network (0.4125ms)
+✖ reject effort before network (0.385875ms)
+✖ reject tier before network (0.347333ms)
+✖ reject output cap before network (0.712041ms)
+✖ reject unknown field before network (0.441584ms)
+✖ reject unknown tool before network (0.340042ms)
+✖ reject duplicate tool before network (0.319ms)
+✖ reject secret in prompt before network (0.313916ms)
+✖ reject oversized input before network (0.301833ms)
+✖ unverified/out-of-budget counter undefined (0.327209ms)
+✖ unverified/out-of-budget counter NaN (0.293333ms)
+✖ unverified/out-of-budget counter -1 (0.296625ms)
+✖ unverified/out-of-budget counter 32769 (0.725917ms)
+✖ unverified/out-of-budget counter [object Promise] (0.590458ms)
+✖ six sequential reservations exhaust the run without a seventh request (0.611459ms)
+✖ parallel dispatch fails closed without a second HTTP attempt (0.534833ms)
+✖ absolute timer interrupts response drips (0.539333ms)
+✖ explicit cancellation closes active response without retry (0.418291ms)
+✖ one run deadline spans both TLS exchanges (0.402375ms)
+✖ response cap, malformed body and missing terminal are rejected (0.504167ms)
+✖ reported identity closes the run (0.404ms)
+✖ reported missing usage closes the run (0.37475ms)
+✖ reported usage sum closes the run (0.364459ms)
+✖ reported excess output closes the run (0.332916ms)
+✖ reported unexpected tool closes the run (0.543166ms)
+✔ duplicate completions and terminal suffix are rejected by the SSE parser (0.342708ms)
+✖ duplicate response identity across exchanges stops continuation (0.346334ms)
+✖ credential echo literal is excluded from returned data and evidence (0.3485ms)
+✖ credential echo unicode is excluded from returned data and evidence (0.2985ms)
+✖ credential echo base64 is excluded from returned data and evidence (0.293125ms)
+✖ credential echo hex is excluded from returned data and evidence (0.282083ms)
+✖ provider token-count preflight binds the complete text/tool input before inference (0.326166ms)
+✖ invalid count receipt prevents inference {"object":"wrong","input_tokens":12} (0.840709ms)
+✖ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":32769} (0.497791ms)
+✖ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":"fixture-only-public-upstream-key"} (0.331916ms)
+✖ invalid count receipt prevents inference {} (0.312709ms)
+✖ token-count redirect is refused before inference (0.393292ms)
+✖ token-count drip is bounded by shared deadline (0.57925ms)
+✖ unknown counter error never leaks arbitrary diagnostic text (0.541666ms)
+✖ configuration changes and image inputs are refused before network (0.3985ms)
+✔ unadvertised streamed tool cannot hide behind a valid final message (0.099834ms)
+✖ actual native packet uses the same parent gateway and local TLS transport seam (11.551ms)
+✖ fresh private state, exact frozen bytes and no inherited personal env/config/skills/memory (1826.034375ms)
+✖ actual Seatbelt blocks repository/ancestor/home reads, outside writes, workspace mutation and symlink escape (1817.563084ms)
+✖ actual Seatbelt refuses loopback network, including child process use (3.972083ms)
+✔ unsupported platform and unsafe runtime paths fail closed; restrictive profile contains no network allow (37.859375ms)
+✖ argv is passed literally, no shell; chunks retain exact UTF8 bytes and stderr bytes (1830.249667ms)
+✖ deadline interrupts TERM-resistant process, escalates KILL and preserves partial evidence (1801.104125ms)
+✖ leader exit with TERM-resistant child holding pipes is cleaned despite leader exit/close (1785.507667ms)
+✖ leader exit with closed-stdio child still escalates rather than cancelling on close (1783.896167ms)
+✖ abort before launch spawns nothing; active abort preserves partial; nonzero process failure retained (1887.47525ms)
+✖ output overflow stops bounded process and explicitly records truncation (1804.682583ms)
+✖ actual raw bytes archive exclusively outside model-readable state (1796.225125ms)
+✔ documented Codex events project separately from identity; self-described model never counted as observed (0.683583ms)
+✔ malformed, failed, duplicate, late, unknown and invalid UTF8 JSONL retain errors, never successful (0.137417ms)
+✔ future argv freezes explicit intent, no inherited catalog, declares no retry and never runs (5.853958ms)
+✔ frozen registration and apparently complete declaration cannot unlock live execution; no retry/order skip (1.485375ms)
+✔ unsupported OS isolation refuses before filesystem or subprocess use (0.15025ms)
+✔ saved process archive verifies source/raw hashes and zero model claims on every platform (13.414625ms)
+✔ archived Darwin containment stays POSIX when the validating host uses Win32 separators (0.976917ms)
+✔ bounded confirmation waits for running members to disappear and records every injected transition (0.19125ms)
+✔ zombie-only is explicitly nonrunning but unreaped; mixed/running and ownership loss stay distinct (0.085792ms)
+✔ running, probe error and timeout remain unconfirmed at the injected deadline; late absent cannot pass (0.121125ms)
+✖ unknown probe and hanging probe exhaust one total budget while preserving completed observations (393.036791ms)
+✔ real group probe refuses an expired deadline before starting ps (0.220542ms)
+✖ normal success drains large exact bytes; TERM trailing bytes survive bounded cleanup (1791.541208ms)
+✖ fixture has no guardian IPC and stdout cannot spoof a fixture exit (1795.755625ms)
+✖ unexpected guardian exit never causes another signal to a possibly reused group (1809.559917ms)
+✖ fixed guardian kills its still-owned group if the parent-only IPC disconnects (1625.894833ms)
+✖ predeclared parallel open/closed-stdio orphan stress verifies no running members under load (2321.606208ms)
+✔ historical QA and observations stay anchored while corrected guardian archive binds separate sources (22.484042ms)
+✖ primary completion before its deadline stays successful during a separate bounded confirmation (2128.910459ms)
+✖ late abort after normal guardian release records interruption without any further group signal (230.720292ms)
+✔ saved exchange reconstructs exactly and all actual offline commands run (4676.013167ms)
+✔ blank forms are not completed reviews and source remains unchanged (197.749416ms)
+✔ exact source,plan,answer and provenance bind submitted annotations (290.0375ms)
+✔ annotations validate against case rubric and require rationale (974.3295ms)
+✔ set and object order do not manufacture disagreement (1036.90475ms)
+✔ conflicts stay pending without adjudication; both reviews and old reviews retained (1049.871542ms)
+✔ adjudication binds review revisions, exact quotes and explicit choices (2038.037917ms)
+✔ missing reviewer entries remain pending and duplicate reviewer identities rejected (1135.204584ms)
+✔ failed records never become reviewable or lose partial text (206.139ms)
+✔ exact empty executed answer can be reviewed incomplete (191.075625ms)
+✔ archive generator refuses overwrite and validation detects tampering (6105.761875ms)
+✔ a pending reviewer cannot be silently selected and custom labels are schema-validated (1088.01725ms)
+✔ review CLI refuses to overwrite an existing form (305.69575ms)
+✔ plan freezes exact candidate bytes and revision-2 guidance without live integration (22.851ms)
+✔ turn inputs preserve arm isolation and exclude all rubric/metadata bytes (21.218416ms)
+✔ each frozen snapshot rejects byte drift against trusted plan (29.936333ms)
+✔ frozen candidate/protocol/guidance snapshots need not match a newer checkout (20.092209ms)
+✔ rehashed changed plan rejected by external trusted digest (18.290375ms)
+✔ rehashing cannot promote independence or leak rubric to input (49.534917ms)
+✔ unknown cases, duplicate case and invalid repetitions rejected (14.462834ms)
+✔ response template represents all 18 planned arms as not run (15.833ms)
+✔ wholly absent triplets remain explicit exclusions (16.336167ms)
+✔ pending executed review and failed partial remain separate (18.635041ms)
+✔ executed incomplete answer remains paired and detected issue is not erased (14.790625ms)
+✔ evidenced successful empty and whitespace answers remain paired when annotated incomplete (27.834792ms)
+✔ unknown/duplicate arm, unplanned repetition, status and extra fields rejected (21.111875ms)
+✔ plan, exact answer, review binding and provenance drift rejected (24.073834ms)
+✔ review packets omit arm, guidance, expected labels, reviewer and partial failures (15.1675ms)
+✔ CLI creates offline artifacts exclusively and refuses overwrite (380.856875ms)
+✔ RT-01: deadline response and underlying work are measured separately (33.9045ms)
+✔ RT-01: success before deadline releases work and cancels the timer (1.285208ms)
+✔ RT-01: a pre-aborted request starts no work or timers (29.171083ms)
+✔ RT-01: parent cancellation removes boundary listener and deadline (0.188375ms)
+✔ RT-02: deadline response and underlying work are measured separately (0.170833ms)
+✔ RT-02: success before deadline releases work and cancels the timer (0.063ms)
+✔ RT-02: a pre-aborted request starts no work or timers (0.045875ms)
+✔ RT-02: parent cancellation removes boundary listener and deadline (0.067625ms)
+✔ transport honors pre-aborted signals without acquiring a slot (0.276125ms)
+✔ protected contract rejects mutant: dropped leaf signal (0.815ms)
+✔ protected contract rejects mutant: transport ignores abort (0.196875ms)
+✔ protected contract rejects mutant: only outward promise is cancelled (0.174167ms)
+✔ manifest keeps model inputs separate from grading artifacts (26.149584ms)
+✔ manifest rejects unsafe paths, rubric leakage, absent anchors and incomplete rubrics (1021.572333ms)
+✔ RT-03: all transient failures expose the exact total-attempt budget (0.547375ms)
+✔ RT-03: success after 0 failures stops without extra attempts (0.111666ms)
+✔ RT-03: success after 2 failures stops without extra attempts (0.082334ms)
+✔ RT-03: nonretryable failure terminates every layer (0.052584ms)
+✔ RT-03: deadline after two failures cancels the active third attempt (10.260667ms)
+✔ RT-03: parent after two failures cancels the active third attempt (0.9335ms)
+✔ RT-03: cancellation between failure and next attempt prevents restart (0.427291ms)
+✔ RT-03: pre-aborted caller starts no dependency attempts (0.123375ms)
+✔ RT-04: all transient failures expose the exact total-attempt budget (0.126917ms)
+✔ RT-04: success after 0 failures stops without extra attempts (0.036041ms)
+✔ RT-04: success after 2 failures stops without extra attempts (0.048209ms)
+✔ RT-04: nonretryable failure terminates every layer (0.027542ms)
+✔ RT-04: deadline after two failures cancels the active third attempt (0.513334ms)
+✔ RT-04: parent after two failures cancels the active third attempt (0.346458ms)
+✔ RT-04: cancellation between failure and next attempt prevents restart (0.249042ms)
+✔ RT-04: pre-aborted caller starts no dependency attempts (0.053583ms)
+✔ single-owner budget oracle rejects mutant: nested retry ownership (0.381458ms)
+✔ single-owner budget oracle rejects mutant: three retries interpreted as four total attempts (0.464167ms)
+✔ retry artifact validation rejects changed budgets, leaked rubrics and incomplete diagnosis (906.482459ms)
+✔ RT-05: same offered optional saturation exposes essential admission (2.812167ms)
+✔ RT-05: optional success releases a worker and admits FIFO successor (0.268208ms)
+✔ RT-05: optional failure releases a worker and admits FIFO successor (0.10175ms)
+✔ RT-05: optional abort releases a worker and admits FIFO successor (0.075167ms)
+✔ RT-05: queued cancellation removes admission without starting work (0.623708ms)
+✔ RT-05: pre-aborted optional and essential callers acquire nothing (0.149084ms)
+✔ RT-06: same offered optional saturation exposes essential admission (0.367542ms)
+✔ RT-06: optional success releases a worker and admits FIFO successor (0.084083ms)
+✔ RT-06: optional failure releases a worker and admits FIFO successor (0.084667ms)
+✔ RT-06: optional abort releases a worker and admits FIFO successor (0.055375ms)
+✔ RT-06: queued cancellation removes admission without starting work (0.282125ms)
+✔ RT-06: pre-aborted optional and essential callers acquire nothing (0.048417ms)
+✔ isolated admission oracle rejects shared-pool wiring (0.329958ms)
+✔ bounded optional admission oracle rejects excessive queue capacity (0.357166ms)
+✔ pool exposes own-route overload and releases synchronous task exceptions (0.107125ms)
+✔ isolation artifact validation rejects resource tampering and grading leakage (837.9495ms)
+✔ RT-07: same leaf permits cancellable completion; no completion is the case truth (0.974417ms)
+✔ RT-07: same leaf permits ignoresAbort completion; no completion is the case truth (0.313208ms)
+✔ RT-08: same leaf permits singleOwner completion with separately supplied budget (0.345459ms)
+✔ RT-08: same leaf permits nestedOwners completion with separately supplied budget (0.256584ms)
+✔ RT-08: same leaf permits permittedNestedOwners completion with separately supplied budget (0.273833ms)
+✔ RT-08: private nested completion cancels without further attempts or leaked resources (0.293209ms)
+✔ incomplete-context artifacts reject certainty, omitted obligations and private input leaks (924.78875ms)
+✔ RT-09: finite long-running archive respects two-worker bound and completes in order (0.719ms)
+✔ RT-09: failure of a releases capacity and remaining finite work completes (0.469ms)
+✔ RT-09: failure of c releases capacity and remaining finite work completes (0.366083ms)
+✔ RT-09: failure of e releases capacity and remaining finite work completes (0.489292ms)
+✔ RT-09: occupancy oracle rejects concurrent unbounded launch despite finite completion (0.198084ms)
+✔ RT-10: await/destructuring example priced returns the specified value (0.265ms)
+✔ RT-10: await/destructuring example missing returns the specified value (0.137125ms)
+✔ RT-10: await/destructuring example undefined returns the specified value (0.120959ms)
+✔ RT-10: await/destructuring example null returns the specified value (0.1095ms)
+✔ RT-10: transport rejection propagates through async without applying the default (0.078959ms)
+✔ batch/syntax artifacts reject changed contract, activation, answer leakage and missing completion (849.312416ms)
+✔ research prototype has explicit negative task boundary and sequential guide references (0.627292ms)
+✔ RT-11: setup and work share the stated total boundary only when covered (0.23225ms)
+✔ RT-11: early completion clears both phase and deadline (0.066208ms)
+✔ RT-11: setup failure clears owned resources (0.05025ms)
+✔ RT-11: work failure clears owned resources (0.024708ms)
+✔ RT-11: parent cancellation at 0 starts no later phases (0.056542ms)
+✔ RT-11: parent cancellation at 30 starts no later phases (0.026791ms)
+✔ RT-11: parent cancellation at 90 starts no later phases (0.025542ms)
+✔ RT-12: setup and work share the stated total boundary only when covered (0.04425ms)
+✔ RT-12: early completion clears both phase and deadline (0.024459ms)
+✔ RT-12: setup failure clears owned resources (0.035792ms)
+✔ RT-12: work failure clears owned resources (0.023625ms)
+✔ RT-12: parent cancellation at 0 starts no later phases (0.023292ms)
+✔ RT-12: parent cancellation at 30 starts no later phases (0.024042ms)
+✔ RT-12: parent cancellation at 90 starts no later phases (0.051042ms)
+✔ total deadline oracle rejects reset-after-setup mutant despite eventual bounded completion (0.1515ms)
+✔ RT-13: identical local leaf permits uncovered caller completion (1.402916ms)
+✔ RT-13: identical local leaf permits permitted caller completion (0.209125ms)
+✔ RT-13: identical local leaf permits outerBounded caller completion (0.195333ms)
+✔ RT-14: queued expiry changes admission, not merely outward result (0.619ms)
+✔ RT-14: active success admits live FIFO successors and cleans listeners (0.330625ms)
+✔ RT-14: active failure admits live FIFO successors and cleans listeners (0.672625ms)
+✔ RT-14: active abort admits live FIFO successors and cleans listeners (0.243333ms)
+✔ RT-14: finite overload, queued cancellation and pre-abort start no extra work (0.245959ms)
+✔ RT-15: queued expiry changes admission, not merely outward result (0.354833ms)
+✔ RT-15: active success admits live FIFO successors and cleans listeners (0.20225ms)
+✔ RT-15: active failure admits live FIFO successors and cleans listeners (0.236125ms)
+✔ RT-15: active abort admits live FIFO successors and cleans listeners (0.1795ms)
+✔ RT-15: finite overload, queued cancellation and pre-abort start no extra work (0.135125ms)
+✔ RT-15: already expired submissions do not enter empty admission or acquire timers (0.05575ms)
+✔ waiting-expiry oracle rejects ignore-expiry mutant under identical finite capacity (0.260375ms)
+✔ RT-16: identical visible admission permits requestOwned completion with different usefulness contract (0.262708ms)
+✔ RT-16: identical visible admission permits durableJob completion with different usefulness contract (0.192375ms)
+✔ deadline/queue artifacts reject modified outcomes, private leakage and uncertainty omissions (931.515084ms)
+✔ RT-15: waiting expiry at the exact release boundary removes work before admission (0.488084ms)
+✔ RT-15: multiple expired entries release timers and admission without later dependency starts (0.361292ms)
+✔ RT-17: all owned fan-out children are independently measured (0.633125ms)
+✔ RT-17: fan-out success settles every child (0.118041ms)
+✔ RT-17: fan-out failure settles every child (0.061ms)
+✔ RT-17: fan-out pre-abort settles every child (0.059875ms)
+✔ RT-18: all owned fan-out children are independently measured (0.224542ms)
+✔ RT-18: fan-out success settles every child (0.04725ms)
+✔ RT-18: fan-out failure settles every child (0.054625ms)
+✔ RT-18: fan-out pre-abort settles every child (0.055833ms)
+✔ RT-19: identical visible extract admits request-owned and durable child countermodels (0.267875ms)
+✔ RT-20: ten local retry caps versus shared extra-attempt allowance (0.380916ms)
+✔ RT-20: success, permanent errors and cancellation cannot consume an extra attempt (0.16225ms)
+✔ RT-21: ten local retry caps versus shared extra-attempt allowance (0.218417ms)
+✔ RT-21: success, permanent errors and cancellation cannot consume an extra attempt (0.102333ms)
+✔ RT-21: fixed window does not refill early and resets exactly at boundary (0.276125ms)
+✔ RT-22: local retry extract cannot decide an omitted aggregate contract (0.2425ms)
+✔ RT-23: committed response loss measures effects rather than response status alone (0.217666ms)
+✔ RT-23: normal response, pre-cancel and permanent failure (0.203083ms)
+✔ RT-23: cancellation after commit retains effect and prevents a second attempt (0.090166ms)
+✔ RT-24: committed response loss measures effects rather than response status alone (0.27075ms)
+✔ RT-24: normal response, pre-cancel and permanent failure (0.059708ms)
+✔ RT-24: cancellation after commit retains effect and prevents a second attempt (0.046875ms)
+✔ RT-24: concurrent same-key writes deduplicate atomically and conflicting intent is rejected (0.182542ms)
+✔ RT-25: stable identity alone cannot establish backend deduplication (0.270792ms)
+✔ RT-26: injected eight-client schedule is measured per logical slot (0.44175ms)
+✔ RT-26: retry timer cancel-before cleans timer and listener (0.067625ms)
+✔ RT-26: retry timer cancel-waiting cleans timer and listener (0.043917ms)
+✔ RT-26: retry timer throw cleans timer and listener (0.042417ms)
+✔ RT-26: retry timer success cleans timer and listener (0.043167ms)
+✔ RT-27: injected eight-client schedule is measured per logical slot (0.225042ms)
+✔ RT-27: retry timer cancel-before cleans timer and listener (0.03375ms)
+✔ RT-27: retry timer cancel-waiting cleans timer and listener (0.033584ms)
+✔ RT-27: retry timer throw cleans timer and listener (0.031333ms)
+✔ RT-27: retry timer success cleans timer and listener (0.027292ms)
+✔ RT-28: identical local retry delay permits synchronized and staggered arrival countermodels (0.254959ms)
+✔ RT-29: distinct wrappers are checked at the actual two-slot resource (0.317292ms)
+✔ RT-29: transport success releases all admission (0.073292ms)
+✔ RT-29: transport failure releases all admission (0.037583ms)
+✔ RT-29: transport cancel releases all admission (0.036375ms)
+✔ RT-30: distinct wrappers are checked at the actual two-slot resource (0.194209ms)
+✔ RT-30: transport success releases all admission (0.034166ms)
+✔ RT-30: transport failure releases all admission (0.032708ms)
+✔ RT-30: transport cancel releases all admission (0.034125ms)
+✔ RT-31: injected wrapper instances admit shared and reserved underlying transports (0.237458ms)
+✔ RT-32: simultaneous cooldown callers measure recovery admission (0.279458ms)
+✔ RT-32: successful probe closes; failed probe reopens and restarts cooldown (0.080709ms)
+✔ RT-33: simultaneous cooldown callers measure recovery admission (0.164792ms)
+✔ RT-33: successful probe closes; failed probe reopens and restarts cooldown (0.049833ms)
+✔ RT-33: cancelled probe permits replacement and pre-cancel never starts work (0.081292ms)
+✔ RT-32: stale concurrent success cannot close a generation reopened by another failed probe (0.066083ms)
+✔ RT-34: omitted controller and external admission permit different recovery concurrency (0.231583ms)
+✔ RT-35: optional admission must preserve a useful essential degraded response (0.216208ms)
+✔ RT-35: detail success releases capacity for next work (0.0825ms)
+✔ RT-35: detail failure releases capacity for next work (0.063584ms)
+✔ RT-35: detail cancel releases capacity for next work (0.056583ms)
+✔ RT-36: optional admission must preserve a useful essential degraded response (0.1965ms)
+✔ RT-36: detail success releases capacity for next work (0.049625ms)
+✔ RT-36: detail failure releases capacity for next work (0.038333ms)
+✔ RT-36: detail cancel releases capacity for next work (0.039333ms)
+✔ RT-37: the same degraded payload satisfies an omission-permitted contract and violates required detail (0.145333ms)
+✔ RT-21: causal mutation to RT-20 fails the protected criterion (0.219208ms)
+✔ RT-24: causal mutation to RT-23 fails the protected criterion (0.073ms)
+✔ RT-27: causal mutation to RT-26 fails the protected criterion (0.1725ms)
+✔ RT-30: causal mutation to RT-29 fails the protected criterion (0.197584ms)
+✔ RT-36: causal mutation to RT-35 fails the protected criterion (0.167125ms)
+✔ RT-18/33: dropped child signal and unlimited half-open admission fail protected criteria (0.208875ms)
+✔ Expanded manifest rejects kind drift (712.300417ms)
+✔ Expanded manifest rejects expected drift (700.562583ms)
+✔ Expanded manifest rejects input-test drift (675.204625ms)
+✔ Expanded manifest rejects input-rubric drift (671.290792ms)
+✔ Expanded manifest rejects missing-context drift (728.680125ms)
+✔ Expanded manifest rejects finding-evidence drift (710.057ms)
+✔ RT-20: one transient error followed by recovery uses exactly one extra attempt (0.228084ms)
+✔ RT-21: one transient error followed by recovery uses exactly one extra attempt (0.062917ms)
+✔ RT-23: repeated ambiguous failures stop at two calls (0.091041ms)
+✔ RT-24: repeated ambiguous failures stop at two calls (0.048541ms)
+✔ RT-36: reject-all and incorrect-success mutations fail the useful response criterion (0.114ms)
+✔ dispute RT-02: transport completion before expiry can lose to synchronous clock advancement (0.080792ms)
+✔ dispute RT-02: observing success before advancing the clock preserves the value (0.049666ms)
+✔ dispute RT-12: rejected setup duration -1 retains deadline and parent listener until expiry (0.091208ms)
+✔ dispute RT-12: rejected setup duration NaN retains deadline and parent listener until expiry (0.025541ms)
+✔ dispute RT-12: rejected setup duration Infinity retains deadline and parent listener until expiry (0.022625ms)
+✔ dispute RT-12: parent abort releases resources left after setup scheduling throws (0.046833ms)
+✔ dispute RT-12: invalid work duration throws during advancement and the original deadline still cleans up (0.064875ms)
+✔ dispute RT-12: validating durations before acquisition avoids the exception cleanup path (0.123792ms)
+✔ RT-38: settlement99 with same-turn deadline (0.376875ms)
+✔ RT-38: settlement99 with awaited delivery (0.0445ms)
+✔ RT-38: completion exactly100, completion-first (0.083542ms)
+✔ RT-38: completion exactly100, deadline-first (0.049417ms)
+✔ RT-38: timeout releases pending operation (0.060125ms)
+✔ RT-38: parent-abort releases pending operation (0.0375ms)
+✔ RT-38: pre-abort releases pending operation (0.040458ms)
+✔ RT-39: settlement99 with same-turn deadline (0.224958ms)
+✔ RT-39: settlement99 with awaited delivery (0.04775ms)
+✔ RT-39: completion exactly100, completion-first (0.04325ms)
+✔ RT-39: completion exactly100, deadline-first (0.040084ms)
+✔ RT-39: timeout releases pending operation (0.036375ms)
+✔ RT-39: parent-abort releases pending operation (0.035292ms)
+✔ RT-39: pre-abort releases pending operation (0.031833ms)
+✔ RT-40: settlement99 with same-turn deadline (0.167667ms)
+✔ RT-40: settlement99 with awaited delivery (0.033958ms)
+✔ RT-40: completion exactly100, completion-first (0.034291ms)
+✔ RT-40: completion exactly100, deadline-first (0.037083ms)
+✔ RT-40: timeout releases pending operation (0.043709ms)
+✔ RT-40: parent-abort releases pending operation (0.032833ms)
+✔ RT-40: pre-abort releases pending operation (0.093875ms)
+✔ RT-40: same visible trace admits opposing success contracts (0.094542ms)
+✔ RT-41: setupDuration=-1 rejection lifecycle (0.572125ms)
+✔ RT-41: setupDuration=NaN rejection lifecycle (0.049333ms)
+✔ RT-41: setupDuration=Infinity rejection lifecycle (0.037125ms)
+✔ RT-41: setupDuration=-Infinity rejection lifecycle (0.037792ms)
+✔ RT-41: setupDuration=10 rejection lifecycle (0.036916ms)
+✔ RT-41: setupDuration=null rejection lifecycle (0.042292ms)
+✔ RT-41: workDuration=-1 rejection lifecycle (0.062458ms)
+✔ RT-41: workDuration=NaN rejection lifecycle (0.034875ms)
+✔ RT-41: workDuration=Infinity rejection lifecycle (0.039167ms)
+✔ RT-41: workDuration=-Infinity rejection lifecycle (0.037708ms)
+✔ RT-41: workDuration=10 rejection lifecycle (0.035625ms)
+✔ RT-41: workDuration=null rejection lifecycle (0.036417ms)
+✔ RT-41: standard setup rejection observation matches manifest or remains conditional (0.07525ms)
+✔ RT-41: valid durations 0/0 (0.048375ms)
+✔ RT-41: valid durations 20/30 (0.032125ms)
+✔ RT-41: valid durations 80/60 (0.037375ms)
+✔ RT-41: valid durations 40/60 (0.027542ms)
+✔ RT-41: valid durations 0/100 (0.026417ms)
+✔ RT-41: valid durations 100/0 (0.032792ms)
+✔ RT-41: cancellation during pre-abort (0.052625ms)
+✔ RT-41: cancellation during setup (0.028042ms)
+✔ RT-41: cancellation during work (0.027917ms)
+✔ RT-41: undefined durations keep defaults (0.050292ms)
+✔ RT-42: setupDuration=-1 rejection lifecycle (0.481417ms)
+✔ RT-42: setupDuration=NaN rejection lifecycle (0.06025ms)
+✔ RT-42: setupDuration=Infinity rejection lifecycle (0.038375ms)
+✔ RT-42: setupDuration=-Infinity rejection lifecycle (0.031792ms)
+✔ RT-42: setupDuration=10 rejection lifecycle (0.058625ms)
+✔ RT-42: setupDuration=null rejection lifecycle (0.029208ms)
+✔ RT-42: workDuration=-1 rejection lifecycle (0.0275ms)
+✔ RT-42: workDuration=NaN rejection lifecycle (0.026166ms)
+✔ RT-42: workDuration=Infinity rejection lifecycle (0.026417ms)
+✔ RT-42: workDuration=-Infinity rejection lifecycle (0.026542ms)
+✔ RT-42: workDuration=10 rejection lifecycle (0.025625ms)
+✔ RT-42: workDuration=null rejection lifecycle (0.025291ms)
+✔ RT-42: standard setup rejection observation matches manifest or remains conditional (0.038375ms)
+✔ RT-42: valid durations 0/0 (0.041584ms)
+✔ RT-42: valid durations 20/30 (0.030792ms)
+✔ RT-42: valid durations 80/60 (0.031708ms)
+✔ RT-42: valid durations 40/60 (0.039959ms)
+✔ RT-42: valid durations 0/100 (0.03425ms)
+✔ RT-42: valid durations 100/0 (0.030916ms)
+✔ RT-42: cancellation during pre-abort (0.047125ms)
+✔ RT-42: cancellation during setup (0.03125ms)
+✔ RT-42: cancellation during work (0.038375ms)
+✔ RT-42: undefined durations keep defaults (0.037083ms)
+✔ RT-43: setupDuration=-1 rejection lifecycle (0.238375ms)
+✔ RT-43: setupDuration=NaN rejection lifecycle (0.032917ms)
+✔ RT-43: setupDuration=Infinity rejection lifecycle (0.036292ms)
+✔ RT-43: setupDuration=-Infinity rejection lifecycle (0.026667ms)
+✔ RT-43: setupDuration=10 rejection lifecycle (0.028375ms)
+✔ RT-43: setupDuration=null rejection lifecycle (0.025708ms)
+✔ RT-43: workDuration=-1 rejection lifecycle (0.03025ms)
+✔ RT-43: workDuration=NaN rejection lifecycle (0.027583ms)
+✔ RT-43: workDuration=Infinity rejection lifecycle (0.027167ms)
+✔ RT-43: workDuration=-Infinity rejection lifecycle (0.028875ms)
+✔ RT-43: workDuration=10 rejection lifecycle (0.026208ms)
+✔ RT-43: workDuration=null rejection lifecycle (0.026417ms)
+✔ RT-43: standard setup rejection observation matches manifest or remains conditional (0.028375ms)
+✔ RT-43: valid durations 0/0 (0.025625ms)
+✔ RT-43: valid durations 20/30 (0.031375ms)
+✔ RT-43: valid durations 80/60 (0.025541ms)
+✔ RT-43: valid durations 40/60 (0.025416ms)
+✔ RT-43: valid durations 0/100 (0.023208ms)
+✔ RT-43: valid durations 100/0 (0.022375ms)
+✔ RT-43: cancellation during pre-abort (0.03825ms)
+✔ RT-43: cancellation during setup (0.034333ms)
+✔ RT-43: cancellation during work (0.029959ms)
+✔ RT-43: undefined durations keep defaults (0.036167ms)
+✔ RT-42: invalid inputs reject before even pre-aborted parent admission (0.084167ms)
+✔ RT-41/43: parent abort cleans resources retained after initial scheduling exception (0.082958ms)
+✔ RT-43: private validity policies produce opposing judgments without supplying a validator (0.075958ms)
+✔ same implementation satisfies bounded integer witness but violates explicit validation witness (0.825ms)
+✔ calibration inventory preserves distinct stop-boundary annotations (not a semantic evaluator) (0.157708ms)
+✔ a completed successful run for the exact release commit permits publication (0.448792ms)
+✔ a green different commit, missing CI, and incomplete or unsuccessful CI block publication (0.242375ms)
+✔ an older green run cannot override the latest failed run for the same commit (0.525791ms)
+✔ behavioral corpus keeps task prompts blind to skill selection and judgment (1.111042ms)
+✔ judge output contract requires every field and rejects extra keys at every object (0.154083ms)
+✔ rule-drift ground truth is executable and confined to the documented interval (2.138833ms)
+✔ coverage fixture has correct new behavior but its tests miss a removed branch (249.756167ms)
+✔ mocked-subject fixture passes even if the real calculation throws (242.861125ms)
+✔ clean architecture and local severity fixtures satisfy their functional contracts (115.082375ms)
+✔ case validation rejects traversal and instruction injection fixture paths (1.066ms)
+✔ observed trigger requires successful content-read evidence rather than claims or mentions (0.478209ms)
+✔ trace records failed turns and malformed logs instead of treating them as completed (0.111166ms)
+✔ judge accepts substantively complete baseline prose without Brooks labels (0.28ms)
+✔ judge evidence and matched/missed IDs must be grounded and internally consistent (0.22425ms)
+✔ paired summaries exclude missing or failed arms and reject duplicate pair records (0.301542ms)
+✔ metrics distinguish unlabeled severity, uncertain findings, and nontrigger denominators (0.195625ms)
+✔ runner environment retains transport settings while isolating identity and configuration (0.09375ms)
+✔ runner materializes identical committed fixtures and installs skills only in treatment (592.179833ms)
+✔ process execution captures input/output and reports timeout, exit failures, and missing binary (333.625541ms)
+✔ CLI offline validation does not need Codex binary, auth, or live model settings (133.940542ms)
+✔ offline fake Codex exercises isolated treatment, baseline, and blind judge sessions (2396.130125ms)
+✔ session rejects preflight skill mismatch before execution and removes temporary credentials (480.804875ms)
+✔ session preserves failed-turn evidence without publishing a successful final answer (605.287ms)
+✔ discovery reads only developer skill catalogs and never user or judge answer mentions (0.332125ms)
+✔ matched finding severity calibration cannot contradict the fixed rubric (0.125041ms)
+✔ process cancellation terminates an active process and rejects a pre-aborted launch (1.061541ms)
+✔ aborted session removes temporary credentials and never writes a completed answer (686.8745ms)
+✔ frozen Codex pilot-2026-11-04 judgments, paired summary, and observed reads remain reproducible (1.73425ms)
+✔ frozen Codex calibration-2026-11-04 judgments, paired summary, and observed reads remain reproducible (1.249583ms)
+✔ severity calibration rerun preserves the original evaluation criteria and controls (0.659208ms)
+✔ three-run severity archive preserves fixed criteria, complete attempts, and recovery provenance (4.054792ms)
+✔ three-run archive keeps grounded grades and replayable skill-read evidence (2.300334ms)
+✔ delivery accepts exact artifact and rejects lost terminal LF, added prose and stale content (2.4465ms)
+✔ receipt binds valid ledger and report, not only a valid-looking score (0.815334ms)
+✔ assembly round-trips Unicode, escapes and newline without overriding the report (0.550916ms)
+✔ CLI assembles fresh file, checks actual bytes and never overwrites an existing artifact (472.386417ms)
+✔ all eight retained strict failures differ only by terminal LF; checked assembly preserves it (1375.245167ms)
+✔ market pins the published npm version and its registry publication time (0.681ms)
+✔ unpublished or invalid releases cannot produce installable market entries (0.149916ms)
+✔ metadata checks ignore topic order and preserve unrelated labels (0.609792ms)
+✔ missing and changed repository metadata and managed labels are reported (0.120292ms)
+✔ literal strict, balanced and legacy witnesses agree with the documented deduction table (1.691542ms)
+✔ SR-03 half-up and no-diff witnesses keep exact weights; clean is distinct from skipped (0.372417ms)
+✔ SR-04 and every required unknown dimension suppress the composite without redistributing its weight (0.419917ms)
+✔ canonical report rejects the observed stale headline, altered table/arithmetic and duplicate totals (0.585667ms)
+✔ preserved AS-21 completed response exposes both disagreeing score labels and fails the new block contract (16.411292ms)
+✔ the actual AS-21 severity-only supplied ledger is supported without inventing risk codes (2.20775ms)
+✔ capped ledgers reject excess deductions, duplicate IDs and invalid or missing schema fields (0.566083ms)
+✔ CLI render/check and symlink entry points produce output; invalid commands/reports fail nonzero (2333.564666ms)
+✔ finalization inserts one verified total and rejects competing score surfaces (1.674292ms)
+✔ finalize/check-report CLI preserves inputs, refuses overwrites and binds final bytes (753.818791ms)
+✔ bounded evidence witness finalizes its own scope without a project-wide clean claim (0.336292ms)
+✔ missing assertion bodies leave completed local architecture and debt scores intact (0.500083ms)
+✔ adjudicated material blockers suppress only their unresolved dimensions and never redistribute weight (0.626875ms)
+✔ one causal owner is scored once; identity validation cannot replace semantic deduplication (0.156ms)
+✔ every canonical global and project mapping installs flat bundled skills (4120.262416ms)
+✔ DSH_HOME override and custom destination preserve unrelated files (409.562292ms)
+✔ help, list and version do not install anything (1249.2875ms)
+✔ invalid arguments fail before writing (1131.304917ms)
+✔ source overlap and symlink aliases are rejected (565.057542ms)
+✔ npm packed artifact can install without repository files or network (989.885417ms)
+✔ shell-installed health helper works in a standalone skill directory (389.862792ms)
+✔ score labels work for all report modes including bold and final sweep score (1.852791ms)
+✔ full sweep finalizer output is consumed as the single final composite score (2.349833ms)
+✔ invalid, ambiguous and missing scores are not valid machine reports (0.222042ms)
+✔ fenced examples are not interpreted as report scores or findings (0.386375ms)
+✔ custom findings preserve severity and code through parser and SARIF (1.042833ms)
+✔ missing severity and incomplete findings cannot silently become clean reports (0.272125ms)
+✔ no-risk scenarios reject unrelated findings while targeted exclusions permit them (0.200209ms)
+✔ prose mentions are not findings and keyword soup cannot earn a pass (0.141208ms)
+✔ every finding needs all Iron Law fields and onboarding cannot contain bold scores (0.1125ms)
+✔ mode registry shares review test knowledge and restricts tool-less runners (0.77925ms)
+✔ suppressed-only reports keep score 100 and emit no active findings or SARIF results (0.22775ms)
+✔ suppression boundaries exclude inner findings and require fresh active severity afterward (0.231542ms)
+✔ malformed suppression blocks cannot silently hide subsequent active findings (0.258208ms)
+✔ strict parsing rejects contradictory header and inline severity signals (0.135625ms)
+✔ literal title severity labels preserve tiers through parser and SARIF without headings (0.45575ms)
+✔ literal severity labels must agree with markers and never leak into following findings (0.179708ms)
+✔ PR event SHAs select a non-main merge-base diff and trusted base policy (657.5925ms)
+✔ explicit refs, staged and unstaged inputs are honored without a main branch (258.778459ms)
+✔ missing refs, merge bases and Git repositories fail instead of pretending to scan (248.049917ms)
+✔ empty diff is skipped without loading SDK or writing SARIF; unsupported modes fail before API (1081.808667ms)
+✔ CI emits complete structured results, but malformed and truncated responses fail closed (1234.652917ms)
+✔ gate recomputes custom severities and rejects invalid report envelopes (592.430875ms)
+✔ API eval rejects explicit sweep and reports excluded sweep scenarios without API calls for them (494.453458ms)
+✔ API eval fails the process for partial and truncated results (332.368084ms)
+✔ scenario schema accepts review test risks and rejects conflicting or malformed boundaries (904.156416ms)
+✔ critical gate accepts suppressed-only reports but rejects ambiguous or malformed severity boundaries (572.421375ms)
+✔ default validation and plan mode never require Codex or credentials (670.129333ms)
+✔ plans freeze exact artifacts, reject edits and invalid settings, and rotate three arms (431.754833ms)
+✔ fake CLI exercises A/B/C isolation, same tasks, private cleanup and blind packets (2131.3965ms)
+✔ mismatch: preserve failure evidence and exclude incomplete triplet (1657.040333ms)
+✔ execution-failure: preserve failure evidence and exclude incomplete triplet (1799.341542ms)
+✔ offline judgments validate quotes, completeness, severity, and only new C-over-B issues count (108.070916ms)
+✔ trace read proxy excludes echo/search claims and failed commands (0.19825ms)
+✔ all expanded cases freeze visible inputs and count unresolved controls by manifest kind (117.513583ms)
+✔ pre-aborted execution records interruption without starting fake CLI (245.493083ms)
+✔ six dispute cases plan independently without a model process and keep private policies outside inputs (1870.010875ms)
+ℹ tests 950
+ℹ suites 0
+ℹ pass 810
+ℹ fail 140
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29877.112833
+
+✖ failing tests:
+
+test at evals/research/runtime/prospective/codex-boundaries.test.mjs:13:1
+✖ owned broker rejects foreign routes and credentials and retains denial bytes (4.470792ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/codex-boundaries.test.mjs:29:1
+✖ owned broker keeps concurrent requests within one atomic forward budget (0.540084ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: same (134.61375ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: reconnect (145.891542ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: multiple (133.740625ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: partial-failed (127.614417ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: no-completed (136.613625ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: empty-completed (134.741125ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: missing-text (140.701333ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: wrong-scope (130.443792ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-answer.test.mjs:25:141
+✖ isolated fake CLI completed-answer selection: conflict (126.615542ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(record.cleanup.closed&&record.cleanup.group_absent&&record.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-answer.test.mjs:29:197)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:42:1
+✖ successful fake CLI records response, usage, selection, private home cleanup (142.359291ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'completed'
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:43:33)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: wrong-model (130.46875ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: wrong-answer (135.21425ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: failed-turn (133.670167ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: tool (137.036625ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: completed-tool (146.737ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: server-request (135.385291ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: invalid (123.750333ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:122
+✖ fails closed and cleans up: hang (168.8215ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:45:280)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:48:1
+✖ synthetic login lifecycle uses private auth-only home and never archives credentials (128.08625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'completed'
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:50:175)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:58:1
+✖ proxy inheritance is explicit, scoped and credentials are redacted (123.627209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'completed'
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:66:48)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-smoke.test.mjs:76:1
+✖ deadline records the last observed phase and actual timeout without fabricating an answer (514.160542ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-smoke.test.mjs:85:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-study.test.mjs:8:1
+✖ offline 81-turn end to end preserves exact answers and pending reviews (195.929667ms)
+  AssertionError [ERR_ASSERTION]: {"result":{"attempts":1,"stopped":{"turn":{"case_id":"HC-01","repetition":1,"arm":"A"},"error":"cleanup failure"}},"evidence":"/var/folders/kb/clk179sd5qq5htsth48gfk5c0000gn/T/login-study-failure-3YPcgP"}
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-study.test.mjs:8:652)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-study.test.mjs:18:3
+✖ fails closed and cleans private process state: wrong-thread (139.874917ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-study.test.mjs:18:483)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-study.test.mjs:18:3
+✖ fails closed and cleans private process state: wrong-turn (130.048709ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-study.test.mjs:18:483)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-study.test.mjs:18:3
+✖ fails closed and cleans private process state: wrong-effort (131.115875ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-study.test.mjs:18:483)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-study.test.mjs:18:3
+✖ fails closed and cleans private process state: tool (129.457333ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-study.test.mjs:18:483)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-study.test.mjs:18:3
+✖ fails closed and cleans private process state: timeout (1020.561416ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.closed&&r.cleanup.group_absent&&r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-study.test.mjs:18:483)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-login-study.test.mjs:19:1
+✖ private login secrets are removed from archived failures (127.025292ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.cleanup.private_home_removed)
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/codex-login-study.test.mjs:19:793)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/codex-stream.test.mjs:22:1
+✖ actual owned relay spends its one-forward budget atomically and close is idempotent (4.802958ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:14:1
+✖ parent transport completes authored read continuation without putting credential in tool/model payload (7.495209ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:17:574
+✖ unknown tool stops without continuation (0.467042ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:17:574
+✖ traversal stops without continuation (0.858167ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:17:574
+✖ model mismatch stops without continuation (0.285542ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:17:574
+✖ effort mismatch stops without continuation (0.207458ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:17:574
+✖ missing identity stops without continuation (0.166542ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:17:574
+✖ auth echo stops without continuation (0.166833ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:17:574
+✖ extra fields stops without continuation (0.1945ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:18:47
+✖ HTTP 301 has no redirect, credential refresh or retry (0.203791ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:18:47
+✖ HTTP 307 has no redirect, credential refresh or retry (2.383625ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:18:47
+✖ HTTP 401 has no redirect, credential refresh or retry (1.366916ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:18:47
+✖ HTTP 403 has no redirect, credential refresh or retry (0.557042ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:18:47
+✖ HTTP 429 has no redirect, credential refresh or retry (0.354042ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:18:47
+✖ HTTP 503 has no redirect, credential refresh or retry (0.294083ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:19:1
+✖ request and reservation limits stop looping tools before another dispatch (0.43175ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:20:1
+✖ absolute exchange deadline terminates drip response (1.068333ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:21:1
+✖ response bytes and request bytes are bounded (0.858416ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:22:1
+✖ malformed or incomplete responses never become answers (0.491625ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:24:1
+✖ fixture credential rotation belongs to new runs; no credential stored by ledger (0.5565ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:26:1
+✖ one monotonic deadline spans both tool exchanges (0.373625ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:31:1
+✖ deadline fixture awaits terminal server capture and retains separate client partial bytes (0.261333ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/controlled-read-adapter.test.mjs:32:1
+✖ evidence validation rejects missing, corrupt and cross-layer raw receipts (0.770667ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/docker-lease.test.mjs:47:1
+✖ kernel lock rejects concurrent manager and releases without PID files (3.574833ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1:51964
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1',
+    port: 51964
+  }
+
+test at evals/research/runtime/prospective/executor-completion.test.mjs:17:1
+✖ owned HTTP concurrent and delayed callbacks cannot consume another turn budget (6.307792ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:17:1
+✖ valid one-turn dispatch has parent-only dummy auth, separate identity evidence and immutable request (4.260416ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:20:1
+✖ simultaneous duplicates and later primary reuse cannot dispatch twice (0.528667ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:21:1
+✖ capability, method, route, host, headers and exact model/reasoning/body pin reject without upstream (0.830709ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:25:1
+✖ cross-session capability and closed session never allow a primary dispatch (0.26025ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:26:1
+✖ 401,429 and503 consume one primary without retry or auth refresh (0.242916ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:29:1
+✖ redirect is never followed and echoed credential/header is absent from client/evidence (0.195041ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:32:1
+✖ SSE completion preserves request/report distinction and never invents provider identity (0.198875ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:33:1
+✖ SSE disconnection retains sanitized partial bytes with no stream reconnect (0.17275ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:34:1
+✖ total upstream deadline stops a drip stream; response byte overflow is explicit and not retried (0.232208ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:38:1
+✖ inbound slow body and slow headers are bounded without consuming upstream attempt (0.518542ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:43:1
+✖ request size cap, malformed shape, external origin and real-looking credentials fail closed (2.358916ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:54:1
+✖ dynamic configuration update stays unreviewed rather than reporting actual selected effort (0.1515ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:55:1
+✖ actual sandbox grants only relay port; provider key absent in child and direct upstream refused (21.995084ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:59:1
+✖ caller mutation after binding cannot alter request or intended model/reasoning (0.2525ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:63:1
+✖ absolute-form route and external body destinations cannot turn relay into arbitrary proxy (0.233792ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:65:1
+✖ untrusted Content-Type and common JSON unicode credential echoes cannot escape sanitization (0.310875ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/model-channel.test.mjs:70:1
+✖ close before dispatch settles as not-attempted; close during dispatch settles failure without retry (0.144166ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:48:1
+✖ local TLS success retains safe evidence, enforces output cap/tier and reserves before dispatch (13.331459ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP301 never redirects/retries/refunds (1.17175ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP302 never redirects/retries/refunds (0.551167ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP307 never redirects/retries/refunds (0.459833ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP308 never redirects/retries/refunds (0.421375ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP401 never redirects/retries/refunds (0.39175ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP403 never redirects/retries/refunds (0.408584ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP429 never redirects/retries/refunds (0.512916ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:56:55
+✖ TLS HTTP503 never redirects/retries/refunds (0.760042ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:62:1
+✖ untrusted TLS certificate never reaches HTTP handler and consumes one reservation (0.768375ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject model before network (0.4125ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject effort before network (0.385875ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject tier before network (0.347333ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject output cap before network (0.712041ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject unknown field before network (0.441584ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject unknown tool before network (0.340042ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject duplicate tool before network (0.319ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject secret in prompt before network (0.313916ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:71:3
+✖ reject oversized input before network (0.301833ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:75:64
+✖ unverified/out-of-budget counter undefined (0.327209ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:75:64
+✖ unverified/out-of-budget counter NaN (0.293333ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:75:64
+✖ unverified/out-of-budget counter -1 (0.296625ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:75:64
+✖ unverified/out-of-budget counter 32769 (0.725917ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:75:64
+✖ unverified/out-of-budget counter [object Promise] (0.590458ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:79:1
+✖ six sequential reservations exhaust the run without a seventh request (0.611459ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:84:1
+✖ parallel dispatch fails closed without a second HTTP attempt (0.534833ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:89:1
+✖ absolute timer interrupts response drips (0.539333ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:93:1
+✖ explicit cancellation closes active response without retry (0.418291ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:97:1
+✖ one run deadline spans both TLS exchanges (0.402375ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:101:1
+✖ response cap, malformed body and missing terminal are rejected (0.504167ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:107:293
+✖ reported identity closes the run (0.404ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:107:293
+✖ reported missing usage closes the run (0.37475ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:107:293
+✖ reported usage sum closes the run (0.364459ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:107:293
+✖ reported excess output closes the run (0.332916ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:107:293
+✖ reported unexpected tool closes the run (0.543166ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:114:1
+✖ duplicate response identity across exchanges stops continuation (0.346334ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:118:60
+✖ credential echo literal is excluded from returned data and evidence (0.3485ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:118:60
+✖ credential echo unicode is excluded from returned data and evidence (0.2985ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:118:60
+✖ credential echo base64 is excluded from returned data and evidence (0.293125ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:118:60
+✖ credential echo hex is excluded from returned data and evidence (0.282083ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:123:1
+✖ provider token-count preflight binds the complete text/tool input before inference (0.326166ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:130:162
+✖ invalid count receipt prevents inference {"object":"wrong","input_tokens":12} (0.840709ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:130:162
+✖ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":32769} (0.497791ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:130:162
+✖ invalid count receipt prevents inference {"object":"response.input_tokens","input_tokens":"fixture-only-public-upstream-key"} (0.331916ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:130:162
+✖ invalid count receipt prevents inference {} (0.312709ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:134:1
+✖ token-count redirect is refused before inference (0.393292ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:138:1
+✖ token-count drip is bounded by shared deadline (0.57925ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:142:1
+✖ unknown counter error never leaks arbitrary diagnostic text (0.541666ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:146:1
+✖ configuration changes and image inputs are refused before network (0.3985ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/native-upstream-transport.test.mjs:155:1
+✖ actual native packet uses the same parent gateway and local TLS transport seam (11.551ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at processTicksAndRejections (node:internal/process/task_queues:90:21)
+      at runNextTicks (node:internal/process/task_queues:69:3)
+      at process.processImmediate (node:internal/timers:541:9) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ fresh private state, exact frozen bytes and no inherited personal env/config/skills/memory (1826.034375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'process-completed'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:23:10
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:19:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'process-completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ actual Seatbelt blocks repository/ancestor/home reads, outside writes, workspace mutation and symlink escape (1817.563084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'process-completed'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:34:54
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:30:6)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'process-completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ actual Seatbelt refuses loopback network, including child process use (3.972083ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ argv is passed literally, no shell; chunks retain exact UTF8 bytes and stderr bytes (1830.249667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'process-completed'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:53:10
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:50:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'process-completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ deadline interrupts TERM-resistant process, escalates KILL and preserves partial evidence (1801.104125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'interrupted'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:58:241
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:58:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'interrupted',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ leader exit with TERM-resistant child holding pipes is cleaned despite leader exit/close (1785.507667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'cleanup-probe-unknown'
+  - 'descendant-after-leader-exit'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:65:94
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:62:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'cleanup-probe-unknown',
+    expected: 'descendant-after-leader-exit',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ leader exit with closed-stdio child still escalates rather than cancelling on close (1783.896167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'cleanup-probe-unknown'
+  - 'descendant-after-leader-exit'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:74:94
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:71:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'cleanup-probe-unknown',
+    expected: 'descendant-after-leader-exit',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ abort before launch spawns nothing; active abort preserves partial; nonzero process failure retained (1887.47525ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'cleanup-probe-unknown'
+  - 'abort'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:81:237
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:79:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'cleanup-probe-unknown',
+    expected: 'abort',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ output overflow stops bounded process and explicitly records truncation (1804.682583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'cleanup-probe-unknown'
+  - 'output-limit'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:87:165
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:87:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'cleanup-probe-unknown',
+    expected: 'output-limit',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ actual raw bytes archive exclusively outside model-readable state (1796.225125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + Buffer(0) [Uint8Array] []
+  - Buffer(2) [Uint8Array] [
+  -   228,
+  -   184
+  - ]
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:92:254
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:92:6)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: <Buffer >,
+    expected: <Buffer e4 b8>,
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ unknown probe and hanging probe exhaust one total budget while preserving completed observations (393.036791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + ''
+  - 'probe partial'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:152:276
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:150:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: 'probe partial',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ normal success drains large exact bytes; TERM trailing bytes survive bounded cleanup (1791.541208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'process-completed'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:158:162
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:157:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'process-completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ fixture has no guardian IPC and stdout cannot spoof a fixture exit (1795.755625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  71 !== 7
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:163:258
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:163:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 71,
+    expected: 7,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ unexpected guardian exit never causes another signal to a possibly reused group (1809.559917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:166:362
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:166:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ fixed guardian kills its still-owned group if the parent-only IPC disconnects (1625.894833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:173:200
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:169:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ predeclared parallel open/closed-stdio orphan stress verifies no running members under load (2321.606208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'cleanup-probe-unknown'
+  - 'descendant-after-leader-exit'
+  
+      at TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:182:64)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'cleanup-probe-unknown',
+    expected: 'descendant-after-leader-exit',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ primary completion before its deadline stays successful during a separate bounded confirmation (2128.910459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'failed'
+  - 'process-completed'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:191:36
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:190:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'process-completed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at evals/research/runtime/prospective/process-executor.test.mjs:11:28
+✖ late abort after normal guardian release records interruption without any further group signal (230.720292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + ''
+  - 'completed before abort'
+  
+      at file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:196:250
+      at async fixture (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:14:91)
+      at async TestContext.<anonymous> (file:///Users/hyh/code/brooks-lint/evals/research/runtime/prospective/process-executor.test.mjs:195:2)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: 'completed before abort',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -21,65 +21,72 @@ upstream validation precondition is not itself a local validation obligation.
 Keep unresolved extra allegations outside the scored finding ledger and explain
 the missing fact and the alternative verdicts.
 
-For each dimension, record the inspected scope, governing facts, and assessment
-status before building the scoring ledger. Use `assessed` only after the required
-scan can support both the retained findings and the absence of other findings in
-that declared scope. An unresolved ownership rule, unavailable tests, or unfinished
-scan must not become an assessed empty list. If such a gap prevents a dimension's
-assessment, use `unassessed` with its reason and keep supported local observations
-in the prose; the helper does not accept findings on an unassessed dimension.
-Do not mark it assessed merely to retain those observations in a numeric total.
-Classify findings by the risk definitions, not by convenient code numbers, and
-assign each causal finding one scoring owner across the passes; separately
-supported mechanisms remain distinct even if their remedies overlap.
+**Dimension admission gate — scope before status:** fix the assessment boundary
+from the user's request before scanning. A supplied snapshot or named directory
+bounds all four scans; use the whole project only when that is the requested or
+auto-detected scope. Do not expand a bounded request to project-wide assurance,
+or shrink an incomplete project scan after the fact to obtain a score.
 
-Before selecting statuses, make a compact evidence map for each dimension:
+Build one compact evidence map per dimension:
 `declared scope → inspected inputs → governing obligation → remaining blocker`.
-Evaluate blockers against the requested scope. A complete supplied inventory and
-explicit contract can support a local assessment even when production history is
-unknown; do not invent missing broader obligations to withhold that assessment.
-Conversely, a small dependency graph alone cannot establish clean architecture.
-Use `unassessed` only when a named missing fact changes the verdict or prevents
-completion of that dimension's declared scan. State what additional evidence would
-resolve it. Keep any broader unknown scope separate from the completed local scan.
+Then complete the applicable scan below and choose its status:
 
-**Dimension admission gate:** select the assessment boundary before looking for a
-score. For each dimension, state what that dimension needs to evaluate and which
-supplied facts establish it. A function's correct output and a complete local test
-inventory establish neither a maintenance assessment nor architectural boundaries.
-If ownership/change constraints or maintenance context needed for the requested
-Debt assessment are absent, keep Debt unassessed; do not narrow it after the scan
-to “this function looks simple” to obtain 100. Likewise, an import edge alone is
-not an Architecture assessment. A deliberately requested local maintainability
-assessment can be assessed when its relevant obligations and inventory are supplied;
-unknown unrelated project history does not block that explicitly limited scope.
-Missing historical intent alone is not a blocker for a present, demonstrated burden.
+| Evidence in the declared scope | Status and reporting |
+| --- | --- |
+| Relevant source/inventory and obligations permit the dimension's scan; no material question remains | `assessed`, with retained findings or an empty list after a clean scan. Explicitly limit the conclusion to that scope. |
+| A named missing fact can change that dimension's verdict or prevent its scan | `unassessed`, with that fact and the competing outcomes it leaves open. Preserve supported observations in prose, without a numeric dimension score. |
+| No PR diff | PR alone is `skipped`; this is not a status for other dimensions. |
 
-Complete the applicable dimension's scan before choosing `assessed`. “No finding
-was reported,” “not relevant to this function,” and “no evidence was supplied” are
-not evidence of a completed clean scan. Use `unassessed` with a concrete reason
-for missing evidence; reserve PR's `skipped` status for the no-diff rule. Do not
-produce a numeric score in prose for a dimension the ledger leaves unassessed.
+**Local sufficiency is not global completeness.** A complete local module and
+relationship inventory plus the supplied responsibilities can support a bounded
+Architecture scan; a separate architecture policy document is not mandatory.
+Inspect the listed dependencies and boundaries, and state which were checked.
+A complete local maintenance inventory, source and ownership/change obligations
+can likewise support a Debt scan. Present, demonstrated change burden is enough;
+unknown historical intent alone does not block it. Explicit independent ownership
+can support a clean local duplication assessment. Do not demand hypothetical
+additional layering or maintenance obligations just because the scan is small.
 
-Assign deductions to the mechanism actually diagnosed. A local input-validation
-failure does not establish architectural decay without a boundary/dependency
-mechanism; a test-protection gap belongs to Test. Neither an R-code nor the need
-to repair code automatically establishes a Debt assessment. Keep an established
-local defect as an unscored observation if no dashboard dimension has sufficient
-assessment evidence; do not invent a scored owner to fit the arithmetic schema.
+Conversely, a bare import edge or a correct function result does not establish
+Architecture or Debt coverage. A test excerpt or discovery result without assertion
+bodies does not establish Test coverage. “No finding was reported” and “this looks
+simple” are not completed scans. A declaration that an inventory is complete
+bounds the supplied scope; still inspect its contents and resolve contradictions.
+If a necessary ownership rule is actually missing, keep that dimension unassessed
+rather than inventing the rule or marking it assessed to retain a numeric total.
+
+Evaluate Test against the supplied behavior obligations and complete inventory,
+not every conceivable input or behavior. For example, a complete inventory with
+assertions distinguishing a stated limit can be assessed for that limit even when
+unrelated validation policy is unknown. A test name alone cannot show that its
+assertions distinguish the behavior. When only Test is blocked, keep completed
+Architecture and Debt assessments; missing evidence in one dimension does not
+propagate automatically to the others. Any unassessed required dimension still
+suppresses the composite under Step 2.
+
+Assign each causal finding one scoring owner across the passes; separately
+supported mechanisms remain distinct even if their remedies overlap. Classify by
+the risk definitions, not by convenient code numbers. A local validation failure
+does not establish architectural decay without a boundary/dependency mechanism;
+a test-protection gap belongs to Test. If no dimension has sufficient assessment
+evidence for an established local defect, keep it as an unscored observation. The
+helper does not accept findings on an unassessed dimension. Do not invent a scored
+owner to fit the arithmetic schema.
 
 **PR dimension (if changes exist):**
 - Apply Auto Scope Detection (common.md)
 - Scan for R2 (Change Propagation) and R1 (Cognitive Overload) in the diff
 
 **Architecture dimension:**
-- Gather codebase context: read top-level structure, entry points, import statements
+- Gather context within the declared scope: inspect its module inventory, entry
+  points, responsibilities and imports; identify what is complete versus omitted
 - Draw a Mermaid dependency graph (follow standard graph rules from common.md)
 - Scan for R5 (Dependency Disorder): circular deps, upward flows, fan-out > 5
 - INCLUDE the Mermaid graph in output
 
 **Debt dimension:**
-- Scan for all six decay risks (R1-R6) across the codebase
+- Scan for all six decay risks (R1-R6) across the declared scope, using its
+  supplied ownership and change obligations
 - Skip Pain × Spread scoring (use severity tier only)
 
 **Test dimension:**

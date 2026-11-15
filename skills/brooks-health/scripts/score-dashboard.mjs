@@ -40,6 +40,7 @@ export function calculateDashboard(ledger) {
   }
   const keys = DIMENSIONS.map(([key]) => key);
   object(ledger.dimensions, keys, keys, 'dimensions');
+  const ids = new Set();
   const dimensions = DIMENSIONS.map(([key, label, weight]) => {
     const input = ledger.dimensions[key];
     object(input, ['status', 'findings', 'reason'], ['status'], key);
@@ -61,7 +62,6 @@ export function calculateDashboard(ledger) {
     if (!Array.isArray(input.findings) || input.findings.length > 3) {
       throw new Error(`${key}: findings must be an array capped at three`);
     }
-    const ids = new Set();
     const byRisk = new Map();
     const findings = input.findings.map((finding, index) => {
       const at = `${key}.findings[${index}]`;

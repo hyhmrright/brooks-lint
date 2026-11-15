@@ -270,3 +270,77 @@ test('finalize/check-report CLI preserves inputs, refuses overwrites and binds f
   assert.notEqual(run('check-report', ledgerPath, reportPath).status, 0);
   assert(readFileSync(reportPath, 'utf8').includes('**Composite Score:** 80/100'));
 });
+
+// Development-authored, adjudicated ledger witnesses for the scope-first guide.
+// The scorer consumes these statuses; it does not infer them from evidence text.
+// These checks exercise finalization safety, not model compliance with the guide.
+test('bounded evidence witness finalizes its own scope without a project-wide clean claim', async () => {
+  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-health/scripts/score-dashboard.mjs');
+  const ledger = noDiff(withFindings({ debt: ['warning'] }, 'balanced'));
+  ledger.dimensions.debt.findings[0].id = 'shared-policy-change';
+  const draft = `# Local policy adapters\nScope: the two supplied adapters and their complete assertion inventory.\n` +
+    `Both adapters implement one shared policy; changing it requires synchronized edits.\n` +
+    `Scored finding shared-policy-change: R2 Warning, owned by Debt only.\n` +
+    `Architecture and Test scans completed within that boundary; broader production history is unknown.\n${SCORE_PLACEHOLDER}\n`;
+  const before = JSON.stringify(ledger);
+  const report = finalizeDashboard(ledger, draft);
+  assert.deepEqual(view(calculateDashboard(ledger)), {
+    scores: [null, 100, 95, 100], numerator: 7375, denominator: 75, composite: 98,
+  });
+  assert(verifyDashboard(ledger, report).valid);
+  assert.equal(JSON.stringify(ledger), before);
+  assert(report.includes('broader production history is unknown'));
+  assert(report.includes('Scope: the two supplied adapters'));
+  assert.equal((report.match(/Composite Score:/g) ?? []).length, 1);
+});
+
+test('missing assertion bodies leave completed local architecture and debt scores intact', async () => {
+  const { finalizeDashboard, verifyDashboard, SCORE_PLACEHOLDER } = await import('../skills/brooks-health/scripts/score-dashboard.mjs');
+  const ledger = noDiff(withFindings({ debt: ['warning'] }, 'balanced'));
+  ledger.dimensions.test = { status: 'unassessed', reason: 'Only test names supplied; assertion bodies are unavailable.' };
+  const report = finalizeDashboard(ledger, `# Bounded scan\nLocal ownership and dependencies were inspected. Test assertions remain unavailable.\n${SCORE_PLACEHOLDER}\n`);
+  assert.deepEqual(view(calculateDashboard(ledger)), {
+    scores: [null, 100, 95, null], numerator: null, denominator: 75, composite: null,
+  });
+  assert(report.includes('| Architecture | 100/100 |'));
+  assert(report.includes('| Tech Debt | 95/100 |'));
+  assert(report.includes('| Test Quality | Unassessed |'));
+  assert(!report.includes('Composite Score:'));
+  assert(verifyDashboard(ledger, report).valid);
+  const inventedClean = structuredClone(ledger);
+  inventedClean.dimensions.test = { status: 'assessed', findings: [] };
+  assert.throws(() => verifyDashboard(inventedClean, report));
+});
+
+test('adjudicated material blockers suppress only their unresolved dimensions and never redistribute weight', () => {
+  const witnesses = [
+    ['debt', 'Ownership is unspecified: shared policy and independent regional policy imply different verdicts.'],
+    ['architecture', 'Claimed complete inventory omits the imported policy gateway, so its boundary cannot be inspected.'],
+    ['test', 'Inventory says all assertions are supplied but references an absent integration suite.'],
+  ];
+  for (const [key, reason] of witnesses) {
+    const ledger = noDiff(clean('balanced'));
+    ledger.dimensions[key] = { status: 'unassessed', reason };
+    const result = calculateDashboard(ledger);
+    assert.equal(result.composite, null, key);
+    assert.equal(result.denominator, 75, key);
+    assert.deepEqual(result.dimensions.map(d => d.weight), [0, 30, 25, 20]);
+    for (const d of result.dimensions.filter(d => d.key !== 'pr')) {
+      assert.equal(d.score, d.key === key ? null : 100);
+    }
+    assert(verifyScoreBlock(ledger, renderScoreBlock(ledger)).valid);
+  }
+});
+
+test('one causal owner is scored once; identity validation cannot replace semantic deduplication', () => {
+  const owned = noDiff(withFindings({ debt: ['warning'] }, 'balanced'));
+  owned.dimensions.debt.findings[0].id = 'shared-policy-cause';
+  assert.equal(calculateDashboard(owned).composite, 98);
+  const duplicated = structuredClone(owned);
+  duplicated.dimensions.architecture.findings.push({ id: 'shared-policy-cause', risk: 'R5', severity: 'warning' });
+  assert.throws(() => calculateDashboard(duplicated), /duplicate finding id/);
+  // Different IDs cannot be identified as the same cause by this arithmetic tool.
+  // The evaluator/model must establish whether these are independent mechanisms.
+  duplicated.dimensions.architecture.findings[0].id = 'renamed-same-cause';
+  assert.equal(calculateDashboard(duplicated).composite, 96);
+});
