@@ -87,21 +87,40 @@ The detailed [source coverage matrix](skills/_shared/source-coverage.md) records
 
 <a id="benchmark"></a>
 
-## What has been evaluated
+## Benchmark: results you can inspect
 
-Keep three kinds of evidence separate:
+Product checks verify deterministic behavior. Model comparisons show limited gains on some tasks; they do not establish that every skill beats a generic checklist.
 
-- **Offline product checks:** Installation, scoring, delivery, parser contracts and fixture structure. These do not establish model judgment quality.
-- **Parser fidelity:** 30 frozen reports: severity counts, risk codes and SARIF output. This measures the parser, not whether findings are true.
-- **Behavioral comparisons:** Codex responses under specified prompts/models, assessed against case rubrics. Results are bounded by the cases, execution channel and reviewers.
+| Skill | Generic checklist | Skill guidance | Observation |
+|---|---:|---:|---|
+| review | 6/6 | 6/6 | Tie |
+| audit | 6/6 | 6/6 | Tie |
+| test | 5/6 | 6/6 | One paired advantage |
 
-In the latest focused **static-instruction** comparison after offline adjudication, review and audit each passed **6/6 in both the generic-checklist and skill groups**; test passed **5/6 versus 6/6**. This is one paired advantage in reused development-authored cases, not independent evidence of general superiority. The assessment was corrected after the run. It does not test native skill discovery or all models.
+CLI-selected `gpt-6.1-terra / low`; 18 cases × two groups = **36 answers**, one answer per case and group. These are primary behavioral passes after offline adjudication: all five axes (diagnosis, contract scope, discriminating witness, remedy and verification honesty) must pass, with no missed expected issue or established false claim.
 
-[Preserved run and adjudication](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md) · [Codex behavioral evaluation design](docs/codex-behavior-evals.md). Historical research remains on the research branch; the product checkout contains compact regression extracts.
+**A concrete difference — BV5-23:** the contract requires an integer for a numeric string. The skill answer identified a 309-digit input that becomes `Infinity` and a protection gap in the two supplied tests. The checklist answer failed the required mutant-comparison axis; it was not penalized retrospectively for missing this newly supported observation.
 
-Model: `gpt-6.1-terra / low`; one response per case in each group. A pass requires all five primary behavioral axes, no missed expected issue and no established false claim. Counts are not a general accuracy estimate.
+**A correction — BV5-24:** we initially rejected the checklist answer, then accepted its behaviorally equivalent assertion-failure witness. The original judgments and revisions remain available. One paired advantage in reused development cases is not general superiority.
 
-[Evidence and limitations for all six skills](docs/benchmark-evidence.md)
+<details>
+<summary>Other skills: different experiments, not one ranking</summary>
+
+- **debt:** older case-only baseline 11/15 versus skill 12/15 complete-supported answers (five cases, three repeats). It is not the generic-checklist comparison above.
+- **health:** generic 15/18 versus skill 10/18 in the 72-answer campaign; excessive abstention hurt the skill. Later fixes have offline coverage, not completed post-fix efficacy evidence.
+- **sweep:** generic 15/18 versus skill 18/18 in that campaign; the advantage is confined to one authored family, not general autonomous repair.
+
+</details>
+
+These studies use related development-authored cases and non-independent grading. Repeated answers are not independent projects. Static supplied instructions do not test native skill discovery, all models or the whole current 2.0.0 source tree.
+
+| Evidence | What it checks |
+|---|---|
+| Product regressions | Installation, scoring arithmetic, exact delivery and bounded-stop fixtures |
+| 30-report parser benchmark | Severity/risk extraction and SARIF, not whether diagnoses are true |
+| Model comparisons | Specified tasks, models, instruction revisions and rubrics |
+
+[Frozen plan](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/plan.json) · [Raw answers and records](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live) · [Quoted judgments and corrections](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md) · [All six skills: evidence and limits](docs/benchmark-evidence.md)
 
 <a id="installation"></a>
 
