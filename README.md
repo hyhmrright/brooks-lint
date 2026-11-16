@@ -87,30 +87,39 @@ The detailed [source coverage matrix](skills/_shared/source-coverage.md) records
 
 <a id="benchmark"></a>
 
-## Benchmark: results you can inspect
+## Benchmark: choose a workflow, inspect its results
 
-Product checks verify deterministic behavior. Model comparisons show limited gains on some tasks; they do not establish that every skill beats a generic checklist.
+Try a skill on a task you already need to do: a review with a concrete witness, a dependency diagnosis, a debt plan, a test gap, a scoped dashboard or a verified repair. The table shows **all six skills**, including ties and regressions. Workflow usefulness and measured improvement are separate claims.
 
-| Skill | Generic checklist | Skill guidance | Observation |
-|---|---:|---:|---|
-| review | 6/6 | 6/6 | Tie |
-| audit | 6/6 | 6/6 | Tie |
-| test | 5/6 | 6/6 | One paired advantage |
+| Experiment | Skill / evidence | Baseline → skill | Observed change |
+|---|---|---:|---|
+| E1 | [review](docs/benchmark-evidence.md#review) | 6/6 → 6/6 | No additional passes |
+| E1 | [audit](docs/benchmark-evidence.md#audit) | 6/6 → 6/6 | No additional passes |
+| E1 | [test](docs/benchmark-evidence.md#test-the-difference-and-the-correction) | 5/6 → 6/6 | **+1 passing answer**; BV5-23 |
+| E2 | [debt](docs/benchmark-evidence.md#debt--older-case-only-baseline) | 11/15 → 12/15 | **+1 complete-supported answer**; older baseline |
+| E3 | [health](docs/benchmark-evidence.md#health--adverse-result-remains-visible) | 15/18 → 10/18 | **−5 passing answers**; excessive abstention |
+| E3 | [sweep](docs/benchmark-evidence.md#sweep--advantage-limited-to-one-family) | 15/18 → 18/18 | **+3 passing answers**; repeats in one family |
 
-CLI-selected `gpt-6.1-terra / low`; 18 cases × two groups = **36 answers**, one answer per case and group. These are primary behavioral passes after offline adjudication: all five axes (diagnosis, contract scope, discriminating witness, remedy and verification honesty) must pass, with no missed expected issue or established false claim.
+**Read within each experiment, not across rows.** E1: generic checklist versus focused guidance, six cases per skill, one response per arm. E2: older case-only baseline versus guidance, five debt cases × three repeats; counts complete-supported answers, not E1’s primary passes. E3: generic checklist versus full guidance, 18 responses per skill and arm in the 72-answer health/sweep campaign. Sweep’s gain is confined to one priority-routing family. Health’s later fixes have offline coverage but **no completed post-fix efficacy result**. Do not combine these counts into an overall accuracy or a six-skill ranking.
+
+**E1** — CLI-selected `gpt-6.1-terra / low`; 18 cases × two groups = **36 answers**, one answer per case and group. The E1 rows count primary behavioral passes after offline adjudication: all five axes (diagnosis, contract scope, discriminating witness, remedy and verification honesty) must pass, with no missed expected issue or established false claim.
 
 **A concrete difference — BV5-23:** the contract requires an integer for a numeric string. The skill answer identified a 309-digit input that becomes `Infinity` and a protection gap in the two supplied tests. The checklist answer failed the required mutant-comparison axis; it was not penalized retrospectively for missing this newly supported observation.
 
 **A correction — BV5-24:** we initially rejected the checklist answer, then accepted its behaviorally equivalent assertion-failure witness. The original judgments and revisions remain available. One paired advantage in reused development cases is not general superiority.
 
-<details>
-<summary>Other skills: different experiments, not one ranking</summary>
+### Put it to work on your own code
 
-- **debt:** older case-only baseline 11/15 versus skill 12/15 complete-supported answers (five cases, three repeats). It is not the generic-checklist comparison above.
-- **health:** generic 15/18 versus skill 10/18 in the 72-answer campaign; excessive abstention hurt the skill. Later fixes have offline coverage, not completed post-fix efficacy evidence.
-- **sweep:** generic 15/18 versus skill 18/18 in that campaign; the advantage is confined to one authored family, not general autonomous repair.
+These are starting prompts and intended deliverables, not additional benchmark wins. Supply a concrete scope and review the evidence before acting.
 
-</details>
+| Skill | A useful first task |
+|---|---|
+| `$brooks-review` | Review this diff against its contract; show a minimal input that distinguishes a defect from protected behavior. |
+| `$brooks-audit` | Trace this dependency across module boundaries; identify the owner of the violated rule. |
+| `$brooks-debt` | Rank these maintenance problems by change impact; propose the smallest repayment step. |
+| `$brooks-test` | Show a faulty implementation these tests would accept, and the assertion that distinguishes it. |
+| `$brooks-health` | Assess this scope with one finding ledger; separate supported findings, clean dimensions and unknowns. |
+| `$brooks-sweep` | Diagnose and repair this authorized scope within three total rounds; run available checks and report what remains. |
 
 These studies use related development-authored cases and non-independent grading. Repeated answers are not independent projects. Static supplied instructions do not test native skill discovery, all models or the whole current 2.0.0 source tree.
 

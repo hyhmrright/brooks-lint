@@ -87,30 +87,39 @@ La [matriz de fuentes](skills/_shared/source-coverage.md) documenta conceptos, c
 
 <a id="benchmark"></a>
 
-## Benchmark: resultados verificables
+## Benchmark: qué aporta cada una de las seis habilidades
 
-Las pruebas del producto verifican comportamiento determinista. Las comparaciones de modelos muestran ventajas limitadas en algunas tareas; no demuestran que todas las habilidades superen una lista genérica.
+Empieza con una tarea que ya necesitas resolver: una revisión con un ejemplo concreto, un diagnóstico de dependencias, un plan de deuda, una laguna en las pruebas, un informe acotado o una reparación verificada. Mostramos **las seis habilidades**, incluidos empates y retrocesos. La utilidad del flujo y la mejora medida son afirmaciones distintas.
 
-| Habilidad | Lista genérica | Instrucciones de habilidad | Observación |
-|---|---:|---:|---|
-| review | 6/6 | 6/6 | Empate |
-| audit | 6/6 | 6/6 | Empate |
-| test | 5/6 | 6/6 | Ventaja en un par |
+| Experimento | Habilidad y evidencia | Base → habilidad | Cambio observado |
+|---|---|---:|---|
+| E1 | [review](docs/benchmark-evidence.md#review) | 6/6 → 6/6 | Sin respuestas aprobadas adicionales |
+| E1 | [audit](docs/benchmark-evidence.md#audit) | 6/6 → 6/6 | Sin respuestas aprobadas adicionales |
+| E1 | [test](docs/benchmark-evidence.md#test-the-difference-and-the-correction) | 5/6 → 6/6 | **+1 respuesta aprobada**; BV5-23 |
+| E2 | [debt](docs/benchmark-evidence.md#debt--older-case-only-baseline) | 11/15 → 12/15 | **+1 respuesta completa y respaldada**; base antigua |
+| E3 | [health](docs/benchmark-evidence.md#health--adverse-result-remains-visible) | 15/18 → 10/18 | **−5 respuestas aprobadas**; abstención excesiva |
+| E3 | [sweep](docs/benchmark-evidence.md#sweep--advantage-limited-to-one-family) | 15/18 → 18/18 | **+3 respuestas aprobadas**; repeticiones de una familia |
 
-Modelo seleccionado por CLI: `gpt-6.1-terra / low`; 18 casos × dos grupos = **36 respuestas**, una por caso y grupo. La tabla cuenta aprobaciones de comportamiento tras la revisión offline: deben cumplirse los cinco ejes (diagnóstico, alcance contractual, ejemplo discriminante, remedio y honestidad de verificación), sin omitir problemas esperados ni afirmaciones falsas confirmadas.
+**Compara dentro de cada experimento, sin clasificar entre filas.** E1: lista genérica frente a instrucciones enfocadas, seis casos por habilidad y una respuesta por grupo. E2: base antigua con solo el caso frente a instrucciones, cinco casos de debt con tres repeticiones; cuenta respuestas completas y respaldadas, no las aprobaciones principales de E1. E3: lista genérica frente a instrucciones completas en la campaña de 72 respuestas de health/sweep, 18 por habilidad y grupo. La ventaja de sweep se limita a una familia de selección por prioridad. Las correcciones posteriores de health tienen cobertura offline, pero **no una comparación de eficacia posterior completada**. No se pueden sumar como precisión global ni como clasificación de las seis habilidades.
+
+**E1** — Modelo seleccionado por CLI: `gpt-6.1-terra / low`; 18 casos × dos grupos = **36 respuestas**, una por caso y grupo. Las filas E1 cuentan aprobaciones de comportamiento tras la revisión offline: deben cumplirse los cinco ejes (diagnóstico, alcance contractual, ejemplo discriminante, remedio y honestidad de verificación), sin omitir problemas esperados ni afirmaciones falsas confirmadas.
 
 **Una diferencia concreta — BV5-23:** el contrato exige un entero para una cadena numérica. La respuesta con habilidad identificó una entrada de 309 dígitos que produce `Infinity` y una carencia en las dos pruebas existentes. La lista genérica falló el eje que exigía comparar un mutante; no recibió una penalización retroactiva por omitir este hallazgo adicional.
 
 **Una corrección — BV5-24:** inicialmente rechazamos la respuesta de la lista y después aceptamos su ejemplo de fallo de aserción, equivalente en comportamiento. Se conservan los juicios originales y las revisiones. Una ventaja en un par de casos reutilizados no demuestra superioridad general.
 
-<details>
-<summary>Otras habilidades: experimentos distintos, no una clasificación única</summary>
+### Pruébalo en tu propio código
 
-- **debt:** referencia antigua con solo el caso 11/15 frente a habilidad 12/15 respuestas plenamente sustentadas (cinco casos, tres repeticiones). No usa la lista genérica de la tabla anterior.
-- **health:** lista 15/18 frente a habilidad 10/18 en la campaña de 72 respuestas; la abstención excesiva perjudicó a la habilidad. Las correcciones posteriores tienen cobertura offline, no una comparación de eficacia completada tras ellas.
-- **sweep:** lista 15/18 frente a habilidad 18/18 en esa campaña; la ventaja se limita a una familia de casos propia y no demuestra reparación autónoma general.
+Son instrucciones iniciales y entregables previstos, no victorias adicionales del benchmark. Especifica un alcance concreto y revisa la evidencia antes de actuar.
 
-</details>
+| Habilidad | Primera tarea útil |
+|---|---|
+| `$brooks-review` | Revisa este diff según su contrato; muestra una entrada mínima que distinga un defecto del comportamiento protegido. |
+| `$brooks-audit` | Traza esta dependencia entre módulos e identifica al responsable de la regla vulnerada. |
+| `$brooks-debt` | Prioriza estos problemas de mantenimiento por impacto en los cambios y propone el menor paso de amortización. |
+| `$brooks-test` | Muestra una implementación defectuosa que estas pruebas aceptarían y la aserción que la distingue. |
+| `$brooks-health` | Evalúa este alcance con un único registro de hallazgos; separa problemas respaldados, dimensiones sin hallazgos y desconocidas. |
+| `$brooks-sweep` | Diagnostica y repara este alcance autorizado en un máximo de tres rondas; ejecuta las comprobaciones disponibles e informa de lo pendiente. |
 
 Son casos de desarrollo relacionados, con evaluación no independiente. Las repeticiones no son proyectos independientes. Las instrucciones estáticas no prueban el descubrimiento nativo, todos los modelos ni todo el código actual de 2.0.0.
 
