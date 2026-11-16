@@ -1,0 +1,1377 @@
+[
+  {
+    "id": "BV5-01",
+    "skill": "brooks-review",
+    "mode": "review",
+    "family": "replayed-event",
+    "variant": "defect",
+    "public": {
+      "files": {
+        "task.md": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Each event ID must affect the balance at most once, including retries. mark and add are synchronous and cannot throw. Only accepted IDs are replayed. Review the proposed handler implementation.\n",
+        "state.mjs": "export const state=()=>({seen:new Set(),balance:0});\n",
+        "handler.mjs": "export function apply(s,id,n){s.balance+=n;s.seen.add(id);}\n",
+        "entry.mjs": "import {apply} from './handler.mjs';export const dispatch=(s,e)=>apply(s,e.id,e.amount);\n"
+      },
+      "contract": "Each event ID must affect the balance at most once, including retries. mark and add are synchronous and cannot throw. Only accepted IDs are replayed. Review the proposed handler implementation.\n",
+      "request": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [
+        "duplicate-effect"
+      ],
+      "status": "defect",
+      "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "defect",
+        "expectedIssues": [
+          "duplicate-effect"
+        ],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "balance": 14,
+          "seen": 1
+        },
+        "witness": "import {state} from './state.mjs';import {dispatch} from './entry.mjs';let s=state();dispatch(s,{id:'x',amount:7});dispatch(s,{id:'x',amount:7});console.log(JSON.stringify({balance:s.balance,seen:s.seen.size}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-02",
+    "skill": "brooks-review",
+    "mode": "review",
+    "family": "replayed-event",
+    "variant": "protected",
+    "public": {
+      "files": {
+        "task.md": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Each event ID must affect the balance at most once, including retries. mark and add are synchronous and cannot throw. Only accepted IDs are replayed. Review the proposed handler implementation.\n",
+        "state.mjs": "export const state=()=>({seen:new Set(),balance:0});\n",
+        "handler.mjs": "export function apply(s,id,n){if(s.seen.has(id))return;s.balance+=n;s.seen.add(id);}\n",
+        "entry.mjs": "import {apply} from './handler.mjs';export const dispatch=(s,e)=>apply(s,e.id,e.amount);\n"
+      },
+      "contract": "Each event ID must affect the balance at most once, including retries. mark and add are synchronous and cannot throw. Only accepted IDs are replayed. Review the proposed handler implementation.\n",
+      "request": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "protected",
+      "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "protected",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "balance": 7,
+          "seen": 1
+        },
+        "witness": "import {state} from './state.mjs';import {dispatch} from './entry.mjs';let s=state();dispatch(s,{id:'x',amount:7});dispatch(s,{id:'x',amount:7});console.log(JSON.stringify({balance:s.balance,seen:s.seen.size}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-03",
+    "skill": "brooks-review",
+    "mode": "review",
+    "family": "replayed-event",
+    "variant": "unresolved",
+    "public": {
+      "files": {
+        "task.md": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "The handler accepts an ID and amount. Delivery guarantees and whether repeated IDs represent separate payments are unavailable. Do not infer an at-most-once obligation.\n",
+        "state.mjs": "export const state=()=>({seen:new Set(),balance:0});\n",
+        "handler.mjs": "export function apply(s,id,n){s.balance+=n;s.seen.add(id);}\n",
+        "entry.mjs": "import {apply} from './handler.mjs';export const dispatch=(s,e)=>apply(s,e.id,e.amount);\n"
+      },
+      "contract": "The handler accepts an ID and amount. Delivery guarantees and whether repeated IDs represent separate payments are unavailable. Do not infer an at-most-once obligation.\n",
+      "request": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "unresolved",
+      "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "unresolved",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "balance": 14,
+          "seen": 1
+        },
+        "witness": "import {state} from './state.mjs';import {dispatch} from './entry.mjs';let s=state();dispatch(s,{id:'x',amount:7});dispatch(s,{id:'x',amount:7});console.log(JSON.stringify({balance:s.balance,seen:s.seen.size}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-04",
+    "skill": "brooks-review",
+    "mode": "review",
+    "family": "cursor-boundary",
+    "variant": "defect",
+    "public": {
+      "files": {
+        "task.md": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Pagination must return every unique ascending integer row exactly once. A cursor denotes the last emitted row, and may be omitted initially. page size is a positive integer. Review the new query predicate.\n",
+        "query.mjs": "export const select=(rows,cursor)=>rows.filter(x=>cursor===undefined||x>=cursor);\n",
+        "page.mjs": "import {select} from './query.mjs';export function page(rows,cursor,size){const items=select(rows,cursor).slice(0,size);return {items,cursor:items.at(-1)};}\n"
+      },
+      "contract": "Pagination must return every unique ascending integer row exactly once. A cursor denotes the last emitted row, and may be omitted initially. page size is a positive integer. Review the new query predicate.\n",
+      "request": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [
+        "duplicate-row"
+      ],
+      "status": "defect",
+      "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "defect",
+        "expectedIssues": [
+          "duplicate-row"
+        ],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": [
+          1,
+          2,
+          2,
+          3
+        ],
+        "witness": "import {page} from './page.mjs';const a=page([1,2,3,4],undefined,2),b=page([1,2,3,4],a.cursor,2);console.log(JSON.stringify([...a.items,...b.items]));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-05",
+    "skill": "brooks-review",
+    "mode": "review",
+    "family": "cursor-boundary",
+    "variant": "protected",
+    "public": {
+      "files": {
+        "task.md": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Pagination must return every unique ascending integer row exactly once. A cursor denotes the last emitted row, and may be omitted initially. page size is a positive integer. Review the new query predicate.\n\nFor this revised case, callers supply unique integers already sorted in strictly ascending order. Sorting, deduplication and validation of out-of-domain inputs are not responsibilities of page or query.\n",
+        "query.mjs": "export const select=(rows,cursor)=>rows.filter(x=>cursor===undefined||x>cursor);\n",
+        "page.mjs": "import {select} from './query.mjs';export function page(rows,cursor,size){const items=select(rows,cursor).slice(0,size);return {items,cursor:items.at(-1)};}\n"
+      },
+      "contract": "Pagination must return every unique ascending integer row exactly once. A cursor denotes the last emitted row, and may be omitted initially. page size is a positive integer. Review the new query predicate.\n\nFor this revised case, callers supply unique integers already sorted in strictly ascending order. Sorting, deduplication and validation of out-of-domain inputs are not responsibilities of page or query.\n",
+      "request": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "protected",
+      "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "protected",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope."
+      },
+      "clarifications": [
+        "For this revised case, callers supply unique integers already sorted in strictly ascending order. Sorting, deduplication and validation of out-of-domain inputs are not responsibilities of page or query."
+      ],
+      "oracle": {
+        "observation": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "witness": "import {page} from './page.mjs';const a=page([1,2,3,4],undefined,2),b=page([1,2,3,4],a.cursor,2);console.log(JSON.stringify([...a.items,...b.items]));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-06",
+    "skill": "brooks-review",
+    "mode": "review",
+    "family": "cursor-boundary",
+    "variant": "unresolved",
+    "public": {
+      "files": {
+        "task.md": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Rows are ascending integers. Whether cursor denotes last emitted or next unread row is unavailable; callers are outside scope.\n",
+        "query.mjs": "export const select=(rows,cursor)=>rows.filter(x=>cursor===undefined||x>=cursor);\n",
+        "page.mjs": "import {select} from './query.mjs';export function page(rows,cursor,size){const items=select(rows,cursor).slice(0,size);return {items,cursor:items.at(-1)};}\n"
+      },
+      "contract": "Rows are ascending integers. Whether cursor denotes last emitted or next unread row is unavailable; callers are outside scope.\n",
+      "request": "Perform review analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "unresolved",
+      "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "unresolved",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": [
+          1,
+          2,
+          2,
+          3
+        ],
+        "witness": "import {page} from './page.mjs';const a=page([1,2,3,4],undefined,2),b=page([1,2,3,4],a.cursor,2);console.log(JSON.stringify([...a.items,...b.items]));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Explain observed replay/pagination sequence and why it violates or satisfies the supplied caller contract; provide concrete distinguishing inputs and remedy scope.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-07",
+    "skill": "brooks-audit",
+    "mode": "audit",
+    "family": "notification-port",
+    "variant": "defect",
+    "public": {
+      "files": {
+        "task.md": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Domain decisions must depend only on an injected notification function, never the HTTP transport module. The supplied entry is the active build. Notification must still occur once.\n",
+        "http.mjs": "export const send=x=>'sent:'+x;\n",
+        "domain.mjs": "import {send} from './http.mjs';export const decide=(x,notify)=>send(x);\n",
+        "entry.mjs": "import {decide} from './domain.mjs';import {send} from './http.mjs';export const run=()=>decide('ok',send);\n"
+      },
+      "contract": "Domain decisions must depend only on an injected notification function, never the HTTP transport module. The supplied entry is the active build. Notification must still occur once.\n",
+      "request": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [
+        "transport-dependency"
+      ],
+      "status": "defect",
+      "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "defect",
+        "expectedIssues": [
+          "transport-dependency"
+        ],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "production": "sent:ok",
+          "output": "sent:ok",
+          "injectedCalls": 0
+        },
+        "witness": "import {run} from './entry.mjs';import {decide} from './domain.mjs';let calls=0;let output=decide('ok',x=>{calls++;return 'sent:'+x});console.log(JSON.stringify({production:run(),output,injectedCalls:calls}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-08",
+    "skill": "brooks-audit",
+    "mode": "audit",
+    "family": "notification-port",
+    "variant": "protected",
+    "public": {
+      "files": {
+        "task.md": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Domain decisions must depend only on an injected notification function, never the HTTP transport module. The supplied entry is the active build. Notification must still occur once.\n",
+        "http.mjs": "export const send=x=>'sent:'+x;\n",
+        "domain.mjs": "export const decide=(x,notify)=>notify(x);\n",
+        "entry.mjs": "import {decide} from './domain.mjs';import {send} from './http.mjs';export const run=()=>decide('ok',send);\n"
+      },
+      "contract": "Domain decisions must depend only on an injected notification function, never the HTTP transport module. The supplied entry is the active build. Notification must still occur once.\n",
+      "request": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "protected",
+      "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "protected",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "production": "sent:ok",
+          "output": "sent:ok",
+          "injectedCalls": 1
+        },
+        "witness": "import {run} from './entry.mjs';import {decide} from './domain.mjs';let calls=0;let output=decide('ok',x=>{calls++;return 'sent:'+x});console.log(JSON.stringify({production:run(),output,injectedCalls:calls}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-09",
+    "skill": "brooks-audit",
+    "mode": "audit",
+    "family": "notification-port",
+    "variant": "unresolved",
+    "public": {
+      "files": {
+        "task.md": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "The files are an example graph. Active build and module responsibility/boundary contract are unavailable; naming alone does not prove a layering violation.\n",
+        "http.mjs": "export const send=x=>'sent:'+x;\n",
+        "domain.mjs": "import {send} from './http.mjs';export const decide=(x,notify)=>send(x);\n",
+        "entry.mjs": "import {decide} from './domain.mjs';import {send} from './http.mjs';export const run=()=>decide('ok',send);\n"
+      },
+      "contract": "The files are an example graph. Active build and module responsibility/boundary contract are unavailable; naming alone does not prove a layering violation.\n",
+      "request": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "unresolved",
+      "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "unresolved",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "production": "sent:ok",
+          "output": "sent:ok",
+          "injectedCalls": 0
+        },
+        "witness": "import {run} from './entry.mjs';import {decide} from './domain.mjs';let calls=0;let output=decide('ok',x=>{calls++;return 'sent:'+x});console.log(JSON.stringify({production:run(),output,injectedCalls:calls}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-10",
+    "skill": "brooks-audit",
+    "mode": "audit",
+    "family": "composition-cycle",
+    "variant": "defect",
+    "public": {
+      "files": {
+        "task.md": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Composition may import domain; domain must not import composition, even for configuration. The entry imports composition.mjs in production. Configuration is passed as a parameter; direct imports of bootstrap violate the dependency contract.\n",
+        "domain.mjs": "import {rate} from './composition.mjs';export const compute=(n,unused)=>n*rate;\n",
+        "composition.mjs": "import {compute} from './domain.mjs';export const rate=2;export const run=n=>compute(n,rate);\n",
+        "entry.mjs": "export {run} from './composition.mjs';\n"
+      },
+      "contract": "Composition may import domain; domain must not import composition, even for configuration. The entry imports composition.mjs in production. Configuration is passed as a parameter; direct imports of bootstrap violate the dependency contract.\n",
+      "request": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [
+        "domain-bootstrap-cycle"
+      ],
+      "status": "defect",
+      "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "defect",
+        "expectedIssues": [
+          "domain-bootstrap-cycle"
+        ],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "active": 6,
+          "alternate": 6
+        },
+        "witness": "import {run} from './entry.mjs';import {compute} from './domain.mjs';console.log(JSON.stringify({active:run(3),alternate:compute(3,4)}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-11",
+    "skill": "brooks-audit",
+    "mode": "audit",
+    "family": "composition-cycle",
+    "variant": "protected",
+    "public": {
+      "files": {
+        "task.md": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Composition may import domain; domain must not import composition, even for configuration. The entry imports composition.mjs in production. Configuration is passed as a parameter; direct imports of bootstrap violate the dependency contract.\n",
+        "domain.mjs": "export const compute=(n,rate)=>n*rate;\n",
+        "composition.mjs": "import {compute} from './domain.mjs';export const rate=2;export const run=n=>compute(n,rate);\n",
+        "entry.mjs": "export {run} from './composition.mjs';\n"
+      },
+      "contract": "Composition may import domain; domain must not import composition, even for configuration. The entry imports composition.mjs in production. Configuration is passed as a parameter; direct imports of bootstrap violate the dependency contract.\n",
+      "request": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "protected",
+      "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "protected",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "active": 6,
+          "alternate": 12
+        },
+        "witness": "import {run} from './entry.mjs';import {compute} from './domain.mjs';console.log(JSON.stringify({active:run(3),alternate:compute(3,4)}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-12",
+    "skill": "brooks-audit",
+    "mode": "audit",
+    "family": "composition-cycle",
+    "variant": "unresolved",
+    "public": {
+      "files": {
+        "task.md": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "The source graph is visible but active bindings and intended dependency direction are not supplied. A cycle alone is not automatically a defect.\n",
+        "domain.mjs": "import {rate} from './composition.mjs';export const compute=(n,unused)=>n*rate;\n",
+        "composition.mjs": "import {compute} from './domain.mjs';export const rate=2;export const run=n=>compute(n,rate);\n",
+        "entry.mjs": "export {run} from './composition.mjs';\n"
+      },
+      "contract": "The source graph is visible but active bindings and intended dependency direction are not supplied. A cycle alone is not automatically a defect.\n",
+      "request": "Perform audit analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "unresolved",
+      "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "unresolved",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "active": 6,
+          "alternate": 6
+        },
+        "witness": "import {run} from './entry.mjs';import {compute} from './domain.mjs';console.log(JSON.stringify({active:run(3),alternate:compute(3,4)}));",
+        "repair": {},
+        "check": null
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Identify the exact active import/dependency edge and prescribed responsibility direction, distinguish observable runtime behavior from the boundary obligation, and supply an inversion/composition remedy only if justified.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-19",
+    "skill": "brooks-test",
+    "mode": "test",
+    "family": "mock-versus-state",
+    "variant": "defect",
+    "public": {
+      "files": {
+        "task.md": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "The save operation must persist the supplied string. The supplied test is the COMPLETE task test inventory. A test that only sees validate run does not establish persistence. Valid inputs are strings.\n",
+        "service.mjs": "export const save=(store,value,validate)=>{validate(value);store.value=value;};\n",
+        "existing.test.mjs": "import assert from 'node:assert/strict';import {save} from './service.mjs';let calls=0,s={};save(s,'x',()=>calls++);assert.equal(calls,1);\n"
+      },
+      "contract": "The save operation must persist the supplied string. The supplied test is the COMPLETE task test inventory. A test that only sees validate run does not establish persistence. Valid inputs are strings.\n",
+      "request": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [
+        "effect-protection-gap"
+      ],
+      "status": "defect",
+      "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits",
+        "paired-mutation"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "defect",
+        "expectedIssues": [
+          "effect-protection-gap"
+        ],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits",
+          "paired-mutation"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "baselinePass": true
+        },
+        "witness": "await import('./existing.test.mjs');console.log(JSON.stringify({baselinePass:true}));",
+        "repair": {},
+        "check": null,
+        "mutation": {
+          "service.mjs": "export const save=(store,value,validate)=>{validate(value);};"
+        },
+        "mutantPass": true
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-20",
+    "skill": "brooks-test",
+    "mode": "test",
+    "family": "mock-versus-state",
+    "variant": "protected",
+    "public": {
+      "files": {
+        "task.md": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "The save operation must persist the supplied string. The supplied test is the COMPLETE task test inventory. A test that only sees validate run does not establish persistence. Valid inputs are strings.\n",
+        "service.mjs": "export const save=(store,value,validate)=>{validate(value);store.value=value;};\n",
+        "existing.test.mjs": "import assert from 'node:assert/strict';import {save} from './service.mjs';let calls=0,s={};save(s,'x',()=>calls++);assert.equal(calls,1);assert.equal(s.value,'x');\n"
+      },
+      "contract": "The save operation must persist the supplied string. The supplied test is the COMPLETE task test inventory. A test that only sees validate run does not establish persistence. Valid inputs are strings.\n",
+      "request": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "protected",
+      "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits",
+        "paired-mutation"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "protected",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits",
+          "paired-mutation"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "baselinePass": true
+        },
+        "witness": "await import('./existing.test.mjs');console.log(JSON.stringify({baselinePass:true}));",
+        "repair": {},
+        "check": null,
+        "mutation": {
+          "service.mjs": "export const save=(store,value,validate)=>{validate(value);};"
+        },
+        "mutantPass": false
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-21",
+    "skill": "brooks-test",
+    "mode": "test",
+    "family": "mock-versus-state",
+    "variant": "unresolved",
+    "public": {
+      "files": {
+        "task.md": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "The local test is visible but the full suite and the save persistence obligation are unavailable; report local discriminating power without asserting a whole-suite coverage defect.\n",
+        "service.mjs": "export const save=(store,value,validate)=>{validate(value);store.value=value;};\n",
+        "existing.test.mjs": "import assert from 'node:assert/strict';import {save} from './service.mjs';let calls=0,s={};save(s,'x',()=>calls++);assert.equal(calls,1);\n"
+      },
+      "contract": "The local test is visible but the full suite and the save persistence obligation are unavailable; report local discriminating power without asserting a whole-suite coverage defect.\n",
+      "request": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "unresolved",
+      "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits",
+        "paired-mutation"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "unresolved",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits",
+          "paired-mutation"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "baselinePass": true
+        },
+        "witness": "await import('./existing.test.mjs');console.log(JSON.stringify({baselinePass:true}));",
+        "repair": {},
+        "check": null,
+        "mutation": {
+          "service.mjs": "export const save=(store,value,validate)=>{validate(value);};"
+        },
+        "mutantPass": true
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-22",
+    "skill": "brooks-test",
+    "mode": "test",
+    "family": "swallowed-assertion",
+    "variant": "defect",
+    "public": {
+      "files": {
+        "task.md": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "parse must return an integer for a numeric string and reject other strings. The supplied test is the COMPLETE task test inventory. A test may not suppress its own failed assertion.\n",
+        "parser.mjs": "export function parse(s){if(!/^\\d+$/.test(s))throw Error('invalid');return Number(s);}\n",
+        "existing.test.mjs": "import assert from 'node:assert/strict';import {parse} from './parser.mjs';try{assert.equal(parse('7'),7);assert.throws(()=>parse('x'),/invalid/);}catch{}\n"
+      },
+      "contract": "parse must return an integer for a numeric string and reject other strings. The supplied test is the COMPLETE task test inventory. A test may not suppress its own failed assertion.\n",
+      "request": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [
+        "exception-masks-failure"
+      ],
+      "status": "defect",
+      "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits",
+        "paired-mutation"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "defect",
+        "expectedIssues": [
+          "exception-masks-failure"
+        ],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits",
+          "paired-mutation"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "baselinePass": true
+        },
+        "witness": "await import('./existing.test.mjs');console.log(JSON.stringify({baselinePass:true}));",
+        "repair": {},
+        "check": null,
+        "mutation": {
+          "parser.mjs": "export const parse=s=>0;"
+        },
+        "mutantPass": true
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-23",
+    "skill": "brooks-test",
+    "mode": "test",
+    "family": "swallowed-assertion",
+    "variant": "protected",
+    "public": {
+      "files": {
+        "task.md": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "parse must return an integer for a numeric string and reject other strings. The supplied test is the COMPLETE task test inventory. A test may not suppress its own failed assertion.\n",
+        "parser.mjs": "export function parse(s){if(!/^\\d+$/.test(s))throw Error('invalid');return Number(s);}\n",
+        "existing.test.mjs": "import assert from 'node:assert/strict';import {parse} from './parser.mjs';assert.equal(parse('7'),7);assert.throws(()=>parse('x'),/invalid/);\n"
+      },
+      "contract": "parse must return an integer for a numeric string and reject other strings. The supplied test is the COMPLETE task test inventory. A test may not suppress its own failed assertion.\n",
+      "request": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [],
+      "status": "protected",
+      "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits",
+        "paired-mutation"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "protected",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits",
+          "paired-mutation"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory."
+      },
+      "clarifications": [],
+      "oracle": {
+        "observation": {
+          "baselinePass": true
+        },
+        "witness": "await import('./existing.test.mjs');console.log(JSON.stringify({baselinePass:true}));",
+        "repair": {},
+        "check": null,
+        "mutation": {
+          "parser.mjs": "export const parse=s=>0;"
+        },
+        "mutantPass": false
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      }
+    }
+  },
+  {
+    "id": "BV5-24",
+    "skill": "brooks-test",
+    "mode": "test",
+    "family": "swallowed-assertion",
+    "variant": "unresolved",
+    "public": {
+      "files": {
+        "task.md": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+        "contract.md": "Only one local smoke test is shown. The rest of the suite and the accepted input/output contract are unavailable. Distinguish local test behavior from required suite coverage.\n\nFor this revised case, the displayed local smoke check is required to exit unsuccessfully when its own assertion fails. Broader parser behavior and the rest of the suite remain unknown; do not infer general suite coverage obligations.\n",
+        "parser.mjs": "export function parse(s){if(!/^\\d+$/.test(s))throw Error('invalid');return Number(s);}\n",
+        "existing.test.mjs": "import assert from 'node:assert/strict';import {parse} from './parser.mjs';try{assert.equal(parse('7'),7);assert.throws(()=>parse('x'),/invalid/);}catch{}\n"
+      },
+      "contract": "Only one local smoke test is shown. The rest of the suite and the accepted input/output contract are unavailable. Distinguish local test behavior from required suite coverage.\n\nFor this revised case, the displayed local smoke check is required to exit unsuccessfully when its own assertion fails. Broader parser behavior and the rest of the suite remain unknown; do not infer general suite coverage obligations.\n",
+      "request": "Perform test analysis on the supplied task snapshot. Explain the governing obligation, trace concrete behavior, and provide a reproducible witness. Distinguish source predictions from executed checks. Report protected or unresolved observations without inventing scored defects.\n",
+      "evidence": [
+        "Only the supplied snapshot is available. No execution tool is exposed; runnable witnesses are predictions, not executed tests."
+      ]
+    },
+    "private": {
+      "criteria": [
+        "task-outcome"
+      ],
+      "issues": [
+        "local-failure-propagation"
+      ],
+      "status": "unresolved",
+      "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory.",
+      "evidence": [
+        "contract-scope",
+        "causal-trace",
+        "executable-witness",
+        "verification-limits",
+        "paired-mutation"
+      ],
+      "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+      "originalRubric": {
+        "assessment": "unresolved",
+        "expectedIssues": [],
+        "expectedCriteria": [
+          "task-outcome"
+        ],
+        "evidence": [
+          "contract-scope",
+          "causal-trace",
+          "executable-witness",
+          "verification-limits",
+          "paired-mutation"
+        ],
+        "equivalence": "Accept behaviorally equivalent concrete witnesses within the supplied domain; exact names or inputs are not required.",
+        "provenance": {
+          "independent": false,
+          "cohort": "same-workflow-development",
+          "authorExposure": "Authors saw v4 results and revised guidance; no independent human ground truth or holdouts."
+        },
+        "taskOutcome": "Compare original and injected contract-violating mutant against the actual supplied test and its assertion scope; prove lost protection locally and restrict whole-suite claims to known inventory."
+      },
+      "clarifications": [
+        "For this revised case, the displayed local smoke check is required to exit unsuccessfully when its own assertion fails. Broader parser behavior and the rest of the suite remain unknown; do not infer general suite coverage obligations."
+      ],
+      "oracle": {
+        "observation": {
+          "baselinePass": true
+        },
+        "witness": "await import('./existing.test.mjs');console.log(JSON.stringify({baselinePass:true}));",
+        "repair": {},
+        "check": null,
+        "mutation": {
+          "parser.mjs": "export const parse=s=>0;"
+        },
+        "mutantPass": true
+      },
+      "axisCriteria": {
+        "diagnosis": "Retain expected issues and distinguish supported novel observations from speculation.",
+        "contractScope": "Apply actual input preconditions, ownership and available inventory; preserve global uncertainty when local facts do not settle it.",
+        "discriminatingWitness": "Show original assertions pass; a changed parse result causes an assertion failure that catch{} swallows, still exiting successfully; removing/rethrowing catch makes that local failing assertion observable. Do not infer unknown parser-domain or whole-suite obligations.",
+        "remedy": "Give a concrete scoped correction/check for established problems, or justify no intervention/conditional next evidence when protected or unknown.",
+        "verificationHonesty": "Distinguish predicted runnable behavior from executed results; no tool or test execution claims without supplied receipts."
+      },
+      "scopeNote": "The local catch suppresses assertion failure under the new explicit local obligation. Broader parser/suite disposition remains unresolved. Report both; defect vs unresolved wording is secondary, not a substitute for scoped truth."
+    }
+  }
+]

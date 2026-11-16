@@ -37,9 +37,8 @@ than diagnoses — no Health Score, no Iron Law findings.
 
 1. Gather codebase context and draw the module dependency graph as Mermaid (Steps 0–1 of the guide)
 2. Scan for each decay risk in the order specified (Steps 2–4 of the guide)
-3. Assign node colors in the Mermaid diagram based on findings (red/yellow/green) — after Step 4
-4. Run the Testability Seam Assessment (Step 5 of the guide)
-5. Run the Conway's Law check (Step 6 of the guide)
-6. Output using the Report Template from common.md — Mermaid graph FIRST, then Findings
+3. Run the Testability Seam Assessment (Step 5 of the guide)
+4. Run the Conway's Law check (Step 6 of the guide)
+5. Assign node colors after all findings, then output using the Report Template from common.md — Mermaid graph FIRST, then Findings
 
 **Mode line in report:** `Architecture Audit`

@@ -1,0 +1,29 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import os from 'node:os';
+import {anchored,validate,validateCases,generic,read,root,hash} from './suite.mjs';
+import {execute,verify} from './runner.mjs';import {fixture} from './drill.mjs';import {witnesses} from './witnesses.mjs';
+import {packets,assess,AXES,SECONDARY} from './review.mjs';import {retained} from './archive-bounded.mjs';import {anchored as oldAnchored} from '../bounded-health-retest/suite.mjs';
+const temp=()=>fs.mkdtempSync(path.join(os.tmpdir(),'brooks-focused-test-'));
+test('exact finite matched schedule and unchanged generic checklist',()=>{
+ const f=anchored();assert(validateCases(f.cases));assert.equal(f.schedule.length,36);assert.equal(f.budget.turnMs,120000);
+ const old=read(path.join(root,'evals/research/skills-benchmark-v5/prepared-freeze.json'));assert(old.protocol.cases[0].prompts.B.text.includes(generic));
+ for(const c of f.cases){assert.deepEqual(f.schedule.filter(r=>r.id===c.id).map(r=>r.arm).sort(),['B','C']);for(const arm of ['B','C']){assert.equal(hash(c.prompts[arm].text),c.prompts[arm].sha256);assert.equal(Buffer.byteLength(c.prompts[arm].text),c.prompts[arm].bytes);assert(!c.prompts[arm].text.includes('axisCriteria'));assert(!c.prompts[arm].text.includes(c.id));for(const[p,v]of Object.entries(c.public.files))assert(c.prompts[arm].text.includes('FILE '+p+'\n'+v));}}
+});
+test('drift rejects source, model, prompt, budget and schedule before invocation',async()=>{
+ for(const mutate of [f=>f.model='wrong',f=>f.budget.calls++,f=>f.sources['skills/brooks-review/pr-review-guide.md']='old',f=>f.cases[0].prompts.B.text+='changed',f=>f.schedule.reverse()]){const f=structuredClone(anchored());mutate(f);assert.throws(()=>validate(f));let calls=0;await assert.rejects(execute(f,'unused',{inject:async()=>calls++}));assert.equal(calls,0);}
+});
+test('all18 authored witnesses; two clarifications do not alter original fixtures',()=>{assert.equal(witnesses().length,18);const cs=anchored().cases;assert.equal(cs.filter(c=>c.private.clarifications.length).length,2);assert(!fs.readFileSync(path.join(root,'evals/research/skills-benchmark-v5/cases/BV5-05/contract.md'),'utf8').includes('For this revised'));assert(!fs.readFileSync(path.join(root,'evals/research/skills-benchmark-v5/cases/BV5-24/contract.md'),'utf8').includes('For this revised'));assert.deepEqual(cs.find(c=>c.id==='BV5-24').private.issues,['local-failure-propagation']);});
+test('old bounded freeze stays stale while exact prior guidance can be replayed',()=>{assert.throws(()=>oldAnchored(),/drift/);const snapshot=retained();assert.equal(Object.keys(snapshot).length,4);for(const[p,v]of Object.entries(snapshot))assert.notEqual(hash(fs.readFileSync(path.join(root,p))),v.sha256);});
+test('synthetic subprocess preserves raw identity with tools disabled and stops at retry',async()=>{
+ const dir=temp();try{let count=0;const out=path.join(dir,'run');const result=await execute(anchored(),out,{inject:(f,r,o)=>{count++;return fixture(f,r,{...o,mode:count===1?'success':'retry',out:path.join(dir,'transport-'+count)});}});assert.equal(count,2);assert.equal(result.completed,1);assert.equal(result.notRun,34);assert(result.stopped);const run=verify(out);assert.equal(run.records[0].raw.enableScoreTool,false);assert.deepEqual(run.records[0].raw.tool_calls,[]);assert.throws(()=>packets(run),/Simulation/);}finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('time and token admissions stop without automatic recovery',async()=>{const dir=temp();try{let ticks=0,calls=0;const f=anchored();const out=path.join(dir,'time');const r=await execute(f,out,{clock:()=>ticks++?f.budget.totalMs+1:0,inject:async()=>{calls++;}});assert.equal(calls,0);assert.equal(r.stopped,'budget');verify(out);
+ const r2=await execute(f,path.join(dir,'token'),{inject:async(f,row,o)=>{calls++;const raw=await fixture(f,row,{...o,out:path.join(dir,'token-transport')});raw.usage.total.totalTokens=f.budget.observedTokens;return raw;}});assert.equal(calls,1);assert.equal(r2.stopped,'budget');assert.equal(r2.notRun,35);verify(path.join(dir,'token'));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}});
+test('semantic assessment separates axes from labels, hides simulation and ends ties',()=>{
+ const f=anchored(),run={f,state:{simulation:true,stopped:null},records:f.schedule.map(r=>({...r,status:'completed',rawSha256:'simulation-'+r.ordinal,answer:'Synthetic predicted trace; no execution.',candidate:{kind:'not-applicable'},raw:{tool_calls:[]}}))};
+ const annotations=packets(run,{simulation:true}).map(p=>({responseId:p.responseId,answerSha256:p.answerSha256,inputSha256:p.inputSha256,caseId:p.caseId,reviewer:'synthetic fixture',assessment:p.rubric.status,axes:Object.fromEntries([...AXES,...SECONDARY].map(k=>[k,{verdict:'pass',quote:p.answer,reason:'Fixture only',references:[{kind:'contract',quote:p.input.contract}]}])),issues:p.rubric.issues.map(id=>({id,quote:p.answer,reason:'Fixture',references:[{kind:'contract',quote:p.input.contract}]})),issueDecisions:p.rubric.issues.map(id=>({id,verdict:'found',quote:p.answer,reason:'Fixture',references:[{kind:'contract',quote:p.input.contract}]})),falseClaims:[],pendingClaims:[],novelSupported:[]}));
+ const a=assess(run,annotations,{simulation:true});assert.equal(a.reviewed,36);assert.equal(a.byMode.review.C.reviewed,6);assert.equal(a.practicalLiftCriterionMet,false);assert(Object.values(a.perSkillDecision).every(x=>x==='not-ready'));
+ // Pure scoring fixture, not runnable model evidence; exercise decision thresholds.
+ const decisionRun=structuredClone(run);decisionRun.state.simulation=false;const b=assess(decisionRun,annotations);assert(Object.values(b.perSkillDecision).every(x=>x.startsWith('no-incremental')));
+ annotations[0].axes.diagnosis.verdict='unresolved';assert.equal(assess(decisionRun,annotations).completeForPracticalCriterion,false);
+});

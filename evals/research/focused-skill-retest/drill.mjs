@@ -1,0 +1,9 @@
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';
+import {runLoginTurn} from '../capability-calibration/login-turn.mjs';
+import {execute,verify,summary} from './runner.mjs';import {anchored,write,root} from './suite.mjs';
+export async function fixture(f,row,{timeoutMs,mode='success',out}){return runLoginTurn({model:f.model,effort:f.effort,cliVersion:f.cliVersion,executable:process.execPath,prefixArgs:[path.join(root,'evals/research/focused-skill-retest/fake-cli.cjs'),mode],fixtureEndpoint:'http://127.0.0.1:1/v1',prompt:f.cases.find(c=>c.id===row.id).prompts[row.arm].text,enableScoreTool:false,out,timeoutMs});}
+export async function drill(out){assert(!fs.existsSync(out));fs.mkdirSync(out,{recursive:true});let n=0;const results=[];const result=await execute(anchored(),path.join(out,'success'),{inject:(f,r,o)=>fixture(f,r,{...o,out:path.join(out,'transport-'+(++n))})});assert.equal(result.completed,36);assert.equal(result.stopped,null);assert.deepEqual(summary(verify(path.join(out,'success')).state),result);results.push({mode:'success',result});
+ for(const mode of ['wrong-model','retry','unknown-usage']){let calls=0;const result=await execute(anchored(),path.join(out,mode),{inject:(f,r,o)=>{calls++;return fixture(f,r,{...o,mode,out:path.join(out,'negative-'+mode)});}});assert.equal(calls,1);assert(result.stopped);verify(path.join(out,mode));results.push({mode,result});}
+ write(path.join(out,'summary.json'),{simulation:true,results,limitations:'Synthetic local app-server/collector lifecycle only. No model, no network and no semantic efficacy evidence.'});return results;
+}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))console.log(JSON.stringify(await drill(process.argv[2]),null,2));

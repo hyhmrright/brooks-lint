@@ -1,0 +1,10 @@
+/** Offline replay only: never restore old guidance for live collection. */
+import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import assert from 'node:assert/strict';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+import {root,read,hash} from './suite.mjs';
+export function retained(){const record=read(path.join(root,'evals/research/focused-skill-retest/prior-guidance.json'));assert.equal(record.commit,'46a2a83');const old=read(path.join(root,'evals/research/bounded-health-retest/formal-freeze.json'));assert.equal(Object.keys(record.files).length,4);for(const[p,v]of Object.entries(record.files)){assert(/^skills\/brooks-(review|audit|test)\/[a-zA-Z-]+\.md$/.test(p));assert.equal(hash(v.content),old.sources[p]);assert.equal(v.sha256,old.sources[p]);}return record.files;}
+export function replay(){const files=retained(),dir=fs.mkdtempSync(path.join(os.tmpdir(),'brooks-bounded-archive-'));const before=Object.fromEntries(Object.keys(files).map(p=>[p,hash(fs.readFileSync(path.join(root,p)))]));try{
+ for(const name of ['evals','scripts','skills','docs'])fs.cpSync(path.join(root,name),path.join(dir,name),{recursive:true});fs.copyFileSync(path.join(root,'package.json'),path.join(dir,'package.json'));
+ for(const[p,v]of Object.entries(files))fs.writeFileSync(path.join(dir,p),v.content);
+ const result=spawnSync(process.execPath,['--test','evals/research/bounded-health-retest/protocol.test.mjs'],{cwd:dir,encoding:'utf8',timeout:900000,maxBuffer:8*1024*1024});process.stdout.write(result.stdout??'');process.stderr.write(result.stderr??'');if(result.error)throw result.error;assert.equal(result.status,0,'Historical bounded suite failed');console.log(JSON.stringify({historicalOnly:true,restoredFiles:4,liveCalls:0}));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});for(const[p,h]of Object.entries(before))assert.equal(hash(fs.readFileSync(path.join(root,p))),h,'Current guide changed');}}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))replay();
