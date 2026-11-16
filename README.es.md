@@ -4,13 +4,14 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · **Español**
 
-![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 Seis flujos para revisión de código, arquitectura, deuda técnica, calidad de pruebas, un panel de salud y reparaciones acotadas, basados en doce libros clásicos de ingeniería de software.
 
-**Estado del código fuente:** el árbol declara `1.10.0`, pero se retiraron su etiqueta y GitHub Release mientras se decide la versión. La última versión publicada en GitHub/npm sigue siendo **1.9.1**. Este README describe **main**, con cambios que no están en 1.9.1; la insignia no demuestra una publicación.
+**Estado del código fuente:** se ha elegido `2.0.0`, pero aún no se ha publicado en GitHub ni npm. La publicación está suspendida hasta confirmar el acceso a npm y todas las comprobaciones. La última versión publicada sigue siendo **1.9.1**. Este README describe **main**; la insignia no demuestra una publicación.
 
+[Migración de 1.9.1 a 2.0.0](docs/migration-v2.md)
 brooks-lint reúne Agent Skills, instrucciones compartidas y pequeñas herramientas deterministas para informes. Tu agente de programación realiza el diagnóstico. No es un analizador estático ni garantiza que el modelo encuentre todos los defectos.
 
 ## Empezar con Codex
@@ -137,11 +138,11 @@ Empieza con [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). El contrat
 
 ## CI es una vía independiente
 
-La GitHub Action usa una **API compatible con Anthropic**, no el inicio de sesión de Codex. Solo revisa el diff recopilado, sin herramientas interactivas ni reparaciones. Esta vía histórica no forma parte de la verificación actual en vivo. El ejemplo es una plantilla de la versión fuente para una publicación futura: **no lo ejecutes mientras la etiqueta esté retirada**. Para una versión publicada, cambia a `v1.9.1` y sigue sus capacidades documentadas.
+La GitHub Action usa una **API compatible con Anthropic**, no el inicio de sesión de Codex. Solo revisa el diff recopilado, sin herramientas interactivas ni reparaciones. Esta vía histórica no forma parte de la verificación actual en vivo. El ejemplo es una plantilla de la versión fuente para una publicación futura: **no lo ejecutes antes de publicar la etiqueta 2.0.0**. Para una versión publicada, cambia a `v1.9.1` y sigue sus capacidades documentadas.
 
 ```yaml
-# Source-version template only: this tag is currently withdrawn.
-- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+# Source-version template only: the 2.0.0 tag is not published yet.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

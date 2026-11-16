@@ -1,10 +1,10 @@
-# Proposed v2 migration notes — version not approved
+# Migrating from 1.9.1 to 2.0.0
 
-This is a migration draft for the product changes merged through `d248ad5`.
-The maintainer is considering **2.0.0**, but no version change or publication is
-authorized. Source metadata still says 1.10.0; its GitHub tag/release was withdrawn.
-The published npm package remains 1.9.1. Compare against that actual release,
-not against the withdrawn release preparation.
+The maintainer selected **2.0.0** for the product changes merged through `d248ad5`
+and the accompanying evidence/readiness documentation. This is pre-publication
+guidance: neither GitHub nor npm 2.0.0 has been published. npm authentication
+returned E401 on 2026-11-16, so coordinated publication remains on hold.
+Compare against published 1.9.1, not the withdrawn 1.10.0 preparation.
 
 ## Why a major version is defensible
 
@@ -49,5 +49,5 @@ Node is needed for the shipped deterministic tools, but tool availability and
 verification claims remain explicit; this is not a promise that all hosts execute
 them. No migration requires a live benchmark or model account.
 
-Before a confirmed release, replace this proposal wording with the selected
-version, synchronize every public surface, and run exact-release-commit gates.
+Before publication, synchronize every public surface with the verified state
+and run exact-release-commit gates. Version selection is not publication approval.

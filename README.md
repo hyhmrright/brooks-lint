@@ -4,13 +4,14 @@
 
 **English** · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md)
 
-![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 Six focused workflows for code review, architecture, technical debt, test quality, a health dashboard, and scoped repairs — grounded in twelve classic engineering books.
 
-**Source status:** this checkout still declares `1.10.0`, but its tag and GitHub Release were withdrawn while the version decision is pending. The latest published GitHub/npm release remains **1.9.1**. This README describes **main**, including changes absent from 1.9.1; the badge is a source version, not proof of publication.
+**Source status:** the maintainer selected `2.0.0`; this checkout prepares that release, but neither GitHub nor npm publication has occurred. Publication is on hold until npm access and all release gates are confirmed. The latest published GitHub/npm release remains **1.9.1**. This README describes **main**, including changes absent from 1.9.1; the badge is a source version, not proof of publication.
 
+[Migration from 1.9.1 to 2.0.0](docs/migration-v2.md)
 brooks-lint is a collection of Agent Skills, shared guidance and small deterministic reporting tools. Your coding agent performs the diagnosis; the project supplies a repeatable workflow, risk vocabulary and reporting contract. It is not a static analyzer and it does not guarantee that a model finds every defect.
 
 ## Quick start: Codex
@@ -137,11 +138,11 @@ Copy [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). The shared contra
 
 ## CI integration is a separate path
 
-The shipped GitHub Action uses an **Anthropic-compatible API**, not Codex login. It supports **review of the collected diff only**, without interactive repository tools or repairs. This historical provider path is not part of current maintainer live verification. The example below shows the source-version pin required for a future release; **do not run it while that tag is withdrawn**. For an existing release, replace the pin with `v1.9.1` and use that release’s documented capabilities.
+The shipped GitHub Action uses an **Anthropic-compatible API**, not Codex login. It supports **review of the collected diff only**, without interactive repository tools or repairs. This historical provider path is not part of current maintainer live verification. The example below shows the source-version pin required for a future release; **do not run it before the 2.0.0 tag is published**. For an existing release, replace the pin with `v1.9.1` and use that release’s documented capabilities.
 
 ```yaml
-# Source-version template only: this tag is currently withdrawn.
-- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+# Source-version template only: the 2.0.0 tag is not published yet.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

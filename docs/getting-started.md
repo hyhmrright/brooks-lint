@@ -7,8 +7,8 @@ retained, but layout tests are not an end-to-end host compatibility claim.
 
 ## Choose the code you want to install
 
-The source tree declares 1.10.0, but that tag and GitHub Release were withdrawn
-pending a version decision. GitHub/npm's latest published version is 1.9.1.
+The source tree prepares selected version 2.0.0, which is not yet published.
+GitHub/npm's latest published version is 1.9.1; coordinated publication is on hold.
 
 For the published package, with Node.js 20+:
 

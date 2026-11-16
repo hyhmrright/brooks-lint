@@ -1,9 +1,10 @@
 # Documentation audit after the bounded product merge
 
 Baseline: merged product commit d6e58c7 (PR #46 and version preparation).
-The v1.10.0 tag and GitHub Release were subsequently withdrawn; source version
-fields remain unchanged pending the maintainer's decision. No model evaluation,
-version decision, tag or publication belongs to this documentation update.
+Historical audit context: v1.10.0 was withdrawn and the version decision was
+pending when this documentation rewrite was made. The maintainer later selected
+2.0.0; see [current readiness](next-release-readiness.md). This historical audit
+did not run models or authorize publication.
 
 ## Diagnosed drift and remedies
 

@@ -2,9 +2,21 @@
 
 All notable changes to brooks-lint are documented here.
 
-## [1.10.0] - 2026-11-16
+## [2.0.0] - 2026-11-16
+
+Release preparation only: 2.0.0 is selected, but publication remains on hold.
+The withdrawn 1.10.0 preparation is superseded; npm remains at 1.9.1.
+
+### Breaking changes
+
+- Action consumers must handle `skipped=true` and an empty score for an empty diff instead of treating the result as numeric zero. CI accepts `review` only; invalid reports fail closed.
+- Health may withhold a numeric composite when a required dimension is unassessed. Tool-backed reports use one ledger and an exact-delivery contract.
+- Sweep counts every repair round against the cap, including the initial and Critical-only rounds, reuses existing edit authority, and produces the final health dashboard contract. Consumers relying on former prompts, budgets or report layouts must adapt.
+- See [migration from 1.9.1](docs/migration-v2.md). Installer commands and JavaScript package exports remain unchanged.
 
 ### Added
+
+- Complete all-six-skill benchmark evidence index and release-readiness audit, retaining adverse results, unresolved generalization limits and prior publication history.
 
 - Deterministic health dashboard scoring from one finding ledger, explicit unknown-dimension handling, finalized-report receipts and exact-delivery verification tools, with standalone installation and regression coverage (#46).
 - Paired, isolated Codex skill-versus-baseline behavioral evaluations with grounded semantic judging, seven fixtures, offline CI validation and archived exploratory evidence. Live runs remain opt-in; model judging is not independent human validation.

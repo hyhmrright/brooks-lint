@@ -4,13 +4,14 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · **한국어** · [Español](README.es.md)
 
-![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 코드 리뷰, 아키텍처, 기술 부채, 테스트 품질, 상태 대시보드, 범위를 제한한 수정까지 여섯 워크플로를 제공합니다. 열두 권의 소프트웨어 공학 고전에 기반합니다.
 
-**소스 상태:** 소스 버전은 `1.10.0`이지만 태그와 GitHub Release는 철회되었으며 버전 결정은 보류 중입니다. GitHub/npm의 최신 공개 버전은 **1.9.1**입니다. 이 문서는 **main**을 설명하며 배지는 배포 완료를 뜻하지 않습니다.
+**소스 상태:** 다음 버전은 `2.0.0`으로 결정되었지만 GitHub와 npm에는 아직 공개되지 않았습니다. npm 권한과 모든 배포 조건을 확인할 때까지 배포는 보류합니다. 최신 공개 버전은 **1.9.1**입니다. 이 문서는 **main**을 설명하며 배지는 배포 완료를 뜻하지 않습니다.
 
+[1.9.1에서 2.0.0으로 마이그레이션](docs/migration-v2.md)
 brooks-lint는 Agent Skills, 공통 지침, 작은 결정적 보고 도구의 모음입니다. 진단은 사용자의 코딩 에이전트가 수행합니다. 정적 분석기가 아니며 모델이 모든 결함을 찾는다고 보장하지 않습니다.
 
 ## Codex로 시작하기
@@ -137,11 +138,11 @@ sweep:
 
 ## CI는 별도 실행 경로
 
-GitHub Action은 Codex 로그인이 아닌 **Anthropic 호환 API**를 사용합니다. 수집한 diff의 review만 수행하며 대화형 파일 도구나 수정 기능은 없습니다. 이 과거 제공자 경로는 현재 실시간 검증 대상 밖입니다. 아래는 향후 소스 버전 템플릿입니다. **태그 철회 중에는 그대로 실행하지 마세요.** 공개 버전을 쓰려면 `v1.9.1`로 바꾸고 해당 버전의 기능 설명을 따르세요.
+GitHub Action은 Codex 로그인이 아닌 **Anthropic 호환 API**를 사용합니다. 수집한 diff의 review만 수행하며 대화형 파일 도구나 수정 기능은 없습니다. 이 과거 제공자 경로는 현재 실시간 검증 대상 밖입니다. 아래는 향후 소스 버전 템플릿입니다. **2.0.0 태그 공개 전에는 그대로 실행하지 마세요.** 공개 버전을 쓰려면 `v1.9.1`로 바꾸고 해당 버전의 기능 설명을 따르세요.
 
 ```yaml
-# Source-version template only: this tag is currently withdrawn.
-- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+# Source-version template only: the 2.0.0 tag is not published yet.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

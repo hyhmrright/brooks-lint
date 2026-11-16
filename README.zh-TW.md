@@ -4,13 +4,14 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md)
 
-![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 六個工作流程，覆蓋程式碼審查、架構、技術債、測試品質、健康看板與限定範圍的修復，以十二本經典軟體工程書籍為基礎。
 
-**原始碼狀態：** 目前原始碼仍宣告 `1.10.0`，但對應標籤與 GitHub Release 已撤回，版本號等待確認。GitHub/npm 最近的已發布版本仍為 **1.9.1**。本文描述 **main**，其中部分功能尚未包含在 1.9.1；徽章表示原始碼版本，不表示已發布。
+**原始碼狀態：** 已確定下一版本為 `2.0.0`，目前原始碼正在準備該版本，尚未發布至 GitHub 或 npm。發布須等待 npm 權限及全部發布檢查確認。GitHub/npm 最近的已發布版本仍為 **1.9.1**。本文描述 **main**，其中部分功能尚未包含在 1.9.1；徽章表示原始碼版本，不表示已發布。
 
+[從 1.9.1 遷移至 2.0.0](docs/migration-v2.md)
 brooks-lint 由 Agent Skills、共享指導和小型確定性報告工具組成。診斷由你的編碼代理執行；專案提供工作流程、風險分類和報告約定。它不是靜態分析器，也不保證模型能發現所有缺陷。
 
 ## 從 Codex 開始
@@ -137,11 +138,11 @@ sweep:
 
 ## CI 是另一條執行路徑
 
-現有 GitHub Action 使用 **Anthropic 相容 API**，不使用 Codex 登錄額度。它只審查收集的 diff，沒有互動式儲存庫工具或修復能力；該歷史提供者路徑不屬於目前維護者的即時驗證範圍。以下是未來發布的原始碼版本模板；**標籤撤回期間不能直接執行**。若使用已發布版本，請改為 `v1.9.1` 並遵循其對應功能說明。
+現有 GitHub Action 使用 **Anthropic 相容 API**，不使用 Codex 登錄額度。它只審查收集的 diff，沒有互動式儲存庫工具或修復能力；該歷史提供者路徑不屬於目前維護者的即時驗證範圍。以下是未來發布的原始碼版本模板；**2.0.0 標籤發布前不能直接執行**。若使用已發布版本，請改為 `v1.9.1` 並遵循其對應功能說明。
 
 ```yaml
-# Source-version template only: this tag is currently withdrawn.
-- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+# Source-version template only: the 2.0.0 tag is not published yet.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

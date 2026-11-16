@@ -1,7 +1,7 @@
 # Release 1.10.0 audit
 
 > Historical preparation record. Its GitHub release/tag was later withdrawn, npm
-> publication failed, and the next version is awaiting maintainer confirmation.
+> publication failed. The maintainer later selected 2.0.0; publication remains on hold.
 > This record is not current release authorization. See [current readiness](next-release-readiness.md).
 
 Range: `v1.9.1..231512e`. Version is a minor increment because the backlog adds

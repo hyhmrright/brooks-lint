@@ -4,13 +4,14 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · **日本語** · [한국어](README.ko.md) · [Español](README.es.md)
 
-![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 コードレビュー、アーキテクチャ、技術的負債、テスト品質、ヘルスダッシュボード、範囲を限定した修正の六つのワークフロー。十二冊のソフトウェア工学の古典に基づきます。
 
-**ソースの状態：** ソースのバージョンは `1.10.0` ですが、そのタグと GitHub Release は取り下げられ、バージョンは再検討中です。公開済みの GitHub/npm 最新版は **1.9.1**。この README は **main** の説明であり、バッジは公開済みであることを示しません。
+**ソースの状態：** 次のバージョンは `2.0.0` に決定しましたが、GitHub と npm にはまだ公開されていません。npm の権限とすべての公開条件を確認するまで公開は保留です。公開済みの最新版は **1.9.1**。この README は **main** を説明し、バッジは公開済みであることを示しません。
 
+[1.9.1 から 2.0.0 への移行](docs/migration-v2.md)
 brooks-lint は Agent Skills、共通ガイド、小さな決定的レポートツールの集合です。診断するのは利用者のコーディングエージェントです。静的解析器ではなく、すべての欠陥を発見する保証もありません。
 
 ## Codex で始める
@@ -137,11 +138,11 @@ sweep:
 
 ## CI は別の実行経路
 
-GitHub Action は Codex ログインではなく **Anthropic 互換 API** を使います。収集した diff の review のみで、対話型のファイル操作や修正はありません。この過去の提供者経路は現在のライブ検証対象外です。以下は将来のソース版テンプレートです。**タグ撤回中はそのまま実行しないでください**。公開版を使う場合は `v1.9.1` に変更し、その版の機能説明に従ってください。
+GitHub Action は Codex ログインではなく **Anthropic 互換 API** を使います。収集した diff の review のみで、対話型のファイル操作や修正はありません。この過去の提供者経路は現在のライブ検証対象外です。以下は将来のソース版テンプレートです。**2.0.0 タグの公開前はそのまま実行しないでください**。公開版を使う場合は `v1.9.1` に変更し、その版の機能説明に従ってください。
 
 ```yaml
-# Source-version template only: this tag is currently withdrawn.
-- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+# Source-version template only: the 2.0.0 tag is not published yet.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

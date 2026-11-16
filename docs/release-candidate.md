@@ -69,11 +69,11 @@ unreleased backlog, with the eight non-exempt commits accounted for in
 the maintainer subsequently authorized release after exact-commit CI and
 `release:ci`. Research records remain preserved at `17bd333`.
 
-## Current status after documentation merge
+## Current status — 2.0.0 preparation
 
 The candidate and documentation PRs #46/#47 are merged. The 1.10.0 GitHub tag
-and release were withdrawn at the maintainer's request; npm 1.10.0 was never
-published. The earlier release authorization above is historical and superseded
-by the current publication hold. No next version is selected. Use
-[next-release readiness](next-release-readiness.md), not the old candidate
-sequence, for remaining gates. Research archives remain unchanged.
+and release were withdrawn; npm 1.10.0 was not published. The maintainer selected
+2.0.0 and authorized integrating the audit/migration/evidence notes and preparing
+all version surfaces. npm identity still returns E401, so no GitHub-only release,
+tag or npm publication is permitted. See [current readiness](next-release-readiness.md)
+and [migration notes](migration-v2.md). Earlier authorizations above are historical.
