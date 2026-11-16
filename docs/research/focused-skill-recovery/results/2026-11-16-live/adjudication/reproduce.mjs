@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+const base=new URL('../',import.meta.url);
+const packets=JSON.parse(readFileSync(new URL('review-packets.json',base)));
+const run=(files)=>{const dir=mkdtempSync(path.join(tmpdir(),'brooks-adjudication-'));try{for(const [name,body] of Object.entries(files))writeFileSync(path.join(dir,name),body);const r=spawnSync(process.execPath,['existing.test.mjs'],{cwd:dir,encoding:'utf8',timeout:5000});assert.equal(r.error,undefined);assert.equal(r.signal,null);return r.status;}finally{rmSync(dir,{recursive:true,force:true});}};
+const p23=packets.find(p=>p.caseId==='BV5-23');
+const parse= (await import('data:text/javascript,'+encodeURIComponent(p23.input.files['parser.mjs']))).parse;
+const long='9'.repeat(309);assert.match(long,/^\d+$/);assert.equal(parse(long),Infinity);assert.equal(Number.isInteger(parse(long)),false);
+assert.equal(run(p23.input.files),0);
+const longMutant={...p23.input.files,'parser.mjs':"export const parse=s=>{if(!/^\\d+$/.test(s))throw Error('invalid');return s.length>=309?Infinity:Number(s)};"};
+assert.equal(run(longMutant),0);
+const p24=packets.find(p=>p.caseId==='BV5-24');
+const f=p24.input.files;const assertionMutation={...f,'existing.test.mjs':f['existing.test.mjs'].replace("parse('7'),7","parse('7'),8")};
+const parserMutation={...f,'parser.mjs':"export const parse=s=>{if(s==='7')return 8;throw Error('invalid')};"};
+const uncaught=files=>({...files,'existing.test.mjs':files['existing.test.mjs'].replace('try{','').replace('}catch{}','')});
+assert.equal(run(f),0);for(const variant of [assertionMutation,parserMutation]){assert.equal(run(variant),0);assert.notEqual(run(uncaught(variant)),0);}
+console.log(JSON.stringify({offline:true,modelCalls:0,bv23:{digitCount:309,result:'Infinity',integer:false,originalTestExit:0,longMutantExit:0},bv24:{baselineExit:0,assertionMutationCaughtExit:0,parserMutationCaughtExit:0,bothUncaughtFail:true}}));
