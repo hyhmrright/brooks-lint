@@ -17,6 +17,14 @@ pass-rate denominator. Explicitly selecting an unsupported scenario or mode is a
 error. The scenarios remain in the structural suite for interactive evaluation;
 API results must not be presented as Full Sweep execution coverage.
 
+## Provider and maintenance boundary
+
+The interactive Codex skill path uses the capabilities and authentication of its
+host. The GitHub Action and historical `run-evals-live.mjs` use an
+Anthropic-compatible API; they do not reuse Codex login. Current maintainer live
+verification is Codex-only. Retained integrations and offline contract tests do
+not imply current end-to-end verification on other providers or hosts.
+
 ## CI scope and configuration
 
 For a GitHub pull request, the runner uses the event's base and head commit SHAs to
@@ -56,7 +64,10 @@ Scores are integers in the inclusive range 0–100. The Markdown labels are stab
   Health Score Delta; the parser retains this compatibility.
 
 Plain and bold labels are supported. Onboarding and skipped runs do not have a
-score. Empty, truncated, malformed, or ambiguous reports must not pass quality
+score. Interactive health/sweep also omit a numeric composite when a required
+dimension is unassessed; no diff skips only the PR dimension. Their bundled
+finalizer and delivery helpers verify supplied ledgers and report bytes, not the
+truth of the findings. That interactive path is not a supported CI mode. Empty, truncated, malformed, or ambiguous reports must not pass quality
 gates as clean reports; rerun with sufficient context or a larger output ceiling.
 
 Each finding has a risk code in its bold title, an explicit severity, and four

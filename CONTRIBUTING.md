@@ -42,8 +42,9 @@ which captures book-level scope, exceptions, and tradeoffs.
 
 `evals/evals.json` holds the scenarios the skill is graded against. Adding a new
 test case that catches a real problem the current skill misses is the highest-value
-contribution. (The 94% figure in the README is a separate, three-scenario
-head-to-head against an unaided review — not this suite's pass rate.)
+contribution. Structural validation checks the case schema; parser benchmarks
+check report extraction. Neither proves semantic diagnostic accuracy. Live Codex
+comparisons are opt-in and require explicit authorization and a frozen budget.
 
 **Format:**
 

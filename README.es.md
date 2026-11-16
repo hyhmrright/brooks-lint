@@ -1,543 +1,166 @@
-<p align="center">
-  <img src="assets/logo.svg" alt="brooks-lint" width="200">
-</p>
+<p align="center"><img src="assets/logo.svg" alt="brooks-lint" width="150"></p>
 
-<h1 align="center">brooks-lint</h1>
+# brooks-lint
 
-<p align="center">
-  <strong>Revisiones de código con IA fundamentadas en doce libros clásicos de ingeniería.<br>
-  Consistentes. Trazables. Accionables.</strong>
-</p>
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · **Español**
 
-<p align="center">
-  <a href="README.md">English</a> ·
-  <a href="README.zh-CN.md">简体中文</a> ·
-  <a href="README.zh-TW.md">繁體中文</a> ·
-  <a href="README.ja.md">日本語</a> ·
-  <a href="README.ko.md">한국어</a> ·
-  <strong>Español</strong>
-</p>
+![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-<p align="center">
-  <a href="#inicio-rápido">Inicio rápido</a> •
-  <a href="#los-seis-riesgos-de-deterioro">Los seis riesgos de deterioro</a> •
-  <a href="#cómo-se-ve">Cómo se ve</a> •
-  <a href="#benchmark">Benchmark</a> •
-  <a href="#instalación">Instalación</a>
-</p>
+Seis flujos para revisión de código, arquitectura, deuda técnica, calidad de pruebas, un panel de salud y reparaciones acotadas, basados en doce libros clásicos de ingeniería de software.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.0-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
-  <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
-  <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
-  <img src="https://img.shields.io/github/stars/hyhmrright/brooks-lint?style=social" alt="GitHub Stars">
-</p>
+**Estado del código fuente:** el árbol declara `1.10.0`, pero se retiraron su etiqueta y GitHub Release mientras se decide la versión. La última versión publicada en GitHub/npm sigue siendo **1.9.1**. Este README describe **main**, con cambios que no están en 1.9.1; la insignia no demuestra una publicación.
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/47738" target="_blank"><img src="https://trendshift.io/api/badge/trendshift/repositories/47738/daily?language=JavaScript" alt="Repositorio JavaScript n.º 2 del día | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</p>
+brooks-lint reúne Agent Skills, instrucciones compartidas y pequeñas herramientas deterministas para informes. Tu agente de programación realiza el diagnóstico. No es un analizador estático ni garantiza que el modelo encuentre todos los defectos.
 
-<p align="center">
-  <img src="assets/banner-es.svg" alt="Tu código → 12 clásicos → 12 riesgos de deterioro → hallazgos con citas" width="900">
-</p>
-
-<p align="center">
-  <a href="https://hyhmrright.github.io/brooks-lint/"><img src="assets/demo.gif" alt="brooks-lint revisando código: un comando /brooks-review produce una puntuación de salud de 28/100 y hallazgos citados con el formato Síntoma → Origen → Consecuencia → Remedio" width="820"></a>
-</p>
-
-<p align="center">
-  <strong><a href="https://hyhmrright.github.io/brooks-lint/">→ Visita el sitio web</a></strong>
-</p>
-
----
-
-> *"Gestar un hijo lleva nueve meses, sin importar a cuántas mujeres se asigne."*
-> — Frederick Brooks, *The Mythical Man-Month* (El mítico hombre-mes) (1975)
-
-**50 años después, Brooks seguía teniendo razón — y también McConnell, Fowler, Martin, Hunt & Thomas, Evans, Ousterhout, Winters, Meszaros, Osherove, Feathers y el equipo de Testing de Google.**
-
-La mayoría de las herramientas de calidad de código cuentan líneas y complejidad ciclomática. **brooks-lint** va más a fondo: diagnostica tu código frente a seis dimensiones de riesgo de deterioro sintetizadas a partir de doce libros clásicos de ingeniería, produciendo cada vez hallazgos estructurados con citas de libros, etiquetas de severidad y remedios concretos.
-
-Para el mapeo completo de fuente a skill, incluyendo excepciones y protecciones contra falsos positivos, consulta
-[`skills/_shared/source-coverage.md`](skills/_shared/source-coverage.md).
-
-## Inicio rápido
+## Empezar con Codex
 
 ```bash
-# Claude Code
-/plugin marketplace add hyhmrright/brooks-lint
-/plugin install brooks-lint@brooks-lint-marketplace
-
-# Cualquier otra plataforma de Agent Skills — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · Bob …
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
+# Source checkout: Git + Bash
+git clone https://github.com/hyhmrright/brooks-lint.git
+cd brooks-lint
+bash scripts/install.sh codex
 ```
 
-Luego solo pide ("revisa este PR", "audita la arquitectura"), o ejecuta uno de los seis comandos —
-`/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`, `/brooks-sweep`
-([qué hace cada uno](#comandos-de-barra)).
+```text
+$brooks-review Review the current diff and identify supported maintainability risks.
+$brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
+```
 
-Cada hallazgo se devuelve como **Síntoma → Origen → Consecuencia → Remedio** con una cita de libro y
-una puntuación de salud de 0 a 100. Las opciones completas de instalación (10 plataformas más) y la
-configuración de CI/CD están [más abajo](#instalación).
+Esto instala el código actual en el directorio global de habilidades de Codex. Abre una sesión nueva si no aparecen. Para instalar en otro proyecto, ejecuta el script por su ruta absoluta desde ese proyecto con `codex --project`. Mantén `_shared` al mismo nivel que las seis habilidades. Consulta la [guía de Codex](docs/codex-setup.md).
+
+Para el paquete **publicado 1.9.1**, usa Node.js 20+ y `npx brooks-lint@1.9.1 install codex`. Instala la versión anterior, no todas las funciones de main. Consulta [primeros pasos](docs/getting-started.md) para otros destinos.
+
+## Elegir el flujo más acotado para la tarea
+
+| Habilidad | Uso | ¿Modifica archivos? |
+|---|---|---|
+| `$brooks-review` | Un diff o código indicado: contrato, riesgos sustentados y un ejemplo que distinga comportamientos. | No |
+| `$brooks-audit` | Dependencias, responsabilidades y límites entre módulos; incluye una guía de incorporación. | No |
+| `$brooks-debt` | Clasificación de deuda de mantenimiento, prioridades y plan de pago. | No |
+| `$brooks-test` | Una suite existente: fallos que sus aserciones detectan o dejan pasar. | No |
+| `$brooks-health` | Evaluación abreviada de cuatro dimensiones y un panel limitado por la evidencia. | No |
+| `$brooks-sweep` | Diagnosticar y aplicar reparaciones autorizadas y verificables dentro de un alcance definido. | Sí |
+
+Codex usa `$brooks-review`; los demás entornos tienen su propia sintaxis. La activación por lenguaje natural depende del entorno y del modelo. Health no sustituye cuatro auditorías exhaustivas. Sweep necesita herramientas de edición y verificación, respeta la autorización existente y no vuelve a pedir permiso solo porque cambien varios archivos.
+
+## Cómo interpretar un informe
+
+Un hallazgo retenido sigue **Síntoma → Fuente → Consecuencia → Remedio**. Las referencias a libros explican principios; no prueban el diagnóstico ni la exactitud de una atribución a un capítulo. Los comportamientos protegidos y las obligaciones sin resolver no deben generar deducciones inventadas. Se distinguen las predicciones de las comprobaciones ejecutadas.
+
+La puntuación resume los hallazgos retenidos según la configuración; **no es una probabilidad de corrección**. Health usa un único registro para calidad de código, arquitectura, deuda y pruebas. Si se permite ejecutar herramientas, las utilidades Node calculan y finalizan el informe. Una dimensión necesaria sin evidencia decisiva es **unassessed** y bloquea la puntuación compuesta numérica. Solo PR sin diff puede ser **skipped**, redistribuyendo su peso. No hallar problemas no equivale a no haber evaluado.
+
+La herramienta de entrega compara los bytes proporcionados con el informe finalizado y su recibo. No verifica la verdad del diagnóstico, la presentación posterior en una interfaz ni el transporte. Si no se puede ejecutar, deben declararse los límites sin inventar recibos. [Registro y contrato de herramientas](skills/brooks-health/score-ledger.md).
+
+Sweep permite por defecto **tres rondas de reparación en total**, incluida la inicial y las dedicadas solo a Critical. También respeta los presupuestos de tiempo y herramientas. Explica la causa de parada y lo pendiente. Un alcance local limpio puede coexistir con dimensiones más amplias desconocidas. [Guía](skills/brooks-sweep/sweep-guide.md).
+
+## Vocabulario de riesgos
+
+| Código de producción | Pruebas |
+|---|---|
+| R1 — Sobrecarga cognitiva | T1 — Pruebas oscuras |
+| R2 — Propagación de cambios | T2 — Pruebas frágiles |
+| R3 — Duplicación de conocimiento | T3 — Duplicación de pruebas |
+| R4 — Complejidad accidental | T4 — Abuso de mocks |
+| R5 — Desorden de dependencias | T5 — Ilusión de cobertura |
+| R6 — Distorsión del modelo de dominio | T6 — Desajuste arquitectónico |
 
 ## Los doce libros
 
-| Libro | Autor | Contribuye a |
-|------|--------|----------------|
-| *The Mythical Man-Month* (1975) | Frederick P. Brooks Jr. | R2, R4, R5 |
-| *Code Complete* (1993, 2.ª ed. 2004) | Steve McConnell | R1, R4 |
-| *Refactoring* (1999, 2.ª ed. 2018) | Martin Fowler | R1, R2, R3, R4, R6 |
-| *Clean Architecture* (2017) | Robert C. Martin | R2, R5 |
-| *The Pragmatic Programmer* (1999, 20.º aniv. 2019) | Andrew Hunt & David Thomas | R2, R3, R4, R5, T2, T3 |
-| *Domain-Driven Design* (2003) | Eric Evans | R1, R3, R6 |
-| *A Philosophy of Software Design* (2018) | John Ousterhout | R1, R4 |
-| *Software Engineering at Google* (2020) | Winters, Manshreck & Wright | R2, R5 |
-| *The Art of Unit Testing* (2009, 3.ª ed. 2023) | Roy Osherove | T1, T2, T4, T5 |
-| *How Google Tests Software* (2012) | Whittaker, Arbon & Carollo | T5, T6 |
-| *Working Effectively with Legacy Code* (2004) | Michael Feathers | T4, T5, T6 |
-| *xUnit Test Patterns* (2007) | Gerard Meszaros | T1, T2, T3, T4 |
+| Book | Author |
+|---|---|
+| *The Mythical Man-Month* | Frederick P. Brooks Jr. |
+| *Code Complete* | Steve McConnell |
+| *Refactoring* | Martin Fowler |
+| *Clean Architecture* | Robert C. Martin |
+| *The Pragmatic Programmer* | Andrew Hunt & David Thomas |
+| *Domain-Driven Design* | Eric Evans |
+| *A Philosophy of Software Design* | John Ousterhout |
+| *Software Engineering at Google* | Titus Winters, Tom Manshreck & Hyrum Wright |
+| *The Art of Unit Testing* | Roy Osherove |
+| *How Google Tests Software* | James Whittaker, Jason Arbon & Jeff Carollo |
+| *Working Effectively with Legacy Code* | Michael Feathers |
+| *xUnit Test Patterns* | Gerard Meszaros |
 
-## Los seis riesgos de deterioro
+La [matriz de fuentes](skills/_shared/source-coverage.md) documenta conceptos, compromisos y protección frente a falsos positivos. Esta clasificación es una síntesis del proyecto, no una taxonomía oficial conjunta de los autores.
 
-brooks-lint evalúa tu código frente a **seis riesgos de deterioro del código de producción** y **seis riesgos de deterioro de la suite de pruebas**, sintetizados a partir de doce libros clásicos de ingeniería:
+<a id="benchmark"></a>
 
-| Riesgo de deterioro | Pregunta diagnóstica | Fuentes |
-|------------|---------------------|---------|
-| 🧠 Sobrecarga cognitiva | ¿Cuánto esfuerzo mental cuesta entender esto? | Code Complete, Refactoring, DDD, Philosophy of SD |
-| 🔗 Propagación de cambios | ¿Cuántas cosas no relacionadas se rompen con un solo cambio? | Refactoring, Clean Architecture, Pragmatic, SE@Google |
-| 📋 Duplicación de conocimiento | ¿La misma decisión se expresa en varios lugares? | Pragmatic, Refactoring, DDD |
-| 🌀 Complejidad accidental | ¿El código es más complejo que el problema? | Refactoring, Code Complete, Brooks, Philosophy of SD |
-| 🏗️ Desorden de dependencias | ¿Las dependencias fluyen en una dirección consistente? | Clean Architecture, Brooks, Pragmatic, SE@Google |
-| 🗺️ Distorsión del modelo de dominio | ¿El código representa fielmente el dominio? | DDD, Refactoring |
+## Qué se ha evaluado
 
-> Philosophy of SD = *A Philosophy of Software Design* (Ousterhout) · SE@Google = *Software Engineering at Google* (Winters et al.)
+Conviene separar tres tipos de evidencia:
 
-## Cómo se ve
+- **Pruebas de producto sin conexión:** Instalación, cálculo, entrega, contratos del parser y estructura de casos. No prueban la calidad del juicio del modelo.
+- **Fidelidad del parser:** 30 informes congelados: recuentos de severidad, códigos y SARIF. Se evalúa el parser, no la verdad de los hallazgos.
+- **Comparaciones de comportamiento:** Respuestas de Codex con modelos y prompts definidos, juzgadas por rúbricas. Limitadas por casos, canal de ejecución y revisores.
 
-Dado este código:
+En la última comparación de **instrucciones estáticas**, tras la revisión sin conexión, review y audit obtuvieron **6/6 en ambos grupos**, lista genérica y habilidad; test obtuvo **5/6 frente a 6/6**. Es una ventaja en un único par de casos reutilizados y escritos durante el desarrollo, no prueba independiente de superioridad general. Se corrigió la evaluación después de ejecutar. No mide el descubrimiento nativo de habilidades ni todos los modelos.
 
-```python
-class UserService:
-    def update_profile(self, user_id, name, email, avatar_url):
-        user = self.db.query(f"SELECT * FROM users WHERE id = {user_id}")
-        user['email'] = email
-        ...
-        if user['email'] != email:   # always False — silent bug
-            self.smtp.send(...)
-        points = user['login_count'] * 10 + 500
-        self.db.execute(f"UPDATE loyalty SET points={points} WHERE user_id={user_id}")
-```
+[Registro y revisión preservados](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md) · [Diseño de evaluación Codex](docs/codex-behavior-evals.md). Los archivos de investigación permanecen en su rama; el producto incluye pequeños extractos de regresión.
 
-brooks-lint produce:
+Modelo: `gpt-6.1-terra / low`; una respuesta por caso y grupo. Aprobar exige superar los cinco ejes principales, no omitir problemas esperados y no presentar afirmaciones falsas confirmadas. No es una estimación de exactitud general.
 
----
+<a id="installation"></a>
 
-**Puntuación de salud: 28/100**
+## Instalación y compatibilidad
 
-*Este método concentra cuatro responsabilidades de negocio no relacionadas en una sola función, contiene un error lógico que suprime silenciosamente las notificaciones de cambio de correo electrónico y queda totalmente expuesto a inyección de SQL.*
+La verificación actual del mantenedor cubre **Codex**. Las demás integraciones siguen disponibles, pero su verificación anterior es histórica. Comprobar el directorio de instalación no equivale a probar cada entorno de extremo a extremo. Los informes comunitarios deben incluir versión y reproducción. Hay 13 destinos con nombre más el genérico `agents`.
 
-### 🔴 Propagación de cambios — Un solo método cambia por cuatro razones de negocio no relacionadas
-**Síntoma:** `update_profile` realiza la actualización de los campos del perfil, las notificaciones de cambio de correo, el recálculo de puntos de fidelidad y la invalidación de caché, todo en el cuerpo de un mismo método.
-**Origen:** Fowler — *Refactoring* — Divergent Change (Cambio divergente); Hunt & Thomas — *The Pragmatic Programmer* — Orthogonality (Ortogonalidad)
-**Consecuencia:** Cualquier cambio en la fórmula de fidelidad arriesga romper las notificaciones de correo y viceversa. Cada edición conlleva riesgo de regresión en cuatro dominios no relacionados de forma simultánea.
-**Remedio:** Extrae `NotificationService`, `LoyaltyService` y `UserCacheInvalidator`. `UserService.update_profile` debería orquestar llamando a cada uno — no debería contener lógica de implementación propia.
+`<platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents`
 
-### 🔴 Distorsión del modelo de dominio — Error lógico silencioso: la notificación de correo nunca se dispara
-**Síntoma:** `user['email'] = email` sobrescribe el valor anterior antes de `if user['email'] != email` — la condición siempre es `False`. La notificación es código muerto.
-**Origen:** McConnell — *Code Complete* — Cap. 17: Estructuras de control inusuales
-**Consecuencia:** Los usuarios nunca son notificados cuando cambia su dirección de correo. Fallo silencioso de integridad de datos — el sistema parece funcionar mientras viola una regla de negocio.
-**Remedio:** Captura `old_email = user['email']` antes de cualquier mutación. Compara contra `old_email`, no contra `user['email']`.
+[Codex](docs/codex-setup.md) · [OpenCode](docs/opencode-setup.md) · [Cursor](docs/cursor-setup.md) · [Windsurf](docs/windsurf-setup.md) · [Antigravity](docs/antigravity-setup.md) · [pi](docs/pi-setup.md) · [GitHub Copilot](docs/copilot-setup.md) · [Kiro](docs/kiro-setup.md) · [Factory Droid](docs/factory-droid-setup.md) · [DeepSeek Harness](docs/dsh-setup.md) · [IBM Bob](docs/bob-setup.md)
 
-*(+ 6 hallazgos más, incluyendo inyección de SQL, desorden de dependencias y números mágicos)*
+Se conservan estos comandos de Claude Code; esta vía no se verifica actualmente por el mantenedor:
 
-### Auditoría de arquitectura con grafo de dependencias
-
-En el Modo 2 (Auditoría de arquitectura), brooks-lint genera un **grafo de dependencias en Mermaid** en la parte superior del informe. Los módulos se colorean según su severidad: rojo = hallazgos Critical, amarillo = Warning, verde = limpio.
-
-```mermaid
-graph TD
-    subgraph src/api
-        AuthController
-        UserController
-    end
-    subgraph src/domain
-        UserService
-        OrderService
-    end
-    subgraph src/infra
-        Database
-        EmailClient
-    end
-
-    AuthController --> UserService
-    UserController --> UserService
-    UserController --> OrderService
-    OrderService --> UserService
-    OrderService --> EmailClient
-    UserService --> Database
-    EmailClient -.->|circular| OrderService
-
-    classDef critical fill:#ff6b6b,stroke:#c92a2a,color:#fff
-    classDef warning fill:#ffd43b,stroke:#e67700
-    classDef clean fill:#51cf66,stroke:#2b8a3e,color:#fff
-
-    class OrderService,EmailClient critical
-    class AuthController warning
-    class UserService,UserController,Database clean
-```
-
-El grafo se renderiza de forma nativa en GitHub, Notion y otros entornos Markdown — sin herramientas adicionales.
-
-## Más ejemplos
-
-La [Galería completa](docs/gallery.md) contiene salida real de brooks-lint en Python, TypeScript, Go y Java — incluyendo revisiones de PR, auditorías de arquitectura con grafos de dependencias en Mermaid, evaluaciones de deuda técnica y revisiones de calidad de pruebas.
-
-¿Nuevo en los riesgos de deterioro? La [**Guía de campo de los riesgos de deterioro**](https://hyhmrright.github.io/brooks-lint/guide.html) explica los seis — pregunta diagnóstica, síntomas característicos, libros de origen y remedio para cada uno.
-
----
-
-## Benchmark
-
-Probado en 3 escenarios del mundo real (revisión de PR, auditoría de arquitectura, evaluación de deuda técnica):
-
-| Criterio | brooks-lint | Claude solo |
-|-----------|:-----------:|:------------:|
-| Hallazgos estructurados (Síntoma → Origen → Consecuencia → Remedio) | ✅ 100% | ❌ 0% |
-| Citas de libros por hallazgo | ✅ 100% | ❌ 0% |
-| Etiquetas de severidad (🔴/🟡/🟢) | ✅ 100% | ❌ 0% |
-| Puntuación de salud (0–100) | ✅ 100% | ❌ 0% |
-| Detecta Propagación de cambios | ✅ 100% | ✅ 100% |
-| **Tasa de aprobación global** | **94%** | **16%** |
-
-La brecha no está en lo que Claude *puede* encontrar — está en lo que encuentra de forma *consistente*, con evidencia trazable y remedios accionables cada vez.
-
-### Benchmarks reproducibles
-
-La tabla anterior es ilustrativa. Estas cifras son **deterministas y puedes reproducirlas localmente**:
-
-**Fidelidad del parser** — la exportación a SARIF y los gates de CI dependen de parsear correctamente el informe Markdown del modelo. Frente a un **corpus congelado de 30 informes reales generados por el modelo** que abarcan los seis modos (`evals/benchmark-corpus.json`), cada uno emparejado con un inventario de hallazgos **calificado de forma independiente** (un pase de modelo separado, revisado manualmente por muestreo), el parser distribuido obtiene — ejecuta `npm run benchmark`:
-
-| Métrica (n = 30, corpus congelado) | Resultado |
-|---|:---:|
-| Coincidencia exacta del conteo de severidad (parser vs. verdad calificada) | 30 / 30 |
-| Precisión / recall del código de riesgo | 100% / 100% (56 códigos a nivel de hallazgo, 0 FP / 0 FN) |
-| SARIF 2.1.0 válido emitido | 30 / 30 |
-
-Como el parser es determinista y el corpus está congelado, `npm run benchmark` da a todo el mundo el mismo resultado, y `npm test` lo protege como regresión. El corpus incluye deliberadamente 9 informes de falsos positivos / compensaciones (por ejemplo, un diseño de puertos y adaptadores que *parece* un ciclo de dependencias) que deben permanecer limpios.
-
-**Determinismo del scoring** — para un conjunto fijo de hallazgos (2 Critical / 3 Warning / 1 Suggestion), los presets de severidad producen exactamente las puntuaciones que predice su tabla de `common.md`: strict **34**, balanced **54**, legacy-friendly **74** — y solo `legacy-friendly` encabeza con las tres correcciones principales.
-
-**Contratos de evaluación** — la **suite de 64 escenarios** (`evals/evals.json`) comprueba la estructura de los escenarios con `npm run evals` y la estructura y los códigos de riesgo de los informes con `npm run evals:live` (requiere `ANTHROPIC_API_KEY`). Estas comprobaciones deterministas no demuestran la corrección semántica. El ejecutor API evalúa los ejemplos proporcionados en `review`, `audit`, `debt`, `test` y `health`; omite explícitamente `sweep` en las ejecuciones predeterminadas, lo excluye de la tasa de aprobación y rechaza su selección explícita. Full Sweep requiere ejecución interactiva. Consulta los [contratos del ejecutor](docs/runner-contracts.md).
-
-> Alcance y honestidad: las cifras del parser son deterministas y exactamente reproducibles. Las cifras de severidad y de la suite de evaluaciones son mediciones en vivo de una sola ejecución contra el modelo y varían ligeramente entre ejecuciones. El benchmark del parser mide la fidelidad del parseo de informes (¿lee la herramienta cada hallazgo que el informe declara?), no si un hallazgo dado es "correcto". La coincidencia del conteo de severidad es la señal totalmente independiente; la concordancia de códigos de riesgo también refleja la leyenda canónica compartida de nombre→código.
-
-## Cómo se compara
-
-| | brooks-lint | ESLint / Pylint | GitHub Copilot Review | Claude sin más |
-|---|:---:|:---:|:---:|:---:|
-| Detecta problemas de sintaxis y estilo | — | ✅ | ✅ | ~ |
-| Cadena de diagnóstico estructurada | ✅ | ❌ | ❌ | ❌ |
-| Rastrea los hallazgos hasta libros clásicos | ✅ | ❌ | ❌ | ❌ |
-| Etiquetas de severidad consistentes | ✅ | ✅ | ~ | ❌ |
-| Perspectivas a nivel de arquitectura | ✅ | ❌ | ~ | ~ |
-| Análisis del modelo de dominio | ✅ | ❌ | ❌ | ~ |
-| Cero configuración, sin plugins que instalar | ✅ | ❌ | ✅ | ✅ |
-| Funciona con cualquier lenguaje | ✅ | ❌ | ✅ | ✅ |
-
-> `~` = ocasionalmente / de forma inconsistente
-
-**brooks-lint no reemplaza a tu linter.** Captura lo que los linters no pueden: deriva arquitectónica, silos de conocimiento y distorsión del modelo de dominio — los problemas que frenan a los equipos durante meses antes de que alguien lo note.
-
-## Instalación
-
-### Claude Code
-
-```bash
+```text
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-Los comandos cortos (`/brooks-review`) se instalan solos al iniciar la primera sesión — o ejecuta
-`bash hooks/session-start` tú mismo. Para saltarte el marketplace:
-`mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`.
-
-### Gemini CLI · Codex CLI
-
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint   # Gemini CLI
-```
-```
-Install the brooks-lint skill from hyhmrright/brooks-lint       # pídelo dentro de una sesión de Codex
-```
-
-O usa el instalador de abajo: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
-
-### Cualquier otra plataforma — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
-
-brooks-lint se distribuye como [Agent Skills](https://agentskills.io) estándar. **Cualquier agente que cargue Agent
-Skills ejecuta los seis modos sin conversión alguna** — un solo comando los instala:
-
-```bash
-# elige tu plataforma; --project instala en el repositorio actual en lugar de en tu configuración global
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
-```
-
-Instala los mismos Agent Skills con **Node.js 20+** y npm, sin Git ni Bash. El instalador cubre **13 herramientas de programación y el destino genérico `agents`**. Añade habilidades, no extensiones nativas del IDE; las pruebas verifican archivos y recursos, no la ejecución en cada herramienta. El instalador de Shell sigue disponible.
-
-```bash
-npx brooks-lint install <platform>
-npx brooks-lint install <platform> --project
-npx brooks-lint install --list
-```
-
-Muchas gracias a [@Sad-happy](https://github.com/Sad-happy) por implementar el bundle nativo y el proveedor de habilidades de DSH en [PR #44](https://github.com/hyhmrright/brooks-lint/pull/44), y por verificarlos en la aplicación de escritorio DSH 0.2.1-rc.2 como contribución de la comunidad. Su trabajo hizo posible instalar el plugin por nombre. Consulta la [guía de DSH](docs/dsh-setup.md) para instalarlo y buscarlo en un mercado personalizado.
-
-El instalador copia los skills **de forma plana** en la carpeta correcta, de modo que el framework compartido
-(`../_shared/`) siempre se resuelve — no puedes equivocarte con el diseño. Luego solo pide ("revisa este PR",
-"audita la arquitectura") y el skill correspondiente se activa automáticamente desde su `description`.
-
-| Plataforma | Instala en | También lee | Guía |
-|---|---|---|---|
-| OpenCode | `~/.config/opencode/skills` | `~/.claude/skills`, `AGENTS.md` | [configuración](docs/opencode-setup.md) |
-| Cursor (2.4+) | `~/.cursor/skills` | `.agents/skills`, `AGENTS.md` | [configuración](docs/cursor-setup.md) |
-| Windsurf (Cascade) | `~/.codeium/windsurf/skills` | `AGENTS.md` | [configuración](docs/windsurf-setup.md) |
-| Antigravity (Google) | `.agent/skills` (`--project`) | `AGENTS.md`, `GEMINI.md` | [configuración](docs/antigravity-setup.md) |
-| pi (earendil-works) | `~/.pi/agent/skills` | — | [configuración](docs/pi-setup.md) |
-| GitHub Copilot | `.github/skills` (`--project`) | `.claude/skills`, `AGENTS.md` | [configuración](docs/copilot-setup.md) |
-| Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [configuración](docs/kiro-setup.md) |
-| Factory Droid | `~/.factory/skills` | `AGENTS.md` | [configuración](docs/factory-droid-setup.md) |
-| DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [configuración](docs/dsh-setup.md) |
-| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [configuración](docs/bob-setup.md) |
-
-OpenCode v2, Kiro, Factory Droid y DeepSeek Harness también registran `/brooks-review` automáticamente.
-¿Nuevo en los skills, o usas un agente que no aparece aquí? Consulta **[docs/getting-started.md](docs/getting-started.md)**.
-
-> **Maintainer testing policy (2026-10-16).** My Claude account has been banned. Going forward,
-> I will only test and verify Codex-related capabilities. Earlier verification of Claude Code,
-> Gemini CLI, or other platforms is historical and does not imply ongoing testing. Existing
-> integrations remain available, but their current behavior is not verified by the maintainer;
-> community test reports and contributions are welcome.
-
-> **🧪 Verificación histórica.** Claude Code, Gemini CLI y Codex CLI fueron verificados anteriormente por el mantenedor. Las diez
-> plataformas anteriores están documentadas a partir de la especificación oficial de skills de cada herramienta y verificadas a nivel
-> de diseño de archivos (el instalador está probado), pero el mantenedor aún no las ha ejecutado de extremo a extremo en cada plataforma. ¿Probaste
-> alguna — funciona **o** está rota? [Abre un issue](https://github.com/hyhmrright/brooks-lint/issues/new) con
-> la plataforma, la versión y lo que viste. ¿Otro agente de Agent Skills? Casi con certeza funciona de la misma
-> manera — cuéntanoslo y lo añadiremos.
-
-## Comandos de barra
-
-| Comando | Qué hace |
-|---------|--------------|
-| `/brooks-review` | Pega un diff o apunta la IA a los archivos modificados. Diagnostica cada uno de los seis riesgos de deterioro en formato Síntoma → Fuente → Consecuencia → Remedio. |
-| `/brooks-audit` | Mapea las dependencias entre módulos (con grafo Mermaid), detecta dependencias circulares y comprueba la alineación con la ley de Conway. |
-| `/brooks-debt` | Clasifica la deuda según los seis riesgos de deterioro, puntúa cada hallazgo por Dolor × Alcance y produce una hoja de ruta de pago con niveles Critical / Scheduled / Monitored. |
-| `/brooks-test` | Audita la suite frente a seis riesgos de deterioro del espacio de pruebas — Oscuridad, Fragilidad, Duplicación, Abuso de mocks, Ilusión de cobertura y Desajuste arquitectónico. |
-| `/brooks-health` | Escaneos abreviados de las cuatro dimensiones de calidad → una única Health Score compuesta y ponderada. Úsalo antes de una release o al incorporar a un equipo. |
-| `/brooks-sweep` | Escaneo unificado de R1–R6, T1–T6 y arquitectura, y luego aplica correcciones: los cambios seguros se aplican solos, los que tocan varios archivos se confirman y las decisiones arquitectónicas se marcan como manuales. Devuelve un Fix Log y el delta de puntuación. |
-
-**Sintaxis por plataforma.** Claude Code también acepta la forma con espacio de nombres
-`/brooks-lint:brooks-review` — las formas cortas las instala el hook session-start al iniciar la primera
-sesión. Codex CLI usa `$brooks-review`. Gemini CLI y OpenCode v2 usan la tabla tal cual. Cursor, Antigravity, pi y
-DeepSeek Harness invocan los Agent Skills desde la `description` de cada skill, así que basta con pedirlo
-("revisa este PR", "¿dónde está nuestra peor deuda técnica?"); para invocarlos explícitamente usa la sintaxis
-propia de cada plataforma (pi registra cada skill como `/skill:brooks-review`; dsh usa la tabla tal cual, desde
-su menú `/` o escrito a mano). En todas las plataformas los skills también
-se activan solos cuando hablas de calidad de código, arquitectura o salud de las pruebas.
-
-> Las revisiones de PR incluyen automáticamente una comprobación rápida de pruebas (Step 7, ligera; se omite
-> en diffs solo de documentación). Para una auditoría completa de pruebas usa `/brooks-test`; para profundizar
-> en una sola dimensión, usa el skill de esa dimensión en lugar de `/brooks-health`.
-
 ## Configuración
-
-Coloca un `.brooks-lint.yaml` en la raíz de tu proyecto para personalizar el comportamiento de la revisión:
 
 ```yaml
 version: 1
-
-strictness: balanced   # strict | balanced (default) | legacy-friendly — softer scoring for legacy code
-
-disable:
-  - T5   # skip coverage metrics check — we don't enforce coverage
-
-severity:
-  R1: suggestion   # downgrade Cognitive Overload findings for this domain
-
+strictness: balanced
 ignore:
-  - "**/*.generated.*"
   - "**/vendor/**"
-
-# custom_risks:   # define project-specific Cx codes — see skills/_shared/custom-risks-guide.md
-# suppress:       # downgrade specific findings by risk + path (e.g. accepted legacy debt)
+sweep:
+  max_iterations: 3
+# Optional: deliberately omit a risk from this review.
+# disable:
+#   - T5
 ```
 
-Copia [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) como punto de partida.
-Todos los ajustes son opcionales — omite el archivo por completo para el comportamiento por defecto.
+Empieza con [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). El contrato compartido define rigor, severidad, exclusiones, `focus`/`disable`, riesgos `Cx` y supresiones acotadas. Desactivar T5 omite deliberadamente su diagnóstico; T5 no es solo un porcentaje de cobertura. [Contrato común](skills/_shared/common.md).
 
-| Ajuste | Descripción |
-|---------|-------------|
-| `strictness` | Preset de scoring: `strict`, `balanced` (por defecto) o `legacy-friendly` (deducciones más ligeras, encabeza con las correcciones principales) |
-| `disable` | Códigos de riesgo a omitir (`R1`–`R6`, `T1`–`T6`) |
-| `severity` | Sobrescribe el nivel de severidad (`critical` / `warning` / `suggestion`) |
-| `ignore` | Patrones glob de archivos a excluir |
-| `focus` | Evalúa solo estos códigos de riesgo (no se puede combinar con `disable`) |
-| `custom_risks` | Define códigos de riesgo específicos del proyecto (`C1`, `C2`, …) — consulta [`custom-risks-guide.md`](skills/_shared/custom-risks-guide.md) |
-| `suppress` | Rebaja hallazgos específicos por riesgo + ruta (fecha `expires:` opcional) |
+## CI es una vía independiente
 
----
-
-## ¿Por qué estos libros, por qué ahora?
-
-> *«La complejidad del software es una propiedad esencial, no accidental.»*
-> — Frederick Brooks
-
-La IA puede ayudarte a escribir código más rápido, pero no puede decirte si estás construyendo una catedral
-o un pozo de alquitrán — y cuanto más barata es la generación, más afilados se vuelven los riesgos de
-deterioro que identificaron estos autores. Añadir un asistente de IA no arregla la sobrecarga cognitiva ni la
-distorsión del modelo de dominio; generar más código aumenta la propagación de cambios y la duplicación de
-conocimiento; ir más rápido hace más peligrosos la complejidad accidental y el desorden de dependencias.
-
-## Estructura del proyecto
-
-Cada skill es un `SKILL.md` (activación + esqueleto del proceso) más su propia guía:
-
-```
-brooks-lint/
-├── .claude-plugin/ · .codex-plugin/  # metadatos del plugin por plataforma
-├── skills/
-│   ├── _shared/          # common.md (Ley de Hierro, config, plantilla de informe, Health Score)
-│   │                     # source-coverage.md · decay-risks.md (R1–R6)
-│   │                     # test-decay-risks.md (T1–T6) · remedy-guide.md · custom-risks-guide.md
-│   ├── brooks-review/    # Modo 1: Revisión de PR        → pr-review-guide.md
-│   ├── brooks-audit/     # Modo 2: Auditoría de arq.     → architecture-guide.md, onboarding-guide.md
-│   ├── brooks-debt/      # Modo 3: Deuda técnica         → debt-guide.md
-│   ├── brooks-test/      # Modo 4: Calidad de pruebas    → test-guide.md
-│   ├── brooks-health/    # Modo 5: Panel de salud        → health-guide.md
-│   └── brooks-sweep/     # Modo 6: Barrido completo      → sweep-guide.md
-├── hooks/                # hook SessionStart
-├── commands/             # envoltorios de comandos cortos (los instala el hook)
-├── evals/                # suite de 64 escenarios + corpus congelado de fidelidad del parser
-└── assets/               # logo, banner, demo
-```
-
-## Integración con CI/CD
-
-Automatiza brooks-lint en cada PR usando la GitHub Action:
+La GitHub Action usa una **API compatible con Anthropic**, no el inicio de sesión de Codex. Solo revisa el diff recopilado, sin herramientas interactivas ni reparaciones. Esta vía histórica no forma parte de la verificación actual en vivo. El ejemplo es una plantilla de la versión fuente para una publicación futura: **no lo ejecutes mientras la etiqueta esté retirada**. Para una versión publicada, cambia a `v1.9.1` y sigue sus capacidades documentadas.
 
 ```yaml
-# .github/workflows/brooks-lint.yml
-name: Brooks-Lint PR Review
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-jobs:
-  brooks-lint:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          fail-below: 70
+# Source-version template only: this tag is currently withdrawn.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+  with:
+    mode: review
+    anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-Consulta [`docs/github-action-example.yml`](docs/github-action-example.yml) para la plantilla completa.
+Los [contratos del ejecutor](docs/runner-contracts.md) y la [plantilla completa](docs/github-action-example.yml) explican configuración de base, forks, informes inválidos y permisos. No se promete un precio fijo: depende del proveedor, modelo y entrada.
 
-La action publica la revisión como un comentario del PR y, opcionalmente, hace fallar el check si la puntuación de salud cae por debajo de un umbral. Si `.brooks-lint-history.json` está confirmado en tu repositorio, el comentario también incluye un delta de tendencia (p. ej., "85 → 82 (−3) en las últimas 3 ejecuciones").
+## Desarrollo y contribuciones
 
-**CI solo admite `mode: review`.** Revisa el diff recopilado sin herramientas para leer archivos ni aplicar cambios. En los PR de GitHub compara los SHA base/head del evento; conserva `fetch-depth: 0` para disponer de ambos commits y su ancestro común. Un diff vacío se omite sin puntuación; las referencias ausentes o los fallos al recopilar el diff son errores. `audit`, `debt`, `test`, `health` y `sweep` siguen disponibles en agentes interactivos con acceso al proyecto. En la CLI, `--base-ref <ref> --head-ref <ref>` selecciona la comparación; esa base también proporciona la configuración de confianza cuando `config-ref` es `base`. Consulta los [contratos del ejecutor](docs/runner-contracts.md).
+Validación sin conexión:
 
-**Gates de calidad y Code Scanning.** Más allá de `fail-below`, la action expone:
-
-```yaml
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          fail-on: critical            # fail on any Critical finding (none | warning | critical)
-          fail-on-regression: true     # fail if the Health Score dropped vs the last run
-          sarif-file: brooks-lint.sarif  # also upload findings to GitHub Code Scanning
+```bash
+npm run validate
+npm test
+npm run evals
+npm run benchmark
+npm run evals:codex:validate
 ```
 
-`fail-on-regression` lee `.brooks-lint-history.json`, así que confirma ese archivo para imponer "sin nuevas regresiones". Definir `sarif-file` hace que los hallazgos aparezcan en línea en la pestaña **Files changed** del PR y requiere el permiso `security-events: write` en el job.
+La evaluación Codex en vivo requiere elegir modelo y presupuesto explícitamente. No ejecutes la evaluación histórica de Anthropic como una comprobación rutinaria sin conexión. Consulta [CONTRIBUTING.md](CONTRIBUTING.md), [cambios](CHANGELOG.md) y [ejemplos históricos](docs/gallery.md). Gracias a quienes contribuyen, incluido [@Sad-happy](https://github.com/Sad-happy) por la integración DSH de [#44](https://github.com/hyhmrright/brooks-lint/pull/44).
 
-**Config del proyecto en CI.** La action aplica tu `.brooks-lint.yaml` —`strictness`, `disable`, `focus`, `severity`, `ignore`, `custom_risks`— y lo lee **desde el commit base seleccionado**, no desde el checkout del PR. Así un pull request no puede debilitar la política que lo revisa: un diff que desactivara todos los riesgos puntuaría 100 y pasaría `fail-below` antes de que nadie hubiera aprobado ese cambio de configuración. Una configuración que un PR añade por primera vez surte efecto una vez fusionada, por el mismo motivo. La línea `Config:` del informe indica la procedencia que se usó (p. ej. `applied from base (<ref>)`). Esto necesita el objeto de la rama base en el clon, y por eso la plantilla hace checkout con `fetch-depth: 0`; en un PR, si faltan las referencias base, la action se detiene con un error que indica usar `fetch-depth: 0`. Nunca recurre a la política del propio PR. Para revisiones locales de cambios preparados o sin preparar sin base explícita, la ausencia de las referencias base predeterminadas permite usar la configuración del árbol de trabajo indicando su procedencia. Una base seleccionada explícitamente que no existe siempre produce un error. Define `config-ref: head` para usar la copia del propio PR —apropiado cuando `.brooks-lint.yaml` está protegido por CODEOWNERS y los cambios de configuración deben surtir efecto en el PR que los introduce—:
-
-```yaml
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          config-ref: base   # base (default) | head
-```
-
-**Endpoint de API personalizado.** `api-base-url` apunta la action a cualquier endpoint `/v1/messages` compatible con Anthropic —un proxy autoalojado, una pasarela de LLM, un espejo regional— en lugar de `api.anthropic.com`. Pasa la clave de ese endpoint como `anthropic-api-key` y el id de modelo que espera como `model`:
-
-```yaml
-        with:
-          mode: review
-          api-base-url: https://your-gateway.example.com
-          anthropic-api-key: ${{ secrets.GATEWAY_API_KEY }}
-          model: gateway-model-id
-```
-
-brooks-lint envía tu diff al host que indiques aquí, así que apúntalo solo a uno en el que confíes con tu código fuente. Ejecutar `scripts/ci-review.mjs` por tu cuenta no necesita ninguna opción: el SDK de Anthropic lee `ANTHROPIC_BASE_URL` directamente.
-
-**Claude en Amazon Bedrock.** Bedrock sirve la [API de mensajes de Anthropic](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-messages-api.html) de forma nativa, así que no hace falta ningún cliente nuevo: apunta `api-base-url` (action `v1.6.0`+) a `https://bedrock-runtime.{region}.amazonaws.com/anthropic` y pasa como `anthropic-api-key` una [clave de API de Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html) de corta duración, generada dentro del propio job desde un rol asumido por OIDC, para que ninguna clave de larga duración quede guardada en un secreto. El cableado completo está en [`docs/github-action-example.yml`](docs/github-action-example.yml) como pasos comentados: asumir el rol, generar el token, los ids de modelo, los permisos de IAM necesarios y la alternativa `bedrock-mantle`. La nota de confianza de arriba sigue aplicando: con Bedrock el diff va a tu propia cuenta de AWS, en la Región que indiques.
-
-**Esta vía no puede revisar pull requests desde forks.** GitHub no concede a una ejecución `pull_request` desde un fork ni los secretos del repositorio ni `id-token: write`, así que no hay token OIDC que canjear por el rol ni clave guardada a la que recurrir. Cubrir los forks exige otro disparador (`pull_request_target`, con todo el cuidado que exige ejecutar sobre ramas no confiables) u otra fuente de clave.
-
-**Límite de salida e informes inválidos.** `max-tokens: 8192` eleva el límite de salida del informe (por defecto 4096). Los informes truncados o con estructura inválida hacen fallar la ejecución, en lugar de proporcionar una puntuación que permita aprobar los gates. Si se trunca la respuesta, aumenta el límite y repite la ejecución. Una ejecución omitida tiene `score: null`; la Action omite los umbrales de puntuación y la carga de SARIF sin convertir la ausencia de puntuación en cero.
-
-**Coste:** ~$0,05–0,15 por ejecución de PR, según el tamaño del diff y el modelo. Se recomienda ejecutar solo en eventos `pull_request`.
-
-## Hoja de ruta
-
-**Estado actual (v1.4):** base de 12 libros, 6 riesgos de deterioro de producción (R1–R6) + 6 riesgos de
-deterioro de pruebas (T1–T6), 6 skills, quality gates de CI, salida SARIF para GitHub Code Scanning,
-presets de rigor y un benchmark reproducible de fidelidad del parser.
-
-<details><summary>Hitos v0.2 → v1.4</summary>
-
-- **v0.2–v0.4**: infraestructura de plugin, framework de seis libros, dimensiones de deterioro, suite de benchmark
-- **v0.5–v0.7**: revisión de calidad de pruebas, grafo Mermaid, `.brooks-lint.yaml`, ampliación a 10 libros
-- **v0.8–v0.9**: arquitectura de skills independientes; validación de pasos, ámbito automático por diff, `/brooks-health`, seguimiento de tendencia, modo triaje, remedios `--fix`, GitHub Action
-- **v1.0–v1.2**: automatización de evals, códigos de riesgo `Cx` propios, skill de barrido completo, propagación de versión con `npm run bump`
-- **v1.3**: metadatos del marketplace de Codex, instalador multiplataforma de un comando, READMEs localizados + sitio de aterrizaje
-- **v1.4**: salida SARIF, gates de severidad y regresión en CI, presets de rigor, suite de 57 escenarios, `npm run benchmark`
-</details>
-
-## Contribuir
-
-Consulta [CONTRIBUTING.md](CONTRIBUTING.md). Las contribuciones más valiosas ahora mismo son nuevos casos de
-prueba de eval y mejores patrones de síntomas de los riesgos de deterioro. Ejecuta `/brooks-review` en tu
-propio PR — revisamos las contribuciones con la herramienta que estamos construyendo.
-
-## Licencia
-
-Licencia MIT — consulta [LICENSE](LICENSE) para más detalles.
-
-## Agradecimientos
-
-Este proyecto se apoya en los hombros de doce gigantes — la lista completa con ediciones está arriba, en
-[Los doce libros](#los-doce-libros). Los riesgos de deterioro codificados en esta herramienta son nuestra
-síntesis de sus ideas, aplicada a la evaluación moderna de la calidad del código.
-
----
-
-## Historial de estrellas
+MIT — [LICENSE](LICENSE).
 
 [![Star History](assets/star-history.svg)](https://github.com/hyhmrright/brooks-lint/stargazers)
-
----
-
-<p align="center">
-  <strong>⭐ Si esta herramienta te ayudó a ver tu base de código de otra manera, ¡dale una estrella!</strong>
-</p>

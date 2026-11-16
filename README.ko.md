@@ -1,541 +1,166 @@
-<p align="center">
-  <img src="assets/logo.svg" alt="brooks-lint" width="200">
-</p>
+<p align="center"><img src="assets/logo.svg" alt="brooks-lint" width="150"></p>
 
-<h1 align="center">brooks-lint</h1>
+# brooks-lint
 
-<p align="center">
-  <strong>열두 권의 고전 엔지니어링 도서에 뿌리를 둔 AI 코드 리뷰.<br>
-  일관적이고, 추적 가능하며, 실행 가능합니다.</strong>
-</p>
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · **한국어** · [Español](README.es.md)
 
-<p align="center">
-  <a href="README.md">English</a> ·
-  <a href="README.zh-CN.md">简体中文</a> ·
-  <a href="README.zh-TW.md">繁體中文</a> ·
-  <a href="README.ja.md">日本語</a> ·
-  <strong>한국어</strong> ·
-  <a href="README.es.md">Español</a>
-</p>
+![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-<p align="center">
-  <a href="#빠른-시작">빠른 시작</a> •
-  <a href="#여섯-가지-쇠퇴-위험">여섯 가지 쇠퇴 위험</a> •
-  <a href="#실제-결과물">실제 결과물</a> •
-  <a href="#벤치마크">벤치마크</a> •
-  <a href="#설치">설치</a>
-</p>
+코드 리뷰, 아키텍처, 기술 부채, 테스트 품질, 상태 대시보드, 범위를 제한한 수정까지 여섯 워크플로를 제공합니다. 열두 권의 소프트웨어 공학 고전에 기반합니다.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.0-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
-  <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
-  <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
-  <img src="https://img.shields.io/github/stars/hyhmrright/brooks-lint?style=social" alt="GitHub Stars">
-</p>
+**소스 상태:** 소스 버전은 `1.10.0`이지만 태그와 GitHub Release는 철회되었으며 버전 결정은 보류 중입니다. GitHub/npm의 최신 공개 버전은 **1.9.1**입니다. 이 문서는 **main**을 설명하며 배지는 배포 완료를 뜻하지 않습니다.
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/47738" target="_blank"><img src="https://trendshift.io/api/badge/trendshift/repositories/47738/daily?language=JavaScript" alt="Trendshift 오늘의 JavaScript 저장소 2위" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</p>
+brooks-lint는 Agent Skills, 공통 지침, 작은 결정적 보고 도구의 모음입니다. 진단은 사용자의 코딩 에이전트가 수행합니다. 정적 분석기가 아니며 모델이 모든 결함을 찾는다고 보장하지 않습니다.
 
-<p align="center">
-  <img src="assets/banner-ko.svg" alt="당신의 코드 → 12권의 고전 → 12가지 쇠퇴 위험 → 출처가 명시된 진단" width="900">
-</p>
-
-<p align="center">
-  <a href="https://hyhmrright.github.io/brooks-lint/"><img src="assets/demo.gif" alt="brooks-lint의 코드 리뷰: /brooks-review 명령 한 번으로 28/100 건강 점수와 출처가 인용된 증상 → 근원 → 결과 → 처방 진단을 산출" width="820"></a>
-</p>
-
-<p align="center">
-  <strong><a href="https://hyhmrright.github.io/brooks-lint/">→ 웹사이트 방문하기</a></strong>
-</p>
-
----
-
-> *"아이를 낳는 데는 아홉 달이 걸린다. 몇 명의 여성을 투입하든 마찬가지다."*
-> — Frederick Brooks, *The Mythical Man-Month*（맨먼스 미신, 1975）
-
-**50년이 지난 지금도 Brooks는 여전히 옳았습니다 — 그리고 McConnell, Fowler, Martin, Hunt & Thomas, Evans, Ousterhout, Winters, Meszaros, Osherove, Feathers, 그리고 Google 테스팅 팀 역시 마찬가지였습니다.**
-
-대부분의 코드 품질 도구는 줄 수와 순환 복잡도만 셉니다. **brooks-lint**는 한 걸음 더 나아갑니다 — 열두 권의 고전 엔지니어링 도서에서 종합한 여섯 가지 쇠퇴 위험 차원에 비추어 당신의 코드를 진단하며, 매번 도서 출처, 심각도 라벨, 구체적인 처방이 담긴 구조화된 진단을 산출합니다.
-
-예외와 오탐 방지 장치를 포함한 전체 "출처-스킬" 매핑은
-[`skills/_shared/source-coverage.md`](skills/_shared/source-coverage.md)를 참고하세요.
-
-## 빠른 시작
+## Codex로 시작하기
 
 ```bash
-# Claude Code
-/plugin marketplace add hyhmrright/brooks-lint
-/plugin install brooks-lint@brooks-lint-marketplace
-
-# Any other Agent Skills platform — Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · Bob …
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
+# Source checkout: Git + Bash
+git clone https://github.com/hyhmrright/brooks-lint.git
+cd brooks-lint
+bash scripts/install.sh codex
 ```
 
-설치한 뒤에는 그냥 요청하거나("이 PR을 리뷰해줘", "아키텍처를 감사해줘"), 여섯 명령 중 하나를 실행하세요
-— `/brooks-review`, `/brooks-audit`, `/brooks-debt`, `/brooks-test`, `/brooks-health`,
-`/brooks-sweep`（[각각 하는 일](#슬래시-명령)）.
+```text
+$brooks-review Review the current diff and identify supported maintainability risks.
+$brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
+```
 
-모든 진단은 도서 출처와 0–100 건강 점수와 함께 **증상 → 근원 → 결과 → 처방** 형태로 돌아옵니다. 전체
-설치 옵션（추가 10개 플랫폼）과 CI/CD 설정은 [아래](#설치)를 참고하세요.
+현재 소스를 Codex 전역 스킬 디렉터리에 설치합니다. 인식되지 않으면 새 세션을 시작하세요. 프로젝트 설치는 대상 프로젝트에서 스크립트의 절대 경로와 `codex --project`를 사용합니다. `_shared`를 여섯 스킬 폴더와 같은 깊이에 두세요. [Codex 안내](docs/codex-setup.md).
+
+**공개된 1.9.1**은 Node.js 20+에서 `npx brooks-lint@1.9.1 install codex`로 설치합니다. main의 모든 새 기능을 포함하지는 않습니다. [시작 안내](docs/getting-started.md).
+
+## 작업 범위에 맞는 스킬 선택
+
+| 스킬 | 용도 | 파일 수정 |
+|---|---|---|
+| `$brooks-review` | diff 또는 지정 코드의 계약, 근거 있는 위험과 동작을 구별하는 예시. | 아니요 |
+| `$brooks-audit` | 모듈 의존성, 책임과 경계. 별도 온보딩 안내도 제공합니다. | 아니요 |
+| `$brooks-debt` | 유지보수 부채의 분류, 우선순위와 상환 계획. | 아니요 |
+| `$brooks-test` | 기존 테스트의 단언이 탐지하거나 놓치는 실패. | 아니요 |
+| `$brooks-health` | 네 차원의 간략 평가와 증거 범위를 명시한 대시보드. | 아니요 |
+| `$brooks-sweep` | 제한한 범위에서 진단 후 승인되고 검증 가능한 수정. | 예 |
+
+Codex에서는 `$brooks-review`를 사용합니다. 자연어 스킬 발견은 호스트와 모델에 달려 있습니다. Health는 네 번의 완전한 감사를 대신하지 않습니다. Sweep은 편집·검증 기능이 필요하며 기존 승인을 존중합니다. 여러 파일이라는 이유만으로 승인을 다시 묻지 않습니다.
+
+## 보고서 해석
+
+확정된 발견은 **증상 → 출처 → 결과 → 조치**로 설명합니다. 책 인용은 원칙의 출처이며 진단이나 장 번호의 정확성을 증명하지 않습니다. 보호된 동작과 불확실한 의무에 임의 감점을 부여하지 않고, 예측과 실제 실행한 검증을 구별합니다.
+
+점수는 확정된 발견의 설정별 합계이며 **정확성의 확률이 아닙니다**. Health는 단일 장부로 코드 품질·아키텍처·부채·테스트를 처리합니다. 실행이 허용되면 Node 도구가 계산하고 보고서를 확정합니다. 필수 차원에 결정적 증거가 없으면 **unassessed**로 표시하며 수치 종합점을 내지 않습니다. diff가 없는 PR만 **skipped**로 처리하고 가중치를 재분배합니다. 미발견과 미평가는 다릅니다.
+
+전달 도구는 제공된 출력 바이트가 확정 보고서 및 영수증과 일치하는지 검사합니다. 진단의 참 여부, 이후 UI 렌더링이나 전송은 검증하지 않습니다. 실행이 불가하면 한계를 명시하고 영수증을 만들어내지 않습니다. [장부 및 도구 계약](skills/brooks-health/score-ledger.md).
+
+Sweep은 최초 및 Critical 전용 라운드를 포함해 기본 **총 세 번의 수정 라운드**로 제한됩니다. 사용자 시간·도구 예산도 따릅니다. 중단 근거와 미해결 사항을 보고하며, 국소 범위가 깨끗해도 더 넓은 차원은 미평가일 수 있습니다. [안내](skills/brooks-sweep/sweep-guide.md).
+
+## 위험 분류
+
+| 제품 코드 | 테스트 |
+|---|---|
+| R1 — 인지 과부하 | T1 — 불명확한 테스트 |
+| R2 — 변경 전파 | T2 — 취약한 테스트 |
+| R3 — 지식 중복 | T3 — 테스트 중복 |
+| R4 — 우발적 복잡성 | T4 — Mock 남용 |
+| R5 — 의존성 무질서 | T5 — 커버리지 착각 |
+| R6 — 도메인 모델 왜곡 | T6 — 아키텍처 불일치 |
 
 ## 열두 권의 책
 
-| 책 | 저자 | 기여하는 위험 |
-|------|--------|----------------|
-| *The Mythical Man-Month*（맨먼스 미신, 1975） | Frederick P. Brooks Jr. | R2, R4, R5 |
-| *Code Complete*（코드 컴플리트, 1993, 2판 2004） | Steve McConnell | R1, R4 |
-| *Refactoring*（리팩토링, 1999, 2판 2018） | Martin Fowler | R1, R2, R3, R4, R6 |
-| *Clean Architecture*（클린 아키텍처, 2017） | Robert C. Martin | R2, R5 |
-| *The Pragmatic Programmer*（실용주의 프로그래머, 1999, 20주년판 2019） | Andrew Hunt & David Thomas | R2, R3, R4, R5, T2, T3 |
-| *Domain-Driven Design*（도메인 주도 설계, 2003） | Eric Evans | R1, R3, R6 |
-| *A Philosophy of Software Design*（소프트웨어 설계의 철학, 2018） | John Ousterhout | R1, R4 |
-| *Software Engineering at Google*（구글 엔지니어링 best practice, 2020） | Winters, Manshreck & Wright | R2, R5 |
-| *The Art of Unit Testing*（단위 테스트의 기술, 2009, 3판 2023） | Roy Osherove | T1, T2, T4, T5 |
-| *How Google Tests Software*（구글은 소프트웨어를 어떻게 테스트하는가, 2012） | Whittaker, Arbon & Carollo | T5, T6 |
-| *Working Effectively with Legacy Code*（레거시 코드 활용 전략, 2004） | Michael Feathers | T4, T5, T6 |
-| *xUnit Test Patterns*（xUnit 테스트 패턴, 2007） | Gerard Meszaros | T1, T2, T3, T4 |
+| Book | Author |
+|---|---|
+| *The Mythical Man-Month* | Frederick P. Brooks Jr. |
+| *Code Complete* | Steve McConnell |
+| *Refactoring* | Martin Fowler |
+| *Clean Architecture* | Robert C. Martin |
+| *The Pragmatic Programmer* | Andrew Hunt & David Thomas |
+| *Domain-Driven Design* | Eric Evans |
+| *A Philosophy of Software Design* | John Ousterhout |
+| *Software Engineering at Google* | Titus Winters, Tom Manshreck & Hyrum Wright |
+| *The Art of Unit Testing* | Roy Osherove |
+| *How Google Tests Software* | James Whittaker, Jason Arbon & Jeff Carollo |
+| *Working Effectively with Legacy Code* | Michael Feathers |
+| *xUnit Test Patterns* | Gerard Meszaros |
 
-## 여섯 가지 쇠퇴 위험
+[출처 대응표](skills/_shared/source-coverage.md)에 개념, 절충과 오탐 방지 조건이 있습니다. 분류는 프로젝트의 종합이며 저자들의 공동 공식 분류가 아닙니다.
 
-brooks-lint는 열두 권의 고전 엔지니어링 도서에서 종합한 **여섯 가지 프로덕션 코드 쇠퇴 위험**과 **여섯 가지 테스트 스위트 쇠퇴 위험**의 관점에서 당신의 코드를 평가합니다:
+<a id="benchmark"></a>
 
-| 쇠퇴 위험 | 진단 질문 | 출처 |
-|------------|---------------------|---------|
-| 🧠 인지 과부하 | 이 코드를 이해하는 데 얼마나 많은 정신적 노력이 드는가? | Code Complete, Refactoring, DDD, Philosophy of SD |
-| 🔗 변경 전파 | 한 곳을 고치면 관련 없는 것이 얼마나 깨지는가? | Refactoring, Clean Architecture, Pragmatic, SE@Google |
-| 📋 지식 중복 | 같은 결정이 여러 곳에서 표현되고 있는가? | Pragmatic, Refactoring, DDD |
-| 🌀 우발적 복잡도 | 코드가 문제 자체보다 더 복잡한가? | Refactoring, Code Complete, Brooks, Philosophy of SD |
-| 🏗️ 의존성 무질서 | 의존성이 일관된 방향으로 흐르는가? | Clean Architecture, Brooks, Pragmatic, SE@Google |
-| 🗺️ 도메인 모델 왜곡 | 코드가 도메인을 충실히 표현하는가? | DDD, Refactoring |
+## 평가가 보여주는 것
 
-> Philosophy of SD = *A Philosophy of Software Design*（Ousterhout） · SE@Google = *Software Engineering at Google*（Winters 외）
+세 종류의 증거를 구별하세요.
 
-## 실제 결과물
+- **오프라인 제품 검사:** 설치, 계산, 전달, 파서 계약과 사례 구조. 모델 판단 품질의 증명은 아닙니다.
+- **파서 충실도:** 고정된 보고서 30개의 심각도 수, 위험 코드와 SARIF. 발견의 진실성이 아니라 파서를 검증합니다.
+- **행동 비교:** 지정 모델·프롬프트의 Codex 답변을 사례 기준으로 평가합니다. 사례, 실행 경로와 평가자의 한계가 있습니다.
 
-다음 코드가 주어졌을 때:
+최신 **정적 지침 비교**를 오프라인 재심한 결과 review·audit는 일반 체크리스트/스킬 양쪽 **6/6**, test는 **5/6 대 6/6**입니다. 같은 개발 과정에서 작성·재사용한 사례 중 한 쌍의 우위이며 독립적인 일반 우수성 증명이 아닙니다. 실행 후 평가가 수정되었고, 네이티브 스킬 발견이나 모든 모델을 측정하지 않습니다.
 
-```python
-class UserService:
-    def update_profile(self, user_id, name, email, avatar_url):
-        user = self.db.query(f"SELECT * FROM users WHERE id = {user_id}")
-        user['email'] = email
-        ...
-        if user['email'] != email:   # always False — silent bug
-            self.smtp.send(...)
-        points = user['login_count'] * 10 + 500
-        self.db.execute(f"UPDATE loyalty SET points={points} WHERE user_id={user_id}")
-```
+[원본 기록과 재심](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md) · [Codex 평가 설계](docs/codex-behavior-evals.md). 연구 기록은 연구 브랜치에 보존하며 제품에는 작은 회귀 발췌본만 포함합니다.
 
-brooks-lint는 다음을 산출합니다:
+모델은 `gpt-6.1-terra / low`이며 사례별 각 그룹에서 한 번 답했습니다. 통과에는 다섯 주요 행동 축 모두 통과, 예상 문제 누락 없음, 확인된 허위 주장 없음이 필요합니다. 일반적인 정확도 추정치는 아닙니다.
 
----
+<a id="installation"></a>
 
-**건강 점수: 28/100**
+## 설치와 호환성
 
-*이 메서드는 서로 무관한 네 가지 비즈니스 책임을 하나의 함수에 집중시키고, 이메일 변경 알림을 조용히 억제하는 논리 버그를 포함하며, SQL 인젝션에 무방비로 노출되어 있습니다.*
+현재 유지보수자 검증 대상은 **Codex**입니다. 다른 통합은 유지되지만 이전 호스트 검증은 과거 기록입니다. 디렉터리 테스트가 전체 호스트 동작을 보장하지 않습니다. 호스트 버전과 재현 절차를 포함한 보고를 환영합니다. 13개 명명 대상과 일반 `agents` 대상을 지원합니다.
 
-### 🔴 변경 전파 — 단일 메서드가 서로 무관한 네 가지 비즈니스 이유로 변경됨
-**증상:** `update_profile`이 프로필 필드 업데이트, 이메일 변경 알림, 적립 포인트 재계산, 캐시 무효화를 모두 하나의 메서드 본문에서 수행합니다.
-**근원:** Fowler — *Refactoring* — 발산적 변경（Divergent Change）; Hunt & Thomas — *The Pragmatic Programmer* — 직교성（Orthogonality）
-**결과:** 적립 포인트 공식에 대한 어떤 변경이든 이메일 알림을 깨뜨릴 위험이 있고, 그 반대도 마찬가지입니다. 모든 수정이 서로 무관한 네 도메인에 걸친 회귀 위험을 동시에 떠안습니다.
-**처방:** `NotificationService`, `LoyaltyService`, `UserCacheInvalidator`를 추출하세요. `UserService.update_profile`은 각각을 호출하며 조율하는 역할만 해야 하며 — 그 자체로는 어떤 구현 로직도 보유해서는 안 됩니다.
+`<platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents`
 
-### 🔴 도메인 모델 왜곡 — 조용한 논리 버그: 이메일 알림이 결코 발송되지 않음
-**증상:** `user['email'] = email`이 `if user['email'] != email`보다 먼저 옛 값을 덮어쓰므로 — 조건이 항상 `False`입니다. 알림은 죽은 코드입니다.
-**근원:** McConnell — *Code Complete* — 17장: 비정상적 제어 구조
-**결과:** 사용자가 이메일 주소를 변경해도 결코 알림을 받지 못합니다. 조용한 데이터 무결성 실패입니다 — 시스템은 정상 동작하는 것처럼 보이지만 실제로는 비즈니스 규칙을 위반하고 있습니다.
-**처방:** 어떤 변경이든 그 전에 `old_email = user['email']`을 포착하세요. `user['email']`이 아니라 `old_email`과 비교하세요.
+[Codex](docs/codex-setup.md) · [OpenCode](docs/opencode-setup.md) · [Cursor](docs/cursor-setup.md) · [Windsurf](docs/windsurf-setup.md) · [Antigravity](docs/antigravity-setup.md) · [pi](docs/pi-setup.md) · [GitHub Copilot](docs/copilot-setup.md) · [Kiro](docs/kiro-setup.md) · [Factory Droid](docs/factory-droid-setup.md) · [DeepSeek Harness](docs/dsh-setup.md) · [IBM Bob](docs/bob-setup.md)
 
-*（SQL 인젝션, 의존성 무질서, 매직 넘버를 포함해 6개 진단 추가）*
+기존 Claude Code 명령은 보존되지만 현재 유지보수자의 검증 대상이 아닙니다.
 
-### 의존성 그래프를 포함한 아키텍처 감사
-
-모드 2（아키텍처 감사）에서 brooks-lint는 보고서 상단에 **Mermaid 의존성 그래프**를 생성합니다. 모듈은 심각도에 따라 색으로 구분됩니다: 빨강 = Critical 진단, 노랑 = Warning, 초록 = 깨끗함.
-
-```mermaid
-graph TD
-    subgraph src/api
-        AuthController
-        UserController
-    end
-    subgraph src/domain
-        UserService
-        OrderService
-    end
-    subgraph src/infra
-        Database
-        EmailClient
-    end
-
-    AuthController --> UserService
-    UserController --> UserService
-    UserController --> OrderService
-    OrderService --> UserService
-    OrderService --> EmailClient
-    UserService --> Database
-    EmailClient -.->|circular| OrderService
-
-    classDef critical fill:#ff6b6b,stroke:#c92a2a,color:#fff
-    classDef warning fill:#ffd43b,stroke:#e67700
-    classDef clean fill:#51cf66,stroke:#2b8a3e,color:#fff
-
-    class OrderService,EmailClient critical
-    class AuthController warning
-    class UserService,UserController,Database clean
-```
-
-이 그래프는 GitHub, Notion 등 Markdown 환경에서 별도 도구 없이 네이티브로 렌더링됩니다.
-
-## 더 많은 예시 보기
-
-[전체 갤러리](docs/gallery.md)에는 Python, TypeScript, Go, Java에 걸친 실제 brooks-lint 출력이 담겨 있습니다 — PR 리뷰, Mermaid 의존성 그래프가 포함된 아키텍처 감사, 기술 부채 평가, 테스트 품질 리뷰를 망라합니다.
-
-쇠퇴 위험이 처음이신가요? [**쇠퇴 위험 실전 가이드**](https://hyhmrright.github.io/brooks-lint/guide.html)가 여섯 가지를 모두 설명합니다 — 각각의 진단 질문, 대표 증상, 출처 도서, 처방을 다룹니다.
-
----
-
-## 벤치마크
-
-3개의 실제 시나리오（PR 리뷰, 아키텍처 감사, 기술 부채 평가）에서 테스트했습니다:
-
-| 평가 항목 | brooks-lint | Claude 단독 |
-|-----------|:-----------:|:------------:|
-| 구조화된 진단（증상 → 근원 → 결과 → 처방） | ✅ 100% | ❌ 0% |
-| 진단마다 도서 출처 | ✅ 100% | ❌ 0% |
-| 심각도 라벨（🔴/🟡/🟢） | ✅ 100% | ❌ 0% |
-| 건강 점수（0–100） | ✅ 100% | ❌ 0% |
-| 변경 전파 탐지 | ✅ 100% | ✅ 100% |
-| **전체 통과율** | **94%** | **16%** |
-
-격차는 Claude가 무엇을 *발견할 수 있는가*가 아니라 — 매번 추적 가능한 근거와 실행 가능한 처방을 곁들여 무엇을 *일관되게* 발견하는가에 있습니다.
-
-### 재현 가능한 벤치마크
-
-위 표는 예시용입니다. 아래 수치들은 **확정적이며 로컬에서 직접 재현할 수 있습니다**:
-
-**파서 충실도** — SARIF 내보내기와 CI 게이트는 모델의 Markdown 보고서를 올바르게 파싱하는 데 달려 있습니다. 여섯 가지 모드 전체를 아우르는 **30개의 실제 모델 생성 보고서로 구성된 동결 코퍼스**（`evals/benchmark-corpus.json`）에 대해, 각각 **독립적으로 채점된** 진단 목록（별도의 모델 패스로 채점한 뒤 수작업으로 표본 검증）과 짝지어, 실제 배포되는 파서의 점수는 다음과 같습니다 — `npm run benchmark`를 실행하세요:
-
-| 지표（n = 30, 동결 코퍼스） | 결과 |
-|---|:---:|
-| 심각도 카운트 정확 일치（파서 vs 채점된 진실값） | 30 / 30 |
-| 위험 코드 precision / recall | 100% / 100%（56개 finding-level 코드, 0 FP / 0 FN） |
-| 유효한 SARIF 2.1.0 산출 | 30 / 30 |
-
-파서가 결정론적이고 코퍼스가 동결되어 있기 때문에 `npm run benchmark`는 누구에게나 동일한 결과를 주며, `npm test`가 이를 회귀 테스트로 지킵니다. 이 코퍼스는 깨끗하게 유지되어야 하는 9개의 오탐 / 트레이드오프 보고서（예: 의존성 순환처럼 *보이지만* 실제로는 포트-앤-어댑터 설계인 경우）를 의도적으로 포함합니다.
-
-**점수 결정성** — 고정된 진단 집합（2 Critical / 3 Warning / 1 Suggestion）에 대해, strictness 프리셋은 각자의 `common.md` 표가 예측하는 점수를 정확히 산출합니다: strict **34**, balanced **54**, legacy-friendly **74** — 그리고 `legacy-friendly`만이 상위 세 개의 수정으로 시작합니다.
-
-**평가 계약** — **64개 시나리오 eval 스위트**（`evals/evals.json`）는 `npm run evals`로 시나리오 구조를, `npm run evals:live`로 모델 보고서 구조와 위험 코드를 검사합니다（`ANTHROPIC_API_KEY` 필요）. 이 결정론적 검사만으로 진단 내용의 정확성을 입증할 수는 없습니다. API 러너는 제공된 픽스처의 `review`, `audit`, `debt`, `test`, `health`를 평가합니다. 기본 실행은 `sweep`을 명시적으로 건너뛰고 통과율에서 제외하며, 명시적으로 선택하면 오류가 납니다. Full Sweep에는 대화형 실행 환경이 필요합니다. [러너 계약](docs/runner-contracts.md)을 참고하세요.
-
-> 범위와 정직성: 파서 수치는 결정론적이며 정확히 재현됩니다. strictness 및 eval 스위트 수치는 모델에 대한 단일 실행 실측치로, 실행마다 약간씩 변동합니다. 파서 벤치마크는 보고서 파싱 충실도（도구가 보고서에 기재된 모든 진단을 읽어내는가?）를 측정하는 것이지, 특정 진단이 "옳은지"를 측정하는 것이 아닙니다. 심각도 카운트 일치가 완전히 독립적인 신호입니다; 위험 코드 일치는 공유된 표준 name→code 범례 또한 반영합니다.
-
-## 비교 우위
-
-| | brooks-lint | ESLint / Pylint | GitHub Copilot Review | 순수 Claude |
-|---|:---:|:---:|:---:|:---:|
-| 문법 및 스타일 문제 탐지 | — | ✅ | ✅ | ~ |
-| 구조화된 진단 체인 | ✅ | ❌ | ❌ | ❌ |
-| 진단을 고전 도서로 추적 | ✅ | ❌ | ❌ | ❌ |
-| 일관된 심각도 라벨 | ✅ | ✅ | ~ | ❌ |
-| 아키텍처 수준의 통찰 | ✅ | ❌ | ~ | ~ |
-| 도메인 모델 분석 | ✅ | ❌ | ❌ | ~ |
-| 무설정, 설치할 플러그인 없음 | ✅ | ❌ | ✅ | ✅ |
-| 어떤 언어에서도 동작 | ✅ | ❌ | ✅ | ✅ |
-
-> `~` = 가끔 / 일관되지 않음
-
-**brooks-lint는 당신의 linter를 대체하지 않습니다.** 그것은 linter가 잡을 수 없는 것을 포착합니다: 아키텍처 표류, 지식 사일로, 도메인 모델 왜곡 — 누군가 알아채기 전 몇 달 동안 팀을 더디게 만드는 문제들입니다.
-
-## 설치
-
-### Claude Code
-
-```bash
+```text
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-짧은 명령（`/brooks-review`）은 첫 세션 시작 시 자동으로 설치됩니다 — 직접
-`bash hooks/session-start`를 실행해도 됩니다. 마켓플레이스를 건너뛰려면:
-`mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`.
-
-### Gemini CLI · Codex CLI
-
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint   # Gemini CLI
-```
-```
-Install the brooks-lint skill from hyhmrright/brooks-lint       # Codex 세션 안에서 요청
-```
-
-또는 아래 설치기를 사용하세요: `./scripts/install.sh gemini` / `./scripts/install.sh codex`.
-
-### 그 밖의 모든 플랫폼 — OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
-
-brooks-lint는 표준 [Agent Skills](https://agentskills.io) 형태로 배포됩니다. **Agent
-Skills를 로드하는 모든 에이전트는 변환 없이 여섯 가지 모드를 모두 실행합니다** — 한 줄의 명령으로 설치됩니다:
-
-```bash
-# 플랫폼을 고르세요; --project는 전역 설정 대신 현재 저장소에 설치합니다
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <platform>
-#   <platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
-```
-
-**Node.js 20+**와 npm으로 같은 Agent Skills를 설치할 수 있으며 Git이나 Bash는 필요하지 않습니다. 설치 대상은 **이름이 지정된 코딩 도구 13개와 범용 `agents` 대상**입니다. IDE 확장 대신 스킬을 설치합니다. 자동 검사는 파일 배치와 리소스를 검증하며 모든 호스트의 런타임 검증을 뜻하지 않습니다. Shell 설치기도 계속 사용할 수 있습니다.
-
-```bash
-npx brooks-lint install <platform>
-npx brooks-lint install <platform> --project
-npx brooks-lint install --list
-```
-
-[@Sad-happy](https://github.com/Sad-happy) 님께 감사드립니다. [PR #44](https://github.com/hyhmrright/brooks-lint/pull/44)에서 네이티브 DSH bundle과 스킬 제공자를 구현하고 DSH 0.2.1-rc.2 데스크톱 앱에서 커뮤니티 검증을 진행해 패키지 이름으로 플러그인을 설치할 수 있게 해주셨습니다. 설치와 사용자 지정 마켓 검색은 [DSH 가이드](docs/dsh-setup.md)를 참고하세요.
-
-설치기는 스킬을 당신의 플랫폼에 맞는 폴더로 **평평하게** 복사하므로, 공유 프레임워크（`../_shared/`）가
-항상 올바르게 해석됩니다 — 레이아웃을 잘못 잡을 수가 없습니다. 그런 다음 그냥 요청하면（"이 PR을
-리뷰해줘", "아키텍처를 감사해줘"）, 일치하는 스킬이 자신의 `description`에서 자동으로 트리거됩니다.
-
-| 플랫폼 | 설치 위치 | 함께 읽는 파일 | 가이드 |
-|---|---|---|---|
-| OpenCode | `~/.config/opencode/skills` | `~/.claude/skills`, `AGENTS.md` | [설정](docs/opencode-setup.md) |
-| Cursor (2.4+) | `~/.cursor/skills` | `.agents/skills`, `AGENTS.md` | [설정](docs/cursor-setup.md) |
-| Windsurf (Cascade) | `~/.codeium/windsurf/skills` | `AGENTS.md` | [설정](docs/windsurf-setup.md) |
-| Antigravity (Google) | `.agent/skills`（`--project`） | `AGENTS.md`, `GEMINI.md` | [설정](docs/antigravity-setup.md) |
-| pi (earendil-works) | `~/.pi/agent/skills` | — | [설정](docs/pi-setup.md) |
-| GitHub Copilot | `.github/skills`（`--project`） | `.claude/skills`, `AGENTS.md` | [설정](docs/copilot-setup.md) |
-| Kiro (AWS) | `~/.kiro/skills` | `AGENTS.md` | [설정](docs/kiro-setup.md) |
-| Factory Droid | `~/.factory/skills` | `AGENTS.md` | [설정](docs/factory-droid-setup.md) |
-| DeepSeek Harness (`dsh`) | `~/.dsh/skills` | `~/.agents/skills`, `AGENTS.md` | [설정](docs/dsh-setup.md) |
-| IBM Bob (`bob`) | `~/.bob/skills` | `AGENTS.md` | [설정](docs/bob-setup.md) |
-
-OpenCode v2, Kiro, Factory Droid, DeepSeek Harness는 `/brooks-review`도 자동 등록합니다. 스킬이
-처음이거나 위 목록에 없는 에이전트를 쓰시나요? **[docs/getting-started.md](docs/getting-started.md)**를 참고하세요.
-
-> **Maintainer testing policy (2026-10-16).** My Claude account has been banned. Going forward,
-> I will only test and verify Codex-related capabilities. Earlier verification of Claude Code,
-> Gemini CLI, or other platforms is historical and does not imply ongoing testing. Existing
-> integrations remain available, but their current behavior is not verified by the maintainer;
-> community test reports and contributions are welcome.
-
-> **🧪 과거 검증 기록.** Claude Code, Gemini CLI, Codex CLI는 이전에 메인테이너가 검증했습니다. 위
-> 열 개 플랫폼은 각 도구의 공식 스킬 명세를 토대로 문서화되었고 파일 레이아웃
-> 수준에서 검증되었으나（설치기는 테스트되었음）, 메인테이너가 모든 플랫폼에서 end-to-end로 직접 실행해 보지는
-> 못했습니다. 어떤 것을 시도해 보셨나요 — 잘 되든 **안 되든**? 플랫폼, 버전, 본 결과를 담아
-> [이슈를 열어 주세요](https://github.com/hyhmrright/brooks-lint/issues/new).
-> 다른 Agent-Skills 에이전트인가요? 거의 확실히 같은
-> 방식으로 동작합니다 — 알려주시면 추가하겠습니다.
-
-## 슬래시 명령
-
-| 명령 | 하는 일 |
-|---------|--------------|
-| `/brooks-review` | diff를 붙여넣거나 변경된 파일을 AI에게 가리키세요. 증상 → 출처 → 결과 → 처방 형식으로 여섯 가지 쇠퇴 위험을 각각 진단합니다. |
-| `/brooks-audit` | 모듈 의존성을 （Mermaid 그래프와 함께） 매핑하고, 순환 의존성을 찾아내며, 콘웨이의 법칙 부합 여부를 확인합니다. |
-| `/brooks-debt` | 부채를 여섯 가지 쇠퇴 위험으로 분류하고, 고통 × 확산 범위로 우선순위를 매겨 Critical / Scheduled / Monitored 등급의 상환 로드맵을 만듭니다. |
-| `/brooks-test` | 여섯 가지 테스트 공간 쇠퇴 위험 — 테스트 불명확성, 테스트 취약성, 테스트 중복, 목 남용, 커버리지 착시, 아키텍처 불일치 — 에 비추어 테스트 스위트를 감사합니다. |
-| `/brooks-health` | 네 가지 품질 차원 전체를 축약 스캔해 하나의 가중 종합 건강 점수를 산출합니다. 릴리스 전이나 팀 온보딩 때 쓰세요. |
-| `/brooks-sweep` | R1–R6, T1–T6, 아키텍처를 한 번에 스캔한 뒤 수정을 적용합니다: 안전한 변경은 자동 적용, 여러 파일에 걸친 변경은 확인 후 적용, 아키텍처 결정은 수동 항목으로 표시. 수정 로그와 점수 변화를 출력합니다. |
-
-**플랫폼별 문법.** Claude Code는 네임스페이스가 붙은 전체 형식 `/brooks-lint:brooks-review`도 받습니다
-— 짧은 형식은 session-start 훅이 첫 세션 시작 시 자동 설치합니다. Codex CLI는 `$brooks-review`를 씁니다.
-Gemini CLI와 OpenCode v2는 위 표 그대로입니다. Cursor, Antigravity, pi, DeepSeek Harness는 각 스킬의
-`description`에서 Agent Skills를 호출하므로 그냥 요청하면 됩니다（"이 PR을 리뷰해줘", "우리 최악의 기술
-부채는 어디야?"）. 명시적 호출이 필요하면 각 플랫폼의 문법을 쓰세요（pi는 각 스킬을
-`/skill:brooks-review`로 등록; dsh는 위 표 그대로이며 `/` 메뉴에서 고르거나 직접 입력）. 모든
-플랫폼에서 코드 품질, 아키텍처, 테스트 건강을 이야기하면 스킬이 자동으로 트리거됩니다.
-
-> PR 리뷰에는 가벼운 Step 7 빠른 테스트 점검이 자동으로 포함됩니다（문서만 바뀐 diff에서는 건너뜀）.
-> 전체 테스트 감사는 `/brooks-test`를, 단일 차원 심층 진단은 `/brooks-health` 대신 해당 차원 전용
-> 스킬을 사용하세요.
-
 ## 설정
-
-리뷰 동작을 커스터마이즈하려면 프로젝트 루트에 `.brooks-lint.yaml`을 두세요:
 
 ```yaml
 version: 1
-
-strictness: balanced   # strict | balanced (default) | legacy-friendly — softer scoring for legacy code
-
-disable:
-  - T5   # skip coverage metrics check — we don't enforce coverage
-
-severity:
-  R1: suggestion   # downgrade Cognitive Overload findings for this domain
-
+strictness: balanced
 ignore:
-  - "**/*.generated.*"
   - "**/vendor/**"
-
-# custom_risks:   # define project-specific Cx codes — see skills/_shared/custom-risks-guide.md
-# suppress:       # downgrade specific findings by risk + path (e.g. accepted legacy debt)
+sweep:
+  max_iterations: 3
+# Optional: deliberately omit a risk from this review.
+# disable:
+#   - T5
 ```
 
-[`.brooks-lint.example.yaml`](.brooks-lint.example.yaml)을 출발점으로 복사하세요.
-모든 설정은 선택 사항입니다 — 파일을 통째로 생략하면 기본 동작이 적용됩니다.
+[설정 예시](.brooks-lint.example.yaml)를 참고하세요. 엄격도, 심각도, 경로 제외, `focus`/`disable`, 사용자 `Cx` 위험과 범위별 억제를 설정합니다. T5를 끄면 해당 진단을 생략합니다. T5는 커버리지 백분율만 의미하지 않습니다. [공통 계약](skills/_shared/common.md).
 
-| 설정 | 설명 |
-|---------|-------------|
-| `strictness` | 점수 프리셋: `strict`, `balanced`（기본）, 또는 `legacy-friendly`（더 가벼운 감점, 상위 수정으로 시작） |
-| `disable` | 건너뛸 위험 코드（`R1`–`R6`, `T1`–`T6`） |
-| `severity` | 심각도 등급 재정의（`critical` / `warning` / `suggestion`） |
-| `ignore` | 제외할 파일의 glob 패턴 |
-| `focus` | 이 위험 코드만 평가（`disable`과 함께 사용 불가） |
-| `custom_risks` | 프로젝트 전용 위험 코드 정의（`C1`, `C2`, …） — [`custom-risks-guide.md`](skills/_shared/custom-risks-guide.md) 참고 |
-| `suppress` | 위험 코드 + 경로로 특정 진단의 심각도 하향（선택적 `expires:` 만료일） |
+## CI는 별도 실행 경로
 
----
-
-## 왜 이 책들인가, 왜 지금인가?
-
-> *"소프트웨어의 복잡성은 본질적 속성이지 우연적 속성이 아니다."*
-> — Frederick Brooks
-
-AI는 코드를 더 빨리 쓰게 도와줄 수는 있어도, 당신이 대성당을 짓고 있는지 타르 웅덩이를 파고 있는지는
-말해주지 못합니다 — 그리고 생성이 저렴해질수록 이 저자들이 짚어낸 쇠퇴 위험은 더 날카로워집니다. AI
-어시스턴트를 붙인다고 인지 과부하나 도메인 모델 왜곡이 고쳐지지 않고, 코드를 더 많이 생성하면 변경
-전파와 지식 중복이 늘며, 더 빨리 움직일수록 우발적 복잡성과 의존성 무질서는 더 위험해집니다.
-
-## 프로젝트 구조
-
-각 스킬은 하나의 `SKILL.md`（트리거 + 프로세스 골격）와 전용 가이드로 이루어집니다:
-
-```
-brooks-lint/
-├── .claude-plugin/ · .codex-plugin/  # 플랫폼별 플러그인 메타데이터
-├── skills/
-│   ├── _shared/          # common.md（철칙, 설정, 리포트 템플릿, 건강 점수）
-│   │                     # source-coverage.md · decay-risks.md（R1–R6）
-│   │                     # test-decay-risks.md（T1–T6）· remedy-guide.md · custom-risks-guide.md
-│   ├── brooks-review/    # 모드 1: PR 리뷰            → pr-review-guide.md
-│   ├── brooks-audit/     # 모드 2: 아키텍처 감사      → architecture-guide.md, onboarding-guide.md
-│   ├── brooks-debt/      # 모드 3: 기술 부채          → debt-guide.md
-│   ├── brooks-test/      # 모드 4: 테스트 품질        → test-guide.md
-│   ├── brooks-health/    # 모드 5: 건강 대시보드      → health-guide.md
-│   └── brooks-sweep/     # 모드 6: 전면 스윕          → sweep-guide.md
-├── hooks/                # SessionStart 훅
-├── commands/             # 짧은 명령 래퍼（훅이 자동 설치）
-├── evals/                # 64 시나리오 eval 스위트 + 동결된 파서 충실도 코퍼스
-└── assets/               # 로고, 배너, 데모
-```
-
-## CI/CD 통합
-
-GitHub Action을 사용해 모든 PR에서 brooks-lint를 자동으로 실행하세요:
+GitHub Action은 Codex 로그인이 아닌 **Anthropic 호환 API**를 사용합니다. 수집한 diff의 review만 수행하며 대화형 파일 도구나 수정 기능은 없습니다. 이 과거 제공자 경로는 현재 실시간 검증 대상 밖입니다. 아래는 향후 소스 버전 템플릿입니다. **태그 철회 중에는 그대로 실행하지 마세요.** 공개 버전을 쓰려면 `v1.9.1`로 바꾸고 해당 버전의 기능 설명을 따르세요.
 
 ```yaml
-# .github/workflows/brooks-lint.yml
-name: Brooks-Lint PR Review
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-jobs:
-  brooks-lint:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          fail-below: 70
+# Source-version template only: this tag is currently withdrawn.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+  with:
+    mode: review
+    anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-전체 템플릿은 [`docs/github-action-example.yml`](docs/github-action-example.yml)을 참고하세요.
+[실행기 계약](docs/runner-contracts.md)과[전체 템플릿](docs/github-action-example.yml)에 기본 설정, fork 제한, 잘못된 보고서와 권한을 설명합니다. 비용은 제공자·모델·입력에 따라 다릅니다.
 
-이 Action은 리뷰를 PR 댓글로 게시하며, 건강 점수가 임계값 아래로 떨어지면 선택적으로 체크를 실패시킵니다. `.brooks-lint-history.json`이 저장소에 커밋되어 있으면 댓글에 추세 변화도 포함됩니다（예: "85 → 82 (−3) over last 3 runs"）.
+## 개발과 기여
 
-**CI는 `mode: review`만 지원합니다.** 수집한 diff를 검토하며 파일 읽기 도구나 편집 기능은 없습니다. GitHub PR 실행은 이벤트의 base/head SHA를 비교합니다. 두 커밋과 병합 기준점을 확보하도록 `fetch-depth: 0`을 유지하세요. 빈 diff는 점수 없이 건너뛰고, 참조 누락이나 diff 수집 실패는 오류로 처리합니다. `audit`, `debt`, `test`, `health`, `sweep`은 프로젝트에 접근할 수 있는 대화형 Agent에서 계속 사용할 수 있습니다. CLI에서는 `--base-ref <ref> --head-ref <ref>`로 비교 범위를 지정하며, `config-ref: base`의 신뢰할 설정도 해당 base에서 읽습니다. [러너 계약](docs/runner-contracts.md)을 참고하세요.
+오프라인 검증:
 
-**품질 게이트와 Code Scanning.** `fail-below` 외에도 이 Action은 다음을 제공합니다:
-
-```yaml
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          fail-on: critical            # fail on any Critical finding (none | warning | critical)
-          fail-on-regression: true     # fail if the Health Score dropped vs the last run
-          sarif-file: brooks-lint.sarif  # also upload findings to GitHub Code Scanning
+```bash
+npm run validate
+npm test
+npm run evals
+npm run benchmark
+npm run evals:codex:validate
 ```
 
-`fail-on-regression`은 `.brooks-lint-history.json`을 읽으므로, "새로운 회귀 없음"을 강제하려면 그 파일을 커밋하세요. `sarif-file`을 설정하면 진단이 PR의 **Files changed** 탭에 인라인으로 나타나며, job에 `security-events: write` 권한이 필요합니다.
+실시간 Codex 평가는 별도 모델과 예산을 지정해 명시적으로 실행합니다. 통상 오프라인 검사에 과거 Anthropic 평가를 넣지 마세요. [기여 안내](CONTRIBUTING.md), [변경 기록](CHANGELOG.md), [과거 예시](docs/gallery.md). DSH 통합 [#44](https://github.com/hyhmrright/brooks-lint/pull/44)의 [@Sad-happy](https://github.com/Sad-happy)를 비롯한 기여자에게 감사합니다.
 
-**CI의 프로젝트 설정.** action은 `.brooks-lint.yaml`(`strictness`, `disable`, `focus`, `severity`, `ignore`, `custom_risks`)을 적용하며, PR 체크아웃이 아니라 **선택한 base 커밋**에서 읽습니다. 따라서 pull request가 자신을 리뷰하는 정책을 약화시킬 수 없습니다. 모든 위험을 비활성화하는 diff라면 그 설정 변경이 승인되기도 전에 점수 100으로 `fail-below`를 통과했을 것입니다. PR이 처음 추가한 설정도 같은 이유로 머지된 뒤에 적용됩니다. 리포트의 `Config:` 줄에는 사용한 출처(예: `applied from base (<ref>)`)가 표시됩니다. 이를 위해서는 클론에 base 객체가 있어야 하므로 템플릿이 `fetch-depth: 0`으로 체크아웃합니다. PR에서 base 참조가 없으면 action은 오류로 중단하고 `fetch-depth: 0`을 사용하도록 안내합니다. PR 자체의 정책으로 폴백하지 않습니다. base를 명시하지 않은 로컬 스테이징·미스테이징 변경 리뷰에서는 기본 base 참조가 없을 때 출처를 명시하고 작업 트리 설정을 사용할 수 있습니다. 명시한 base가 없으면 항상 오류가 납니다. PR 자체의 사본을 쓰려면 `config-ref: head`를 설정하세요 — `.brooks-lint.yaml`이 CODEOWNERS로 보호되어 있고 설정 변경이 그것을 제안한 PR에서 바로 적용되어야 할 때 적합합니다:
-
-```yaml
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          config-ref: base   # base (default) | head
-```
-
-**사용자 지정 API 엔드포인트.** `api-base-url`을 지정하면 action이 `api.anthropic.com` 대신 Anthropic 호환 `/v1/messages` 엔드포인트(자체 호스팅 프록시, LLM 게이트웨이, 리전 미러)를 호출합니다. 해당 엔드포인트의 키를 `anthropic-api-key`로, 기대하는 모델 id를 `model`로 전달하세요:
-
-```yaml
-        with:
-          mode: review
-          api-base-url: https://your-gateway.example.com
-          anthropic-api-key: ${{ secrets.GATEWAY_API_KEY }}
-          model: gateway-model-id
-```
-
-brooks-lint는 여기에 지정한 호스트로 diff를 전송하므로, 소스 코드를 맡겨도 되는 곳만 지정하세요. `scripts/ci-review.mjs`를 직접 실행할 때는 플래그가 필요 없습니다 — Anthropic SDK가 `ANTHROPIC_BASE_URL`을 직접 읽습니다.
-
-**Amazon Bedrock의 Claude.** Bedrock은 [Anthropic Messages API](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-messages-api.html)를 네이티브로 제공하므로 새 클라이언트가 필요 없습니다. `api-base-url`(action `v1.6.0` 이상)을 `https://bedrock-runtime.{region}.amazonaws.com/anthropic`으로 지정하고, `anthropic-api-key`에는 단기 [Bedrock API 키](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html)를 전달하세요 — 이 키는 OIDC로 assume한 역할에서 job 안에서 발급하므로, 장기 키를 시크릿에 보관할 필요가 없습니다. 역할 assume, 토큰 발급, 모델 id, 필요한 IAM 권한, `bedrock-mantle` 대체 엔드포인트까지 전체 배선은 [`docs/github-action-example.yml`](docs/github-action-example.yml)에 주석 처리된 스텝으로 들어 있습니다. 위의 신뢰 관련 주의도 그대로 유효합니다 — Bedrock에서는 diff가 당신이 지정한 리전의 당신 AWS 계정으로 갑니다.
-
-**이 방식으로는 fork에서 온 pull request를 리뷰할 수 없습니다.** GitHub은 fork의 `pull_request` 실행에 저장소 시크릿도 `id-token: write`도 부여하지 않으므로, 역할과 교환할 OIDC 토큰도 대신 쓸 저장된 키도 없습니다. fork까지 커버하려면 다른 트리거(`pull_request_target` — 신뢰할 수 없는 브랜치를 대상으로 실행할 때 필요한 모든 주의를 기울여서)나 다른 키 공급원이 필요합니다.
-
-**출력 상한과 잘못된 보고서.** `max-tokens: 8192`는 보고서 출력 상한을 높입니다（기본값 4096）. 잘리거나 구조가 잘못된 보고서는 실행을 실패시키며 게이트를 통과할 점수를 제공하지 않습니다. 잘림이 발생하면 상한을 높여 다시 실행하세요. 건너뛴 실행은 `score: null`이며, Action은 누락된 값을 0으로 바꾸는 대신 점수 임계값 검사와 SARIF 업로드를 건너뜁니다.
-
-**비용:** PR 실행당 약 $0.05–0.15로, diff 크기와 모델에 따라 다릅니다. `pull_request` 이벤트에서만 실행할 것을 권장합니다.
-
-## 로드맵
-
-**현재 상태（v1.4）:** 12권의 책을 토대로 한 6가지 프로덕션 쇠퇴 위험（R1–R6）+ 6가지 테스트 쇠퇴
-위험（T1–T6）, 6개 스킬, CI 품질 게이트, GitHub Code Scanning용 SARIF 출력, 엄격도 프리셋, 그리고
-재현 가능한 파서 충실도 벤치마크.
-
-<details><summary>마일스톤 v0.2 → v1.4</summary>
-
-- **v0.2–v0.4**: 플러그인 인프라, 여섯 권 프레임워크, 쇠퇴 위험 차원, 벤치마크 스위트
-- **v0.5–v0.7**: 테스트 품질 리뷰, Mermaid 의존성 그래프, `.brooks-lint.yaml`, 10권으로 확장
-- **v0.8–v0.9**: 독립 스킬 아키텍처, 단계 검증, 자동 diff 범위, `/brooks-health`, 추세 추적, 트리아지 모드, `--fix` 처방, GitHub Action
-- **v1.0–v1.2**: eval 자동화, 커스텀 `Cx` 위험 코드, 전면 스윕 스킬, `npm run bump` 버전 전파
-- **v1.3**: Codex 마켓플레이스 메타데이터, 멀티 플랫폼 원커맨드 설치기, 다국어 README + 랜딩 사이트
-- **v1.4**: SARIF 출력, CI 심각도 + 회귀 게이트, 엄격도 프리셋, 57 시나리오 eval 스위트, `npm run benchmark`
-</details>
-
-## 기여
-
-[CONTRIBUTING.md](CONTRIBUTING.md)를 참고하세요. 지금 가장 가치 있는 기여는 새로운 eval 테스트
-케이스와 더 나은 쇠퇴 위험 증상 패턴입니다. 당신의 PR에 `/brooks-review`를 돌려보세요 — 우리는 만들고
-있는 도구로 기여를 리뷰합니다.
-
-## 라이선스
-
-MIT License — 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
-
-## 감사의 말
-
-이 프로젝트는 열두 거인의 어깨 위에 서 있습니다 — 판본을 포함한 전체 목록은 위의
-[열두 권의 책](#열두-권의-책)을 참고하세요. 이 도구에 인코딩된 쇠퇴 위험은 그들의 생각을 현대 코드
-품질 평가에 적용한 우리의 종합입니다.
-
----
-
-## Star 히스토리
+MIT — [LICENSE](LICENSE).
 
 [![Star History](assets/star-history.svg)](https://github.com/hyhmrright/brooks-lint/stargazers)
-
----
-
-<p align="center">
-  <strong>⭐ 이 도구가 당신의 코드베이스를 다르게 보는 데 도움이 되었다면, star를 눌러 주세요!</strong>
-</p>

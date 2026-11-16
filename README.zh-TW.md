@@ -1,529 +1,166 @@
-<p align="center">
-  <img src="assets/logo.svg" alt="brooks-lint" width="200">
-</p>
+<p align="center"><img src="assets/logo.svg" alt="brooks-lint" width="150"></p>
 
-<h1 align="center">brooks-lint</h1>
+# brooks-lint
 
-<p align="center">
-  <strong>植根於十二本經典工程著作的 AI 程式碼審查。<br>
-  一致、可溯源、可落地。</strong>
-</p>
+[English](README.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md)
 
-<p align="center">
-  <a href="README.md">English</a> ·
-  <a href="README.zh-CN.md">简体中文</a> ·
-  <strong>繁體中文</strong> ·
-  <a href="README.ja.md">日本語</a> ·
-  <a href="README.ko.md">한국어</a> ·
-  <a href="README.es.md">Español</a>
-</p>
+![Source version — unreleased](https://img.shields.io/badge/version-1.10.0-blue.svg)
+![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-<p align="center">
-  <a href="#快速上手">快速上手</a> •
-  <a href="#六類衰退風險">六類衰退風險</a> •
-  <a href="#實際效果">實際效果</a> •
-  <a href="#基準測試">基準測試</a> •
-  <a href="#安裝">安裝</a>
-</p>
+六個工作流程，覆蓋程式碼審查、架構、技術債、測試品質、健康看板與限定範圍的修復，以十二本經典軟體工程書籍為基礎。
 
-<p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.0-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
-  <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg" alt="Claude Code Plugin">
-  <img src="https://img.shields.io/badge/Codex_CLI-Skill-orange.svg" alt="Codex CLI Skill">
-  <img src="https://img.shields.io/github/stars/hyhmrright/brooks-lint?style=social" alt="GitHub Stars">
-</p>
+**原始碼狀態：** 目前原始碼仍宣告 `1.10.0`，但對應標籤與 GitHub Release 已撤回，版本號等待確認。GitHub/npm 最近的已發布版本仍為 **1.9.1**。本文描述 **main**，其中部分功能尚未包含在 1.9.1；徽章表示原始碼版本，不表示已發布。
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/47738" target="_blank"><img src="https://trendshift.io/api/badge/trendshift/repositories/47738/daily?language=JavaScript" alt="Trendshift 當日 JavaScript 儲存庫排行榜第 2 名" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</p>
+brooks-lint 由 Agent Skills、共享指導和小型確定性報告工具組成。診斷由你的編碼代理執行；專案提供工作流程、風險分類和報告約定。它不是靜態分析器，也不保證模型能發現所有缺陷。
 
-<p align="center">
-  <img src="assets/banner-zh-TW.svg" alt="你的程式碼 → 十二本經典 → 十二類衰退風險 → 帶出處的結論" width="900">
-</p>
-
-<p align="center">
-  <a href="https://hyhmrright.github.io/brooks-lint/"><img src="assets/demo.gif" alt="brooks-lint 審查程式碼：一條 /brooks-review 命令產出 28/100 健康分以及引用書目的 症狀 → 根源 → 後果 → 對策 診斷" width="820"></a>
-</p>
-
-<p align="center">
-  <strong><a href="https://hyhmrright.github.io/brooks-lint/">→ 造訪官網</a></strong>
-</p>
-
----
-
-> *"一個孩子要十月懷胎，無論派多少人去都一樣。"*
-> —— Frederick Brooks，《人月神話》（1975）
-
-**五十年過去，Brooks 依然正確——McConnell、Fowler、Martin、Hunt & Thomas、Evans、Ousterhout、Winters、Meszaros、Osherove、Feathers 以及 Google 測試團隊同樣如此。**
-
-大多數程式碼品質工具只數行數和循環複雜度。**brooks-lint** 更進一步——它對照六個衰退風險維度（綜合自十二本經典工程著作）診斷你的程式碼，每一次都產出帶書目出處、嚴重度標籤和具體對策的結構化診斷。
-
-完整的「書目—技能」對應（含例外與誤報防護），見
-[`skills/_shared/source-coverage.md`](skills/_shared/source-coverage.md)。
-
-## 快速上手
+## 從 Codex 開始
 
 ```bash
-# Claude Code
-/plugin marketplace add hyhmrright/brooks-lint
-/plugin install brooks-lint@brooks-lint-marketplace
-
-# 其他任意 Agent Skills 平台 —— Cursor · Codex · Gemini · Copilot · Windsurf · OpenCode · Kiro · Bob …
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <平台>
+# Source checkout: Git + Bash
+git clone https://github.com/hyhmrright/brooks-lint.git
+cd brooks-lint
+bash scripts/install.sh codex
 ```
 
-裝好後直接開口（「審查這個 PR」「稽核架構」），或執行六個命令之一——`/brooks-review`、`/brooks-audit`、
-`/brooks-debt`、`/brooks-test`、`/brooks-health`、`/brooks-sweep`（[各自的作用](#斜線命令)）。
+```text
+$brooks-review Review the current diff and identify supported maintainability risks.
+$brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
+```
 
-每條診斷都以 **症狀 → 根源 → 後果 → 對策** 回傳，附書目出處和 0–100 健康分。完整安裝方式（另外 10 個
-平台）和 CI/CD 設定見[下文](#安裝)。
+以上命令將目前原始碼安裝到 Codex 的全域技能目錄。如果沒有發現技能，請啟動新會話。專案級安裝應在目標專案中通過絕對路徑執行安裝指令稿，並使用 `codex --project`。保留 `_shared` 與六個技能目錄的同級關係。詳見 [Codex 指南](docs/codex-setup.md)。
+
+安裝**已發布的 1.9.1** 可使用 Node.js 20+：`npx brooks-lint@1.9.1 install codex`。它安裝舊版，不包含 main 的全部新功能。更多平台與自訂目錄見[入門指南](docs/getting-started.md)。
+
+## 選擇符合任務範圍的技能
+
+| 技能 | 適用任務 | 是否修改檔案？ |
+|---|---|---|
+| `$brooks-review` | 審查 diff 或指定程式碼：契約、證據支援的風險及區分性見證。 | 否 |
+| `$brooks-audit` | 模組依賴、職責歸屬和邊界完整性；另有團隊入門指南。 | 否 |
+| `$brooks-debt` | 識別維護債務、排序並制定償還計畫。 | 否 |
+| `$brooks-test` | 審查現有測試：斷言能偵測和遺漏哪些失敗。 | 否 |
+| `$brooks-health` | 四個維度的簡要評估和有證據範圍限制的看板。 | 否 |
+| `$brooks-sweep` | 在限定範圍內診斷並執行已授權、可驗證的修復。 | 是 |
+
+Codex 使用 `$brooks-review`；其他宿主使用自己的呼叫方式。自然語言觸發取決於宿主和模型。Health 是摘要，不是四次窮盡式審計。Sweep 需要編輯和驗證能力，並沿用現有授權；不會僅因修改多個檔案就再次要求確認。
+
+## 如何理解報告
+
+保留的問題應遵循 **現象 → 來源 → 後果 → 修復**：可觀察證據、相關工程原則、影響和適當範圍內的建議。書籍引用解釋框架，不是診斷正確或章節對應準確的證明。受保護行為與未決義務應如實說明，不憑空扣分；預測結果必須與實際執行的檢查區分。
+
+分數是依設定彙總已保留問題的結果，**不是程式碼正確的機率**。Health 從同一份清單計算程式碼品質、架構、技術債和測試品質。允許執行工具時，隨附 Node 工具產生分數並定稿。必要維度缺少決定性證據時標為 **unassessed**，不輸出數值綜合分。僅無 diff 的 PR 維度可以 **skipped** 並重新分配權重。已評估且未發現問題不等於未知。
+
+交付工具檢查提供的輸出位元組是否與定稿和憑據一致，不驗證診斷正確性、後續介面渲染或傳輸。無法執行工具時必須說明驗證限制，不得虛構憑據。詳見[評分清單與工具約定](skills/brooks-health/score-ledger.md)。
+
+Sweep 預設最多 **三輪修復總計**，包括首輪及僅處理 Critical 的輪次；同時遵守使用者的時間和工具預算。停止時報告有證據支援的原因與未解決項。局部範圍已乾淨，可以與更廣維度仍未知同時成立。詳見 [Sweep 指南](skills/brooks-sweep/sweep-guide.md)。
+
+## 風險分類
+
+| 正式環境程式碼 | 測試 |
+|---|---|
+| R1 — 認知過載 | T1 — 測試晦澀 |
+| R2 — 變更傳播 | T2 — 測試脆弱 |
+| R3 — 知識重複 | T3 — 測試重複 |
+| R4 — 意外複雜性 | T4 — Mock 濫用 |
+| R5 — 依賴失序 | T5 — 覆蓋幻覺 |
+| R6 — 領域模型失真 | T6 — 架構失配 |
 
 ## 十二本書
 
-| 書名 | 作者 | 貢獻於 |
-|------|--------|----------------|
-| *The Mythical Man-Month*（人月神話，1975） | Frederick P. Brooks Jr. | R2、R4、R5 |
-| *Code Complete*（程式碼大全，1993，第 2 版 2004） | Steve McConnell | R1、R4 |
-| *Refactoring*（重構，1999，第 2 版 2018） | Martin Fowler | R1、R2、R3、R4、R6 |
-| *Clean Architecture*（無瑕的程式碼：整潔的軟體設計與架構篇，2017） | Robert C. Martin | R2、R5 |
-| *The Pragmatic Programmer*（務實的程式設計師，1999，20 週年版 2019） | Andrew Hunt & David Thomas | R2、R3、R4、R5、T2、T3 |
-| *Domain-Driven Design*（領域驅動設計，2003） | Eric Evans | R1、R3、R6 |
-| *A Philosophy of Software Design*（軟體設計的哲學，2018） | John Ousterhout | R1、R4 |
-| *Software Engineering at Google*（Google 軟體工程，2020） | Winters, Manshreck & Wright | R2、R5 |
-| *The Art of Unit Testing*（單元測試的藝術，2009，第 3 版 2023） | Roy Osherove | T1、T2、T4、T5 |
-| *How Google Tests Software*（Google 測試之道，2012） | Whittaker, Arbon & Carollo | T5、T6 |
-| *Working Effectively with Legacy Code*（修改軟體的藝術，2004） | Michael Feathers | T4、T5、T6 |
-| *xUnit Test Patterns*（xUnit 測試模式，2007） | Gerard Meszaros | T1、T2、T3、T4 |
+| Book | Author |
+|---|---|
+| *The Mythical Man-Month* | Frederick P. Brooks Jr. |
+| *Code Complete* | Steve McConnell |
+| *Refactoring* | Martin Fowler |
+| *Clean Architecture* | Robert C. Martin |
+| *The Pragmatic Programmer* | Andrew Hunt & David Thomas |
+| *Domain-Driven Design* | Eric Evans |
+| *A Philosophy of Software Design* | John Ousterhout |
+| *Software Engineering at Google* | Titus Winters, Tom Manshreck & Hyrum Wright |
+| *The Art of Unit Testing* | Roy Osherove |
+| *How Google Tests Software* | James Whittaker, Jason Arbon & Jeff Carollo |
+| *Working Effectively with Legacy Code* | Michael Feathers |
+| *xUnit Test Patterns* | Gerard Meszaros |
 
-## 六類衰退風險
+[來源映射](skills/_shared/source-coverage.md)記錄概念、權衡和誤報保護。這套風險分類是專案對書中思想的綜合，不是這些作者共同制定的官方分類。
 
-brooks-lint 從**六類生產程式碼衰退風險**和**六類測試程式碼衰退風險**兩個角度評估你的程式碼，這些維度綜合自十二本經典工程著作：
+<a id="benchmark"></a>
 
-| 衰退風險 | 診斷問題 | 出處 |
-|------------|---------------------|---------|
-| 🧠 認知過載 | 理解這段程式碼要花多少腦力？ | Code Complete、Refactoring、DDD、Philosophy of SD |
-| 🔗 變更擴散 | 改一處會牽連多少不相干的東西？ | Refactoring、Clean Architecture、Pragmatic、SE@Google |
-| 📋 知識重複 | 同一個決策是否在多處被表達？ | Pragmatic、Refactoring、DDD |
-| 🌀 偶發複雜度 | 程式碼是否比問題本身更複雜？ | Refactoring、Code Complete、Brooks、Philosophy of SD |
-| 🏗️ 相依失序 | 相依關係是否朝一致的方向流動？ | Clean Architecture、Brooks、Pragmatic、SE@Google |
-| 🗺️ 領域模型失真 | 程式碼是否忠實地表達了業務領域？ | DDD、Refactoring |
+## 評測能說明什麼
 
-> Philosophy of SD = *A Philosophy of Software Design*（Ousterhout） · SE@Google = *Software Engineering at Google*（Winters 等）
+以下三類證據不能混為一談：
 
-## 實際效果
+- **離線產品檢查:** 安裝、計分、交付、解析器約定和案例結構；不證明模型診斷品質。
+- **解析器保真度:** 30 份凍結報告的嚴重度計數、風險代碼與 SARIF；驗證解析器，不判斷發現是否真實。
+- **行為對照:** 指定提示和模型下的 Codex 回答，按案例標準評判；結論受案例、執行通道和評審限制。
 
-給定這段程式碼：
+最新一輪**靜態指令對照**經離線覆核後：review 和 audit 的通用清單組、技能組均為 **6/6**；test 為 **5/6 對 6/6**。優勢只有一個配對案例，案例由同一開發流程編寫並重用，不能證明普遍優越。評分在執行後做過修正，也未測量原生技能發現能力或所有模型。
 
-```python
-class UserService:
-    def update_profile(self, user_id, name, email, avatar_url):
-        user = self.db.query(f"SELECT * FROM users WHERE id = {user_id}")
-        user['email'] = email
-        ...
-        if user['email'] != email:   # 永遠為 False —— 隱性 bug
-            self.smtp.send(...)
-        points = user['login_count'] * 10 + 500
-        self.db.execute(f"UPDATE loyalty SET points={points} WHERE user_id={user_id}")
-```
+[完整記錄與覆核](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md) · [Codex 行為評測設計](docs/codex-behavior-evals.md)。歷史研究保留在研究分支，產品儲存庫只攜帶精簡回歸範例。
 
-brooks-lint 產出：
+模型為 `gpt-6.1-terra / low`，每個案例每組回答一次。通過要求五個主要行為維度全部通過、沒有遺漏預期問題、沒有已確認的虛假聲明；這些計數不是普遍正確率估計。
 
----
+<a id="installation"></a>
 
-**健康分：28/100**
+## 安裝與相容性
 
-*這個方法把四個不相干的業務職責塞進同一個函式，含有一個會靜默吞掉「信箱變更通知」的邏輯 bug，並且對 SQL 注入門戶大開。*
+維護者目前驗證 **Codex**。其他整合繼續保留，但以往的宿主驗證屬於歷史記錄；安裝目錄測試不代表完整執行相容性。歡迎附帶宿主版本和重現步驟的社群報告。安裝器支援 13 個具名目標和通用 `agents` 目錄。
 
-### 🔴 變更擴散 —— 單個方法因四個不相干的業務原因而改動
-**症狀：** `update_profile` 在同一個方法主體裡完成資料欄位更新、信箱變更通知、點數重算和快取失效。
-**根源：** Fowler — *Refactoring* — 發散式變更（Divergent Change）；Hunt & Thomas — *The Pragmatic Programmer* — 正交性（Orthogonality）
-**後果：** 任何對點數公式的改動都可能破壞郵件通知，反之亦然。每次修改都同時背負著四個不相干領域的回歸風險。
-**對策：** 抽出 `NotificationService`、`LoyaltyService` 和 `UserCacheInvalidator`。`UserService.update_profile` 應只做編排、逐一呼叫它們——本身不持有任何實作邏輯。
+`<platform> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents`
 
-### 🔴 領域模型失真 —— 隱性邏輯 bug：信箱通知永不觸發
-**症狀：** `user['email'] = email` 在 `if user['email'] != email` 之前就覆寫了舊值——條件恆為 `False`，通知是死程式碼。
-**根源：** McConnell — *Code Complete* — 第 17 章：非常規控制結構
-**後果：** 使用者改信箱時永遠收不到通知。這是靜默的資料完整性失效——系統看似正常運作，實則違反了業務規則。
-**對策：** 在任何修改之前先擷取 `old_email = user['email']`，拿它（而非 `user['email']`）做比較。
+[Codex](docs/codex-setup.md) · [OpenCode](docs/opencode-setup.md) · [Cursor](docs/cursor-setup.md) · [Windsurf](docs/windsurf-setup.md) · [Antigravity](docs/antigravity-setup.md) · [pi](docs/pi-setup.md) · [GitHub Copilot](docs/copilot-setup.md) · [Kiro](docs/kiro-setup.md) · [Factory Droid](docs/factory-droid-setup.md) · [DeepSeek Harness](docs/dsh-setup.md) · [IBM Bob](docs/bob-setup.md)
 
-*（另有 6 條診斷，含 SQL 注入、相依失序、魔術數字）*
+保留的 Claude Code 市集命令如下；此路徑目前未經維護者持續驗證：
 
-### 帶相依圖的架構審查
-
-在模式 2（架構審查）中，brooks-lint 會在報告頂部產生一張 **Mermaid 相依圖**。模組按嚴重度著色：紅=Critical，黃=Warning，綠=乾淨。
-
-```mermaid
-graph TD
-    subgraph src/api
-        AuthController
-        UserController
-    end
-    subgraph src/domain
-        UserService
-        OrderService
-    end
-    subgraph src/infra
-        Database
-        EmailClient
-    end
-
-    AuthController --> UserService
-    UserController --> UserService
-    UserController --> OrderService
-    OrderService --> UserService
-    OrderService --> EmailClient
-    UserService --> Database
-    EmailClient -.->|circular| OrderService
-
-    classDef critical fill:#ff6b6b,stroke:#c92a2a,color:#fff
-    classDef warning fill:#ffd43b,stroke:#e67700
-    classDef clean fill:#51cf66,stroke:#2b8a3e,color:#fff
-
-    class OrderService,EmailClient critical
-    class AuthController warning
-    class UserService,UserController,Database clean
-```
-
-該圖在 GitHub、Notion 等 Markdown 環境中原生算繪——無需額外工具。
-
-## 更多範例
-
-[完整畫廊](docs/gallery.md) 收錄了 brooks-lint 在 Python、TypeScript、Go、Java 上的真實輸出——涵蓋 PR 審查、帶 Mermaid 相依圖的架構審查、技術債評估和測試品質審查。
-
-初次接觸這些衰退風險？[**衰退風險實戰指南**](https://hyhmrright.github.io/brooks-lint/guide.html) 逐一講解全部六類——每類的診斷問題、代表症狀、出處書目與對策。
-
----
-
-## 基準測試
-
-在 3 個真實情境（PR 審查、架構審查、技術債評估）上測試：
-
-| 評估項 | brooks-lint | 僅用 Claude |
-|-----------|:-----------:|:------------:|
-| 結構化診斷（症狀 → 根源 → 後果 → 對策） | ✅ 100% | ❌ 0% |
-| 每條診斷帶書目出處 | ✅ 100% | ❌ 0% |
-| 嚴重度標籤（🔴/🟡/🟢） | ✅ 100% | ❌ 0% |
-| 健康分（0–100） | ✅ 100% | ❌ 0% |
-| 識別「變更擴散」 | ✅ 100% | ✅ 100% |
-| **整體通過率** | **94%** | **16%** |
-
-差距不在於 Claude *能不能*發現問題——而在於它能否*每一次都穩定地*發現，並附上可溯源的證據和可落地的對策。
-
-### 可復現基準
-
-上表是示意性的。下面這些數字**確定、可在本地復算**：
-
-**parser 保真度** —— SARIF 輸出與 CI 閘門都依賴於正確解析模型的 Markdown 報告。在一個**凍結的 30 份真實模型報告語料**上（涵蓋全部六種 mode，`evals/benchmark-corpus.json`），每份都配有**獨立評分**的發現清單（由另一遍模型評分、並經人工抽查），實際發布的 parser 跑分如下——執行 `npm run benchmark`：
-
-| 指標（n = 30，凍結語料） | 結果 |
-|---|:---:|
-| 嚴重度計數精確吻合（parser vs 人工標註真值） | 30 / 30 |
-| 風險碼 precision / recall | 100% / 100%（56 個 finding-level 碼，0 偽陽 / 0 偽陰） |
-| 產出合法 SARIF 2.1.0 | 30 / 30 |
-
-由於 parser 是確定性的、語料是凍結的，`npm run benchmark` 對任何人都給出相同結果，`npm test` 也將其作為回歸守衛。該語料**有意**包含 9 份偽陽性 / tradeoff 報告（例如一個*看起來像*循環相依、實則是埠與配接器（ports-and-adapters）的設計），它們必須保持乾淨。
-
-**評分確定性** —— 給定一組固定發現（2 Critical / 3 Warning / 1 Suggestion），三個 strictness 預設產出的分數與其 `common.md` 表的預測分毫不差：strict **34**、balanced **54**、legacy-friendly **74**——且只有 `legacy-friendly` 會優先列出前三高槓桿修復。
-
-**評估約定** —— **64 情境 eval 套件**（`evals/evals.json`）透過 `npm run evals` 檢查情境結構，透過 `npm run evals:live` 檢查模型報告結構與風險碼（需要 `ANTHROPIC_API_KEY`）。這些確定性檢查不能證明診斷在語義上正確。API 執行器只對提供的樣例執行 `review`、`audit`、`debt`、`test`、`health`；預設執行會明確跳過 `sweep` 並將其排除於通過率之外，明確選取則報錯。Full Sweep 需要互動式執行環境。參見[執行器約定](docs/runner-contracts.md)。
-
-> 範圍與誠實說明：parser 數字是確定性的、可精確復算；strictness 與 eval 套件的數字是對模型的單次實測，會有輕微跑動差異。parser 基準衡量的是報告解析保真度（工具是否讀出了報告裡寫的每條發現），而非某條發現「是否正確」。嚴重度計數吻合是完全獨立的訊號；風險碼一致性還反映了 parser 與 grader 共用同一套權威 name→code 對應。
-
-## 橫向對比
-
-| | brooks-lint | ESLint / Pylint | GitHub Copilot Review | 原生 Claude |
-|---|:---:|:---:|:---:|:---:|
-| 偵測語法與風格問題 | — | ✅ | ✅ | ~ |
-| 結構化診斷鏈 | ✅ | ❌ | ❌ | ❌ |
-| 將診斷溯源到經典著作 | ✅ | ❌ | ❌ | ❌ |
-| 一致的嚴重度標籤 | ✅ | ✅ | ~ | ❌ |
-| 架構層面的洞察 | ✅ | ❌ | ~ | ~ |
-| 領域模型分析 | ✅ | ❌ | ❌ | ~ |
-| 零設定、無需安裝外掛 | ✅ | ❌ | ✅ | ✅ |
-| 適用於任何語言 | ✅ | ❌ | ✅ | ✅ |
-
-> `~` = 偶爾 / 不穩定
-
-**brooks-lint 不是要取代你的 linter。** 它捕捉的是 linter 抓不到的東西：架構漂移、知識孤島、領域模型失真——這些問題往往在無人察覺的幾個月裡持續拖慢團隊。
-
-## 安裝
-
-### Claude Code
-
-```bash
+```text
 /plugin marketplace add hyhmrright/brooks-lint
 /plugin install brooks-lint@brooks-lint-marketplace
 ```
 
-短命令（`/brooks-review`）會在首次工作階段啟動時自動安裝——也可以自己跑 `bash hooks/session-start`。
-不想走市集：`mkdir -p ~/.claude/skills/brooks-lint && cp -r skills/* ~/.claude/skills/brooks-lint/`。
-
-### Gemini CLI · Codex CLI
-
-```bash
-/extensions install https://github.com/hyhmrright/brooks-lint   # Gemini CLI
-```
-```
-Install the brooks-lint skill from hyhmrright/brooks-lint       # 在 Codex 工作階段中直接說
-```
-
-或使用下面的安裝器：`./scripts/install.sh gemini` / `./scripts/install.sh codex`。
-
-### 其他所有平台——OpenCode · Cursor · Windsurf · Antigravity · pi · Copilot · Kiro · Factory Droid · DeepSeek Harness · IBM Bob
-
-brooks-lint 以標準 [Agent Skills](https://agentskills.io) 形式散布。**任何載入 Agent Skills 的 agent
-都能無需任何轉換執行全部六種模式**——一條命令即可安裝：
-
-```bash
-# 選擇你的平台；加 --project 裝進當前儲存庫而非全域設定
-curl -fsSL https://raw.githubusercontent.com/hyhmrright/brooks-lint/main/scripts/install.sh | bash -s -- <平台>
-#   <平台> = opencode · cursor · windsurf · antigravity · pi · kiro · copilot · droid · dsh · gemini · codex · claude · bob · agents
-```
-
-也可使用 **Node.js 20+** 和 npm 安裝同一套 Agent Skills，無需 Git 或 Bash。安裝器涵蓋 **13 個具名編碼工具及通用 `agents` 目標**，安裝的是技能而非 IDE 原生擴充套件。自動檢查驗證檔案佈局和資源，不代表每個宿主的執行階段實測。Shell 安裝器仍然可用。
-
-```bash
-npx brooks-lint install <平台>
-npx brooks-lint install <平台> --project
-npx brooks-lint install --list
-```
-
-特別感謝 [@Sad-happy](https://github.com/Sad-happy) 在 [PR #44](https://github.com/hyhmrright/brooks-lint/pull/44) 中實作原生 DSH bundle 和技能提供器，並在 DSH 0.2.1-rc.2 桌面應用中完成社群驗證，讓依套件名稱安裝外掛成為可能。安裝及自訂市場搜尋見 [DSH 指南](docs/dsh-setup.md)。
-
-安裝器會把技能**扁平**複製進該平台對應的資料夾，讓共享框架（`../_shared/`）始終正確解析——你不可能裝錯佈局。
-裝好後直接提問（「審查這個 PR」、「稽核架構」），對應技能就會依據 `description` 自動觸發。
-
-| 平台 | 安裝到 | 同時讀取 | 指南 |
-|---|---|---|---|
-| OpenCode | `~/.config/opencode/skills` | `~/.claude/skills`、`AGENTS.md` | [設定](docs/opencode-setup.md) |
-| Cursor（2.4+） | `~/.cursor/skills` | `.agents/skills`、`AGENTS.md` | [設定](docs/cursor-setup.md) |
-| Windsurf（Cascade） | `~/.codeium/windsurf/skills` | `AGENTS.md` | [設定](docs/windsurf-setup.md) |
-| Antigravity（Google） | `.agent/skills`（`--project`） | `AGENTS.md`、`GEMINI.md` | [設定](docs/antigravity-setup.md) |
-| pi（earendil-works） | `~/.pi/agent/skills` | — | [設定](docs/pi-setup.md) |
-| GitHub Copilot | `.github/skills`（`--project`） | `.claude/skills`、`AGENTS.md` | [設定](docs/copilot-setup.md) |
-| Kiro（AWS） | `~/.kiro/skills` | `AGENTS.md` | [設定](docs/kiro-setup.md) |
-| Factory Droid | `~/.factory/skills` | `AGENTS.md` | [設定](docs/factory-droid-setup.md) |
-| DeepSeek Harness（`dsh`） | `~/.dsh/skills` | `~/.agents/skills`、`AGENTS.md` | [設定](docs/dsh-setup.md) |
-| IBM Bob（`bob`） | `~/.bob/skills` | `AGENTS.md` | [設定](docs/bob-setup.md) |
-
-OpenCode v2、Kiro、Factory Droid 與 DeepSeek Harness 還會自動註冊 `/brooks-review`。不熟悉 skills、
-或用的是上面沒列出的 agent？見 **[docs/getting-started.md](docs/getting-started.md)**。
-
-> **Maintainer testing policy (2026-10-16).** My Claude account has been banned. Going forward,
-> I will only test and verify Codex-related capabilities. Earlier verification of Claude Code,
-> Gemini CLI, or other platforms is historical and does not imply ongoing testing. Existing
-> integrations remain available, but their current behavior is not verified by the maintainer;
-> community test reports and contributions are welcome.
-
-> **🧪 歷史驗證紀錄。** Claude Code、Gemini CLI、Codex CLI 曾由維護者驗證。上面十個平台依據各工具官方技能規範撰寫，
-> 並已在檔案佈局層面驗證（安裝器經過測試），但維護者尚未在每個平台端到端實跑。在某平台試過了——無論成功**還是**失敗？
-> 請[提一個 issue](https://github.com/hyhmrright/brooks-lint/issues/new)，附上平台、版本和你看到的結果。
-> 用的是其他相容 Agent Skills 的 agent？它幾乎肯定以同樣方式運作——告訴我們，我們會補上。
-
-## 斜線命令
-
-| 命令 | 作用 |
-|---------|--------------|
-| `/brooks-review` | 貼上一段 diff，或讓 AI 指向改動的檔案。以 症狀 → 根源 → 後果 → 對策 的格式逐一診斷六類衰退風險。 |
-| `/brooks-audit` | 梳理模組相依（附 Mermaid 相依圖）、辨識循環相依，並檢查是否符合康威定律。 |
-| `/brooks-debt` | 按六類衰退風險對技術債分類，以 痛感 × 擴散面 打優先級，產出帶 Critical / Scheduled / Monitored 分級的償還路線圖。 |
-| `/brooks-test` | 對照六類測試空間衰退風險審查測試套件——測試晦澀、測試脆弱、測試重複、Mock 濫用、覆蓋率幻覺、架構錯配。 |
-| `/brooks-health` | 對全部四個品質維度做精簡掃描，產出一個加權綜合健康分。適合發版前或新團隊上手時使用。 |
-| `/brooks-sweep` | 一次性掃描 R1–R6、T1–T6 與架構，然後施加修復：安全改動自動套用，跨檔案改動需確認，架構決策標記為人工處理項。輸出修復日誌與健康分變化。 |
-
-**各平台語法。** Claude Code 也接受帶命名空間的完整形式 `/brooks-lint:brooks-review`——短命令由
-session-start 鉤子在首次工作階段啟動時自動安裝。Codex CLI 用 `$brooks-review`。Gemini CLI 與 OpenCode v2
-直接用上表。Cursor、Antigravity、pi、DeepSeek Harness 依據每個技能的 `description` 自動呼叫 Agent
-Skills，直接提問即可（「審查這個 PR」、「我們最糟的技術債在哪」）；需要顯式呼叫時用各平台自己的語法
-（pi 把每個技能註冊為 `/skill:brooks-review`；dsh 直接用上表，可從 `/` 選單挑或手打）。在所有平台上，
-當你討論程式碼品質、架構或測試健康時，這些技能也會自動觸發。
-
-> PR 審查會自動包含一個輕量的第 7 步快速測試檢查（對純文件 diff 會跳過）。需要完整的測試稽核請用
-> `/brooks-test`；需要某個維度的深度診斷時，請用該維度的專項技能，而不是 `/brooks-health`。
-
 ## 設定
-
-在專案根目錄放一個 `.brooks-lint.yaml` 來客製化審查行為：
 
 ```yaml
 version: 1
-
-strictness: balanced   # strict | balanced（預設）| legacy-friendly——對遺留程式碼更寬鬆的評分
-
-disable:
-  - T5   # 略過覆蓋率指標檢查——我們不強制覆蓋率
-
-severity:
-  R1: suggestion   # 在該領域下調「認知過載」診斷的嚴重度
-
+strictness: balanced
 ignore:
-  - "**/*.generated.*"
   - "**/vendor/**"
-
-# custom_risks:   # 定義專案專屬 Cx 風險碼——見 skills/_shared/custom-risks-guide.md
-# suppress:       # 按風險碼 + 路徑下調特定診斷（如已接受的遺留債務）
+sweep:
+  max_iterations: 3
+# Optional: deliberately omit a risk from this review.
+# disable:
+#   - T5
 ```
 
-可複製 [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) 作為起點。
-所有設定均為選用——完全省略該檔案即使用預設行為。
+從 [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml) 開始。共享約定定義嚴格度、嚴重度覆蓋、忽略路徑、`focus`/`disable`、自訂 `Cx` 風險和範圍化抑制。停用 T5 会主動省略其診斷；T5 不只是覆蓋率百分比檢查。詳見[設定與報告約定](skills/_shared/common.md)。
 
-| 設定 | 說明 |
-|---------|-------------|
-| `strictness` | 評分預設：`strict`、`balanced`（預設）或 `legacy-friendly`（更輕的扣分，並優先列出高槓桿修復項） |
-| `disable` | 要略過的風險碼（`R1`–`R6`、`T1`–`T6`） |
-| `severity` | 覆寫嚴重度等級（`critical` / `warning` / `suggestion`） |
-| `ignore` | 要排除的檔案 glob 模式 |
-| `focus` | 只評估這些風險碼（不能與 `disable` 同時使用） |
-| `custom_risks` | 定義專案專屬風險碼（`C1`、`C2`……）——見 [`custom-risks-guide.md`](skills/_shared/custom-risks-guide.md) |
-| `suppress` | 按風險碼 + 路徑下調特定診斷的嚴重度（可帶 `expires:` 到期日期） |
+## CI 是另一條執行路徑
 
----
-
-## 為什麼是這些書，為什麼是現在？
-
-> *「軟體的複雜性是本質屬性，而非偶然屬性。」*
-> —— Frederick Brooks
-
-AI 能幫你更快地寫程式，卻無法告訴你正在建造的是大教堂還是焦油坑——而生成越廉價，這些作者辨識出的
-衰退風險就越尖銳。接入 AI 助手並不能修復認知超載或領域模型失真；生成更多程式碼會加劇變更擴散和知識重複；
-跑得更快讓偶發複雜度和相依失序更加危險。
-
-## 專案結構
-
-每個技能都是一個 `SKILL.md`（觸發條件 + 流程骨架）加上它自己的指南：
-
-```
-brooks-lint/
-├── .claude-plugin/ · .codex-plugin/  # 各平台外掛中繼資料
-├── skills/
-│   ├── _shared/          # common.md（鐵律、設定、報告範本、健康分）
-│   │                     # source-coverage.md · decay-risks.md（R1–R6）
-│   │                     # test-decay-risks.md（T1–T6）· remedy-guide.md · custom-risks-guide.md
-│   ├── brooks-review/    # 模式 1：PR 審查      → pr-review-guide.md
-│   ├── brooks-audit/     # 模式 2：架構稽核     → architecture-guide.md、onboarding-guide.md
-│   ├── brooks-debt/      # 模式 3：技術債       → debt-guide.md
-│   ├── brooks-test/      # 模式 4：測試品質     → test-guide.md
-│   ├── brooks-health/    # 模式 5：健康儀表板   → health-guide.md
-│   └── brooks-sweep/     # 模式 6：全面掃描     → sweep-guide.md
-├── hooks/                # SessionStart 鉤子
-├── commands/             # 短命令包裝（由鉤子自動安裝）
-├── evals/                # 64 情境評測套件 + 凍結的 parser 保真度語料
-└── assets/               # logo、banner、demo
-```
-
-## CI/CD 整合
-
-用 GitHub Action 在每個 PR 上自動執行 brooks-lint：
+現有 GitHub Action 使用 **Anthropic 相容 API**，不使用 Codex 登錄額度。它只審查收集的 diff，沒有互動式儲存庫工具或修復能力；該歷史提供者路徑不屬於目前維護者的即時驗證範圍。以下是未來發布的原始碼版本模板；**標籤撤回期間不能直接執行**。若使用已發布版本，請改為 `v1.9.1` 並遵循其對應功能說明。
 
 ```yaml
-# .github/workflows/brooks-lint.yml
-name: Brooks-Lint PR Review
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-jobs:
-  brooks-lint:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          fail-below: 70
+# Source-version template only: this tag is currently withdrawn.
+- uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v1.10.0
+  with:
+    mode: review
+    anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-完整範本見 [`docs/github-action-example.yml`](docs/github-action-example.yml)。
+[執行器約定](docs/runner-contracts.md)與[完整工作流程模板](docs/github-action-example.yml)說明基礎分支設定、fork 限制、無效報告及權限。費用取決於提供者、模型和輸入，不承諾固定單次價格。
 
-該 Action 會把審查結果作為 PR 留言發布，並可在健康分跌破閾值時讓檢查失敗。若儲存庫中提交了 `.brooks-lint-history.json`，留言還會包含趨勢變化（如 "85 → 82（−3），近 3 次執行"）。
+## 開發與貢獻
 
-**CI 僅支援 `mode: review`。** 它審核收集到的 diff，不具備讀取檔案或修改程式碼的工具。GitHub PR 執行使用事件中的 base/head SHA；保留 `fetch-depth: 0`，確保兩個提交及其合併基點可用。空 diff 會標記為跳過且沒有分數；參照缺失或 diff 收集失敗則報錯。`audit`、`debt`、`test`、`health`、`sweep` 仍可在能存取專案的互動式 Agent 中使用。直接執行 CLI 時，可用 `--base-ref <ref> --head-ref <ref>` 指定比較範圍；`config-ref: base` 也會從該 base 讀取可信設定。參見[執行器約定](docs/runner-contracts.md)。
+離線驗證命令：
 
-**品質閘門與 Code Scanning。** 除 `fail-below` 外，該 Action 還提供：
-
-```yaml
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          fail-on: critical            # 出現任何 Critical 即失敗（none | warning | critical）
-          fail-on-regression: true     # 健康分較上次執行下降則失敗
-          sarif-file: brooks-lint.sarif  # 同時把診斷上傳到 GitHub Code Scanning
+```bash
+npm run validate
+npm test
+npm run evals
+npm run benchmark
+npm run evals:codex:validate
 ```
 
-`fail-on-regression` 讀取 `.brooks-lint-history.json`，因此提交該檔案即可強制「無新增回歸」。設定 `sarif-file` 會讓診斷直接顯示在 PR 的 **Files changed** 分頁，並需要 job 具備 `security-events: write` 權限。
+即時 Codex 評測必須明確選擇模型和預算；日常離線檢查不要執行歷史 Anthropic 評測。參見[貢獻指南](CONTRIBUTING.md)、[變更記錄](CHANGELOG.md)及[歷史示例](docs/gallery.md)。感謝貢獻者，包括在 [#44](https://github.com/hyhmrright/brooks-lint/pull/44) 提供原生 DSH 整合的 [@Sad-happy](https://github.com/Sad-happy)。
 
-**CI 中的專案設定。** action 會套用你的 `.brooks-lint.yaml`（`strictness`、`disable`、`focus`、`severity`、`ignore`、`custom_risks`），並且從選定的 **base 提交**讀取，而不是從 PR 的 checkout 讀取。因此 pull request 無法削弱審查它自己的政策：若某個 diff 停用了所有風險，它本會在該設定變更獲准之前就拿到 100 分並通過 `fail-below`。同理，PR 首次新增的設定也要等合併後才生效。報告中的 `Config:` 行會寫明所用來源（例如 `applied from base (<ref>)`）。這需要複本中存在 base 側的物件，所以範本使用 `fetch-depth: 0` 執行 checkout；在 PR 中，若缺少 base 參照，action 會報錯並提示使用 `fetch-depth: 0`，絕不會回退到 PR 自己的政策。本機暫存或未暫存變更審核未明確指定 base 時，若預設 base 參照不可用，可回退到工作目錄設定並註明來源；明確指定的 base 缺失則一律報錯。設定 `config-ref: head` 可改用 PR 自己的副本 —— 適用於 `.brooks-lint.yaml` 已受 CODEOWNERS 保護、且希望設定變更在提出它的 PR 中立即生效的情況：
-
-```yaml
-        with:
-          mode: review
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          config-ref: base   # base (default) | head
-```
-
-**自訂 API 端點。** `api-base-url` 讓 action 改為呼叫任意 Anthropic 相容的 `/v1/messages` 端點 —— 自建代理、LLM 閘道或區域鏡像 —— 而不是 `api.anthropic.com`。把該端點的金鑰作為 `anthropic-api-key` 傳入，把它預期的模型 id 作為 `model` 傳入：
-
-```yaml
-        with:
-          mode: review
-          api-base-url: https://your-gateway.example.com
-          anthropic-api-key: ${{ secrets.GATEWAY_API_KEY }}
-          model: gateway-model-id
-```
-
-brooks-lint 會把你的 diff 傳送到這裡填寫的主機，因此只應指向你信任其接觸原始碼的一方。自己執行 `scripts/ci-review.mjs` 完全不需要參數 —— Anthropic SDK 會直接讀取 `ANTHROPIC_BASE_URL`。
-
-**Amazon Bedrock 上的 Claude。** Bedrock 原生提供 [Anthropic Messages API](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-messages-api.html)，因此不需要任何新的用戶端：把 `api-base-url`（需要 action `v1.6.0`+）指向 `https://bedrock-runtime.{region}.amazonaws.com/anthropic`，並把一個短期 [Bedrock API 金鑰](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html)作為 `anthropic-api-key` 傳入 —— 該金鑰在 job 內由透過 OIDC 擔任的角色現簽，因此不必把長期金鑰存進 secret。完整接線以註解步驟的形式放在 [`docs/github-action-example.yml`](docs/github-action-example.yml) 裡：擔任角色、簽發權杖、模型 id、所需的 IAM 權限，以及 `bedrock-mantle` 備選端點。上面那條關於信任的提醒依然成立 —— 走 Bedrock 時，diff 送往的是你自己指定區域裡的你自己的 AWS 帳戶。
-
-**這條路無法審查來自 fork 的 pull request。** GitHub 既不會把倉庫 secret、也不會把 `id-token: write` 授予 fork 的 `pull_request` 執行，於是既沒有可換取角色的 OIDC 權杖，也沒有可退而使用的既存金鑰。要涵蓋 fork，需要換用別的觸發方式（`pull_request_target`，並付出針對不受信任分支執行所需的全部謹慎），或換一個金鑰來源。
-
-**輸出上限與無效報告。** `max-tokens: 8192` 可提高報告輸出上限（預設 4096）。截斷或結構無效的報告會使執行失敗，不會提供可通過閘門的分數；遇到截斷請提高上限後重跑。跳過的執行使用 `score: null`，Action 會跳過分數門檻與 SARIF 上傳，不會把缺失分數轉換成 0。
-
-**成本：** 每次 PR 執行約 $0.05–0.15，取決於 diff 大小和模型。建議僅在 `pull_request` 事件上執行。
-
-## 路線圖
-
-**當前狀態（v1.4）：** 12 本書地基，6 類生產衰退風險（R1–R6）+ 6 類測試衰退風險（T1–T6），6 個技能，
-CI 品質閘門、面向 GitHub Code Scanning 的 SARIF 輸出、嚴格度預設，以及一個可復現的 parser 保真度基準。
-
-<details><summary>里程碑 v0.2 → v1.4</summary>
-
-- **v0.2–v0.4**：外掛基礎設施、六本書框架、衰退風險維度、基準套件
-- **v0.5–v0.7**：測試品質審查、Mermaid 相依圖、`.brooks-lint.yaml`、擴展到 10 本書
-- **v0.8–v0.9**：獨立技能架構；步驟驗證、自動 diff 範圍、`/brooks-health`、趨勢追蹤、分診模式、`--fix` 對策、GitHub Action
-- **v1.0–v1.2**：評測自動化、自訂 `Cx` 風險碼、全面掃描技能、`npm run bump` 版本傳播
-- **v1.3**：Codex 市集中繼資料、多平台一鍵安裝腳本、多語 README + 著陸頁
-- **v1.4**：SARIF 輸出、CI severity + 迴歸閘門、嚴格度預設、57 情境 eval 套件、`npm run benchmark`
-</details>
-
-## 貢獻
-
-見 [CONTRIBUTING.md](CONTRIBUTING.md)。現在最有價值的貢獻是新的評測用例和更好的衰退風險症狀模式。
-在你自己的 PR 上跑一遍 `/brooks-review`——我們用正在打造的工具來審查貢獻。
-
-## 授權條款
-
-MIT License——詳見 [LICENSE](LICENSE)。
-
-## 致謝
-
-本專案站在十二位巨人的肩膀上——完整書單與版本見上面的[十二本書](#十二本書)。本工具中編碼的衰退風險，
-是我們對他們思想的綜合，並應用於現代程式碼品質評估。
-
----
-
-## Star 歷史
+MIT — [授權條款](LICENSE)。
 
 [![Star History](assets/star-history.svg)](https://github.com/hyhmrright/brooks-lint/stargazers)
-
----
-
-<p align="center">
-  <strong>⭐ 如果這個工具讓你以不同的眼光看待自己的程式碼庫，請給它點個 star！</strong>
-</p>
