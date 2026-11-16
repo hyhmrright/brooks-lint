@@ -6,6 +6,43 @@ versions match the current source tree. It does not authorize further model call
 release. Different tasks, arms, rubrics, instruction revisions and execution
 channels must not be merged into one accuracy number.
 
+## Six skills: where to start and what changed
+
+Choose a skill for the work you need to deliver. The intended outputs below
+explain the workflow contract; they are not additional measured wins. All six
+skills have comparison evidence, but not all show an incremental benefit.
+
+| Skill | Useful deliverable | Experiment and baseline | Baseline → skill | What the change supports |
+| --- | --- | --- | ---: | --- |
+| [review](#review) | Contract-grounded findings with a discriminating witness | E1, generic checklist | 6/6 → 6/6 | No additional primary passes |
+| [audit](#audit) | Dependency and ownership diagnosis across boundaries | E1, generic checklist | 6/6 → 6/6 | No additional primary passes |
+| [test](#test-the-difference-and-the-correction) | A faulty implementation and the assertion that exposes it | E1, generic checklist | 5/6 → 6/6 | One additional primary pass, BV5-23 |
+| [debt](#debt--older-case-only-baseline) | Prioritized maintenance work and a scoped repayment step | E2, older case-only baseline | 11/15 → 12/15 | One additional complete-supported answer; no recall or ranking gain established |
+| [health](#health--adverse-result-remains-visible) | A dashboard tied to one ledger and explicit evidence scope | E3, generic checklist | 15/18 → 10/18 | Five fewer behavioral passes; excessive abstention; post-fix efficacy still untested |
+| [sweep](#sweep--advantage-limited-to-one-family) | Authorized repairs, executed checks and a bounded stop report | E3, generic checklist | 15/18 → 18/18 | Three additional behavioral passes, all repeats in one priority-routing family |
+
+**Read each comparison within its experiment.** E1 is the 36-answer focused
+study: six cases per skill, one response per arm and case. E2 is the older
+all-skills campaign: five debt cases with three repetitions per arm, scored for
+complete-supported answers against a case-only baseline. E3 is the 72-answer
+health/sweep capability study: 18 answers per skill and arm, clustered in four
+development-authored families across the two skills. E1 and E3 count behavioral
+passes under their respective frozen rubrics; E2 uses a different measure.
+There is no combined six-skill accuracy or cross-experiment ranking.
+
+All three studies selected `gpt-6.1-terra / low` through the CLI. CLI versions,
+instruction revisions, grading details and frozen evidence are recorded in each
+section below. Small, reused development cases and non-independent grading
+limit claims about unseen projects. Current health arithmetic/delivery checks
+verify product behavior, not a reversal of its adverse efficacy result.
+
+For a first trial, use a small real diff, dependency boundary or test suite you
+already understand. Ask for a concrete witness, inspect its governing contract,
+and run the proposed check when appropriate. For health, inspect the ledger and
+unknowns rather than treating a score as diagnostic truth. For sweep, give an
+authorized scope and a repair budget, then inspect the actual diff and executed
+checks. These are adoption suggestions, not another benchmark dataset.
+
 ## Product checks on main
 
 | Check | Scope | Does not establish |
