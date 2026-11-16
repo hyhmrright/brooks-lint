@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import {performance} from 'node:perf_hooks';import {fileURLToPath} from 'node:url';
+import {anchored,validate,hash,read,write,root} from './suite.mjs';
+import {runLoginTurn,verifyToolchain,selectedAnswer} from './login-turn.mjs';
+
+
+import {diagnose} from './diagnostics.mjs';
+
+
+
+
+import {proxyBinding} from '../health-transport-v3/probe.mjs';
+
+export function prompt(f,row){return f.cases.find(c=>c.id===row.id).prompts[row.arm].text;}
+const count=r=>Number.isSafeInteger(r.usage?.total?.totalTokens)&&r.usage.total.totalTokens>=0?r.usage.total.totalTokens:null;
+const retry=r=>r.transport_retry_observed||(r.events??[]).some(e=>e.method==='error'&&e.params?.willRetry);
+export function validateRaw(f,row,raw,{simulation=false}={}){
+ assert.equal(raw.simulation,simulation);assert.equal(raw.scope,'focused-skill-recovery');assert.equal(raw.account_only,false);assert.equal(raw.source_sha256,f.recoverySources['login-turn.mjs']);assert.equal(raw.prompt,prompt(f,row));assert.equal(raw.requested_model,f.model);assert.equal(raw.requested_effort,f.effort);assert.equal(raw.enableScoreTool,false);
+ assert.equal(raw.proxy_mode,simulation?'none':'explicit-environment');
+ if(raw.status==='completed'){assert(!retry(raw),'Retry observed');assert.equal(raw.cli_selected_model,f.model);assert.equal(raw.cli_selected_effort,f.effort);assert.equal(raw.cli_version,f.cliVersion);assert(raw.cleanup?.closed&&raw.cleanup.group_absent&&raw.cleanup.private_home_removed,'Cleanup incomplete');assert.equal(raw.answer,selectedAnswer(raw.events,raw.thread_id,raw.turn_id).text);assert(raw.answer?.trim());if(!simulation){assert.equal(raw.auth_type,'chatgpt');assert.equal(raw.cleanup.observations.at(-1)?.status,'ESRCH');assert.deepEqual(raw.requests.map(r=>r.method),['initialize','account/read','thread/start','turn/start']);assert.deepEqual(raw.account_rpc,{status:'ok',code:null});assert.deepEqual(raw.toolchain,f.binding.toolchain);}}
+ assert.deepEqual(raw.tool_calls,[],'No tools authorized in this comparison');
+ return true;
+}
+function stopReason(f,row,raw,simulation){
+ if(retry(raw))return 'transport-retry';
+ if(raw.status!=='completed')return 'execution-failure';
+ if(count(raw)===null)return 'usage-unavailable';
+ try{validateRaw(f,row,raw,{simulation});}catch{return 'verification-failure';}
+ return null;
+}
+export function admit(f){assert.deepEqual(proxyBinding(),f.binding.proxy,'Proxy drift');verifyToolchain(f.binding.executable,f.binding.toolchain);}
+export async function recordAdmission(out,planSha256,task){
+ assert(!fs.existsSync(out),'Fresh output required');fs.mkdirSync(out,{recursive:true,mode:0o700});
+ const record={planSha256,startedAt:new Date().toISOString(),status:'preflight',modelTurnRequests:0};
+ const save=()=>fs.writeFileSync(path.join(out,'admission.json'),JSON.stringify(record,null,2)+'\n',{mode:0o600});save();
+ try{await task();record.status='admitted';record.completedAt=new Date().toISOString();save();}
+ catch(error){record.status='stopped';record.error=String(error.message??error);record.completedAt=new Date().toISOString();save();throw error;}
+}
+export async function execute(f,out,{live=false,inject,scenario='success',clock=()=>performance.now()}={}){
+ validate(f);const simulation=typeof inject==='function';assert.equal(live,!simulation,'Explicit live mode or offline injection required');
+ await recordAdmission(out,f.sha256,async()=>{write(path.join(out,'plan.json'),f);if(live){assert.equal(f.sha256,anchored(f.stage).sha256);assert.equal(scenario,'success');admit(f);}});
+ const start=clock(),wall=Date.now(),elapsed=()=>Math.max(clock()-start,Date.now()-wall);const state={planSha256:f.sha256,simulation,scenario:simulation?scenario:null,startedAt:new Date().toISOString(),observedTokens:0,prior:f.prior,stopped:null,records:f.schedule.map(x=>({...x,status:'not-run',raw:null,observedTokens:null,finishedElapsedMs:null}))};const save=()=>{state.elapsedMs=Math.ceil(elapsed());fs.writeFileSync(path.join(out,'execution.json'),JSON.stringify(state,null,2)+'\n',{mode:0o600});};save();
+ for(const row of state.records){
+  try{validate(f);if(live)admit(f);}catch{state.stopped='admission-drift';break;}
+  const admissionElapsedMs=Math.ceil(elapsed()),remaining=f.budget.totalMs-admissionElapsedMs;if(remaining<=0||state.observedTokens>=f.budget.observedTokens){state.stopped='budget';break;}
+  const timeoutMs=Math.min(f.budget.turnMs,remaining),folder=String(row.ordinal).padStart(3,'0'),dir=path.join(out,folder);
+  write(path.join(out,'intent-'+folder+'.json'),{planSha256:f.sha256,simulation,ordinal:row.ordinal,promptSha256:hash(prompt(f,row)),admissionElapsedMs,timeoutMs});let raw,file='record.json';
+  try{raw=simulation?await inject(f,row,{timeoutMs,scenario}):await runLoginTurn({model:f.model,effort:f.effort,cliVersion:f.cliVersion,executable:f.binding.executable,toolchain:f.binding.toolchain,live:true,inheritProxy:true,enableScoreTool:false,prompt:prompt(f,row),out:dir,timeoutMs});if(simulation){fs.mkdirSync(dir,{recursive:true});write(path.join(dir,file),raw);}}
+  catch(error){fs.mkdirSync(dir,{recursive:true});file='setup-failure.json';raw={status:'failed',simulation,answer:'',error:'Setup/archive failure; no subsequent calls'};write(path.join(dir,file),raw);}
+  write(path.join(dir,'routing-diagnostic.json'),diagnose(raw));row.finishedElapsedMs=Math.ceil(elapsed());row.raw=folder+'/'+file;row.rawSha256=hash(fs.readFileSync(path.join(out,row.raw)));write(path.join(dir,'receipt.json'),{file,sha256:row.rawSha256});state.stopped=stopReason(f,row,raw,simulation);row.status=state.stopped?'failed':'completed';row.observedTokens=count(raw);if(row.observedTokens!==null)state.observedTokens+=row.observedTokens;
+  if(!state.stopped){const c=f.cases.find(c=>c.id===row.id);const evidence=await candidateEvidence(c,raw,{out:path.join(dir,'candidate'),simulation});row.candidate=evidence;row.finishedElapsedMs=Math.ceil(elapsed());if(evidence.infrastructureError||evidence.cleanupConfirmed===false)state.stopped='candidate-isolation-failure';}save();if(state.stopped)break;
+ }
+ state.completedAt=new Date().toISOString();save();return summary(state);
+}
+export function summary(s){return {priorAttempts:s.prior.attempts,lifetimeAttempts:s.prior.attempts+s.records.filter(r=>r.status!=='not-run').length,cumulativeObservedTokens:s.prior.observedTokens+s.observedTokens,cumulativeElapsedMs:s.prior.elapsedMs+s.elapsedMs,simulation:s.simulation,attempted:s.records.filter(r=>r.status!=='not-run').length,completed:s.records.filter(r=>r.status==='completed').length,failed:s.records.filter(r=>r.status==='failed').length,notRun:s.records.filter(r=>r.status==='not-run').length,observedTokens:s.observedTokens,elapsedMs:s.elapsedMs,stopped:s.stopped};}
+export function verify(out){const f=read(path.join(out,'plan.json'));validate(f);assert.equal(f.sha256,anchored(f.stage).sha256);const s=read(path.join(out,'execution.json'));const admission=read(path.join(out,'admission.json'));assert.equal(admission.planSha256,f.sha256);assert.equal(admission.status,'admitted');assert.equal(admission.modelTurnRequests,0);assert.equal(s.planSha256,f.sha256);assert.deepEqual(s.prior,f.prior);assert.equal(typeof s.simulation,'boolean');assert(s.completedAt,'Run has not ended');assert(Number.isFinite(Date.parse(s.startedAt))&&Number.isFinite(Date.parse(s.completedAt)));const wallElapsed=Date.parse(s.completedAt)-Date.parse(s.startedAt);assert(wallElapsed>=0);if(!s.simulation)assert(Math.abs(s.elapsedMs-wallElapsed)<=1000,'Execution elapsed/wall timestamp mismatch');assert.equal(s.records.length,f.schedule.length);assert(Number.isSafeInteger(s.elapsedMs)&&s.elapsedMs>=0);let tokens=0,closed=false,reason=null,lastFinished=0,notRun=0;const records=[];
+ for(const [i,row] of s.records.entries()){for(const k of ['ordinal','id','arm','repeat'])assert.equal(row[k],f.schedule[i][k]);assert(['not-run','completed','failed'].includes(row.status));if(row.status==='not-run'){closed=true;notRun++;assert.equal(row.raw,null);assert.equal(row.observedTokens,null);assert.equal(row.finishedElapsedMs,null);continue;}assert(!closed,'Execution after stop');assert(tokens<f.budget.observedTokens,'Admission after token ceiling');const folder=String(row.ordinal).padStart(3,'0'),receipt=read(path.join(out,folder,'receipt.json'));assert(['record.json','setup-failure.json'].includes(receipt.file));assert.equal(row.raw,folder+'/'+receipt.file);const bytes=fs.readFileSync(path.join(out,row.raw));assert.equal(hash(bytes),row.rawSha256);assert.equal(receipt.sha256,row.rawSha256);const raw=JSON.parse(bytes);assert.deepEqual(read(path.join(out,folder,'routing-diagnostic.json')),diagnose(raw),'Routing diagnostic drift');const intent=read(path.join(out,'intent-'+folder+'.json'));assert.equal(intent.planSha256,f.sha256);assert.equal(intent.ordinal,row.ordinal);assert.equal(intent.simulation,s.simulation);assert.equal(intent.promptSha256,hash(prompt(f,row)));assert(Number.isSafeInteger(intent.admissionElapsedMs)&&intent.admissionElapsedMs>=lastFinished&&intent.admissionElapsedMs<f.budget.totalMs,'Invalid admission time');assert.equal(intent.timeoutMs,Math.min(f.budget.turnMs,f.budget.totalMs-intent.admissionElapsedMs),'Intent does not bind remaining deadline');assert(Number.isSafeInteger(row.finishedElapsedMs)&&row.finishedElapsedMs>=intent.admissionElapsedMs&&row.finishedElapsedMs<=s.elapsedMs,'Invalid finish time');lastFinished=row.finishedElapsedMs;if(receipt.file==='record.json'){assert.equal(raw.limits?.turn_ms,intent.timeoutMs,'Raw timeout differs from intent');if(!s.simulation){assert(Number.isFinite(Date.parse(raw.started_at))&&Number.isFinite(Date.parse(raw.completed_at)));assert(Date.parse(raw.started_at)>=Date.parse(s.startedAt)+intent.admissionElapsedMs-1000);assert(Date.parse(raw.completed_at)<=Date.parse(s.startedAt)+row.finishedElapsedMs+1000);if(raw.status==='completed'){assert(Number.isFinite(raw.timing?.completed_elapsed_ms));assert(raw.timing.completed_elapsed_ms<=intent.timeoutMs+3000+1000,'Completed turn exceeded deadline');}}}assert.equal(raw.simulation,s.simulation);assert((raw.requests??[]).filter(r=>r.method==='turn/start').length<=1,'Multiple model submissions');reason=stopReason(f,row,raw,s.simulation);assert.equal(row.status,reason?'failed':'completed');assert.equal(row.observedTokens,count(raw));if(row.observedTokens!==null)tokens+=row.observedTokens;
+ if(!reason){assert(row.candidate,'Missing candidate result');verifyCandidate(f.cases.find(c=>c.id===row.id),raw,row.candidate,out,row.ordinal,s.simulation);if(row.candidate.infrastructureError||row.candidate.cleanupConfirmed===false)reason='candidate-isolation-failure';}if(reason){closed=true;assert.equal(s.stopped,reason);}records.push({...row,answer:raw.answer??'',raw});}
+ assert.equal(tokens,s.observedTokens);assert([null,'budget','admission-drift','transport-retry','execution-failure','usage-unavailable','verification-failure','candidate-isolation-failure'].includes(s.stopped));if(!reason&&notRun)assert(['budget','admission-drift'].includes(s.stopped));if(!reason&&!notRun)assert.equal(s.stopped,null,'Complete run has inconsistent stop reason');if(s.stopped==='budget')assert(tokens>=f.budget.observedTokens||s.elapsedMs>=f.budget.totalMs);return {f,state:s,records};}
+
+export async function candidateEvidence(){return {kind:'not-applicable',cleanupConfirmed:true};}
+export function verifyCandidate(c,raw,r){assert.deepEqual(r,{kind:'not-applicable',cleanupConfirmed:true});}
+
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){const[cmd,stage,out,...flags]=process.argv.slice(2);if(cmd==='execute'){assert.equal(flags[0],'--live');assert.equal(flags.length,1);console.log(JSON.stringify(await execute(anchored(stage),out,{live:true})));}else if(cmd==='verify'){assert.equal(flags.length,0);const r=verify(out);assert.equal(r.f.stage,stage);console.log(JSON.stringify(summary(r.state)));}else throw Error('execute recovery FRESH_OUT --live | verify STAGE OUT');}
