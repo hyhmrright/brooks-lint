@@ -18,6 +18,8 @@ All notable changes to brooks-lint are documented here.
 
 ### Changed
 
+- Rewrite all six READMEs and related onboarding, website and contributor documentation around current skill behavior, source-versus-published version status and bounded evaluation evidence; remove obsolete capability guarantees (#47).
+
 - Require evidence of impact for Critical severity and explicit literal severity labels; archive controlled calibration and repeated fixed-rubric comparisons with timeout/recovery provenance and stated limitations.
 - Simplify review, audit and test guidance around governing contracts, causal diagnosis, discriminating witnesses and honest verification limits. Keep all six skills without claiming general superiority over a generic checklist (#46).
 - Bound every sweep repair round, including Critical-only rounds, honor existing edit authorization and make stop reasons and input scope explicit. Sweep and health share the final dashboard contract; legacy score parsing remains compatible (#46).
