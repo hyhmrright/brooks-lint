@@ -2,6 +2,27 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [1.10.0] - 2026-11-16
+
+### Added
+
+- Deterministic health dashboard scoring from one finding ledger, explicit unknown-dimension handling, finalized-report receipts and exact-delivery verification tools, with standalone installation and regression coverage (#46).
+- Paired, isolated Codex skill-versus-baseline behavioral evaluations with grounded semantic judging, seven fixtures, offline CI validation and archived exploratory evidence. Live runs remain opt-in; model judging is not independent human validation.
+- Project-owned DSH Discover market index backed by the published npm artifact and registry timestamp; discovery keywords are retained in the official metadata field. The index remains pinned to the verified published artifact until its next post-publication refresh.
+- Offline repository health baseline and bounded release-candidate scope, dependency and QA documentation.
+
+### Fixed
+
+- Parse standard score formats, custom risk codes and title-level severity labels; reject malformed or ambiguous evaluation reports and align runner capabilities, diff collection and trusted PR base-policy handling. Structural coverage now contains 64 cases with offline contract regressions.
+- Make health report delivery byte-consistent with the finalized ledger and receipt, including terminal-newline regressions. The checks verify supplied artifacts, not diagnostic truth or later UI rendering (#46).
+
+### Changed
+
+- Require evidence of impact for Critical severity and explicit literal severity labels; archive controlled calibration and repeated fixed-rubric comparisons with timeout/recovery provenance and stated limitations.
+- Simplify review, audit and test guidance around governing contracts, causal diagnosis, discriminating witnesses and honest verification limits. Keep all six skills without claiming general superiority over a generic checklist (#46).
+- Bound every sweep repair round, including Critical-only rounds, honor existing edit authorization and make stop reasons and input scope explicit. Sweep and health share the final dashboard contract; legacy score parsing remains compatible (#46).
+- Preserve research campaigns on the research branch while shipping only product dependencies and compact historical regression fixtures with provenance. Synchronize release versions across plugin manifests, translated READMEs, Action examples and site metadata.
+
 ## [1.9.1] - 2026-10-24
 
 This release unifies GitHub and npm at 1.9.1. The withdrawn npm 1.9.0 is not

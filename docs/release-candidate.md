@@ -60,3 +60,11 @@ manifests/README translations/examples, write the changelog and verify GitHub
 metadata. Push that exact release commit, wait for all Validate jobs and run
 `npm run release:ci`. A release request is still required for tags/publication.
 No merge, version bump, tag, publication or model run is part of preparation.
+
+## Release preparation update
+
+PR #46 was merged as `231512e`. Release 1.10.0 is prepared from the full
+unreleased backlog, with the eight non-exempt commits accounted for in
+`release-1.10.0-audit.md`. The candidate-stage 1.9.1 hold above is historical;
+the maintainer subsequently authorized release after exact-commit CI and
+`release:ci`. Research records remain preserved at `17bd333`.
