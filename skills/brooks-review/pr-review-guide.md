@@ -1,162 +1,113 @@
 # PR Review Guide — Mode 1
 
-**Purpose:** Analyze a code diff or specific files for decay risks that are directly visible
-in the changed code. Every finding must follow the Iron Law: Symptom → Source → Consequence → Remedy.
-
----
+**Purpose:** Diagnose decay in a diff or supplied files. Every finding follows the
+Iron Law: Symptom → Source → Consequence → Remedy. Use `common.md` for severity,
+scoring and report format; use the risk definitions for source attribution.
 
 ## Before You Start
 
-**Auto-generated files:** If the diff contains generated files (protobuf stubs, OpenAPI clients,
-ORM migrations, lock files, minified bundles), skip those files entirely. Generated code reflects
-tool choices, not developer decisions. Note in the report which files were skipped and why.
-
-**Scope calibration:** Adjust analysis depth based on PR size before starting.
-
-| PR Size | Approach |
-|---------|----------|
-| < 50 lines | Focus on Steps 1–3 only; run Step 6a only if imports changed; run Step 6b if any class, method, or variable was renamed or introduced |
-| 50–300 lines | Full process, all steps |
-| > 300 lines | Full process; note in the Scope line that review is sampled — cover the highest-risk areas rather than every file |
-
-For PRs > 500 lines: flag in the Summary that a PR this size is itself a Change Propagation signal. A change that cannot be reviewed in one pass suggests tangled responsibilities.
-
----
+Skip generated artifacts; inspect their authored generator/configuration if that
+is the review target. Record exclusions and any sampling. Prioritize changed
+behavior, callers and protection for large diffs. Size, file count, nesting and
+parameter counts are inspection cues, not findings by themselves. A small diff
+can change a system contract; do not omit applicable risk or test checks by size.
 
 ## Analysis Process
 
-Work through these seven steps in order. Do not skip steps.
+### Step 1: Establish the contract and a discriminating witness
 
-### Step 1: Understand the scope
+Identify the change's purpose, reviewed boundary and available evidence. A diff,
+complete module and complete test inventory support different conclusions; omitted
+files are not absent files. Read relevant callers and tests when available.
 
-Read the diff or files and answer:
-- What is the stated purpose of this change?
-- Which files were modified?
-- Flag immediately if the PR changes more than 10 unrelated files — that itself is a
-  🟡 Warning: Change Propagation (a PR that touches many unrelated things is a sign
-  that responsibilities are tangled).
+For each candidate behavioral defect, keep this short evidence chain:
+
+1. **Obligation:** cite the governing behavior and who owns it. Separate input
+   preconditions from work this function must perform. Ambiguous wording is not
+   permission to invent normalization, validation or ordering duties.
+2. **Trace:** give one permitted input/sequence through the relevant calls, with
+   expected versus actual output, state or interaction. Choose a witness that
+   distinguishes the suspected cause from a plausible competing explanation.
+3. **Repair check:** state the smallest correction and a regression assertion
+   that fails before and passes after it; preserve behavior outside the defect.
+
+Show executable assertions or precise existing-test references where useful.
+Label outcomes as executed or statically predicted. A plausible counterexample
+outside the known input domain is an investigation item, not a scored finding.
+If an obligation is unknown, show the alternative contracts and resulting verdicts
+without a deduction. Retain supported local conclusions alongside that uncertainty.
+For structural findings, use an evidenced change/maintenance consequence instead
+of inventing a runtime failure. Keep witnesses in the final report, not only notes.
 
 ### Step 2: Scan for Change Propagation
 
-*Scan this first — it is the most visible risk in a diff.*
-
-Look for:
-- Does this change touch files in modules that have no conceptual connection to the stated purpose?
-- Does any modified class change for more than one business reason in this diff?
-- Does any method use more data from another class than from its own?
-
-If the diff shows no cross-module changes beyond what the feature requires → skip, no finding.
+Trace which responsibilities must change together and why. Unrelated edits,
+multiple business reasons and feature envy are cues. Retain R2 only when a
+specific decision crosses boundaries unnecessarily; feature breadth or a large
+file count alone does not establish coupling. State which owners would change
+under the remedy and which should remain stable.
 
 ### Step 3: Scan for Cognitive Overload
 
-Look for:
-- Are any new or modified functions longer than 20 lines?
-- Is there nesting deeper than 3 levels in new or modified code?
-- Are there more than 4 parameters in any new function signature?
-- Are there magic numbers or unexplained constants in new code?
-- Do new variable or function names require reading the implementation to understand?
-- Are there train-wreck chains (3+ method calls chained)?
+Inspect long/nested routines, many parameters, unexplained constants and unclear
+names. Identify the actual reasoning burden or hidden state needed to understand
+the changed behavior. Count thresholds are cues; fluent chains, cohesive routines
+and domain-required complexity are not defects merely for exceeding a number.
 
 ### Step 4: Scan for Knowledge Duplication
 
-Look for:
-- Does this change introduce logic that already exists elsewhere in the codebase?
-- Does this change introduce a new name for a concept that already has a name?
-- Does this change add a class to a hierarchy that has a parallel in another module?
+Look for the same decision encoded in multiple places, competing names for one
+concept or parallel hierarchies. Establish shared ownership and a coordinated
+change that would diverge. Similar syntax with independent policies is not enough.
 
 ### Step 5: Scan for Accidental Complexity
 
-Look for:
-- Does this change add an abstraction with only one concrete use?
-- Does this change add a class that only wraps another class or delegates everything?
-- Does this change add configuration options or extension points that serve no current requirement?
+Inspect speculative abstractions, delegation-only layers and unused extension
+points. Explain the indirection cost and the requirement a simpler design still
+satisfies. One implementation alone does not disprove a useful boundary.
 
 ### Step 6a: Scan for Dependency Disorder
 
-- Do any new imports create a dependency from a high-level module to a low-level one?
-  (e.g., domain service now imports a database driver or HTTP client)
-- Do any new imports introduce a cycle between modules?
-- Does any new interface force callers to depend on methods they do not use?
-
-If no new imports and no structural changes → skip, no finding.
+When imports or structure change, trace new cycles, domain-to-infrastructure
+coupling and interfaces that expose unrelated obligations. Establish module roles
+and dependency rules before scoring; a filename or import arrow alone is not a
+violation. Show the affected edge and a scoped replacement boundary.
 
 ### Step 6b: Scan for Domain Model Distortion
 
-- Do new class or variable names match the language the business uses for the same concept?
-- Does any new class hold only data with no behavior (pure data bag), where behavior was expected?
-- Does any new method put logic that belongs to the domain in a service or utility layer?
+Check introduced names, invariants and behavior ownership against the supplied
+domain vocabulary. Data-only records or utility functions are not inherently
+wrong; identify the invariant that the present owner fails to protect.
 
 ### Step 7: Quick Test Check
 
-*Run this last. Three signals only — this is not a full Mode 4 review.*
+Skip for generated/configuration/documentation-only changes with no production
+logic change. This is a bounded check, not a complete test audit:
 
-If the diff contains only generated files, configuration, or documentation with no
-production logic changes → skip Step 7 entirely.
+- **Coverage Illusion (T5):** inspect protection for changed behavior, including
+  unchanged tests. Retain a gap only when an established obligation and inspected
+  inventory support a meaningful escaping regression. Show that regression and
+  the proposed assertion's before/after outcome. Unknown other tests do not justify
+  a separate missing-test deduction. A test suggestion for a code defect is not
+  automatically another finding. Arbitrary hardcoding that fits finite examples
+  is not sufficient evidence of an actionable gap. Source: Feathers, *Working
+  Effectively with Legacy Code*, Ch. 1.
+- **Mock Abuse (T4):** in changed tests, trace whether setup or mock interactions
+  replace verification of the required behavior. Call assertions can be correct
+  when the interaction itself is the contract; mock counts alone prove nothing.
+  Source: Osherove, *The Art of Unit Testing*, mock usage guidelines.
+- **Test Obscurity (T1):** show what failure or setup is hard to interpret. Multiple
+  assertions or missing message strings alone are not enough when the runner
+  identifies the failed expectation. Source: Meszaros, *xUnit Test Patterns*,
+  Assertion Roulette.
 
-**Signal 1: Do tests exist for the changed behavior?**
-
-- Does the diff modify production code?
-- Are corresponding test file changes included in the diff?
-- If new public behavior was added with no new tests:
-  → 🟡 Warning: Coverage Illusion — new behavior is untested
-  → Source: Feathers — Working Effectively with Legacy Code, Ch. 1
-- If the change is a pure refactor and existing tests cover the behavior → no finding.
-
-**Signal 2: Quick Mock Abuse sniff**
-
-Only check if the diff includes test file changes.
-
-- Is mock setup code in new/modified tests obviously longer than the test logic?
-- Are the primary assertions `expect(mock).toHaveBeenCalledWith(...)` with no behavior verification?
-- Does the diff add any methods to production classes that are only called from test files?
-
-If any of these are true:
-  → 🟡 Warning: Mock Abuse — test complexity exceeds behavior complexity
-  → Source: Osherove — The Art of Unit Testing, mock usage guidelines
-
-**Signal 3: Quick Test Obscurity sniff**
-
-Only check if the diff includes test file changes.
-
-- Do new test names express scenario and expected outcome?
-  (Pattern: `methodName_scenario_expectedResult` or equivalent)
-- Are there new tests with multiple assertions and no message strings on any of them?
-
-If test names are vague or assertions lack messages:
-  → 🟢 Suggestion: Test Obscurity — test intent is unclear from the test name or assertions
-  → Source: Meszaros — xUnit Test Patterns, Assertion Roulette (p.224)
-
-**Output rule:**
-
-If all three signals are clean → write no Test findings. Proceed directly to the report.
-
-If findings exist → add them to the Findings section using the standard Iron Law format.
-Label the risk as the test decay risk name (e.g., "Coverage Illusion", "Mock Abuse",
-"Test Obscurity").
-
-> **Note:** Step 7 is a fast check, not a full test audit. When systemic test problems
-> are found, note in the Summary: "Consider running `/brooks-lint:brooks-test` for a
-> complete test quality diagnosis."
-
----
-
-## Severity Calibration
-
-Apply the Iron Law and Severity Calibration from `../_shared/common.md` first.
-Use risk-specific guides and numeric thresholds as diagnostic signals, then assign
-severity from the evidenced consequence and affected scope. Current production risk
-or lost velocity alone does not establish Critical: identify serious impact and
-relevant exposure. A bounded defect or meaningful changed-behavior test gap normally
-warrants Warning; a local protection improvement may warrant Suggestion. Do not
-invent future feature pressure or release urgency to promote a finding.
-
-When multiple findings exist, list Critical items first. If there are more than 5 findings,
-add a one-line "Recommended fix order" at the end of the Findings section.
-
----
+Emit no test findings when protection is adequate. For systemic issues, recommend
+`/brooks-lint:brooks-test`. Do not double-count one cause across production and test
+findings unless each has an independently supported consequence and remedy.
 
 ## Output
 
-Use the standard Report Template from `../_shared/common.md`.
-Mode: PR Review
-Scope: list the files reviewed (excluding skipped generated files).
+Use the Report Template from `../_shared/common.md`, Mode: PR Review. Scope names
+the reviewed files and limitations. Rank retained findings by evidenced severity;
+if more than five remain, give a short fix order. Prefer a few complete causal
+findings over a checklist of unproved smells.

@@ -18,6 +18,44 @@ matter. A finding without a consequence and a remedy is not a finding — it is 
 > - "Post-Report Triage" — only in interactive sessions after the report is output
 > - "History Tracking" — only after the Health Score is computed
 
+## Evidence Before Scoring
+
+First separate established findings, supported tradeoffs, and unresolved questions.
+A direct import, repeated statement, surviving mutation, or omitted file is an
+observation, not by itself an actionable defect. Establish the governing contract
+or maintenance obligation and the causal consequence before assigning severity.
+If the obligation itself is unknown, retain the question and contrasting outcomes
+outside Findings and the scored ledger; a low-severity deduction is not a substitute
+for missing diagnosis. A locally proven violation may still be a finding when its
+production reach is unknown: state the local scope and do not invent deployment
+exposure. Optional design alternatives without an established burden stay unscored.
+
+When a diagnosis depends on behavior or change propagation, retain a compact causal
+witness in the final report: relevant inputs or a specific change, the affected
+call/test path, and expected versus observed or predicted outcomes. A runnable
+snippet or precise reference to existing assertions is sufficient; a list of test
+categories is not. Keep this evidence even when shortening the report. Distinguish
+executed results with tool receipts from predictions derived by inspection. A
+scoring-tool receipt proves score calculation, not that tests or witnesses ran.
+
+## Contract domain and validation duties
+
+Before constructing a defect witness, distinguish caller preconditions from
+callee obligations: record the permitted input domain, promised behavior within
+that domain, and any explicit obligation to reject other inputs. A function
+specified for finite integers need not validate arbitrary JavaScript values unless
+that validation duty is separately established. An out-of-domain counterexample
+cannot justify a defect, coverage deduction or repair. Conversely, do not invent
+an unstated bound to dismiss a witness inside the supplied domain.
+
+If contract wording supports competing readings, explain the readings and the
+fact needed to choose between them; keep the disputed allegation unscored and do
+not broaden behavior by patching it. For test-quality claims, compare the supplied
+baseline with a concrete contract-breaking mutant under the same assertions;
+state predicted results when execution is unavailable. A novel issue is admissible
+only with its own obligation and causal witness, not merely because a checklist
+or frozen expected-finding inventory omits it.
+
 ## Severity Calibration
 
 After completing each Iron Law diagnosis, choose severity from its evidenced
@@ -96,10 +134,10 @@ maturity stages. One of:
 
 See **Health Score Calculation** below for the per-preset deduction weights.
 
-**`sweep`** — Full Sweep only. `max_iterations` (default 3) caps how many
-non-critical re-scan rounds the sweep pipeline runs before it stops and reports
-the remainder as unresolved. Critical findings are exempt from the cap — they
-iterate until resolved or retired. Ignored by every other mode.
+**`sweep`** — Full Sweep only. `max_iterations` (default 3) caps all repair
+rounds, including the initial and Critical-only rounds. Use a positive integer;
+warn and fall back to 3 otherwise. Stop earlier on no progress or a user budget,
+and report the remainder as unresolved. Ignored by every other mode.
 
 **Minimal example:**
 ```yaml
@@ -197,8 +235,8 @@ and fixed structural headers from the template below (`Findings`, `Summary`,
 
 **Machine-readable report contract:** Emit one integer score from 0 through 100 on
 the score line. Use `Health Score` for review/audit/debt/test, `Composite Score` for
-health, and the final `After: N/100` value in sweep's Health Score Delta. Keep those
-labels in English, including when prose is translated. Do not emit a score for
+health and sweep's final dashboard. Historical sweep reports may use
+`After: N/100`; the parser retains that compatibility. Keep current score labels in English, including when prose is translated. Do not emit a score for
 onboarding, skipped runs, or an incomplete review. Every finding must include its
 risk code in the bold title, an explicit severity, and non-empty Symptom, Source,
 Consequence, and Remedy fields. Include the literal English severity word in each
