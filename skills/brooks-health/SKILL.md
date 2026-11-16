@@ -34,7 +34,7 @@ Read in order:
 (`../_shared/common.md`) first.
 
 1. Run abbreviated scans across all four dimensions (Step 1 of the guide)
-2. Compute per-dimension and composite Health Scores with weighting (Step 2 of the guide)
-3. Output the Health Dashboard using the dashboard report template (Step 3 of the guide)
+2. Complete one score ledger and finalize the score-free draft with the bundled scoring tool when execution is permitted (Step 2 of the guide)
+3. Verify the final artifact against that same ledger and output it unchanged (Step 3 of the guide)
 
 **Mode line in report:** `Health Dashboard`

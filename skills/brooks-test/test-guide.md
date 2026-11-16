@@ -1,152 +1,98 @@
 # Test Quality Review Guide — Mode 4
 
-**Purpose:** Diagnose the health of a test suite using six test-space decay risks.
-Every finding must follow the Iron Law: Symptom → Source → Consequence → Remedy.
-
----
+**Purpose:** Diagnose six test-space decay risks. Every finding follows the Iron
+Law: Symptom → Source → Consequence → Remedy. Use `common.md` for severity,
+scoring and output, and `test-decay-risks.md` for definitions and sources.
 
 ## Before You Start: Build the Test Suite Map
 
-Before scanning for any risk, map the current test suite structure:
+Map observed unit/integration/E2E files, approximate test counts, protected modules
+and known runtime. Label excerpts and sampled areas; unknown inventory is not zero
+coverage. Ratios and counts describe the supplied scope, not an ideal every project
+must match. Read test bodies and relevant production contracts together. If source
+is inaccessible, ask at most one focused question about the blocking fact; report
+what remains unknown rather than inventing a suite-wide diagnosis.
 
-```
-Unit tests:        X files, ~N tests
-Integration tests: X files, ~N tests
-E2E tests:         X files, ~N tests
-Ratio:             Unit X%  :  Integration X%  :  E2E X%
-Coverage areas:    [modules with tests] vs [modules without tests]
-```
+For protection/brittleness claims, make the test's discrimination explicit:
 
-If you cannot access test files directly, ask the user **one question** — choose the
-most relevant:
-1. "Which module is hardest to test or has the least coverage?"
-2. "When you make a change, how often do unrelated tests break?"
-3. "Is there a part of the codebase your team avoids touching because it has no tests?"
+| Check | Original | Relevant changed implementation |
+| --- | --- | --- |
+| Governing behavior | Required outcome | Preserved or violated, with input |
+| Existing test | Pass/fail and assertion | Pass/fail and assertion |
+| Proposed protection | Expected outcome | Expected outcome |
 
-After one answer, proceed. Do not ask more than one question.
-
----
+Use the compact comparison only where it proves the finding. Cite the affected
+assertion and mark results as executed or statically predicted. Keep this witness
+in the final report. A useful extra test is not itself evidence of an existing defect.
 
 ## Analysis Process
 
-Work through these five steps in order.
-
 ### Step 1: Scan for Test Obscurity
 
-*Scan this first — the most visible risk and the one that determines whether the suite
-is maintainable at all.*
-
-Look for:
-- Read 5–10 test names at random: can each one communicate subject + scenario + expected
-  outcome without opening the test body?
-- Are there tests where a failure gives no clue which behavior broke (multiple assertions,
-  no message strings)?
-- Does any test depend on external state (files, database rows, env variables, shared mutable
-  fixtures) that is invisible from within the test body?
-- Is there a single massive setUp or beforeEach that every test inherits regardless of
-  what it actually needs?
-
-If all test names are clear and setups are minimal → no finding.
+Sample representative changed/high-risk tests, recording scope. Look for unclear
+scenario/outcome names, hidden fixture state, oversized setup and failures that
+cannot be localized. Show the actual interpretability cost. Multiple assertions
+or no message strings are not inherently obscure when failure output is precise.
 
 ### Step 2a: Scan for Test Brittleness
 
-*Brittle tests break on refactors that do not change observable behavior — they test
-implementation, not contracts.*
-
-Look for:
-- Ask (or check git history): did any recent refactor cause test failures with no
-  behavior change?
-- Are there test methods where the name contains "and" or that assert on 3 or more
-  unrelated behaviors (Eager Test)?
-- Do assertions specify mock call order or exact parameter values that are irrelevant
-  to the observable behavior?
-- Are tests coupled to private methods or internal state directly?
-
-Severity: use the T2 Severity Guide in `../_shared/test-decay-risks.md`.
+Identify a concrete behavior-preserving transformation that fails an existing
+test. The original and transformed versions must preserve public outputs, side
+effects and contractual interactions. Compare both test outcomes and cite the
+assertion coupled to the implementation. A private rename can prove brittleness;
+a changed contractual interaction cannot. Recommend an observation that accepts
+both equivalent implementations while still detecting a meaningful regression.
+Use the T2 severity guide after establishing the consequence.
 
 ### Step 2b: Scan for Mock Abuse
 
-*Mock Abuse produces tests that pass regardless of whether the real behavior is correct.
-Scan this separately from brittleness — over-mocking is often the cause of brittleness,
-but it is a distinct problem worth its own finding.*
-
-**Sample 3–5 tests once for both steps 2a and 2b together** — read each test body and
-check brittleness signals and mock-setup ratio in the same pass, then write separate
-findings if both problems are present.
-
-Look for:
-- Is mock setup code longer than the assertion logic in the sampled tests?
-- Are the primary assertions `expect(mock).toHaveBeenCalledWith(...)` rather than
-  assertions on outputs, state, or observable events?
-- Are there methods in production classes that are only called from test files
-  (test-induced design damage)?
-- Does any single test create more than 3 mock objects?
-
-Treat a mock setup-to-assertion ratio above 3:1 and production methods used only
-for test access as signals to inspect verification and design consequences.
-Mocking the subject under test normally warrants 🟡 Warning for the demonstrated
-blind spot. Assign 🔴 Critical only when the evidence also establishes serious
-impact and relevant exposure under `common.md` Severity Calibration; neither a
-ratio nor a test-only method alone establishes that tier.
+Reuse the sampled test bodies. Trace what is real, what is replaced and what the
+assertions observe. Mocking the subject can conceal a required effect; demonstrate
+that effect and the false pass. An interaction assertion is appropriate when the
+interaction is the contract. Large setup, many mocks and test-only accessors are
+inspection cues, not automatic defects or Critical severity. Distinguish a T4 blind
+spot from T2 brittleness; do not deduct twice for the same cause and remedy.
 
 ### Step 3: Scan for Test Duplication
 
-Look for:
-- Is the same setup block (same variables initialized the same way) repeated across
-  5 or more test files without a shared helper?
-- Are there multiple tests that pass identical inputs and assert identical outputs
-  with no differentiation (Lazy Test)?
-- Is the same business scenario covered at unit, integration, and E2E level with no
-  difference in what each layer is testing?
-
-Severity: use the T3 Severity Guide in `../_shared/test-decay-risks.md`, with instance
-counts as the tiebreaker — 🔴 10+ instances, 🟡 3–9, 🟢 1–2.
+Identify repeated setup or assertions that encode the same decision and create
+coordinated maintenance. Distinct unit/integration/E2E checks may protect different
+failure boundaries despite using the same scenario. Show why sharing a helper or
+removing a duplicate preserves readable intent and required coverage. Apply the T3
+severity guide only after establishing harmful duplication, not from counts alone.
 
 ### Step 4: Scan for Coverage Illusion and Architecture Mismatch
 
-Look for Coverage Illusion:
-- Pick the most recently modified core module. Are its error-handling branches and
-  null/boundary inputs covered by tests?
-- Are there legacy areas (old functions, no test files nearby) that are actively
-  being changed?
-- Do the tests assert on side effects (DB writes, events emitted, state transitions)
-  or only on return values?
+For **T5 Coverage Illusion**, connect a relevant mutation to an established
+obligation. First trace the original test; then show that a contract-breaking
+change passes it (or that assertion failure is swallowed). Give a proposed check
+that passes the original and rejects that mutation. Distinguish a production defect
+from missing protection against a future defect. Arbitrary hardcoding that fits
+finite examples alone does not establish an actionable gap.
 
-**Characterization Test check:** If legacy code is being modified without existing tests,
-the team needs Characterization Tests before making the change — not after. Look for
-this pattern and flag it when absent.
+If only an excerpt is available, a proven local blind spot stays local; do not claim
+whole-suite absence. Missing input/coverage obligations remain unresolved. An input
+precondition is not a new validation duty. If failure propagation itself is under
+review, trace assertions, catches and runner exit separately from parser/business
+correctness; clarify whether that check is required to signal failure.
 
-A Characterization Test locks in current behavior (right or wrong) so future changes
-do not silently regress it. Template:
-```
-test("characterize: [module].[method] given [input], returns [current output]") {
-  // Call the code under test with realistic inputs
-  // Assert on whatever it currently returns — even if you suspect the output is wrong
-  // Add a comment: "This captures current behavior, not necessarily correct behavior"
-}
-```
-Source: Feathers — Working Effectively with Legacy Code, Ch. 13: Characterization Tests
+For changed legacy behavior with established missing protection, recommend
+characterization before editing: capture current behavior and explicitly label it
+as observed, not necessarily correct. Source: Feathers, *Working Effectively with
+Legacy Code*, Ch. 13: Characterization Tests.
 
-Look for Architecture Mismatch:
-- Compare the suite map from the start: is the ratio close to 70% unit / 20% integration / 10% E2E?
-- Are high-risk modules tested at higher density than trivial utilities?
-
-**Test suite performance:** A slow test suite is a first-class maintainability risk — it
-breaks the fast-feedback loop and causes developers to skip running tests locally.
-- If the full suite runtime is > 10 minutes → 🟡 Warning (per the T6 Severity Guide in
-  `../_shared/test-decay-risks.md`; runtime alone does not reach Critical)
-- Runtime > 30 minutes, or unknown because nobody runs the suite, is still 🟡 Warning —
-  but say so explicitly in the Symptom. It reaches 🔴 Critical only when combined with a
-  Critical T6 condition: legacy code under modification with no seams and no
-  characterization tests, or a fully inverted pyramid
-- If tests that could be unit tests are integration tests, that is a Performance Mismatch:
-  each misclassified test adds seconds of avoidable wait time
-
-Source: Meszaros — xUnit Test Patterns, Slow Tests (p. 253)
+For **T6 Architecture Mismatch**, relate the test level and runtime to required
+feedback and seam boundaries. The 70/20/10 pyramid is a heuristic, not a quota.
+Measured slow feedback, absent required characterization or avoidable integration
+cost needs a concrete consequence; distinguish intentional integration coverage.
+Follow the T6 severity guide and `common.md`: runtime alone does not establish
+Critical. Source: Meszaros, *xUnit Test Patterns*, Slow Tests.
 
 ### Step 5: Apply Iron Law, Output Report
 
-Apply the Iron Law format from `../_shared/common.md` to each finding.
-
-Use the standard Report Template. Mode: Test Quality Review.
-Include the Test Suite Map as a code block immediately before the `## Findings` heading, labeled "Test Suite Map".
+Use the standard Report Template, Mode: Test Quality Review. Put the Test Suite Map
+immediately before `## Findings`. For each retained finding, include its obligation,
+original/changed comparison, scoped consequence and smallest corrective check.
+State decisive missing facts without scoring invented duties. Keep novel supported
+findings even if they differ from an expected example; do not claim execution
+without records or equate passing finite checks with exhaustive correctness.

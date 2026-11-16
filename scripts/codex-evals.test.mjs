@@ -356,7 +356,7 @@ if (args.includes('debug')) {
 }
 `);
   chmodSync(binary, 0o700);
-  const options = { codex: binary, auth, model: 'fixture-model', reasoning: 'high', timeout: 3000 };
+  const options = { codex: binary, auth, model: 'fixture-model', reasoning: 'high', timeout: 10000 };
   for (const [name, arm, judge] of [['treatment', 'with', false], ['baseline', 'without', false], ['judge', 'with', true]]) {
     const destination = path.join(dir, name);
     mkdirSync(destination);

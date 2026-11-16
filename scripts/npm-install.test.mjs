@@ -32,6 +32,27 @@ async function verifySkills(dest) {
   }
   assert.ok((await readFile(path.join(dest, '_shared/common.md'), 'utf8')).length);
 }
+async function verifyInstalledHealthHelper(dest, fixture) {
+  const relative = 'brooks-health/scripts/score-dashboard.mjs';
+  assert.equal(await readFile(path.join(dest, relative), 'utf8'), await readFile(path.join(root, 'skills', relative), 'utf8'));
+  assert.equal(await readFile(path.join(dest, 'brooks-health/score-ledger.md'), 'utf8'), await readFile(path.join(root, 'skills/brooks-health/score-ledger.md'), 'utf8'));
+  const ledger = path.join(fixture.cwd, 'health-ledger.json'), report = path.join(fixture.cwd, 'health-report.md');
+  await writeFile(ledger, JSON.stringify({ hasDiff: true, dimensions: {
+    pr: { status: 'assessed', findings: [{ id: 'P1', risk: 'R1', severity: 'warning' }] },
+    architecture: { status: 'assessed', findings: [] }, debt: { status: 'assessed', findings: [] }, test: { status: 'assessed', findings: [] },
+  } }));
+  const run = (...args) => spawnSync(process.execPath, [path.join(dest, relative), ...args], { cwd: fixture.cwd, env: fixture.env, encoding: 'utf8' });
+  const rendered = run('render', ledger);
+  assert.equal(rendered.status, 0, rendered.stderr);
+  // Balanced PR 95 and three clean dimensions: 98.75 rounds once to 99.
+  assert(rendered.stdout.startsWith('**Composite Score:** 99/100\n'));
+  await writeFile(report, rendered.stdout);
+  const checked = run('check', ledger, report);
+  assert.equal(checked.status, 0, checked.stderr);
+  assert.equal(JSON.parse(checked.stdout).valid, true);
+  await writeFile(report, rendered.stdout.replace('99/100', '98/100'));
+  assert.notEqual(run('check', ledger, report).status, 0);
+}
 test('every canonical global and project mapping installs flat bundled skills', async t => {
   const f = await fixture(t);
   const list = f.run('--list'); assert.equal(list.status, 0, list.stderr);
@@ -80,9 +101,17 @@ test('source overlap and symlink aliases are rejected', async t => {
 });
 test('npm packed artifact can install without repository files or network', async t => {
   const f = await fixture(t);
-  const packed = JSON.parse(execFileSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', f.dir], { cwd: root, encoding: 'utf8' }));
+  const packed = JSON.parse(execFileSync('npm', ['pack', '--json', '--ignore-scripts', '--cache', path.join(f.dir, 'npm-cache'), '--pack-destination', f.dir], { cwd: root, encoding: 'utf8' }));
   const unpack = path.join(f.dir, 'unpack'); await mkdir(unpack);
   execFileSync('tar', ['-xzf', path.join(f.dir, packed[0].filename), '-C', unpack]);
   const result = spawnSync(process.execPath, [path.join(unpack, 'package/bin/brooks-lint.mjs'), 'install', 'agents'], { cwd: f.cwd, env: f.env, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr); await verifySkills(path.join(f.home, '.agents/skills'));
+  await rm(unpack, { recursive: true, force: true });
+  await verifyInstalledHealthHelper(path.join(f.home, '.agents/skills'), f);
+});
+test('shell-installed health helper works in a standalone skill directory', async t => {
+  const f = await fixture(t), destination = path.join(f.dir, 'shell-skills');
+  const result = spawnSync('bash', [path.join(root, 'scripts/install.sh'), '--dir', destination], { cwd: f.cwd, env: f.env, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  await verifyInstalledHealthHelper(destination, f);
 });
