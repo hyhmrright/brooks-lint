@@ -1,0 +1,39 @@
+# Brooks-Lint Review
+
+**Mode:** Test Quality Review  
+**Scope:** Complete supplied test inventory, `existing.test.mjs`, and its subject, `parser.mjs`  
+**Health Score:** 99/100
+
+The supplied assertions protect two examples, but they do not detect that a sufficiently long digit string produces a non-integer result.
+
+## Test Suite Map
+
+The complete supplied inventory contains one test file with two top-level assertions: `parse('7')` equals `7`, and `parse('x')` throws an error matching `/invalid/`. The assertions exercise the real parser without mocks. Test runtime is unknown.
+
+## Findings
+
+### 🟢 Suggestion
+
+**T5 Coverage Illusion — Long numeric strings are not checked for an integer result (Suggestion)**
+
+**Symptom:** `parser.mjs` accepts any nonempty sequence of digits and converts it with `Number(s)`. The sole numeric example in `existing.test.mjs` is `'7'`.
+
+**Source:** *The Art of Unit Testing* — Test completeness principle.
+
+**Consequence:** The contract requires an integer for a numeric string and supplies no length bound. By inspection, `parse('9'.repeat(309))` returns `Infinity`, which is not an integer. The existing assertions are predicted to pass both the supplied parser and a contract-breaking implementation that behaves identically for `'7'` and `'x'` but returns `Infinity` for that long input. This is a local protection gap and a predicted local behavior defect; deployment reach is unknown.
+
+**Remedy:** Add an assertion that the result for a sufficiently long digit string is an integer, then address the parser’s representation of such results. The contract does not specify the integer representation, so that design choice needs clarification.
+
+A reproducible witness, **predicted and not run**, is:
+
+```sh
+node --input-type=module -e "import assert from 'node:assert/strict'; import {parse} from './parser.mjs'; assert.ok(Number.isInteger(parse('9'.repeat(309))))"
+```
+
+The assertion is predicted to fail with the supplied parser. It would pass for an implementation returning a JavaScript integer for that input and reject the `Infinity` result.
+
+## Summary
+
+The existing test is **protected** against returning the wrong value for `'7'` or accepting `'x'`, and its assertions are not caught or suppressed. Those conclusions apply to the supplied examples.
+
+The meaning of “numeric string” for signs, decimal points, whitespace, and exponent notation is **unresolved**: the contract does not settle whether those forms are permitted. No finding is scored for them. Neither the supplied test nor the proposed witness was executed.

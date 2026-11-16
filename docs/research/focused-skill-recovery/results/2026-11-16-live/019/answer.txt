@@ -1,0 +1,51 @@
+# Brooks-Lint Review
+
+**Mode:** Architecture Audit  
+**Scope:** Supplied `contract.md`, `domain.mjs`, `composition.mjs`, and `entry.mjs` snapshot  
+**Health Score:** 95/100
+
+The local source violates the stated dependency boundary and forms a module cycle; production impact beyond the supplied entry path is not established.
+
+## Module Dependency Graph
+
+Solid arrows show imports or re-exports. The dotted arrow marks the confirmed cycle.
+
+```mermaid
+graph TD
+    E["entry.mjs"]
+    C["composition.mjs"]
+    D["domain.mjs"]
+    E -->|"re-exports run"| C
+    C -->|"imports compute"| D
+    D -.->|"imports rate; completes cycle"| C
+    classDef warning fill:#ffd43b,color:#000
+    classDef assessed fill:#51cf66,color:#000
+    class C,D warning
+    class E assessed
+```
+
+## Findings
+
+### 🟡 Warning
+
+**R5 Dependency Disorder — Domain imports composition configuration (Warning)**
+
+Symptom: `domain.mjs` imports `rate` from `composition.mjs` and ignores the configuration argument to `compute`. In turn, `composition.mjs` imports `compute`, creating a cycle. `entry.mjs` exposes the composition module’s `run` function.
+
+Source: *Clean Architecture* — Dependency Inversion and Acyclic Dependencies.
+
+Consequence: `contract.md` explicitly permits composition to import domain but prohibits the reverse, including for configuration. The cycle is therefore a demonstrated local boundary defect. A caller cannot select the rate through `compute`’s parameter: changing that argument alone has no effect. The supplied production entry establishes a path to this composition, but does not establish deployment exposure or serious impact.
+
+Remedy: Make `domain.mjs` use its rate parameter and remove its import of `composition.mjs`. Keep `composition.mjs` responsible for supplying `rate` to `compute`; this preserves the existing `run` call while removing the reverse edge and cycle.
+
+**Predicted witness, not executed:** From a directory containing the supplied files, run:
+
+```sh
+node --input-type=module -e "import { compute } from './domain.mjs'; import { run } from './entry.mjs'; console.log(compute(3, 7), run(3));"
+```
+
+The supplied source predicts `6 6`: `compute(3, 7)` uses the imported rate of `2`, while `run(3)` also supplies `2`. Under the stated parameter-passing contract, `compute(3, 7)` should return `21`, while `run(3)` should remain `6`.
+
+## Summary
+
+Remove the domain-to-composition import and pass configuration through the existing parameter. The composition-to-domain edge and entry re-export are protected by the supplied contract. No tests or witness were executed; other architecture, testability, and team-ownership conclusions remain unresolved because the snapshot supplies no further evidence.

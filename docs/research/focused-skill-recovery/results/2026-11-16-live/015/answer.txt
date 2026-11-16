@@ -1,0 +1,38 @@
+# Brooks-Lint Review
+
+**Mode:** Architecture Audit  
+**Scope:** Supplied `contract.md`, `domain.mjs`, `http.mjs`, and active build entry `entry.mjs`  
+**Health Score:** 100/100
+
+The supplied dependency boundary is protected: the domain receives a notification function, while the active entry supplies the HTTP implementation.
+
+## Module Dependency Graph
+
+```mermaid
+graph TD
+    Entry["entry.mjs — active composition"] -->|imports decide| Domain["domain.mjs — decision"]
+    Entry -->|imports send| HTTP["http.mjs — transport"]
+    Entry -.->|injects send into decide| Domain
+    Domain -.->|calls injected function once| Notification["notification function"]
+
+    classDef assessed fill:#51cf66
+    class Entry,Domain,HTTP,Notification assessed
+```
+
+## Findings
+
+No scored findings were established in the supplied scope.
+
+**Protected — domain/transport boundary and notification count.** `contract.md` requires domain decisions to depend only on an injected notification function, never the HTTP transport module, and requires notification once. `domain.mjs` imports no transport and invokes `notify(x)` once. `entry.mjs` imports both modules and passes `send` to `decide`; that dependency belongs to the active composition entry.
+
+**Predicted witness, not executed:** From a directory containing the supplied files, run:
+
+```sh
+node --input-type=module -e "import {decide} from './domain.mjs'; import {run} from './entry.mjs'; let calls=[]; console.log(decide('ok', x => { calls.push(x); return 'sent:'+x; }), calls); console.log(run());"
+```
+
+The predicted output is `sent:ok [ 'ok' ]` followed by `sent:ok`. The first call records one notification with `ok`; the second traces the active entry through the supplied transport. The snapshot provides no execution receipt, so these are source predictions. The function can be substituted without editing the domain, providing a local test seam.
+
+## Summary
+
+The supplied files satisfy the stated local dependency and notification obligations by inspection. Deployment reach, broader module wiring, and team ownership were not supplied and remain unresolved; no tests or witness were executed.

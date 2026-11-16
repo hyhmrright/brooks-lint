@@ -1,0 +1,25 @@
+The test inventory has one **defect: T5 Coverage Illusion**. The contract requires the test to check that numeric strings return an integer, that other strings are rejected, and that a test does not suppress its own failed assertion. The outer `try/catch` in `existing.test.mjs` catches assertion failures and lets the test complete successfully. Because the supplied test is the complete inventory, no other supplied test protects these behaviors.
+
+For example, if `parse('7')` returned `8`, `assert.equal` would throw, the empty `catch` would suppress the failure, and the test would exit successfully. If that first assertion passed but `parse('x')` returned normally, `assert.throws` would also fail and be suppressed. The first failure also prevents the second assertion from running.
+
+This is a demonstrated defect in the local test, scored as a **warning** for a 5-point deduction. The balanced test score is **95/100**.
+
+The current `parser.mjs` locally appears to satisfy the two supplied examples: it returns `7` for `'7'` and throws an `invalid` error for `'x'`. That is a source prediction, not an executed check, and the two examples alone do not establish behavior for every possible numeric string.
+
+A predicted executable witness for the suppression is:
+
+```sh
+node --input-type=module -e "
+import assert from 'node:assert/strict';
+const parse = () => 8; // Deliberately violates both example expectations.
+try {
+  assert.equal(parse('7'), 7);
+  assert.throws(() => parse('x'), /invalid/);
+} catch {}
+console.log('test completed despite the failed assertion');
+"
+```
+
+Expected outcome: it prints `test completed despite the failed assertion` and exits successfully. **Not run.**
+
+Remove the outer `try/catch` so assertion failures reach the test runner. The existing test can then fail when either checked behavior regresses. This change may expose an existing failure when the test is next run; no repaired repository or test execution has been verified.

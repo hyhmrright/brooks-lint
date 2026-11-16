@@ -1,0 +1,35 @@
+# Brooks-Lint Review
+
+**Mode:** Test Quality Review  
+**Scope:** Supplied `contract.md`, `parser.mjs`, and complete test inventory in `existing.test.mjs`  
+**Health Score:** 95/100
+
+The supplied test exercises valid and invalid input, but it suppresses its own assertion failures, contrary to the task contract.
+
+## Test Suite Map
+
+The complete supplied inventory contains one test file, `existing.test.mjs`, with two assertions against `parse`: one for `'7'` and one for `'x'`. Runtime is unknown. All outcomes below are **predicted by inspection**; no tests or witnesses were executed.
+
+## Findings
+
+### 🟡 Warning
+
+**T5 Coverage Illusion — Assertion failures are swallowed (Warning)**
+
+Symptom: `existing.test.mjs` wraps both assertions in `try { ... } catch {}`. The empty catch suppresses either assertion failure. This directly violates `contract.md`’s requirement that a test may not suppress its own failed assertion.
+
+Source: *How Google Tests Software* — meaningful change protection; *The Art of Unit Testing* — test completeness.
+
+Consequence: A broken parser can leave this complete local test inventory signaling success. This is a demonstrated local protection gap; deployment exposure is unknown.
+
+Remedy: Remove the encompassing catch so assertion failures reach the test runner. Retain the valid-input and rejection assertions.
+
+**Predicted witness:** Replace the body of `parse` with `return 7`. The assertion for `parse('7')` passes. The `assert.throws` check for `'x'` fails because no exception is thrown, but the catch suppresses that failure, so the file exits successfully. With the catch removed, the same mutant causes a failing exit; the supplied parser is predicted to pass both assertions.
+
+## Protected and unresolved observations
+
+The supplied assertions express the required outcomes for `'7'` and `'x'`, but their failures are currently suppressed. The contract does not define whether “numeric string” includes signs, decimal notation, or values beyond JavaScript’s safe integer range. Those cases remain **unresolved** until the permitted input domain and intended integer representation are clarified; they are not scored defects.
+
+## Summary
+
+Remove the catch to make the existing checks report failures. The finding concerns the supplied local test inventory; neither the test nor the predicted mutant was run.

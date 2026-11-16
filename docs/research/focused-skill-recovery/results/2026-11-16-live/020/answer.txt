@@ -1,0 +1,25 @@
+**Disposition: defect — domain-to-composition dependency (R5, warning).** The local dependency contract says that composition may import domain, but domain must not import composition, including for configuration. `domain.mjs` imports `rate` from `composition.mjs`, while `composition.mjs` imports `compute` from `domain.mjs`. That creates a dependency cycle and violates the stated boundary.
+
+The behavior is also tied to the wrong source of configuration: `compute(n, unused)` ignores its second argument and reads the imported `rate`. The following executable witness is **predicted, not run**:
+
+```sh
+node --input-type=module <<'EOF'
+import { compute } from './domain.mjs';
+import { run } from './entry.mjs';
+
+console.log(compute(3, 10)); // predicted: 6; parameter-based result: 30
+console.log(run(3));         // predicted: 6
+EOF
+```
+
+Change `domain.mjs` to use its parameter:
+
+```js
+export const compute = (n, rate) => n * rate;
+```
+
+Composition can continue to pass its configured `rate`. This removes the prohibited import and preserves the predicted `run(3)` result. Direct callers that currently rely on the ignored argument would change behavior, so their call sites should be checked; none are supplied here.
+
+The production entry’s import of composition is **protected** by the contract. Whether the cycle causes a deployed failure is **unresolved**; the supplied snapshot provides no execution receipt or deployment evidence. No checks were run.
+
+Using the balanced preset, the one retained warning deducts 5 points: **95/100**.

@@ -1,0 +1,25 @@
+**Disposition: defect, scoped to the supplied active build.** The contract requires domain decisions to depend only on an injected notification function, never on the HTTP transport module, while still notifying once. In `domain.mjs`, `decide` imports and calls `send` directly; it ignores its `notify` argument. The active `entry.mjs` passes `send` as that argument, so the current call still sends once, but it does so through the prohibited dependency.
+
+A predicted executable witness, run from the directory containing the supplied files, is:
+
+```sh
+node --input-type=module <<'EOF'
+import assert from 'node:assert/strict';
+import { decide } from './domain.mjs';
+import { run } from './entry.mjs';
+
+const calls = [];
+const result = decide('ok', x => {
+  calls.push(x);
+  return 'injected:' + x;
+});
+
+assert.equal(result, 'sent:ok');
+assert.deepEqual(calls, []); // The injected notification was never called.
+assert.equal(run(), 'sent:ok');
+EOF
+```
+
+These assertions are **predicted, not executed**. They demonstrate the local dependency violation; they do not establish anything about a deployed system.
+
+The appropriate remedy is to remove the HTTP import from `domain.mjs` and have `decide` return `notify(x)`. The existing entry then supplies the transport and notification still occurs once. This changes behavior for callers that omit `notify` or relied on it being ignored, so those callers should be checked if they exist; the supplied snapshot identifies only the active entry. The remedy and its verification have not been executed.

@@ -1,0 +1,57 @@
+# Brooks-Lint Review
+
+**Mode:** Architecture Audit  
+**Scope:** Supplied `contract.md`, `domain.mjs`, `http.mjs`, and `entry.mjs` snapshot  
+**Health Score:** 95/100
+
+The active build has a local dependency-boundary defect: the domain ignores its injected notification function and calls the HTTP transport directly.
+
+## Module Dependency Graph
+
+```mermaid
+graph TD
+    E["entry.mjs"] -->|"imports decide"| D["domain.mjs"]
+    E -->|"imports and passes send"| H["http.mjs"]
+    D -->|"imports and calls send"| H
+    classDef warning fill:#ffd43b,color:#000
+    class D warning
+```
+
+## Findings
+
+### 🟡 Warning
+
+**R5 Dependency Disorder — Domain bypasses the injected notification function (Warning)**
+
+**Symptom:** `contract.md` requires domain decisions to depend only on an injected notification function, never the HTTP transport module, and requires notification once. `domain.mjs` imports `send` from `http.mjs` and calls it; its `notify` parameter is unused. `entry.mjs` is the supplied active build and passes `send` as that parameter.
+
+**Source:** *Clean Architecture* — Dependency Inversion Principle.
+
+**Consequence:** The source-level boundary is violated. A caller cannot substitute its notification function: `decide('ok', spy)` calls the imported transport instead of `spy`. The current entry still invokes `send` once and returns `sent:ok`, so the supplied snapshot does not establish a missing notification in that path or any deployed impact. This bounded, demonstrated violation supports Warning severity.
+
+**Remedy:** In `domain.mjs`, remove the HTTP import and have `decide` call `notify(x)` once, returning its result. Keep `entry.mjs` responsible for supplying `send`; the domain-to-HTTP import edge then disappears while the entry retains both imports.
+
+## Witness
+
+The following is **predicted by inspection, not executed**. Run it from a directory containing the supplied files:
+
+```js
+// witness.mjs
+import assert from 'node:assert/strict';
+import { decide } from './domain.mjs';
+import { run } from './entry.mjs';
+
+let calls = 0;
+const result = decide('ok', x => {
+  calls++;
+  return `injected:${x}`;
+});
+
+assert.equal(run(), 'sent:ok');          // Predicted: passes.
+assert.equal(calls, 1);                  // Predicted: fails; calls is 0.
+assert.equal(result, 'injected:ok');      // Predicted: would fail; result is 'sent:ok'.
+```
+
+## Summary
+
+The active entry preserves one transport call, but the domain’s direct import prevents notification substitution and breaches the explicit dependency rule. The supplied files do not establish deployment reach or team ownership; no checks were executed.

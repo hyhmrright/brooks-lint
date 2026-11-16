@@ -1,0 +1,31 @@
+# Brooks-Lint Review
+
+**Mode:** Test Quality Review  
+**Scope:** Supplied `existing.test.mjs`, `parser.mjs`, and local smoke-check contract; the rest of the suite is unavailable.  
+**Health Score:** 95/100
+
+The local smoke check does not report failure when either of its assertions fails.
+
+## Test Suite Map
+
+The snapshot contains one local smoke test with two assertions against `parse`: a numeric input and an invalid input. Its runtime and the remainder of the suite are unknown. The accepted parser input/output contract is also unavailable.
+
+## Findings
+
+### 🟡 Warning
+
+**T5 Coverage Illusion — Smoke check swallows assertion failures (Warning)**
+
+Symptom: `existing.test.mjs` wraps both assertions in `try { ... } catch {}`. An assertion failure throws, but the empty catch consumes it.
+
+Source: *How Google Tests Software* — meaningful verification; *The Art of Unit Testing* — test completeness.
+
+Consequence: The supplied `contract.md` requires this local smoke check to exit unsuccessfully when its own assertion fails. The current check can instead exit successfully, so it cannot reliably signal a regression detected by either assertion. This is a local defect; the effect on any broader suite is unknown.
+
+Remedy: Remove the empty catch so assertion errors propagate and make the process exit unsuccessfully.
+
+**Predicted witness, not executed:** Run `node existing.test.mjs` with the supplied parser; both assertions are predicted to pass and the process to exit successfully. Then temporarily change `parse('7')` to return `8`: the first assertion is predicted to throw, the catch to consume it, and the process still to exit successfully. With the catch removed, the same mutation is predicted to produce an unsuccessful exit.
+
+## Summary
+
+Fix failure propagation in the local smoke check. The parser’s general contract and the rest of the suite are unavailable, so broader parser correctness and suite coverage remain unresolved. No checks were executed.

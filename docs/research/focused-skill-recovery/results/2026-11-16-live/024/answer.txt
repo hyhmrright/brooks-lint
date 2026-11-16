@@ -1,0 +1,19 @@
+**Disposition: unresolved.** The supplied scope is the three-file module graph. `domain.mjs` imports `rate` from `composition.mjs`, while `composition.mjs` imports `compute` from `domain.mjs`, creating a cycle. The governing contract says that a cycle alone is not a defect and that active bindings and intended dependency direction are unspecified. There is therefore insufficient evidence to score an R5 dependency defect.
+
+The source predicts that calling `run(3)` returns `6`: `run` calls `compute(3, rate)`, and `compute` multiplies `3` by the imported `rate`, which is `2`. Its second parameter is unused. The code also predicts that `compute` reads the live imported binding when called, but the snapshot does not establish whether that coupling or the redundant argument violates an obligation.
+
+This executable witness is **predicted, not run**:
+
+```sh
+node --input-type=module -e "
+import { run } from './entry.mjs';
+import { compute } from './domain.mjs';
+import assert from 'node:assert/strict';
+assert.equal(run(3), 6);
+assert.equal(compute(3, 99), 6);
+"
+```
+
+The second assertion demonstrates that the supplied second argument does not determine the result. No execution receipt or test inventory was supplied.
+
+If the intended boundary requires the domain function to receive its rate explicitly, a possible remedy is to remove its import and implement `compute` as `(n, rate) => n * rate`. That would change calls such as `compute(3, 99)` from the predicted result `6` to `297`, so the intended API and callers must be established before adopting it. The current evidence does not establish that this change is required.

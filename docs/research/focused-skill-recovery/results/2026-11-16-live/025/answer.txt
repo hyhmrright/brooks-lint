@@ -1,0 +1,21 @@
+**Disposition: defect — T5 Coverage Illusion, warning.** The complete supplied test inventory does not protect the required persistence behavior.
+
+The contract requires `save` to persist the supplied string. In `service.mjs`, `save` calls `validate(value)` and then assigns `value` to `store.value`. The supplied test in `existing.test.mjs` checks only that the validator was called once. It would still pass if the assignment were removed, so it cannot establish that saving persists the string.
+
+A predicted, executable witness is to replace the `save` implementation temporarily with:
+
+```js
+export const save = (store, value, validate) => { validate(value); };
+```
+
+Then run:
+
+```sh
+node existing.test.mjs
+```
+
+The predicted outcome is a successful exit despite the persistence defect. An assertion such as `assert.equal(s.value, 'x')` after the existing call would fail against that replacement and pass against the supplied implementation.
+
+The local implementation is **protected by its observed assignment only as a source prediction**; the supplied test does not verify it. Adding the persistence assertion directly addresses the gap and should remain stable across implementation changes that preserve the specified behavior. The contract does not specify behavior when validation throws, so that case remains unresolved.
+
+No check was executed. With one retained warning under the balanced preset, the standalone test score is **95/100**.

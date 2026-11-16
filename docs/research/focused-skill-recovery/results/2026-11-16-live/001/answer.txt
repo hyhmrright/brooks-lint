@@ -1,0 +1,23 @@
+**Disposition: defect — local handler scope.** The contract requires each event ID to affect the balance at most once, including retries. `dispatch` passes every event to `apply`, but `apply` adds the amount before recording the ID and never checks whether the ID is already in `s.seen`. A retry therefore changes the balance again.
+
+Predicted witness, run from the directory containing the supplied files:
+
+```sh
+node --input-type=module <<'EOF'
+import assert from 'node:assert/strict';
+import { state } from './state.mjs';
+import { dispatch } from './entry.mjs';
+
+const s = state();
+dispatch(s, { id: 'e1', amount: 10 });
+dispatch(s, { id: 'e1', amount: 10 }); // retry
+
+assert.equal(s.balance, 10); // expected by the contract; actual prediction: 20
+EOF
+```
+
+A suitable remedy is to return before changing the balance when `s.seen.has(id)` is true, then add the amount and record the ID for a new event. This relies on the supplied synchronous, non-throwing operation contract; changing those assumptions would require reconsidering atomicity. It also makes the first accepted amount authoritative if a retry carries a different amount.
+
+**Disposition: unresolved — acceptance boundary.** The snapshot contains no acceptance or replay logic, so it does not establish whether only accepted IDs are replayed. No defect is scored for that obligation.
+
+The witness and remedy are source-based predictions; no code or tests were executed.

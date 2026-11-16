@@ -1,0 +1,46 @@
+# Brooks-Lint Review
+
+**Mode:** Architecture Audit  
+**Scope:** Supplied `contract.md`, `http.mjs`, `domain.mjs`, and `entry.mjs` snapshot  
+**Health Score:** 100/100
+
+The supplied contract does not establish a module boundary that the observed imports violate. The score reflects the absence of retained findings in this limited snapshot; the active build and module responsibilities remain unknown.
+
+## Module Dependency Graph
+
+Solid arrows show imports. The runtime call and unused argument are described below.
+
+```mermaid
+graph TD
+    entry["entry.mjs"]
+    domain["domain.mjs"]
+    http["http.mjs"]
+    entry -->|imports decide| domain
+    entry -->|imports send| http
+    domain -->|imports send| http
+```
+
+## Findings
+
+No scored findings were established.
+
+**Unresolved — dependency direction and substitution.** `domain.mjs` imports `send` directly from `http.mjs`; `entry.mjs` also passes `send` as `decide`’s `notify` argument, which `decide` does not use. If the intended contract requires callers to substitute notification behavior, that direct call would defeat the supplied argument. If the argument is incidental and the direct dependency is intended, the same observation does not establish a defect. `contract.md` explicitly says the active build and responsibility and boundary contract are unavailable, so neither interpretation can be selected from this snapshot.
+
+**Predicted witness:** With these files in an ES-module environment, the following assertions describe the local behavior. They were not executed.
+
+```js
+import assert from 'node:assert/strict';
+import { decide } from './domain.mjs';
+import { run } from './entry.mjs';
+
+let called = false;
+assert.equal(decide('ok', () => { called = true; return 'replacement'; }), 'sent:ok');
+assert.equal(called, false);
+assert.equal(run(), 'sent:ok');
+```
+
+This witness shows that `decide` calls the imported `send` even when given a replacement. It does not establish that replacement is required or that this path is deployed.
+
+## Summary
+
+Resolve the intended responsibility of `domain.mjs` and whether `notify` is a required substitution seam before treating the import or ignored argument as a defect. No build, tests, or witness were run; team ownership and deployment reach were not supplied.

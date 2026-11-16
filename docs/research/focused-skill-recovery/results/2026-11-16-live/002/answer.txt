@@ -1,0 +1,41 @@
+# Brooks-Lint Review
+
+**Mode:** PR Review  
+**Scope:** Supplied `contract.md`, `state.mjs`, `handler.mjs`, and `entry.mjs`; callers and tests outside the snapshot were not supplied.  
+**Health Score:** 95/100
+
+The handler does not enforce the supplied at-most-once balance obligation.
+
+## Findings
+
+### 🟡 Warning
+
+**R6 Domain Model Distortion — Replayed IDs change the balance again (Warning)**
+
+Symptom: `handler.mjs` adds `n` to the balance on every call and records `id` without checking whether it is already in `s.seen`. `entry.mjs` forwards each event to that handler.
+
+Source: *Domain-Driven Design* — invariant ownership.
+
+Consequence: A retry of an accepted event changes the local balance a second time, contrary to `contract.md`. This is a demonstrated local defect by source inspection; the supplied snapshot does not establish deployed exposure.
+
+Remedy: In `apply`, return without changing the balance when `s.seen` already contains `id`; otherwise record the ID and apply the amount. The contract states that marking and adding are synchronous and cannot throw, so this local check can preserve the stated at-most-once invariant.
+
+**Predicted witness, not executed:** With the supplied files in one directory, the following Node.js assertions should pass through the first dispatch and fail on the final assertion: the expected balance is `7`, while the current implementation predicts `14`.
+
+```js
+import assert from 'node:assert/strict';
+import { state } from './state.mjs';
+import { dispatch } from './entry.mjs';
+
+const s = state();
+dispatch(s, { id: 'evt-1', amount: 7 });
+assert.equal(s.balance, 7);
+dispatch(s, { id: 'evt-1', amount: 7 });
+assert.equal(s.balance, 7);
+```
+
+Run as a module, for example with `node --input-type=module < witness.mjs`. After the proposed guard, the final assertion is predicted to pass.
+
+## Summary
+
+The accepted-ID retry path is a local defect; checking `seen` before changing the balance addresses the identified cause. No tests or witness were executed, and the supplied snapshot does not establish whether other tests protect this behavior.

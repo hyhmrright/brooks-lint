@@ -1,0 +1,20 @@
+The cursor behavior is **unresolved**. The supplied contract says rows are ascending integers, but explicitly leaves open whether a cursor means the last row emitted or the next row to read. Callers are outside scope, so the snapshot does not establish which interpretation the implementation must follow. There is no supported scored defect.
+
+The cross-file behavior is clear: `page.mjs` returns the last item as its cursor, and `query.mjs` includes rows equal to the supplied cursor. Consequently, passing a returned cursor into the next call repeats that row. Under a last-emitted cursor contract, that would prevent forward progress for a page of size one; the supplied contract does not establish that obligation.
+
+**Predicted witness, not executed:**
+
+```js
+import assert from 'node:assert/strict';
+import { page } from './page.mjs';
+
+const first = page([1, 2, 3], undefined, 1);
+const second = page([1, 2, 3], first.cursor, 1);
+
+assert.deepEqual(first, { items: [1], cursor: 1 });
+assert.deepEqual(second, { items: [1], cursor: 1 });
+```
+
+Resolve the cursor contract with the caller before changing the code. If it means “last emitted,” selecting rows strictly greater than the cursor would avoid this repetition for distinct row values; duplicate values would still require a tie-breaker to identify a position. If it means “next unread,” the returned cursor must identify the next unread position, again with a tie-breaker if duplicate values are allowed. Either change risks breaking callers that depend on the current behavior.
+
+No checks were executed, and caller behavior and duplicate-row requirements remain unknown.

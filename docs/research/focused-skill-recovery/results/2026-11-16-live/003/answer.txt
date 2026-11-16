@@ -1,0 +1,33 @@
+# Brooks-Lint Review
+
+**Mode:** PR Review  
+**Scope:** Supplied handler snapshot: `contract.md`, `state.mjs`, `handler.mjs`, and `entry.mjs`  
+**Health Score:** 100/100
+
+The supplied handler protects the local at-most-once balance obligation under the stated synchronous, non-throwing operations.
+
+## Findings
+
+No scored findings.
+
+**Protected — repeated accepted ID.** `contract.md` requires each event ID to affect the balance at most once, including retries. `dispatch` passes the event ID and amount to `apply`; on the first call, `apply` adds the amount and records the ID. A subsequent call with that ID returns before changing the balance. The contract’s synchronous, non-throwing assumptions support that sequence.
+
+The following witness is **predicted by inspection, not executed**:
+
+```js
+import assert from 'node:assert/strict';
+import { state } from './state.mjs';
+import { dispatch } from './entry.mjs';
+
+const s = state();
+dispatch(s, { id: 'a', amount: 7 });
+dispatch(s, { id: 'a', amount: 99 }); // retry with the same ID
+assert.equal(s.balance, 7);
+assert.equal(s.seen.has('a'), true);
+```
+
+**Unresolved — acceptance boundary and persistence.** The snapshot says only accepted IDs are replayed but does not supply the acceptance or replay mechanism, nor a persistence contract. The local handler’s behavior is established for repeated calls using the same state object; whether IDs remain deduplicated across state recreation cannot be assessed from these files.
+
+## Summary
+
+No local defect was established against the supplied at-most-once contract. Tests and the witness were not run, and the supplied snapshot does not establish deployed behavior or a complete test inventory.

@@ -1,0 +1,46 @@
+# Brooks-Lint Review
+
+**Mode:** PR Review  
+**Scope:** Supplied pagination contract, `query.mjs`, and `page.mjs`; no callers or tests supplied  
+**Health Score:** 95/100
+
+The new predicate includes the cursor row, so pagination can repeat a row and stop making progress.
+
+## Findings
+
+### 🟡 Warning
+
+**R6 Domain Model Distortion — Cursor row is emitted again (Warning)**
+
+Symptom: `query.mjs` selects rows with `x >= cursor`, while `page.mjs` sets the next cursor to the last emitted item.
+
+Source: *Domain-Driven Design* — Domain Model.
+
+Consequence: The contract defines the cursor as the last emitted row and requires every unique ascending integer row exactly once. With rows `[1, 2, 3]` and page size `2`, the first page is `[1, 2]` with cursor `2`; the next is predicted to be `[2, 3]`, repeating `2`. With page size `1`, subsequent pages are predicted to repeat `[1]` indefinitely. This establishes a local behavior defect; deployment reach is unknown.
+
+Remedy: In `query.mjs`, select rows strictly after a supplied cursor using `x > cursor`. Add regression assertions for both a multi-row page and page size `1`.
+
+The following witness is **predicted by inspection, not executed**:
+
+```js
+import assert from 'node:assert/strict';
+import { page } from './page.mjs';
+
+const rows = [1, 2, 3];
+const first = page(rows, undefined, 2);
+assert.deepEqual(first, { items: [1, 2], cursor: 2 });
+assert.deepEqual(page(rows, first.cursor, 2), {
+  items: [3],
+  cursor: 3,
+}); // Predicted to fail: actual items [2, 3]
+
+const single = page(rows, undefined, 1);
+assert.deepEqual(page(rows, single.cursor, 1), {
+  items: [2],
+  cursor: 2,
+}); // Predicted to fail: actual items [1]
+```
+
+## Summary
+
+Change the predicate to exclude the last emitted row. Test protection is **unresolved** because no test inventory was supplied; no tests or witness were run.

@@ -1,0 +1,20 @@
+**Disposition: protected.** The supplied snapshot satisfies the stated dependency contract within its local scope. `composition.mjs` imports `compute` from `domain.mjs` and passes `rate` as an argument. `domain.mjs` imports nothing, and `entry.mjs` exports `run` from the production composition module.
+
+The governing obligation permits composition to import domain, but prohibits domain from importing composition, including for configuration. No scored defect is established in these files, so no remedy is needed for this observation.
+
+A **predicted witness**, runnable from a directory containing the supplied files, is:
+
+```sh
+node --input-type=module -e "
+import { run } from './entry.mjs';
+import { compute } from './domain.mjs';
+import assert from 'node:assert/strict';
+
+assert.equal(run(3), 6);
+assert.equal(compute(3, 4), 12);
+"
+```
+
+The first assertion predicts the production entry’s result with the configured rate of 2; the second predicts that the domain calculation accepts a supplied rate. The import statements themselves establish the dependency direction for this snapshot.
+
+**Unresolved:** The snapshot does not establish behavior or dependencies outside these supplied files. The witness was **not run**.

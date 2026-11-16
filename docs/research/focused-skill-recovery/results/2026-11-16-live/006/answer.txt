@@ -1,0 +1,34 @@
+# Brooks-Lint Review
+
+**Mode:** PR Review  
+**Scope:** Supplied `contract.md`, `state.mjs`, `handler.mjs`, and `entry.mjs`; no diff, callers, or tests supplied  
+**Health Score:** 100/100
+
+The supplied contract does not establish whether repeated IDs must be deduplicated, so the observed repeated application is unresolved rather than a scored defect.
+
+## Findings
+
+No scored findings retained.
+
+## Scoped observations
+
+**Unresolved — repeated IDs.** `dispatch` passes the ID and amount to `apply`, which adds the amount to `balance` on every call and records the ID in `seen`. For two events with the same ID and amount `10`, inspection predicts a balance of `20` and one ID in the set. That is consistent with separate payments but would conflict with an at-most-once obligation. The contract explicitly says delivery guarantees and the meaning of repeated IDs are unavailable; choosing between those readings requires that missing information.
+
+The following executable witness is **predicted, not run**:
+
+```js
+import assert from 'node:assert/strict';
+import { state } from './state.mjs';
+import { dispatch } from './entry.mjs';
+
+const s = state();
+dispatch(s, { id: 'payment-1', amount: 10 });
+dispatch(s, { id: 'payment-1', amount: 10 });
+
+assert.equal(s.balance, 20);
+assert.deepEqual([...s.seen], ['payment-1']);
+```
+
+## Summary
+
+Clarify the meaning of repeated IDs and delivery guarantees before deciding whether the handler needs deduplication. The score reflects only the supplied local snapshot; no tests or witnesses were executed, and no configuration or additional project files were available.

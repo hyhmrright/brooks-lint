@@ -1,0 +1,41 @@
+# Brooks-Lint Review
+
+**Mode:** Architecture Audit  
+**Scope:** Supplied `domain.mjs`, `composition.mjs`, `entry.mjs`, and `contract.md`  
+**Health Score:** 100/100
+
+The visible source contains a cycle, but its architectural disposition is unresolved because the intended dependency direction and active bindings are not supplied.
+
+## Module Dependency Graph
+
+```mermaid
+graph TD
+    entry["entry.mjs"]
+    composition["composition.mjs"]
+    domain["domain.mjs"]
+    entry -->|"re-exports run"| composition
+    composition -->|"imports compute"| domain
+    domain -.->|"imports rate; completes source cycle"| composition
+```
+
+## Findings
+
+No scored findings are established in the supplied scope.
+
+## Unresolved observation
+
+`contract.md` states that a cycle alone is not automatically a defect and does not supply the intended dependency direction. `domain.mjs` imports `rate` from `composition.mjs`; `composition.mjs` imports `compute` from `domain.mjs`. The `rate` argument passed by `run` is unused by `compute`, which instead reads the imported binding.
+
+**Predicted witness, not executed:** In an ES module environment, run:
+
+```js
+import { run } from './entry.mjs';
+import { compute } from './domain.mjs';
+
+console.assert(run(3) === 6);
+console.assert(compute(3, 99) === 6);
+```
+
+The second assertion demonstrates the source-level dependency: changing the supplied argument to `99` does not change the result; `compute` reads `composition.mjs`’s exported `rate`, currently `2`. This does not by itself establish that the import violates an intended boundary or that the unused parameter is a defect. An intended dependency rule and the relevant binding or substitution requirements would determine whether this is a defect or a protected design choice. Deployment reach, testability requirements, and team ownership are also unknown.
+
+No code or tests were executed; the witness is a prediction from the supplied source. The score applies only to this local assessment and does not establish that the broader architecture is free of defects.

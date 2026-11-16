@@ -1,0 +1,28 @@
+**Disposition: protected for the supplied local scope.** The query predicate satisfies the pagination contract for strictly ascending, unique integer inputs and a positive page size.
+
+The contract defines the cursor as the last emitted row. `select` therefore correctly uses `x > cursor`: it excludes the last emitted row and selects every later row. When the cursor is omitted, it selects all rows. `page` takes the first `size` selected rows and returns the last item as the next cursor. Repeating that process until an empty page returns each input row exactly once, in ascending order.
+
+The following executable witness is **predicted, not run**. It checks the initial page, subsequent pages, and termination:
+
+```js
+import assert from 'node:assert/strict';
+import { page } from './page.mjs';
+
+const rows = [1, 3, 5, 7, 9];
+const emitted = [];
+let cursor;
+
+for (;;) {
+  const result = page(rows, cursor, 2);
+  if (result.items.length === 0) {
+    assert.equal(result.cursor, undefined);
+    break;
+  }
+  emitted.push(...result.items);
+  cursor = result.cursor;
+}
+
+assert.deepEqual(emitted, rows);
+```
+
+No remedy is indicated for the reviewed predicate. In particular, changing `>` to `>=` would repeat the cursor row and violate the contract. This assessment is a source-level prediction; no check was executed, and it makes no claim about deployed behavior.

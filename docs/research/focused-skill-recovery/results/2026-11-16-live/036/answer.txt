@@ -1,0 +1,21 @@
+The local smoke check has a **T5 Coverage Illusion defect: warning**. The contract requires this check to exit unsuccessfully when one of its assertions fails, but its empty `catch` swallows assertion errors. A failing assertion can therefore leave the process with a successful exit status.
+
+For the supplied parser, both assertions are predicted to pass: `parse('7')` returns `7`, and `parse('x')` throws an error containing `invalid`. That observation does not establish that the check would signal a regression.
+
+**Predicted witness; not run:** replace the first assertion temporarily with `assert.equal(parse('7'), 8)` and run `node existing.test.mjs`. The assertion throws, but the empty `catch` consumes it, so the predicted exit status is `0`. Under the stated obligation, the expected exit status is nonzero.
+
+Remove the `try`/`catch` so assertion failures propagate:
+
+```js
+import assert from 'node:assert/strict';
+import { parse } from './parser.mjs';
+
+assert.equal(parse('7'), 7);
+assert.throws(() => parse('x'), /invalid/);
+```
+
+This also makes unexpected parser errors fail the smoke check, which is appropriate for this local check but could change any workflow that relied on its current successful exit.
+
+The broader parser contract and the rest of the suite are **unresolved**: the supplied files do not establish their coverage obligations. No commands or tests were executed.
+
+Using the balanced preset, the single retained warning deducts 5 points, giving a standalone test score of **95/100**.

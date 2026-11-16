@@ -1,0 +1,19 @@
+**Defect — pagination can repeat the last row from the previous page.** The contract says the cursor denotes the last emitted row and every row must be returned exactly once. In `query.mjs`, the predicate `x >= cursor` includes that row again. `page.mjs` then takes the first `size` matches and returns the last item as the next cursor.
+
+For example, with rows `[1, 2, 3]` and page size `2`, the first page returns `[1, 2]` with cursor `2`; the second returns `[2, 3]`. Row `2` is emitted twice. With page size `1`, the cursor remains `1` and repeated calls return `[1]`, preventing progress.
+
+The following executable witness is **predicted, not run**:
+
+```js
+import assert from 'node:assert/strict';
+import { page } from './page.mjs';
+
+const rows = [1, 2, 3];
+const first = page(rows, undefined, 2);
+const second = page(rows, first.cursor, 2);
+
+assert.deepEqual(first, { items: [1, 2], cursor: 2 });
+assert.deepEqual(second, { items: [2, 3], cursor: 3 }); // Demonstrates duplication
+```
+
+Change the predicate in `query.mjs` to `x > cursor` when a cursor is supplied. That excludes the previously emitted row and lets a size-one page advance. The initial page remains unchanged. This assessment assumes the supplied rows are unique and ascending, as described by the contract; it does not establish behavior for unsorted or duplicate input. No checks were executed.

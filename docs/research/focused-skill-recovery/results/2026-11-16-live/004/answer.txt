@@ -1,0 +1,24 @@
+**Disposition: protected** for the supplied synchronous handler and the contract’s at-most-once balance obligation. There is no retained defect and no score deduction.
+
+`dispatch` passes the event ID and amount to `apply`. On the first call for an ID, `apply` increases the balance and records the ID. On a retry with the same ID, it returns before changing the balance. Under the contract’s assumptions that the relevant operations are synchronous and cannot throw, no retry can interleave between the balance update and recording the ID. `state()` gives each state instance its own set of seen IDs.
+
+The following executable witness is **predicted, not run**. It expects the retry to leave the balance at 10 and a different ID to increase it to 13:
+
+```sh
+node --input-type=module <<'EOF'
+import assert from 'node:assert/strict';
+import { state } from './state.mjs';
+import { dispatch } from './entry.mjs';
+
+const s = state();
+dispatch(s, { id: 'a', amount: 10 });
+dispatch(s, { id: 'a', amount: 10 });
+assert.equal(s.balance, 10);
+
+dispatch(s, { id: 'b', amount: 3 });
+assert.equal(s.balance, 13);
+assert.deepEqual([...s.seen], ['a', 'b']);
+EOF
+```
+
+The snapshot does not show how events are accepted or selected for replay. That part of the contract is **unresolved outside the supplied local scope**; the handler itself has no acceptance check. If callers can pass unaccepted IDs, the acceptance boundary should enforce the replay rule. Adding a check without knowing that boundary could duplicate policy or reject valid events. No checks were executed.

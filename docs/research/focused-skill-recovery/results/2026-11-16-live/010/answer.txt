@@ -1,0 +1,36 @@
+# Brooks-Lint Review
+
+**Mode:** PR Review  
+**Scope:** Supplied `contract.md`, `query.mjs`, and `page.mjs`; no diff, callers, or test inventory supplied  
+**Health Score:** 100/100
+
+The query predicate is **protected within the supplied local contract**: it selects rows strictly after the last emitted row.
+
+## Findings
+
+No scored findings.
+
+The contract permits strictly ascending, unique integer rows and a positive integer page size. For an omitted cursor, `select` retains all rows; for a supplied cursor, it retains only values greater than that cursor. `page` takes the first `size` selected rows and returns the last item as the next cursor. Thus, for a nonempty page, the next request excludes every previously emitted row and begins with the next available one.
+
+**Predicted witness — not executed:**
+
+```js
+import assert from 'node:assert/strict';
+import { page } from './page.mjs';
+
+const rows = [1, 3, 5, 7, 9];
+const first = page(rows, undefined, 2);
+const second = page(rows, first.cursor, 2);
+const third = page(rows, second.cursor, 2);
+
+assert.deepEqual(first,  { items: [1, 3], cursor: 3 });
+assert.deepEqual(second, { items: [5, 7], cursor: 7 });
+assert.deepEqual(third,  { items: [9], cursor: 9 });
+assert.deepEqual([...first.items, ...second.items, ...third.items], rows);
+```
+
+**Unresolved:** An empty page returns `cursor: undefined`, the same value used to start pagination. The supplied contract does not specify how callers detect completion or whether they may pass that returned cursor into another request. Reusing it would restart selection; stopping when `items` is empty avoids that outcome. Caller behavior is not supplied, so this is unscored.
+
+## Summary
+
+The predicate satisfies the supplied ascending, unique-row contract for successive nonempty pages. No checks were executed, and the supplied snapshot does not establish deployed behavior or existing test coverage.

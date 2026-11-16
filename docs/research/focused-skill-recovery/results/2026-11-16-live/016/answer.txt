@@ -1,0 +1,26 @@
+The supplied snapshot is **protected** on the stated dependency boundary. In the active build, `domain.mjs` imports no HTTP module; `decide(x, notify)` depends on the injected notification function and calls it exactly once. `entry.mjs` is the composition point: it imports both `decide` and the HTTP `send` function, then passes `send` into `decide`.
+
+The following executable witness is a **prediction**, not an execution receipt. Run it from the directory containing the supplied files:
+
+```sh
+node --input-type=module <<'EOF'
+import assert from 'node:assert/strict';
+import { decide } from './domain.mjs';
+import { run } from './entry.mjs';
+
+const calls = [];
+const result = decide('ok', value => {
+  calls.push(value);
+  return 'notified:' + value;
+});
+
+assert.deepEqual(calls, ['ok']);
+assert.equal(result, 'notified:ok');
+assert.equal(run(), 'sent:ok');
+console.log('Assertions passed');
+EOF
+```
+
+The predicted outcome is `Assertions passed`: the injected function receives `ok` once, and the active entry returns the HTTP sender’s result. The dependency-boundary conclusion also rests on inspecting the complete supplied `domain.mjs` source.
+
+No remedy or scored finding is warranted for this local snapshot. The witness was not run, and the supplied files do not establish behavior in a deployed environment.

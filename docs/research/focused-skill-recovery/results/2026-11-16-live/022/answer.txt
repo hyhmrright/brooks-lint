@@ -1,0 +1,35 @@
+# Brooks-Lint Review
+
+**Mode:** Architecture Audit  
+**Scope:** Supplied `contract.md`, `domain.mjs`, `composition.mjs`, and `entry.mjs` snapshot  
+**Health Score:** 100/100
+
+The supplied dependency path is protected by the stated composition boundary; no scored defects were established in this local snapshot.
+
+## Module Dependency Graph
+
+```mermaid
+graph TD
+    Entry["entry.mjs"] -->|imports and re-exports| Composition["composition.mjs"]
+    Composition -->|imports compute| Domain["domain.mjs"]
+    classDef assessed fill:#51cf66
+    class Entry,Composition,Domain assessed
+```
+
+## Findings
+
+No findings.
+
+**Protected — dependency direction and configuration:** `contract.md` permits composition to import domain and requires configuration to be passed as a parameter. `composition.mjs` imports `compute` from `domain.mjs` and calls it with `rate`; `domain.mjs` imports nothing. The supplied entry point re-exports `run` from composition, consistent with the stated production binding.
+
+**Predicted witness, not executed:** From the directory containing the supplied files, run:
+
+```sh
+node --input-type=module -e "import {run} from './entry.mjs'; console.log(run(3))"
+```
+
+The predicted output is `6`: `entry.mjs` exposes `run`, which calls `compute(3, 2)`. A change to the configured rate remains in composition and is passed into the domain function; the domain has no reverse import to update.
+
+## Summary
+
+The assessment covers only the supplied files and contract. Tests and the witness were not executed; deployment reach beyond the stated entry binding, testability requirements, and team ownership were not supplied and remain unresolved.

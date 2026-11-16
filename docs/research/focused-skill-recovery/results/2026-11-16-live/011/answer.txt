@@ -1,0 +1,31 @@
+# Brooks-Lint Review
+
+**Mode:** PR Review  
+**Scope:** Supplied `contract.md`, `query.mjs`, and `page.mjs`; callers and tests are outside the supplied snapshot.  
+**Health Score:** 100/100
+
+The pagination boundary is unresolved because the supplied contract does not say what the cursor represents.
+
+## Findings
+
+No scored findings were established.
+
+**Unresolved — cursor interpretation:** `contract.md` establishes that rows are ascending integers, but leaves open whether the cursor is the last emitted row or the next unread row. `query.mjs` includes rows equal to the cursor, while `page.mjs` returns the last emitted item as the cursor.
+
+Predicted witness, not run:
+
+```js
+import { page } from './page.mjs';
+
+const first = page([1, 2, 3], undefined, 2);
+// Predicted: { items: [1, 2], cursor: 2 }
+
+const second = page([1, 2, 3], first.cursor, 2);
+// Predicted: { items: [2, 3], cursor: 3 }
+```
+
+If the cursor means **last emitted row** and subsequent pages must exclude it, the second page repeats `2`. If it means **next unread row**, `page` returns `2` even though `3` is next unread. The required caller protocol and pagination behavior must be established before either observation can be classified as a defect or a correction chosen.
+
+## Summary
+
+Resolve the cursor contract with the caller or API owner, then check the corresponding pagination sequence. No code or tests were executed, and the supplied snapshot does not establish what test protection exists.

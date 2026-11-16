@@ -1,0 +1,27 @@
+The dependency from `domain.mjs` to `http.mjs` is **unresolved** as an architectural observation. The supplied [contract](contract.md) says the active build and module responsibility boundaries are unavailable, so the file names alone do not establish a rule that the import violates. There is no supported R5 finding.
+
+The concrete local behavior is that `run()` passes `send` as the `notify` argument to `decide`, but `decide` ignores that argument and calls the `send` it imported directly. That makes the argument ineffective, but the snapshot does not establish that callers must be able to substitute the notification function. Whether this is a defect or an intentional choice is therefore **unresolved**.
+
+The following executable witness is **predicted, not run**. From the directory containing the supplied files, it checks both the return value and whether a supplied callback is used:
+
+```sh
+node --input-type=module <<'EOF'
+import assert from 'node:assert/strict';
+import { decide } from './domain.mjs';
+import { run } from './entry.mjs';
+
+let called = false;
+const result = decide('ok', () => {
+  called = true;
+  return 'replacement';
+});
+
+assert.equal(result, 'sent:ok');
+assert.equal(called, false);
+assert.equal(run(), 'sent:ok');
+EOF
+```
+
+If the intended contract requires an injectable notifier, a remedy would be to have `decide` call `notify(x)` and remove its direct `http.mjs` import. That would change the behavior of callers that currently pass a different callback or omit it, so existing caller expectations need to be established first. If direct use of `send` is intended, removing the unused `notify` parameter and argument would clarify the interface, subject to checking other callers outside this snapshot.
+
+No checks were executed, and the supplied snapshot does not establish the broader build, callers, or responsibility boundaries.

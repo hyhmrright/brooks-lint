@@ -1,0 +1,15 @@
+The local test is **protected** for one narrow behavior: when the supplied validator returns normally, `save` calls it exactly once. The supplied assertion would fail if that call were omitted or repeated.
+
+The test leaves an **unresolved** persistence question. It does not assert that `s.value` becomes `'x'`, so it cannot distinguish the supplied implementation from one that calls the validator once but never writes the value. The persistence obligation and full suite are unavailable, so this observation does not establish a scored coverage defect.
+
+A predicted local witness is to replace `save` temporarily with:
+
+```js
+export const save = (store, value, validate) => {
+  validate(value);
+};
+```
+
+Running `node existing.test.mjs` would still pass: `calls` becomes `1`, although `s.value` remains `undefined`. If persistence is confirmed as an obligation, adding `assert.equal(s.value, 'x')` after the existing call would discriminate between these implementations. That assertion would couple the test to the specified storage representation, so the obligation should be confirmed first.
+
+No check was executed; these outcomes are source predictions. No findings are retained for scoring, so the standalone balanced score is **100/100** for the assessed local scope.

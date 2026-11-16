@@ -1,0 +1,38 @@
+# Brooks-Lint Review
+
+**Mode:** Test Quality Review  
+**Scope:** Supplied `service.mjs`, `existing.test.mjs`, and persistence contract; complete task test inventory  
+**Health Score:** 99/100
+
+The test checks that validation runs, but it does not protect the required persistence of the supplied string.
+
+## Test Suite Map
+
+The supplied inventory contains one local test script with one assertion. It calls `save` with an in-memory store and a validation callback. Runtime is unknown; no checks were executed.
+
+## Findings
+
+### 🟢 Suggestion
+
+**T5 Coverage Illusion — Persistence is not asserted (Suggestion)**
+
+**Symptom:** `existing.test.mjs` asserts only that the validation callback ran once. It never inspects `s.value`.
+
+**Source:** *How Google Tests Software* — change protection; *The Art of Unit Testing* — test completeness.
+
+**Consequence:** The contract requires `save` to persist the supplied string. The local test cannot distinguish the supplied implementation from a version that validates but never assigns the value. This is a limited regression-protection gap in the supplied scope; deployment impact is unknown.
+
+**Remedy:** Add an assertion that `s.value` equals the supplied string after `save` returns.
+
+**Predicted witness, not run:** With the existing input `'x'`, both the supplied implementation and the contract-breaking mutant below are predicted to pass the existing `assert.equal(calls, 1)`. Adding `assert.equal(s.value, 'x')` is predicted to pass the supplied implementation and fail the mutant.
+
+```js
+export const save = (store, value, validate) => {
+  validate(value);
+  // Persistence omitted.
+};
+```
+
+## Summary
+
+The supplied implementation is predicted to persist `'x'` through `store.value = value`; that local behavior is protected neither by the existing assertion nor by another test in the supplied inventory. The current assertion does protect the observation that the callback runs once for this input.

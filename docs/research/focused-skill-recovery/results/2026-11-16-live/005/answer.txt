@@ -1,0 +1,21 @@
+**Disposition: unresolved for duplicate-payment handling.** The supplied contract says the handler accepts an ID and amount, but does not establish whether repeated IDs are separate payments or whether delivery can repeat. There is therefore no supported at-most-once obligation and no scored defect.
+
+In `entry.mjs`, `dispatch` passes the event’s ID and amount to `apply`. In `handler.mjs`, `apply` adds the amount on every call, then records the ID in the `seen` set. Repeating an ID therefore increases the balance again, while the set retains one copy of that ID. That behavior is established by the supplied source; whether it is correct depends on the missing delivery and payment-identity rules.
+
+**Predicted witness; not run:**
+
+```js
+import assert from 'node:assert/strict';
+import { state } from './state.mjs';
+import { dispatch } from './entry.mjs';
+
+const s = state();
+dispatch(s, { id: 'p1', amount: 10 });
+dispatch(s, { id: 'p1', amount: 10 });
+
+assert.equal(s.balance, 20);
+assert.equal(s.seen.size, 1);
+assert.equal(s.seen.has('p1'), true);
+```
+
+If the intended obligation is later established as “apply each payment ID at most once,” the handler could check `seen` before changing the balance. That remedy would discard legitimate separate payments if IDs can be reused, and would need an atomicity strategy if the state can be updated concurrently. No check was executed, and the supplied files do not establish deployed behavior or concurrency guarantees.
