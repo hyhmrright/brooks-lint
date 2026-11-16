@@ -30,6 +30,8 @@ The withdrawn 1.10.0 preparation is superseded; npm remains at 1.9.1.
 
 ### Changed
 
+- Diagnose the six skills' limited comparative evidence and add bounded causal checks for change attribution, graph edge types, test witnesses, debt priority uncertainty, capped dashboard completeness and sweep repair verification. These offline improvements do not establish new model efficacy.
+
 - Make all six skills equally visible in README benchmark comparisons, distinguish intended deliverables from measured gains, and retain cohort-specific baselines, ties, regressions and evidence links (#49).
 
 - Present benchmark results in six README translations with same-run comparisons, concrete adjudicated examples and explicit adverse history; expand the six-skill evidence index with frozen plans, raw responses and grading provenance (#48).

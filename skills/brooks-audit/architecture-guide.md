@@ -27,7 +27,11 @@ Draw only evidenced nodes/edges before assigning findings. Nodes are modules or
 services; use files as nodes only when they are the supplied module boundary.
 Solid arrows point from the depending module to its dependency. Distinguish import
 edges from runtime calls/injection, and label unresolved bindings rather than
-silently choosing one. Group layers where supported; collapse large graphs to
+silently choosing one. Keep import, runtime-call and ownership relations distinct:
+a return callback can close a call path without creating an import cycle, and a
+composition root can supply an adapter without reversing source ownership. A cycle
+claim needs a closed path of the claimed edge kind, with references for each edge.
+Group layers where supported; collapse large graphs to
 about 50 nodes and identify sampling. Annotate high fan-out as a cue, not a verdict.
 
 Use `graph TD` (or `LR` for pipelines). Mark a confirmed cycle with a labeled dotted

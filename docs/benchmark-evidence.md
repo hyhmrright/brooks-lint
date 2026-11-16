@@ -36,6 +36,12 @@ section below. Small, reused development cases and non-independent grading
 limit claims about unseen projects. Current health arithmetic/delivery checks
 verify product behavior, not a reversal of its adverse efficacy result.
 
+For the diagnosis behind the next changes, see the
+[six-skill value analysis](skill-value-diagnosis.md): it separates observed skill
+failures from benchmark blind spots, identifies concrete instruction repairs, and
+defines outcomes that could falsify each proposed advantage. Its offline fixtures
+are not new model results and do not supersede the comparisons below.
+
 For a first trial, use a small real diff, dependency boundary or test suite you
 already understand. Ask for a concrete witness, inspect its governing contract,
 and run the proposed check when appropriate. For health, inspect the ledger and

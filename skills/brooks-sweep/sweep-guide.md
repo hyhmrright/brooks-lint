@@ -89,7 +89,10 @@ Read `../brooks-review/pr-review-guide.md` and apply its evidence and uncertaint
 rules to the authorized scope. Scan production files against all R-series risks defined in
 `../_shared/decay-risks.md`.
 
-2a. For each R-risk, apply its symptom checklist. Record each hit as a finding
+2a. For each R-risk, use its symptom checklist to select candidates. Retain a
+   finding only after the review guide establishes its obligation, causal
+   consequence and scoped remedy; a checklist hit alone is not edit authority.
+   Record each supported finding
    with: risk code, file + approximate line range, Symptom, Source,
    Consequence, Remedy, Severity (Critical / Warning / Suggestion), and
    **Fix-Class** (see Step 2b).
@@ -111,7 +114,11 @@ rules to the authorized scope. Scan production files against all R-series risks 
    line ranges in the same file, apply higher-severity first, re-read the file,
    then apply the next.
 
-2e. After all fixes in this dimension, run the project test/lint command if one
+2e. Check each applied remedy against its diagnosed witness and the behavior it
+   must preserve; a green command that does not exercise either is not repair
+   verification. Record static predictions separately from executed checks. Do
+   not mark a finding resolved solely because a patch was applied. After all
+   fixes in this dimension, run the project test/lint command if one
    exists (`package.json` scripts, `pytest`, `cargo test`, `go test ./...`, etc.).
    If a new failure appears relative to baseline: revert only this sweep's patches
    from this dimension in reverse order, re-running the relevant command after
@@ -147,7 +154,8 @@ infrastructure or an unknown intended behavior remains Residual.
 Read `../brooks-debt/debt-guide.md`, including its distinction between unknown
 historical intent and prioritization. Re-classify existing ledger findings through a debt lens — same symptoms at accumulation scale:
 repeated duplication, layered workarounds, stale `TODO`/`FIXME` clusters, dead
-flags. Score each with **Pain (1–3) × Spread (1–3)** to prioritize debt work.
+flags. Use **Pain (1–3) × Spread (1–3)** where both factors are evidenced to prioritize
+known debt work; retain unknown factors and unresolved ties without invented ranks.
 Use the score and pattern-level occurrences as evidence about burden and reach,
 not as automatic severity conversions or bumps. Assign the final finding severity
 under `common.md` Severity Calibration; Critical still requires serious impact

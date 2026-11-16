@@ -9,6 +9,13 @@ Every finding must follow the Iron Law: Symptom → Source → Consequence → R
 
 ### Step 1: Run Lightweight Scan Across Four Dimensions
 
+Build the uncapped candidate inventory before choosing the scoring view. Retain
+the most severe supported, independent causes first; break equal-severity ties by
+observed impact, then stable finding ID. Do not let discovery order decide which
+findings count. This is a capped dashboard, not an exhaustive safety score. State that its scores
+cover the declared scope and abbreviated checks below; an assessed 100 means no
+retained deductions under those checks, not all possible risks were excluded.
+
 For each dimension, run an abbreviated scan using the decay-risks definitions
 from `_shared/`. Do NOT read the individual mode guide files — use the abbreviated
 checklists below. Cap each dimension at 3 findings; for Debt: cap at 2 per risk code and 3 across all risk codes.
@@ -81,7 +88,8 @@ owner to fit the arithmetic schema.
 - Gather context within the declared scope: inspect its module inventory, entry
   points, responsibilities and imports; identify what is complete versus omitted
 - Draw a Mermaid dependency graph (follow standard graph rules from common.md)
-- Scan for R5 (Dependency Disorder): circular deps, upward flows, fan-out > 5
+- Scan for R5 (Dependency Disorder): verify cycles and forbidden dependency
+  directions against responsibilities; fan-out > 5 is an inspection cue, not a finding
 - INCLUDE the Mermaid graph in output
 
 **Debt dimension:**
@@ -263,8 +271,13 @@ the same placeholder with the verified calculation block before delivery.
 ## Module Dependency Graph
 [Mermaid graph from architecture scan]
 
-## Top Findings (max 5 across all dimensions)
-[Standard Iron Law format, with Critical / Warning / Suggestion explicitly in each finding title, sorted by severity]
+## Findings used in scoring
+[Every retained scoring ID, once under its owning dimension, with Iron Law evidence
+ and literal severity. Highlight up to five priorities without duplicating findings.]
+
+## Additional observations
+[Supported findings beyond the scoring caps, unscored uncertainties and limitations;
+ explicitly excluded from deductions, with the reason]
 
 ## Recommendation
 [One paragraph: what to fix first, which dimension needs the most attention,
