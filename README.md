@@ -100,6 +100,8 @@ In the latest focused **static-instruction** comparison after offline adjudicati
 
 Model: `gpt-6.1-terra / low`; one response per case in each group. A pass requires all five primary behavioral axes, no missed expected issue and no established false claim. Counts are not a general accuracy estimate.
 
+[Evidence and limitations for all six skills](docs/benchmark-evidence.md)
+
 <a id="installation"></a>
 
 ## Installation and compatibility

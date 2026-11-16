@@ -7,9 +7,17 @@ installer reads those mappings as data without executing the shell script.
 
 ## Publication authorization and version history
 
-The user approved the unified 1.9.1 GitHub/npm release and DSH market publication, conditional on
-all remote CI jobs passing for the exact release commit. Complete the gates below before publishing.
-Approval covers publication after those gates, so preparation does not require another confirmation.
+**Current publication hold:** the maintainer has not selected or approved the next
+version. Do not publish, create tags/releases, or refresh an index to an unpublished
+package. The earlier 1.9.1 authorization and the subsequently withdrawn 1.10.0
+GitHub release are historical, not standing approval for another version.
+Source metadata still says 1.10.0; npm latest remains 1.9.1. The last npm publication
+attempt failed authentication/authorization; publisher access must be restored
+and verified before the next coordinated GitHub/npm release.
+
+See [next-release readiness](next-release-readiness.md) and the
+[proposed migration notes](migration-v2-draft.md). Only a fresh explicit release
+instruction can lift this hold; green CI alone cannot.
 
 npm 1.9.0 was withdrawn and npm forbids reusing that version. Keep GitHub, npm, and the repository's
 single-source version aligned for this release and use a new version for every subsequent npm release.

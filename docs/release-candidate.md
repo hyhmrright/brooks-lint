@@ -68,3 +68,12 @@ unreleased backlog, with the eight non-exempt commits accounted for in
 `release-1.10.0-audit.md`. The candidate-stage 1.9.1 hold above is historical;
 the maintainer subsequently authorized release after exact-commit CI and
 `release:ci`. Research records remain preserved at `17bd333`.
+
+## Current status after documentation merge
+
+The candidate and documentation PRs #46/#47 are merged. The 1.10.0 GitHub tag
+and release were withdrawn at the maintainer's request; npm 1.10.0 was never
+published. The earlier release authorization above is historical and superseded
+by the current publication hold. No next version is selected. Use
+[next-release readiness](next-release-readiness.md), not the old candidate
+sequence, for remaining gates. Research archives remain unchanged.

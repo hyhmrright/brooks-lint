@@ -1,5 +1,9 @@
 # Release 1.10.0 audit
 
+> Historical preparation record. Its GitHub release/tag was later withdrawn, npm
+> publication failed, and the next version is awaiting maintainer confirmation.
+> This record is not current release authorization. See [current readiness](next-release-readiness.md).
+
 Range: `v1.9.1..231512e`. Version is a minor increment because the backlog adds
 Codex behavioral evaluations and deterministic health tooling. Registry versions
 and publication times checked on 2026-11-16 show no use of 1.10.0; withdrawn

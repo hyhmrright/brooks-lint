@@ -100,6 +100,8 @@ En la última comparación de **instrucciones estáticas**, tras la revisión si
 
 Modelo: `gpt-6.1-terra / low`; una respuesta por caso y grupo. Aprobar exige superar los cinco ejes principales, no omitir problemas esperados y no presentar afirmaciones falsas confirmadas. No es una estimación de exactitud general.
 
+[Evidencia y límites de las seis habilidades](docs/benchmark-evidence.md)
+
 <a id="installation"></a>
 
 ## Instalación y compatibilidad
