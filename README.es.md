@@ -87,21 +87,40 @@ La [matriz de fuentes](skills/_shared/source-coverage.md) documenta conceptos, c
 
 <a id="benchmark"></a>
 
-## Qué se ha evaluado
+## Benchmark: resultados verificables
 
-Conviene separar tres tipos de evidencia:
+Las pruebas del producto verifican comportamiento determinista. Las comparaciones de modelos muestran ventajas limitadas en algunas tareas; no demuestran que todas las habilidades superen una lista genérica.
 
-- **Pruebas de producto sin conexión:** Instalación, cálculo, entrega, contratos del parser y estructura de casos. No prueban la calidad del juicio del modelo.
-- **Fidelidad del parser:** 30 informes congelados: recuentos de severidad, códigos y SARIF. Se evalúa el parser, no la verdad de los hallazgos.
-- **Comparaciones de comportamiento:** Respuestas de Codex con modelos y prompts definidos, juzgadas por rúbricas. Limitadas por casos, canal de ejecución y revisores.
+| Habilidad | Lista genérica | Instrucciones de habilidad | Observación |
+|---|---:|---:|---|
+| review | 6/6 | 6/6 | Empate |
+| audit | 6/6 | 6/6 | Empate |
+| test | 5/6 | 6/6 | Ventaja en un par |
 
-En la última comparación de **instrucciones estáticas**, tras la revisión sin conexión, review y audit obtuvieron **6/6 en ambos grupos**, lista genérica y habilidad; test obtuvo **5/6 frente a 6/6**. Es una ventaja en un único par de casos reutilizados y escritos durante el desarrollo, no prueba independiente de superioridad general. Se corrigió la evaluación después de ejecutar. No mide el descubrimiento nativo de habilidades ni todos los modelos.
+Modelo seleccionado por CLI: `gpt-6.1-terra / low`; 18 casos × dos grupos = **36 respuestas**, una por caso y grupo. La tabla cuenta aprobaciones de comportamiento tras la revisión offline: deben cumplirse los cinco ejes (diagnóstico, alcance contractual, ejemplo discriminante, remedio y honestidad de verificación), sin omitir problemas esperados ni afirmaciones falsas confirmadas.
 
-[Registro y revisión preservados](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md) · [Diseño de evaluación Codex](docs/codex-behavior-evals.md). Los archivos de investigación permanecen en su rama; el producto incluye pequeños extractos de regresión.
+**Una diferencia concreta — BV5-23:** el contrato exige un entero para una cadena numérica. La respuesta con habilidad identificó una entrada de 309 dígitos que produce `Infinity` y una carencia en las dos pruebas existentes. La lista genérica falló el eje que exigía comparar un mutante; no recibió una penalización retroactiva por omitir este hallazgo adicional.
 
-Modelo: `gpt-6.1-terra / low`; una respuesta por caso y grupo. Aprobar exige superar los cinco ejes principales, no omitir problemas esperados y no presentar afirmaciones falsas confirmadas. No es una estimación de exactitud general.
+**Una corrección — BV5-24:** inicialmente rechazamos la respuesta de la lista y después aceptamos su ejemplo de fallo de aserción, equivalente en comportamiento. Se conservan los juicios originales y las revisiones. Una ventaja en un par de casos reutilizados no demuestra superioridad general.
 
-[Evidencia y límites de las seis habilidades](docs/benchmark-evidence.md)
+<details>
+<summary>Otras habilidades: experimentos distintos, no una clasificación única</summary>
+
+- **debt:** referencia antigua con solo el caso 11/15 frente a habilidad 12/15 respuestas plenamente sustentadas (cinco casos, tres repeticiones). No usa la lista genérica de la tabla anterior.
+- **health:** lista 15/18 frente a habilidad 10/18 en la campaña de 72 respuestas; la abstención excesiva perjudicó a la habilidad. Las correcciones posteriores tienen cobertura offline, no una comparación de eficacia completada tras ellas.
+- **sweep:** lista 15/18 frente a habilidad 18/18 en esa campaña; la ventaja se limita a una familia de casos propia y no demuestra reparación autónoma general.
+
+</details>
+
+Son casos de desarrollo relacionados, con evaluación no independiente. Las repeticiones no son proyectos independientes. Las instrucciones estáticas no prueban el descubrimiento nativo, todos los modelos ni todo el código actual de 2.0.0.
+
+| Evidencia | Qué verifica |
+|---|---|
+| Regresiones de producto | Instalación, cálculo, entrega exacta y ejemplos de parada acotada |
+| Benchmark de 30 informes | Extracción de severidad/riesgos y SARIF, no la verdad del diagnóstico |
+| Comparaciones de modelos | Tareas, modelos, revisiones de instrucciones y rúbricas concretas |
+
+[Plan congelado](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/plan.json) · [Respuestas y registros originales](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live) · [Juicios citados y correcciones](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md) · [Evidencia y límites de las seis habilidades](docs/benchmark-evidence.md)
 
 <a id="installation"></a>
 

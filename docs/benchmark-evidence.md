@@ -1,7 +1,8 @@
 # Benchmark evidence: what is covered and what remains unknown
 
-This index describes evidence available through main `d248ad5` and preserved
-research snapshot `17bd333`. It does not authorize further model calls or a
+This index documents evidence retained in the 2.0.0 preparation at `12b6a5c`
+and research snapshot `17bd333`. It does not claim that all historical skill
+versions match the current source tree. It does not authorize further model calls or a
 release. Different tasks, arms, rubrics, instruction revisions and execution
 channels must not be merged into one accuracy number.
 
@@ -22,25 +23,133 @@ The three preserved native Codex studies are the
 Their judge shares the evaluated model; compare denominators, exclusions and
 read traces, not just headline percentages.
 
-## All six skills: research evidence map
+## Focused comparison: review, audit and test
 
-All research links below use the fixed research snapshot, not mutable main.
-Static supplied-instruction studies do not measure native skill discovery.
+This is one experiment, not a composite leaderboard: 18 cases, two arms and
+36 completed answers. B receives the generic checklist; C receives focused skill
+guidance. The CLI selected `gpt-6.1-terra / low` with Codex CLI 0.169.0; each case
+has one response per arm. Six development-authored families group the cases.
 
-| Skill | Evidence and supported interpretation |
-| --- | --- |
-| review | [Focused adjudication](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md): generic B 6/6, skill C 6/6 primary behavioral passes; no observed incremental pass gain |
-| audit | Same focused adjudication: B 6/6, C 6/6. Earlier architecture gains in a different campaign do not override this tie or establish general superiority |
-| test | Same focused adjudication: B 5/6, C 6/6, one paired advantage. BV5-23's overflow finding is supported; equivalent failure injection in BV5-24 is accepted in B. Post-run adjudication is explicit, not independent ground truth |
-| debt | [All-skills campaign](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/all-skills-results/2026-11-11-terra-low-campaign/report.md): complete-supported A 11/15, B 12/15; expected issue recall 3/3 both. Five development cases repeated three times, older guidance, case-only rather than generic-checklist baseline; no current-release debt superiority established |
-| health | [72-answer capability comparison](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/capability-efficacy-v2-recovery2/results/2026-11-15-complete/REPORT.md): generic B 15/18, C 10/18; excessive abstention caused C failures. The subsequent scope and duplicate-ID corrections have offline coverage, not completed behavioral efficacy evidence |
-| sweep | Same 72-answer comparison: B 15/18, C 18/18; benefit limited to one authored priority-routing family. Finite repair probes and supplied contracts do not prove general autonomous repository repair |
+A primary behavioral pass requires diagnosis, contract scope, discriminating
+witness, remedy and verification honesty all to pass, no missed expected issue
+and no established false claim. Taxonomy/severity and frozen label agreement are
+separate metrics. These fractions are not estimates of general accuracy.
 
-The focused study used CLI-selected `gpt-6.1-terra / low`, one response per case
-and arm, six related development families, and five primary behavioral axes.
-All expected issues were found in both arms (7/7); the extra supported overflow
-finding is not retroactively added to that denominator. Zero confirmed false
-claims in this finite study is not a population false-positive rate.
+| Skill | Generic B | Skill C | Supported conclusion |
+| --- | ---: | ---: | --- |
+| review | 6/6 | 6/6 | No incremental primary-pass gain in these cases |
+| audit | 6/6 | 6/6 | No incremental primary-pass gain in these cases |
+| test | 5/6 | 6/6 | One paired advantage after offline adjudication |
+
+### Review
+
+Both arms passed all six responses. This establishes that both met this rubric
+on these cases, not that guidance improved diagnostic ability. Case reuse and the
+ceiling leave limited room to distinguish the arms. A useful reporting workflow
+can still be retained without claiming an observed accuracy gain.
+
+### Audit
+
+Both arms passed all six responses. Older architecture gains used a different
+baseline and protocol; they do not override this tie. These small static snapshots
+do not establish effectiveness across arbitrary module graphs or repositories.
+
+### Test: the difference and the correction
+
+**BV5-23:** the contract requires an integer for a numeric string, without a
+length bound. C identified a 309-digit unsigned decimal that the supplied parser
+accepts and converts to `Infinity`; the two existing tests miss that behavior.
+B failed the requested mutant-comparison axis because its witness only predicts
+the baseline test run. The new overflow observation was not retroactively added
+to the expected-issue denominator or treated as a newly frozen miss in B.
+
+**BV5-24:** the original reviewer failed B for changing an assertion rather than
+the parser. The frozen rule accepts behaviorally equivalent witnesses; offline
+reproduction showed both produce the relevant caught-success/uncaught-failure
+difference. B was corrected to pass. Keeping that initial rejection would
+inflate the skill advantage. The historical annotations remain unchanged beside
+the corrected annotations. This post-run adjudication is not independent human
+validation; it includes a targeted spot check, not a new independent review of
+all 36 answers.
+
+All frozen expected issues were found in both arms (7/7), with no confirmed
+false-claim answers. Zero observed false claims is not a population false-positive
+rate. The overall prespecified practical-lift criterion remains **not met**:
+review and audit did not improve. Runnable examples in model answers were
+predictions; later reviewer reproduction is separate evidence.
+
+**Inspect the evidence:** [frozen plan](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/plan.json),
+[original answers/records](https://github.com/hyhmrright/brooks-lint/tree/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live),
+[case inputs, rubrics and answers](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/review-packets.json),
+[original judgments](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/annotations.json),
+[corrected quoted judgments](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/annotations.json),
+[recomputed assessment](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/assessment.json),
+[adjudication and reproduction instructions](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/focused-skill-recovery/results/2026-11-16-live/adjudication/README.md).
+The [recovery plan](https://github.com/hyhmrright/brooks-lint/blob/17bd333/evals/research/focused-skill-recovery/freeze.json)
+binds the retained failed attempt; completed collection does not erase it.
+
+## Other skills: distinct experimental cohorts
+
+Do not compare these rows directly with the focused study or pool their
+numerators. A repeated answer is not an independent project, and a historical
+instruction bundle is not certification of the current 2.0.0 source tree.
+
+### Debt — older case-only baseline
+
+The all-skills campaign used CLI-selected `gpt-6.1-terra / low`, CLI 0.167.0,
+five debt cases repeated three times in each arm. A received the case and common
+task/authority rules; B also received the selected skill guidance. This baseline
+is **not** the generic checklist used in the focused and capability studies.
+
+Complete-supported answers were A **11/15**, B **12/15**; frozen expected issue
+recall was **3/3 in both**. One recurring-drift remedy explanation supplied the
+small completeness gain; neither better issue recall nor better ranking was
+established. The older guidance, exposed cases and same-workflow review prevent
+a current-release superiority claim.
+
+Evidence: [frozen full schedule](https://github.com/hyhmrright/brooks-lint/blob/17bd333/evals/research/all-skills/frozen-full.json),
+[report](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/all-skills-results/2026-11-11-terra-low-campaign/report.md),
+[quoted annotations](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/all-skills-results/2026-11-11-terra-low-campaign/annotations-all-skills.json),
+[summary](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/all-skills-results/2026-11-11-terra-low-campaign/all-skills-summary.json),
+[original interruption and raw archive](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/all-skills-results/2026-11-10-terra-low-interrupted/README.md),
+[recovery archive and provenance](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/all-skills-results/2026-11-11-terra-low-campaign/README.md).
+
+### Health — adverse result remains visible
+
+The capability comparison collected 72 answers across health and sweep using
+CLI-selected `gpt-6.1-terra / low`, CLI 0.169.0. B was the generic checklist and
+C the static full skill bundle. Health behavioral passes were B **15/18**,
+C **10/18**. C's eight failures concerned excessive abstention despite sufficient
+bounded evidence. B's three failures concerned repeated deductions for one
+ownership cause. Both recovered the expected issues (**9/9**), so the observed
+difference was not issue recall.
+
+Later scope and duplicate-ID corrections have offline regression coverage.
+There is **no completed post-fix behavioral efficacy result** for those changes.
+A successful scoring or delivery probe demonstrates that narrower behavior;
+it cannot substitute for a fresh health diagnosis comparison. This is a limit
+on efficacy claims, not a reason to hide the adverse result or silently run
+another experiment.
+
+### Sweep — advantage limited to one family
+
+In the same capability cohort, B passed **15/18**, C **18/18**, with expected
+issue recall **6/6 in both**. The difference came from three repeated responses
+in one authored priority-routing family. Finite repair probes and supplied
+contracts do not establish general autonomous repository repair. The combined
+health/sweep practical-lift criterion was not met: health's losses must not be
+removed from the account of this experiment.
+
+**Health/sweep evidence:** [frozen recovery plan](https://github.com/hyhmrright/brooks-lint/blob/17bd333/evals/research/capability-efficacy-v2-recovery2/freeze.json),
+[completed report](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/capability-efficacy-v2-recovery2/results/2026-11-15-complete/REPORT.md),
+[merged assessment](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/capability-efficacy-v2-recovery2/results/2026-11-15-complete/assessment.json),
+[new quoted judgments](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/capability-efficacy-v2-recovery2/results/2026-11-15-complete/annotations-new.json),
+[new raw archive](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/capability-efficacy-v2-recovery2/results/2026-11-15-complete/raw.tar.gz),
+[raw manifest](https://github.com/hyhmrright/brooks-lint/blob/17bd333/docs/research/capability-efficacy-v2-recovery2/results/2026-11-15-complete/raw-manifest.json).
+The report links the earlier 38 answers, their judgments and the failed attempt;
+the new raw archive alone is not the entire campaign. Cases are clustered within
+four development-authored families, with repeated responses, not 72 independent
+tasks. No native skill discovery is measured by these static instruction arms.
 
 ## Supporting and adverse history remains visible
 
