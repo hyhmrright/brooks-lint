@@ -18,7 +18,8 @@ retained deductions under those checks, not all possible risks were excluded.
 
 For each dimension, run an abbreviated scan using the decay-risks definitions
 from `_shared/`. Do NOT read the individual mode guide files — use the abbreviated
-checklists below. Cap each dimension at 3 findings; for Debt: cap at 2 per risk code and 3 across all risk codes.
+checklists below. Cap scored findings at 3 per dimension. For Debt, cap scored
+findings at 2 per risk code and 3 across all risk codes.
 
 If the task supplies an already adjudicated, capped finding ledger and requests
 its dashboard, use that ledger for Step 2. Do not add findings, infer missing
@@ -129,9 +130,9 @@ across the remaining three dimensions by dividing each remaining weight by
 
 **Score rules (the same resolved ledger must produce the same scores):**
 
-- Each dimension's score is computed from the **capped** finding set shown in the dashboard
-  (the cap at Step 1 bounds both what is displayed and what is deducted — do not deduct for
-  findings beyond the cap).
+- Compute each dimension's score from the **capped** set under Findings used in
+  scoring. Report supported findings beyond the cap under Additional observations
+  without deducting for them.
 - Floor each dimension score at 0 **before** weighting.
 - A completed, **assessed** dimension with no findings scores **100**. An
   unassessed dimension has no numeric score and prevents a numeric composite.

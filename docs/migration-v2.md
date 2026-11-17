@@ -1,10 +1,7 @@
 # Migrating from 1.9.1 to 2.0.0
 
-The maintainer selected **2.0.0** for the product changes merged through `d248ad5`
-and the accompanying evidence/readiness documentation. This is pre-publication
-guidance: neither GitHub nor npm 2.0.0 has been published. npm authentication
-returned E401 on 2026-11-16, so coordinated publication remains on hold.
-Compare against published 1.9.1, not the withdrawn 1.10.0 preparation.
+This guide compares the 2.0.0 contracts with v1.9.1.
+See [npm](https://www.npmjs.com/package/brooks-lint) and [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases) for release availability.
 
 ## Why a major version is defensible
 

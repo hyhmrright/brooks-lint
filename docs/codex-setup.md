@@ -15,9 +15,8 @@ bash scripts/install.sh codex
 The shell installer maps global Codex installation to `~/.codex/skills`, and
 `--project` to `.codex/skills` beneath the current working directory. The portable
 npm installer supports the same target and custom `--dir` destinations. For the
-currently published package use `npx brooks-lint@1.9.1 install codex`; neither the withdrawn
-1.10.0 tag nor the unissued 2.0.0 tag is a published installation pin. Source/main contains
-newer guidance and tools than the published 1.9.1 package.
+latest published package, use `npx brooks-lint@latest install codex` with Node.js 20+.
+See [npm](https://www.npmjs.com/package/brooks-lint) and [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases) for available versions.
 
 Keep `_shared` beside the six `brooks-*` directories. Preserve health's
 `score-ledger.md` and `scripts/` resources. This repository's own maintenance

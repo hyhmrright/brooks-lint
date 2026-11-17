@@ -102,7 +102,7 @@ Pain × Spread score alone does not establish Critical impact.
 
 ### Step 3: Classify Debt Intent
 
-After scoring, classify each finding as intentional or accidental:
+After scoring, classify each finding's intent where the evidence supports it:
 
 **Intentional debt** — a conscious shortcut taken to meet a deadline, with the expectation
 of paying it back. The team knows about it. It may be legitimate (a strategic prototype,

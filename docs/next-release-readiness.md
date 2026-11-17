@@ -1,4 +1,6 @@
-# Release 2.0.0 readiness — publication on hold
+# Release 2.0.0 readiness audit (2026-11-16)
+
+This is a historical snapshot of the preparation checks and hold recorded on that date.
 
 Audited product main: `d248ad584f3e222e39b175e4d6e001ab93d741ae`; evidence and
 migration preparation: `22b469f`, 2026-11-16. The maintainer selected 2.0.0 and

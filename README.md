@@ -4,12 +4,12 @@
 
 **English** · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md)
 
-![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Source version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 Six focused workflows for code review, architecture, technical debt, test quality, a health dashboard, and scoped repairs — grounded in twelve classic engineering books.
 
-**Source status:** the maintainer selected `2.0.0`; this checkout prepares that release, but neither GitHub nor npm publication has occurred. Publication is on hold until npm access and all release gates are confirmed. The latest published GitHub/npm release remains **1.9.1**. This README describes **main**, including changes absent from 1.9.1; the badge is a source version, not proof of publication.
+Published versions: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [Migration from 1.9.1 to 2.0.0](docs/migration-v2.md)
 brooks-lint is a collection of Agent Skills, shared guidance and small deterministic reporting tools. Your coding agent performs the diagnosis; the project supplies a repeatable workflow, risk vocabulary and reporting contract. It is not a static analyzer and it does not guarantee that a model finds every defect.
@@ -30,7 +30,7 @@ $brooks-health Assess this repository; distinguish missing evidence from clean d
 
 This installs the current source into the global Codex skills directory. Start a new session if skills are not discovered. To install into another project, run the installer by its absolute path from that project with `codex --project`. Keep `_shared` beside the six skill folders. See the [Codex guide](docs/codex-setup.md) for layout and capability checks.
 
-For the **published 1.9.1** package, use Node.js 20+ and `npx brooks-lint@1.9.1 install codex`. It installs that older release, not the current main features. Other destinations and custom directories are covered in [getting started](docs/getting-started.md).
+Install the latest published package with Node.js 20+: `npx brooks-lint@latest install codex`. See [getting started](docs/getting-started.md) for other installation targets.
 
 ## Choose the smallest workflow that fits
 
@@ -166,10 +166,9 @@ Copy [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). The shared contra
 
 ## CI integration is a separate path
 
-The shipped GitHub Action uses an **Anthropic-compatible API**, not Codex login. It supports **review of the collected diff only**, without interactive repository tools or repairs. This historical provider path is not part of current maintainer live verification. The example below shows the source-version pin required for a future release; **do not run it before the 2.0.0 tag is published**. For an existing release, replace the pin with `v1.9.1` and use that release’s documented capabilities.
+The shipped GitHub Action uses an **Anthropic-compatible API**, not Codex login. It supports **review of the collected diff only**, without interactive repository tools or repairs. This historical provider path is not part of current maintainer live verification. Use a published tag in this example.
 
 ```yaml
-# Source-version template only: the 2.0.0 tag is not published yet.
 - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review

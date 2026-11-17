@@ -7,16 +7,11 @@ installer reads those mappings as data without executing the shell script.
 
 ## Publication authorization and version history
 
-**Current publication hold:** 2.0.0 is selected and preparation/integration into
-main is authorized. Publication is not yet authorized: a fresh npm identity check
-returned E401 on 2026-11-16. Restore and verify publisher access, complete the
-exact-commit checks, and confirm coordinated GitHub/npm publication before either
-side is released. Do not create a GitHub-only release or update the DSH index to
-an unpublished package. The earlier withdrawn 1.10.0 release is historical.
-Source metadata is 2.0.0; npm latest remains 1.9.1.
-
-See [release readiness](next-release-readiness.md) and the
-[migration notes](migration-v2.md). Green CI alone does not lift this hold.
+Publish matching GitHub and npm releases together. Verify registry access and
+the exact commit before publication. Keep the DSH index on a verified npm
+artifact until the new package is available. See the
+[2.0.0 preparation audit](next-release-readiness.md) and
+[migration notes](migration-v2.md).
 
 npm 1.9.0 was withdrawn and npm forbids reusing that version. Keep GitHub, npm, and the repository's
 single-source version aligned for this release and use a new version for every subsequent npm release.

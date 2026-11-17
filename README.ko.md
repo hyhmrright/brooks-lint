@@ -4,12 +4,12 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · **한국어** · [Español](README.es.md)
 
-![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Source version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 코드 리뷰, 아키텍처, 기술 부채, 테스트 품질, 상태 대시보드, 범위를 제한한 수정까지 여섯 워크플로를 제공합니다. 열두 권의 소프트웨어 공학 고전에 기반합니다.
 
-**소스 상태:** 다음 버전은 `2.0.0`으로 결정되었지만 GitHub와 npm에는 아직 공개되지 않았습니다. npm 권한과 모든 배포 조건을 확인할 때까지 배포는 보류합니다. 최신 공개 버전은 **1.9.1**입니다. 이 문서는 **main**을 설명하며 배지는 배포 완료를 뜻하지 않습니다.
+공개 버전: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [1.9.1에서 2.0.0으로 마이그레이션](docs/migration-v2.md)
 brooks-lint는 Agent Skills, 공통 지침, 작은 결정적 보고 도구의 모음입니다. 진단은 사용자의 코딩 에이전트가 수행합니다. 정적 분석기가 아니며 모델이 모든 결함을 찾는다고 보장하지 않습니다.
@@ -30,7 +30,7 @@ $brooks-health Assess this repository; distinguish missing evidence from clean d
 
 현재 소스를 Codex 전역 스킬 디렉터리에 설치합니다. 인식되지 않으면 새 세션을 시작하세요. 프로젝트 설치는 대상 프로젝트에서 스크립트의 절대 경로와 `codex --project`를 사용합니다. `_shared`를 여섯 스킬 폴더와 같은 깊이에 두세요. [Codex 안내](docs/codex-setup.md).
 
-**공개된 1.9.1**은 Node.js 20+에서 `npx brooks-lint@1.9.1 install codex`로 설치합니다. main의 모든 새 기능을 포함하지는 않습니다. [시작 안내](docs/getting-started.md).
+Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@latest install codex`. 다른 설치 대상은 [시작 안내](docs/getting-started.md)를 참고하세요.
 
 ## 작업 범위에 맞는 스킬 선택
 
@@ -166,10 +166,9 @@ sweep:
 
 ## CI는 별도 실행 경로
 
-GitHub Action은 Codex 로그인이 아닌 **Anthropic 호환 API**를 사용합니다. 수집한 diff의 review만 수행하며 대화형 파일 도구나 수정 기능은 없습니다. 이 과거 제공자 경로는 현재 실시간 검증 대상 밖입니다. 아래는 향후 소스 버전 템플릿입니다. **2.0.0 태그 공개 전에는 그대로 실행하지 마세요.** 공개 버전을 쓰려면 `v1.9.1`로 바꾸고 해당 버전의 기능 설명을 따르세요.
+GitHub Action은 Codex 로그인이 아닌 **Anthropic 호환 API**를 사용합니다. 수집한 diff의 review만 수행하며 대화형 파일 도구나 수정 기능은 없습니다. 이 과거 제공자 경로는 현재 실시간 검증 대상 밖입니다. 해당 태그가 공개된 후 아래 예제를 사용하세요.
 
 ```yaml
-# Source-version template only: the 2.0.0 tag is not published yet.
 - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review
