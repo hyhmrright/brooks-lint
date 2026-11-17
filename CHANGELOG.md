@@ -4,8 +4,7 @@ All notable changes to brooks-lint are documented here.
 
 ## [2.0.0] - 2026-11-16
 
-Release preparation only: 2.0.0 is selected, but publication remains on hold.
-The withdrawn 1.10.0 preparation is superseded; npm remains at 1.9.1.
+This version updates the Health, Sweep, and CI review contracts. See the migration guide below before upgrading.
 
 ### Breaking changes
 
@@ -29,6 +28,8 @@ The withdrawn 1.10.0 preparation is superseded; npm remains at 1.9.1.
 - Make health report delivery byte-consistent with the finalized ledger and receipt, including terminal-newline regressions. The checks verify supplied artifacts, not diagnostic truth or later UI rendering (#46).
 
 ### Changed
+
+- Point installation and release-status documentation to the npm registry and GitHub Releases so source version badges and published versions remain distinct.
 
 - Make all six skills equally visible in README benchmark comparisons, distinguish intended deliverables from measured gains, and retain cohort-specific baselines, ties, regressions and evidence links (#49).
 

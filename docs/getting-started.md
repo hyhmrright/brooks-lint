@@ -7,19 +7,17 @@ retained, but layout tests are not an end-to-end host compatibility claim.
 
 ## Choose the code you want to install
 
-The source tree prepares selected version 2.0.0, which is not yet published.
-GitHub/npm's latest published version is 1.9.1; coordinated publication is on hold.
+See [npm](https://www.npmjs.com/package/brooks-lint) and [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases) for published versions.
 
 For the published package, with Node.js 20+:
 
 ```bash
-npx brooks-lint@1.9.1 install codex
-npx brooks-lint@1.9.1 install codex --project
-npx brooks-lint@1.9.1 install --list
+npx brooks-lint@latest install codex
+npx brooks-lint@latest install codex --project
+npx brooks-lint@latest install --list
 ```
 
-That package does not contain all the changes currently merged into main.
-To use the current source, with Git and Bash:
+To try the current source, including changes ahead of the published package, use Git and Bash:
 
 ```bash
 git clone https://github.com/hyhmrright/brooks-lint.git

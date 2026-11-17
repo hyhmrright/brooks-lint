@@ -4,12 +4,12 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · **Español**
 
-![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Source version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 Seis flujos para revisión de código, arquitectura, deuda técnica, calidad de pruebas, un panel de salud y reparaciones acotadas, basados en doce libros clásicos de ingeniería de software.
 
-**Estado del código fuente:** se ha elegido `2.0.0`, pero aún no se ha publicado en GitHub ni npm. La publicación está suspendida hasta confirmar el acceso a npm y todas las comprobaciones. La última versión publicada sigue siendo **1.9.1**. Este README describe **main**; la insignia no demuestra una publicación.
+Versiones publicadas: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [Migración de 1.9.1 a 2.0.0](docs/migration-v2.md)
 brooks-lint reúne Agent Skills, instrucciones compartidas y pequeñas herramientas deterministas para informes. Tu agente de programación realiza el diagnóstico. No es un analizador estático ni garantiza que el modelo encuentre todos los defectos.
@@ -30,7 +30,7 @@ $brooks-health Assess this repository; distinguish missing evidence from clean d
 
 Esto instala el código actual en el directorio global de habilidades de Codex. Abre una sesión nueva si no aparecen. Para instalar en otro proyecto, ejecuta el script por su ruta absoluta desde ese proyecto con `codex --project`. Mantén `_shared` al mismo nivel que las seis habilidades. Consulta la [guía de Codex](docs/codex-setup.md).
 
-Para el paquete **publicado 1.9.1**, usa Node.js 20+ y `npx brooks-lint@1.9.1 install codex`. Instala la versión anterior, no todas las funciones de main. Consulta [primeros pasos](docs/getting-started.md) para otros destinos.
+Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest install codex`. Consulta [primeros pasos](docs/getting-started.md) para otros destinos.
 
 ## Elegir el flujo más acotado para la tarea
 
@@ -166,10 +166,9 @@ Empieza con [`.brooks-lint.example.yaml`](.brooks-lint.example.yaml). El contrat
 
 ## CI es una vía independiente
 
-La GitHub Action usa una **API compatible con Anthropic**, no el inicio de sesión de Codex. Solo revisa el diff recopilado, sin herramientas interactivas ni reparaciones. Esta vía histórica no forma parte de la verificación actual en vivo. El ejemplo es una plantilla de la versión fuente para una publicación futura: **no lo ejecutes antes de publicar la etiqueta 2.0.0**. Para una versión publicada, cambia a `v1.9.1` y sigue sus capacidades documentadas.
+La GitHub Action usa una **API compatible con Anthropic**, no el inicio de sesión de Codex. Solo revisa el diff recopilado, sin herramientas interactivas ni reparaciones. Esta vía histórica no forma parte de la verificación actual en vivo. Usa el ejemplo cuando se publique la etiqueta correspondiente.
 
 ```yaml
-# Source-version template only: the 2.0.0 tag is not published yet.
 - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review

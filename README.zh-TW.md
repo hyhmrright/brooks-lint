@@ -4,12 +4,12 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md)
 
-![Source version — unreleased](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Source version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
 六個工作流程，覆蓋程式碼審查、架構、技術債、測試品質、健康看板與限定範圍的修復，以十二本經典軟體工程書籍為基礎。
 
-**原始碼狀態：** 已確定下一版本為 `2.0.0`，目前原始碼正在準備該版本，尚未發布至 GitHub 或 npm。發布須等待 npm 權限及全部發布檢查確認。GitHub/npm 最近的已發布版本仍為 **1.9.1**。本文描述 **main**，其中部分功能尚未包含在 1.9.1；徽章表示原始碼版本，不表示已發布。
+已發布版本：[npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
 [從 1.9.1 遷移至 2.0.0](docs/migration-v2.md)
 brooks-lint 由 Agent Skills、共享指導和小型確定性報告工具組成。診斷由你的編碼代理執行；專案提供工作流程、風險分類和報告約定。它不是靜態分析器，也不保證模型能發現所有缺陷。
@@ -30,7 +30,7 @@ $brooks-health Assess this repository; distinguish missing evidence from clean d
 
 以上命令將目前原始碼安裝到 Codex 的全域技能目錄。如果沒有發現技能，請啟動新會話。專案級安裝應在目標專案中通過絕對路徑執行安裝指令稿，並使用 `codex --project`。保留 `_shared` 與六個技能目錄的同級關係。詳見 [Codex 指南](docs/codex-setup.md)。
 
-安裝**已發布的 1.9.1** 可使用 Node.js 20+：`npx brooks-lint@1.9.1 install codex`。它安裝舊版，不包含 main 的全部新功能。更多平台與自訂目錄見[入門指南](docs/getting-started.md)。
+使用 Node.js 20+ 安裝最新發布版本：`npx brooks-lint@latest install codex`。其他安裝目標見[入門指南](docs/getting-started.md)。
 
 ## 選擇符合任務範圍的技能
 
@@ -166,10 +166,9 @@ sweep:
 
 ## CI 是另一條執行路徑
 
-現有 GitHub Action 使用 **Anthropic 相容 API**，不使用 Codex 登錄額度。它只審查收集的 diff，沒有互動式儲存庫工具或修復能力；該歷史提供者路徑不屬於目前維護者的即時驗證範圍。以下是未來發布的原始碼版本模板；**2.0.0 標籤發布前不能直接執行**。若使用已發布版本，請改為 `v1.9.1` 並遵循其對應功能說明。
+現有 GitHub Action 使用 **Anthropic 相容 API**，不使用 Codex 登錄額度。它只審查收集的 diff，沒有互動式儲存庫工具或修復能力；該歷史提供者路徑不屬於目前維護者的即時驗證範圍。請在對應標籤發布後使用下方範例。
 
 ```yaml
-# Source-version template only: the 2.0.0 tag is not published yet.
 - uses: hyhmrright/brooks-lint/.github/actions/brooks-lint@v2.0.0
   with:
     mode: review
