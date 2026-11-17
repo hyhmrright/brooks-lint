@@ -1,0 +1,335 @@
+[
+  {
+    "id": "review-invoice",
+    "skill": "review",
+    "task": "Review the current invoice PR for merge readiness. Trace the checkout path using the plan contract and compare any material behavior you attribute to this PR against the base revision. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "plan-boundary",
+        "kind": "expected",
+        "criterion": "Find that invoice() gives a discount at exactly five seats on basic in the proposed revision, although only team includes five; show a witness that passes in base and fails after the change."
+      },
+      {
+        "id": "existing-fee",
+        "kind": "guardrail",
+        "criterion": "The fixed handling fee is excluded for zero-seat previews in both revisions. If discussed, treat that as inherited rather than a regression in this PR."
+      },
+      {
+        "id": "protected-team",
+        "kind": "guardrail",
+        "criterion": "Do not ask to restore >5 for team; the team threshold is intentionally inclusive."
+      },
+      {
+        "id": "review-action",
+        "kind": "delivery",
+        "criterion": "Explain the customer-visible underbilling, point to checkout/invoice.mjs and the policy, and propose a focused correction or regression check without editing."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "review-webhook",
+    "skill": "review",
+    "task": "Review the proposed webhook upload change before deployment. Prioritize reliability and input-contract regressions and establish which behavior was introduced by this change. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "async-error",
+        "kind": "expected",
+        "criterion": "Find that handler now acknowledges before send finishes and converts a transport rejection into status 202; compare an awaited rejecting sender before and after the edit."
+      },
+      {
+        "id": "duplicate-event",
+        "kind": "guardrail",
+        "criterion": "Repeated original requests still call the transport repeatedly. Treat this as pre-existing if mentioned, and do not invent a deduplication promise."
+      },
+      {
+        "id": "nonqueued",
+        "kind": "guardrail",
+        "criterion": "Confirm invalid event kinds remain rejected before transport. Do not treat 202 as proof of downstream delivery if queue acceptance alone is promised."
+      },
+      {
+        "id": "release-action",
+        "kind": "delivery",
+        "criterion": "Name the caller impact (false queue acceptance, suppressed retry) and propose an awaited boundary plus a rejected-transport test."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "audit-cart",
+    "skill": "audit",
+    "task": "Map the main cart request path and identify structural changes worth making before splitting the storage adapter into its own package. Include file evidence and explain the first extraction step. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "closed-import",
+        "kind": "expected",
+        "criterion": "Find a referenced closed source path cart/service.mjs → store/repository.mjs → cart/service.mjs and identify the normalization import that closes it."
+      },
+      {
+        "id": "call-vs-import",
+        "kind": "guardrail",
+        "criterion": "Do not characterize the analytics callback injected by bootstrap as a reverse module import; describe its runtime-only effect if relevant."
+      },
+      {
+        "id": "isolation",
+        "kind": "delivery",
+        "criterion": "Propose an extraction step preserving single normalization policy and composition ownership while removing the source cycle; explain the change/release coupling."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "audit-jobs",
+    "skill": "audit",
+    "task": "Review the job dispatch boundaries before adding another lifecycle observer. Describe what is wired by imports and what occurs at runtime. Identify a concrete risk worth addressing before the extension. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "closed-runtime",
+        "kind": "expected",
+        "criterion": "Trace the closed runtime path dispatch → complete callback → retries.afterComplete → same dispatch for a retryable result. Show how permanently retryable work can run without a bound."
+      },
+      {
+        "id": "no-module-cycle",
+        "kind": "guardrail",
+        "criterion": "Establish imports are acyclic and distinguish injected lifecycle callback from static ownership. Do not report a module cycle or prohibit all injection."
+      },
+      {
+        "id": "actionable-seam",
+        "kind": "delivery",
+        "criterion": "Propose a bounded retry/attempt owner at the orchestration seam, with terminal behavior or a focused replay test; preserve healthy completion."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "test-quota",
+    "skill": "test",
+    "task": "Review the quota service tests for release confidence. Trace a request through the public handler and identify the most consequential escaping change, if any. Explain a new assertion and how it would discriminate a meaningful regression. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "escaping-quota",
+        "kind": "expected",
+        "criterion": "Find that test/quota.test.mjs only covers a request below the daily limit; removing the rejection branch or changing the limit comparison to always allow larger batches can leave the existing suite green. Name a public input above 100 items."
+      },
+      {
+        "id": "quota-witness",
+        "kind": "delivery",
+        "criterion": "Propose an assertion on public HTTP status or rejected body for 101 items that passes the original and fails a concrete contract-breaking mutation; mark execution as predicted unless a corresponding tool outcome is available."
+      },
+      {
+        "id": "quota-equality",
+        "kind": "guardrail",
+        "criterion": "Do not demand rejection at exactly 100, treat an equivalent variable rename as a breaking mutation, or claim covered accepted inputs are untested."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "test-gate",
+    "skill": "test",
+    "task": "Assess whether the required export CI step will block on a failing assertion. Trace the command used by CI and give the smallest proving check and a remediation. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "missed-failure",
+        "kind": "expected",
+        "criterion": "Follow CI run-tests.mjs → dynamically imported exported function → assertion → catch in run-tests.mjs; show that rejection or an assert.fail injection is logged while the process remains code 0."
+      },
+      {
+        "id": "exit-obligation",
+        "kind": "delivery",
+        "criterion": "Propose propagating/rethrowing failure or setting a nonzero exit code, and verify with both clean and intentionally failing executions. Identify the probe as runner propagation and distinguish executed from predicted."
+      },
+      {
+        "id": "coverage-scope",
+        "kind": "guardrail",
+        "criterion": "Do not claim the positive export assertion is itself absent or that the injected failure proves a production coverage gap."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "debt-dispatch",
+    "skill": "debt",
+    "task": "You have one maintenance slot for this dispatch service. Use repository history excerpts and ownership notes to recommend the first small repayment step, what to defer, and how you would confirm the step reduces maintenance cost. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "repayment-order",
+        "kind": "expected",
+        "criterion": "Recommend paying down duplicated status translation across the five dispatch adapters ahead of the old admin CLI formatting. Cite the measured repeated status-change effort and reach even though dispatch duplication was deliberate."
+      },
+      {
+        "id": "unknown-history",
+        "kind": "guardrail",
+        "criterion": "Keep span/priority or intent unknown where the evidence does not establish them, such as the legacy reconciliation script. Do not assign synthetic 1 or 0."
+      },
+      {
+        "id": "defer-low-burden",
+        "kind": "guardrail",
+        "criterion": "Do not put the old one-module formatting issue ahead of recurring dispatch status work merely because it has no repayment plan or because it lacks deliberate ownership."
+      },
+      {
+        "id": "repayment-probe",
+        "kind": "delivery",
+        "criterion": "Propose moving the shared public status mapping into one owned rule with parity checks across adapters, and record how many modules must change for the next status update."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "debt-rates",
+    "skill": "debt",
+    "task": "Plan a first maintenance action for the rates code before next month’s policy changes. Use the change records and ownership policies to distinguish shared knowledge from repetition that helps independent teams. Leave files unchanged.",
+    "checks": [
+      {
+        "id": "duplicated-source",
+        "kind": "expected",
+        "criterion": "Find the postal surcharge is one governed policy duplicated across checkout, refund and estimate. Cite historical evidence of missed propagation or reconciliation work and propose this as a supported early repayment."
+      },
+      {
+        "id": "independent-rates",
+        "kind": "guardrail",
+        "criterion": "Retail and franchise are governed independently even though current constants match. Do not centralize them as a single policy."
+      },
+      {
+        "id": "incomplete-pain",
+        "kind": "guardrail",
+        "criterion": "Do not precisely rank the optional archive export against the surcharge because its maintenance effort is unavailable. Keep its unknown reason visible if discussed."
+      },
+      {
+        "id": "repayment-witness",
+        "kind": "delivery",
+        "criterion": "Propose a single surcharge owner and replay checking all consumers while allowing a retail-only or franchise-only rule change to leave the other unchanged."
+      }
+    ],
+    "writable": []
+  },
+  {
+    "id": "health-catalog",
+    "skill": "health",
+    "task": "Prepare a bounded health dashboard of this catalog service for the team’s Tuesday meeting. Assess this complete checkout against its stated scope and use the evidence in the repository to decide the few issues that matter most. There is no submitted diff. Write report.md, ledger.json, and receipt.json using the available dashboard scorer. Keep production and test files unchanged. The report is the delivered artifact; leave its verified contents intact.",
+    "checks": [
+      {
+        "id": "cycle-scope",
+        "kind": "expected",
+        "criterion": "Identify the catalog→disk→catalog source cycle. Explain storage extraction impact using evidenced path and the documented independent-build requirement."
+      },
+      {
+        "id": "debt-scope",
+        "kind": "expected",
+        "criterion": "Identify the shared one-owner public visibility policy duplicated across preview and reconcile, supported by recorded divergence, without separately counting it as an architecture issue."
+      },
+      {
+        "id": "test-scope",
+        "kind": "expected",
+        "criterion": "Identify the public non-empty hidden-product behavior left uncovered by the empty-only test; describe a meaningful mutating witness or supported example."
+      },
+      {
+        "id": "bounded-assessment",
+        "kind": "guardrail",
+        "criterion": "Skip only the no-diff PR dimension. Architecture, Debt, and Test can all be assessed within this small checkout. Do not treat optional folder naming, organization-wide deployment, or absent production metrics as blockers."
+      },
+      {
+        "id": "evidence-complete",
+        "kind": "delivery",
+        "criterion": "Every scored ID is explained once in prose with its own source, effect, owner and severity. Supported excess observations may appear without deductions. Explain completed dimensions with no scored findings."
+      },
+      {
+        "id": "artifact-bound",
+        "kind": "delivery",
+        "criterion": "Report, ledger and receipt exist, and the receipt verifies the exact delivered report and same ledger against the scorer. Do not restate a total in chat or elsewhere in the report."
+      }
+    ],
+    "writable": [
+      "report.md",
+      "ledger.json",
+      "receipt.json"
+    ]
+  },
+  {
+    "id": "health-billing",
+    "skill": "health",
+    "task": "Prepare a health dashboard for the invoice CSV export scope described in README.md. Use only the supplied repository snapshot and clearly label evidence that is absent. There is no submitted diff. Write report.md, ledger.json, and receipt.json using the available dashboard scorer. Keep production and test files unchanged. The report is the delivered artifact; leave its verified contents intact.",
+    "checks": [
+      {
+        "id": "supported-boundaries",
+        "kind": "expected",
+        "criterion": "Assess local Architecture and Debt using the entry point, adapter rules and maintenance record. Identify copied required header ordering across CSV and TSV and the recorded drift, without declaring the ordinary injected audit sink a source cycle."
+      },
+      {
+        "id": "missing-test-gate",
+        "kind": "expected",
+        "criterion": "Mark Test unassessed because the required production test content is generated externally and absent. Do not infer its assertions from CI config or from the development helper."
+      },
+      {
+        "id": "partial-assessment",
+        "kind": "guardrail",
+        "criterion": "Skip PR because there is no diff. Leave composite unavailable without suppressing adequately supported Architecture and Debt. Acknowledge that the checkout cannot establish end-to-end production readiness."
+      },
+      {
+        "id": "evidence-complete",
+        "kind": "delivery",
+        "criterion": "Every scored ID is explained once in prose with its own source, effect, owner and severity. Supported excess observations may appear without deductions. Explain completed dimensions with no scored findings."
+      },
+      {
+        "id": "artifact-bound",
+        "kind": "delivery",
+        "criterion": "Report, ledger and receipt exist, and the receipt verifies the exact delivered report and same ledger against the scorer. Do not restate a total in chat or elsewhere in the report."
+      }
+    ],
+    "writable": [
+      "report.md",
+      "ledger.json",
+      "receipt.json"
+    ]
+  },
+  {
+    "id": "sweep-permissions",
+    "skill": "sweep",
+    "task": "Apply a minimal verified repair for the access revocation report in docs/incident.md. You may edit service/grants.mjs only. Keep caller behavior and the work-in-progress operations note intact. Report what you changed and any limits of the checks available to you.",
+    "checks": [
+      {
+        "id": "fix-revocation",
+        "kind": "expected",
+        "criterion": "Revoking one group removes only the named grant from the result and leaves the pre-request list intact. A targeted replay of the public boundary must pass, including no matching grant and a match not at index zero."
+      },
+      {
+        "id": "preservation",
+        "kind": "guardrail",
+        "criterion": "Respect the writable-file boundary and preserve runbook/draft.md exactly. Preserve non-target groups, relative order and all duplicate-target removal."
+      },
+      {
+        "id": "verification-accounting",
+        "kind": "delivery",
+        "criterion": "Explain precisely how the old splice result both returned the removed target and mutated input. Identify a discriminating public-entry check and distinguish tool execution from prediction; the status-only suite is insufficient."
+      }
+    ],
+    "writable": [
+      "service/grants.mjs"
+    ]
+  },
+  {
+    "id": "sweep-exports",
+    "skill": "sweep",
+    "task": "Do one scoped repair pass for the requested report export boundary in docs/request.md. You may edit export/rows.mjs only. Keep the independently controlled archival destination and current local edits intact. Write the stop reason and give the observed or predicted witness.",
+    "checks": [
+      {
+        "id": "primary-export",
+        "kind": "expected",
+        "criterion": "Canonicalize the primary export header order id,total,region for all supported field orders while preserving row values and quoting behavior. Replay the canonical and reordered primary scenarios."
+      },
+      {
+        "id": "guard-archive",
+        "kind": "guardrail",
+        "criterion": "Preserve archive export caller order, production files outside the allowed module, and notes/local-rollout.md. Do not speculate about or change the externally governed archive policy."
+      },
+      {
+        "id": "bounded-stop",
+        "kind": "delivery",
+        "criterion": "Stop after the authorized local boundary is repaired and verified or the remaining relevant evidence gap is named. Explain separately that archive policy is outside the task; do not refuse or keep iterating solely because it is unresolved."
+      }
+    ],
+    "writable": [
+      "export/rows.mjs"
+    ]
+  }
+]
