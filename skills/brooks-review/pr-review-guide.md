@@ -19,6 +19,11 @@ can change a system contract; do not omit applicable risk or test checks by size
 Identify the change's purpose, reviewed boundary and available evidence. A diff,
 complete module and complete test inventory support different conclusions; omitted
 files are not absent files. Read relevant callers and tests when available.
+For a diff, compare the same permitted witness on the base and changed versions
+when both are available. Distinguish introduced, worsened and pre-existing behavior;
+report a pre-existing issue separately rather than attributing it to this change.
+If the base is unavailable, retain a supported current defect but leave its origin
+unknown. A new test failure alone does not prove the patch caused the defect.
 
 For each candidate behavioral defect, keep this short evidence chain:
 

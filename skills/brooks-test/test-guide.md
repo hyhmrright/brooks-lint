@@ -21,7 +21,11 @@ For protection/brittleness claims, make the test's discrimination explicit:
 | Existing test | Pass/fail and assertion | Pass/fail and assertion |
 | Proposed protection | Expected outcome | Expected outcome |
 
-Use the compact comparison only where it proves the finding. Cite the affected
+Use the compact comparison only where it proves the finding. Match the changed
+implementation to the allegation: a contract-breaking production mutation tests
+protection, a behavior-preserving transformation tests brittleness, and an injected
+assertion failure tests runner failure propagation. Equivalent failure injections
+are acceptable for the last claim but do not prove a production coverage gap. Cite the affected
 assertion and mark results as executed or statically predicted. Keep this witness
 in the final report. A useful extra test is not itself evidence of an existing defect.
 

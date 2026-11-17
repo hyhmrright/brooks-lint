@@ -2,6 +2,12 @@
 
 All notable changes to brooks-lint are documented here.
 
+## [Unreleased]
+
+### Changed
+
+- Diagnose the six skills' limited comparative evidence and add bounded causal checks for change attribution, graph edge types, test witnesses, debt priority uncertainty, capped dashboard completeness and sweep repair verification. These offline improvements do not establish new model efficacy (#50).
+
 ## [2.0.0] - 2026-11-16
 
 This version updates the Health, Sweep, and CI review contracts. See the migration guide below before upgrading.
