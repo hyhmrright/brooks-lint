@@ -101,10 +101,38 @@ problem. A bounded recurring burden normally warrants Warning; Critical requires
 serious impact and relevant exposure under `common.md`. Otherwise state the missing
 context without inventing a team structure.
 
+### Step 7: Verify a Proposed First Refactoring Step
+
+Use this step when the user asks for a concrete refactoring step or the audit
+proposes one. Apply it only to the boundary the step would move.
+
+1. Start from the relevant entry points. Follow registrations, factories, injected
+   values and deferred callbacks to the implementation actually selected, and cite
+   the code or configuration that selects it. Record the evidenced callers in
+   scope, then distinguish those the first step changes, those that still work
+   through an existing contract, and those deferred or unresolved.
+2. Trace the lifecycle of the objects whose ownership or binding will change.
+   Identify who creates, retains and releases them, when bindings change, and
+   which caller runs in each relevant context. Include strong references,
+   teardown and fallback behavior where they can change the cut. Treat an
+   unresolved binding that could reverse the recommendation as a condition on
+   the step.
+3. Choose the smallest independently mergeable step that preserves those
+   obligations. For every constraint that affects the cut, cite the evidence and
+   an existing executable test or give a minimal runnable check. Use the real
+   entry point or binding where the constraint depends on runtime behavior.
+   State the setup, command and observable result expected on the baseline and
+   candidate, including what would fail if the obligation were broken.
+4. Run decisive checks when the environment and scope permit. Report actual
+   commands and results separately from predictions. Rework the step if it
+   breaks an obligation. If a decisive check cannot run, identify the blocker
+   and make the merge recommendation conditional on that check.
+
 ## Output
 
 Use the Report Template from `../_shared/common.md`, Mode: Architecture Audit.
 Place the Mermaid graph first under "Module Dependency Graph", then findings.
 Reference graph nodes and concrete edges in each finding; apply colors after
-Steps 2–6. Include only supported local conclusions and decisive unknowns, not a
-mandatory recommendation for every scanned risk.
+Steps 2–6. When Step 7 applies, include the first step, its caller impact, and its
+regression checks with their status. Include only supported local conclusions and
+decisive unknowns, not a mandatory recommendation for every scanned risk.

@@ -39,6 +39,7 @@ than diagnoses — no Health Score, no Iron Law findings.
 2. Scan for each decay risk in the order specified (Steps 2–4 of the guide)
 3. Run the Testability Seam Assessment (Step 5 of the guide)
 4. Run the Conway's Law check (Step 6 of the guide)
-5. Assign node colors after all findings, then output using the Report Template from common.md — Mermaid graph FIRST, then Findings
+5. Trace runtime callers and lifecycle constraints, then verify a proposed first refactoring step when one is in scope (Step 7 of the guide)
+6. Assign node colors after all findings, then output using the Report Template from common.md — Mermaid graph FIRST, then Findings
 
 **Mode line in report:** `Architecture Audit`
