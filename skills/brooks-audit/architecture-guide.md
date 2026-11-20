@@ -123,19 +123,22 @@ proposes one. Apply it only to the boundary the step would move.
    entry point or binding where the constraint depends on runtime behavior.
    State the setup, command and observable result expected on the baseline and
    candidate, including what would fail if the obligation were broken.
-4. Run decisive checks when the environment and scope permit. For a delivered
-   patch or test file, apply the exact candidate to the intended baseline in an
-   authorized workspace or disposable checkout, including any new regression
-   tests. Run the relevant regressions on that candidate. Fix problems introduced
-   by the candidate, including syntax and test collection errors, then rerun the
-   affected checks on the exact version you will hand off.
-5. If dependencies block regression execution, check that the patch applies and
-   use an available compiler or parser to check changed source and test files
-   without executing them. Fix syntax errors and repeat the check. Report the
-   commands and observed results separately from predictions, and name each
-   decisive check that remains unverified and why, including syntax if no
-   checker is available. Make the merge recommendation conditional on those
-   outstanding checks.
+4. For a delivered patch or test file, apply the exact candidate to the intended
+   baseline in an authorized workspace or disposable checkout, including any new
+   regression tests. Find existing static checks in the project's configuration,
+   scripts, or CI. When the environment and scope permit, run the relevant
+   regressions and project-declared static checks for the changed source and test
+   files, such as type checking or linting. Use the project's configuration and
+   pinned tool versions when specified. If a failure may predate the patch,
+   compare against the baseline with the same check. Fix introduced failures,
+   including syntax errors, collection errors, and static diagnostics, then rerun
+   the affected regression and static checks on the exact version you will hand off.
+5. If unavailable tooling or dependencies block any of these checks, verify patch
+   applicability and use an available compiler or parser to check changed source
+   and test files without executing them. Fix syntax errors and repeat the check.
+   Report commands and observed results separately from predictions. Name each
+   regression, static check, or syntax check that remains unverified and why.
+   Make the merge recommendation conditional on outstanding decisive checks.
 
 ## Output
 
