@@ -123,10 +123,19 @@ proposes one. Apply it only to the boundary the step would move.
    entry point or binding where the constraint depends on runtime behavior.
    State the setup, command and observable result expected on the baseline and
    candidate, including what would fail if the obligation were broken.
-4. Run decisive checks when the environment and scope permit. Report actual
-   commands and results separately from predictions. Rework the step if it
-   breaks an obligation. If a decisive check cannot run, identify the blocker
-   and make the merge recommendation conditional on that check.
+4. Run decisive checks when the environment and scope permit. For a delivered
+   patch or test file, apply the exact candidate to the intended baseline in an
+   authorized workspace or disposable checkout, including any new regression
+   tests. Run the relevant regressions on that candidate. Fix problems introduced
+   by the candidate, including syntax and test collection errors, then rerun the
+   affected checks on the exact version you will hand off.
+5. If dependencies block regression execution, check that the patch applies and
+   use an available compiler or parser to check changed source and test files
+   without executing them. Fix syntax errors and repeat the check. Report the
+   commands and observed results separately from predictions, and name each
+   decisive check that remains unverified and why, including syntax if no
+   checker is available. Make the merge recommendation conditional on those
+   outstanding checks.
 
 ## Output
 
