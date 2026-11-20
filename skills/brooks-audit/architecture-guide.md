@@ -108,9 +108,12 @@ proposes one. Apply it only to the boundary the step would move.
 
 1. Start from the relevant entry points. Follow registrations, factories, injected
    values and deferred callbacks to the implementation actually selected, and cite
-   the code or configuration that selects it. Record the evidenced callers in
-   scope, then distinguish those the first step changes, those that still work
-   through an existing contract, and those deferred or unresolved.
+   the code or configuration that selects it. When a factory or configurable
+   class can supply a subclass or alternate instance, trace construction to the
+   runtime receiver. Use supported extension points, existing subclasses, or
+   tests to identify overridable methods the affected routes depend on. Record
+   unresolved choices and distinguish changed callers, callers preserved by an
+   existing contract, and deferred callers.
 2. Trace the lifecycle of the objects whose ownership or binding will change.
    Identify who creates, retains and releases them, when bindings change, and
    which caller runs in each relevant context. Include strong references,
@@ -121,6 +124,11 @@ proposes one. Apply it only to the boundary the step would move.
    obligations. For every constraint that affects the cut, cite the evidence and
    an existing executable test or give a minimal runnable check. Use the real
    entry point or binding where the constraint depends on runtime behavior.
+   For a route that must preserve an override, configure a representative
+   subclass or custom instance through the existing construction path. Drive
+   the normal entry point and assert it reaches the override, including call
+   order or count when the contract depends on it. A direct call to the
+   override only checks that method in isolation.
    State the setup, command and observable result expected on the baseline and
    candidate, including what would fail if the obligation were broken.
 4. For a delivered patch or test file, apply the exact candidate to the intended
