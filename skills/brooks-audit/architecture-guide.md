@@ -124,6 +124,12 @@ proposes one. Apply it only to the boundary the step would move.
    teardown and fallback behavior where they can change the cut. If an object
    can be registered again, rebound or replaced under different options, trace
    which binding and retention policy subsequent callers and cleanup observe.
+   If the affected path changes state reads, writes, rebinding or release, or
+   changes how extension results are assembled, trace the actual values each
+   affected extension point receives and returns. Check whether an accessor,
+   setter or callback can replace the value and which value later callers see.
+   Verify whether downstream code or the supported contract relies on object
+   identity, shared mutations, result type or behavior during assembly.
    Treat an unresolved binding that could reverse the recommendation as a
    condition on the step.
 3. Choose the smallest independently mergeable step that advances the stated
@@ -147,10 +153,16 @@ proposes one. Apply it only to the boundary the step would move.
    the normal entry point and assert it reaches the override, including call
    order or count when the contract depends on it. A direct call to the
    override only checks that method in isolation.
+   When the cut affects what an extension observes or returns, install a
+   representative extension through the supported hook or configuration and
+   drive it through the normal public entry at the affected phase. Assert the
+   relevant value, identity, state, result type or behavior at the boundary
+   where the caller depends on it.
    State the setup, command and observable result expected on the baseline and
    candidate, including what would fail if the obligation were broken. When
    practical, deliberately break the decisive behavior in a disposable copy and
-   confirm the regression fails at the expected assertion.
+   verify that the same check passes without the break and fails with it at the
+   expected assertion.
    In new regressions that exercise retries, polling, or asynchronous waits,
    bound fixture attempts and waits where a broken path could loop or hang.
    Configure the fixture to surface the intended assertion or underlying error
