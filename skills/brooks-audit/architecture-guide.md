@@ -139,6 +139,11 @@ proposes one. Apply it only to the boundary the step would move.
    override only checks that method in isolation.
    State the setup, command and observable result expected on the baseline and
    candidate, including what would fail if the obligation were broken.
+   In new regressions that exercise retries, polling, or asynchronous waits,
+   bound fixture attempts and waits where a broken path could loop or hang.
+   Configure the fixture to surface the intended assertion or underlying error
+   promptly. If reaching a deadline is the expected behavior, assert that
+   outcome explicitly.
 4. For a delivered patch or test file, apply the exact candidate to the intended
    baseline in an authorized workspace or disposable checkout, including any new
    regression tests. Find existing static checks in the project's configuration,
