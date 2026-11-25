@@ -127,8 +127,11 @@ proposes one. Apply it only to the boundary the step would move.
    Treat an unresolved binding that could reverse the recommendation as a
    condition on the step.
 3. Choose the smallest independently mergeable step that advances the stated
-   refactoring goal and preserves those obligations. Name the dependency or
-   ownership change this step makes or prepares, and the next step it enables.
+   refactoring goal and preserves those obligations. Name an existing import,
+   call or ownership edge on the target path and show where the production
+   change moves, removes or isolates it. Defer adjacent optimizations and cleanups.
+   If only characterization is safe and the request permits it, name the edge the
+   follow-up will change and the caller-visible behavior the test protects.
    For every constraint that affects the cut, cite the evidence and an existing
    executable test or give a minimal runnable check. Use the real entry point
    or binding where the constraint depends on runtime behavior.
@@ -155,7 +158,8 @@ proposes one. Apply it only to the boundary the step would move.
    outcome explicitly.
 4. For a delivered patch or test file, apply the exact candidate to the intended
    baseline in an authorized workspace or disposable checkout, including any new
-   regression tests. Find existing static checks in the project's configuration,
+   regression tests. Check the actual diff against the named target edge before
+   handoff. Find existing static checks in the project's configuration,
    scripts, or CI. When the environment and scope permit, run the relevant
    regressions and project-declared static checks for the changed source and test
    files, such as type checking or linting. Use the project's configuration and
