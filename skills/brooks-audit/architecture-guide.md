@@ -121,24 +121,33 @@ proposes one. Apply it only to the boundary the step would move.
 2. Trace the lifecycle of the objects whose ownership or binding will change.
    Identify who creates, retains and releases them, when bindings change, and
    which caller runs in each relevant context. Include strong references,
-   teardown and fallback behavior where they can change the cut. Treat an
-   unresolved binding that could reverse the recommendation as a condition on
-   the step.
-3. Choose the smallest independently mergeable step that preserves those
-   obligations. For every constraint that affects the cut, cite the evidence and
-   an existing executable test or give a minimal runnable check. Use the real
-   entry point or binding where the constraint depends on runtime behavior.
+   teardown and fallback behavior where they can change the cut. If an object
+   can be registered again, rebound or replaced under different options, trace
+   which binding and retention policy subsequent callers and cleanup observe.
+   Treat an unresolved binding that could reverse the recommendation as a
+   condition on the step.
+3. Choose the smallest independently mergeable step that advances the stated
+   refactoring goal and preserves those obligations. Name the dependency or
+   ownership change this step makes or prepares, and the next step it enables.
+   For every constraint that affects the cut, cite the evidence and an existing
+   executable test or give a minimal runnable check. Use the real entry point
+   or binding where the constraint depends on runtime behavior.
    Exercise each distinct construction or dispatch contract that affects the
    cut through its normal public entry. One regression can cover multiple
    routes when the trace shows that they converge before the affected behavior
-   and share its contract.
+   and share its contract. If the cut affects a lifecycle transition, drive the
+   relevant sequence on the same object with distinct options or bindings
+   through normal entry points. Assert what callers observe after the transition,
+   including after release when retention matters.
    For a route that must preserve an override, configure a representative
    subclass or custom instance through the existing construction path. Drive
    the normal entry point and assert it reaches the override, including call
    order or count when the contract depends on it. A direct call to the
    override only checks that method in isolation.
    State the setup, command and observable result expected on the baseline and
-   candidate, including what would fail if the obligation were broken.
+   candidate, including what would fail if the obligation were broken. When
+   practical, deliberately break the decisive behavior in a disposable copy and
+   confirm the regression fails at the expected assertion.
    In new regressions that exercise retries, polling, or asynchronous waits,
    bound fixture attempts and waits where a broken path could loop or hang.
    Configure the fixture to surface the intended assertion or underlying error
