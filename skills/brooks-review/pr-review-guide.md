@@ -44,6 +44,27 @@ without a deduction. Retain supported local conclusions alongside that uncertain
 For structural findings, use an evidenced change/maintenance consequence instead
 of inventing a runtime failure. Keep witnesses in the final report, not only notes.
 
+#### Check an integer predicate with Lean
+
+For a changed standalone Python module containing a single return-only Boolean
+predicate over one built-in integer, use the bundled checker when you have a
+governing policy or test independent of the implementation. Obtain the complete
+file from the reviewed revision. Record the commit and path. Derive the expected
+predicate from the cited source, including units and endpoint inclusivity. Save a
+JSON contract with `function`, `parameter`, `reference` and `predicate` fields.
+From the installed review skill directory run
+`python3 -I scripts/lean_review.py SOURCE.py CONTRACT.json` with Lean 4 on PATH.
+
+A `counterexample` supports a finding when the input is reachable under the
+governing contract. Cite the reviewed line, policy, concrete input, expected and
+actual results. Check the base revision against its applicable contract before
+attributing a regression. Use an existing risk code only when its diagnosis
+independently applies. A `verified` result covers equivalence of the translated
+function and the supplied predicate over built-in integers. Record an
+`unverified` result as a coverage limitation and continue the review. If only a
+diff fragment is available, preserve that limitation. Hand-transcribing a hunk
+into a new function changes the subject of the check.
+
 ### Step 2: Scan for Change Propagation
 
 Trace which responsibilities must change together and why. Unrelated edits,
