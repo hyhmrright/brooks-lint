@@ -10,6 +10,8 @@ For the supported Bash worker, the checker traces the command status through the
 
 For the supported Go batch scanner, the checker models which function owns each deferred close. Lean checks peak live handles and the count at return. [Replay case 004](research/logic-lens-004/README.md).
 
+For the supported Go 1.22 fan-out, the checker tracks the value and input position captured by each goroutine and the callbacks completed at return. [Replay case 008](research/logic-lens-008/README.md).
+
 ## Run the check
 
 Invoke `$brooks-verify Check shipping.py against shipping.contract.json` in an interactive agent with this branch installed. You can also run its bundled checker directly.

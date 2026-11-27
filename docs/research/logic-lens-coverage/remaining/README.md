@@ -1,6 +1,6 @@
 # Remaining logic-lens probes after 001, 002, 005 and 009
 
-The [completed 004 experiment](../../logic-lens-004/README.md) implements the recommendation below. The original survey remains reproducible with the predicate checker.
+The [completed 004 experiment](../../logic-lens-004/README.md) implements the recommendation below. The [008 experiment](../../logic-lens-008/README.md) subsequently added a separate loop-capture contract. The original survey remains reproducible with the predicate checker.
 
 **Survey recommendation: prototype Go function-scoped resource lifetimes for 004 next.** Four ordinary successful opens separate the two implementations, and the original snippets give a precise event to observe on every iteration. A proof about peak live handles could explain a failure on large batches without depending on a host's file limit.
 
@@ -14,7 +14,7 @@ The pinned corpus has nine probes. Cases 001, 002, 005 and 009 already have a ce
 | 007 · Python memo cache, fixed-only | Parsed as Python, then failed the standalone function requirement at the module-level cache. | Eight overlapping calls agreed with an independent iterative recurrence. All 21 memo entries agreed too. A negative input raised `ValueError` and preserved the cache. | A cache invariant preserved by recursive calls and by later invocations. This control has no buggy counterpart. |
 | 008 · Go loop capture, fixed-only | Failed Python parsing. No Go backend. | With module language version 1.22, four goroutines delivered the multiset `[-1,2,8,8]` to a synchronized observer before return. Order is unspecified. | Go 1.22 iteration bindings, closure capture and goroutine completion. This control has no buggy counterpart. |
 
-The replay uses the historical survey's independent obligation envelopes as **source admission probes** for the installed `lean_review.py`. The other entry points specifically require a Python batch update or a Bash worker contract. None of the five properties has an executable contract in the current skill. Errors mentioning Python syntax in Java, Go and JS files identify the parser that stopped. The native runs use unchanged file bytes from the pinned Git objects. For 003, the compiler needs the public class filename. For 004, the upstream snippet leaves `scan` undefined; the test supplies a successful observer that calls `Stat` on previously opened handles. This measures the handles owned by the snippet. It does not measure total process descriptors or simulate resource exhaustion.
+The replay uses the historical survey's independent obligation envelopes as **source admission probes** for the installed `lean_review.py`. At the time of this survey the other entry points required a Python batch update or a Bash worker contract. All five properties fell outside the supported contracts at that revision. Errors mentioning Python syntax in Java, Go and JS files identify the parser that stopped. The native runs use unchanged file bytes from the pinned Git objects. For 003, the compiler needs the public class filename. For 004, the upstream snippet leaves `scan` undefined; the test supplies a successful observer that calls `Stat` on previously opened handles. This measures the handles owned by the snippet. It does not measure total process descriptors or simulate resource exhaustion.
 
 ## What the proposed capability buys
 

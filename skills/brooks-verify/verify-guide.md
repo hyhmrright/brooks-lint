@@ -99,6 +99,40 @@ peak and the count remaining at function return as separate obligations.
 }
 ```
 
+For the supported Go 1.22 `fanOut`, use `scripts/verify_capture.py`. Keep the
+leading `//go:build go1.22` line. The whole-source matcher distinguishes the
+range declaration that binds a fresh variable from the synchronized control
+that assigns to one variable and gates all readers until the loop ends.
+
+```json
+{
+  "kind": "go-loop-capture-v1",
+  "function": "fanOut",
+  "go_semantics": "1.22",
+  "binding": "iteration_value",
+  "at_return": "each_input_occurrence_once",
+  "reference": "Your requirement for per-iteration arguments and completion before return"
+}
+```
+
+Count each input position separately, including repeats. A worker takes its
+index from its launch and carries that index with its callback argument in the
+model. The Lean proof allows every completion order. On return, completed
+(value, index) pairs form a permutation of the indexed input. This also proves
+the count for each value. Callback order is unspecified.
+
+The source binding, Go range and synchronization semantics are trusted.
+Assume the file is included with Go 1.22 semantics, input values are stable,
+the callback consumes its argument and returns normally, and the isolated
+WaitGroup operations succeed. To project an execution, group the launches and
+retain the worker completion order. Fresh iteration cells make later range
+assignments independent of earlier argument reads. The shared control's
+channel close orders every assignment before every read. A worker with a
+callback in progress remains pending. Its deferred Done follows callback
+return; Wait is reached only after the last launch. The claim applies when
+fanOut returns. The contract covers argument delivery and callback completion;
+external work started by the callback needs its own contract.
+
 ### Step 3: Run the installed checker
 
 From this skill's directory, pass paths to the original module and contract:
@@ -112,6 +146,8 @@ python3 -I scripts/verify_batch.py SOURCE.py CONTRACT.json
 python3 -I scripts/verify_worker.py SOURCE.sh CONTRACT.json
 # Peak and final count of handles owned by a Go batch
 python3 -I scripts/verify_handles.py SOURCE.go CONTRACT.json
+# Per-iteration capture and completion in the supported Go 1.22 fanOut
+python3 -I scripts/verify_capture.py SOURCE.go CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and

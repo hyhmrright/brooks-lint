@@ -1,15 +1,16 @@
 """Replay 004 on the installed skill, a pinned Lean kernel and real Go files."""
 import argparse
-import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
-import subprocess
 import sys
 import tempfile
 
 HERE = Path(__file__).resolve().parent
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(HERE.parent))
+from go_replay import digest, go_observations, require, run
+
 ROOT = HERE.parents[2]
 HASHES = {
     "buggy.go": "95a247dbae316d46d01fce75c304da3ec7ca413dd7453cbbe39dc347ec38b260",
@@ -24,31 +25,8 @@ CHALLENGE = {
 }
 
 
-def digest(data):
-    return hashlib.sha256(data).hexdigest()
-
-
-def require(ok, message):
-    if not ok:
-        raise ValueError(message)
-
-
-def run(args, cwd, code=0, env=None):
-    p = subprocess.run(args, cwd=cwd, capture_output=True, text=True, timeout=120, env=env)
-    require(p.returncode == code, f"{args[0]} exit {p.returncode}\n{p.stdout}{p.stderr}")
-    return p.stdout
-
-
 def observe(source, work):
-    folder = work / source.stem
-    folder.mkdir()
-    shutil.copyfile(source, folder / source.name)
-    shutil.copyfile(HERE / "observe_test.go", folder / "observe_test.go")
-    (folder / "go.mod").write_text("module lifetime\n\ngo 1.22\n")
-    env = dict(os.environ, GOCACHE=str(work / "gocache"), GOWORK="off", GOFLAGS="",
-               GOTOOLCHAIN="local", GOPROXY="off", CGO_ENABLED="0")
-    log = run(["go", "test", "-count=1", "-v", "."], folder, env=env)
-    rows = [json.loads(line[4:]) for line in log.splitlines() if line.startswith("OBS ")]
+    rows = go_observations(source, HERE / "observe_test.go", work)
     require(len(rows) == 8 and len({row["case"] for row in rows}) == 8, "Missing Go observations")
     for row in rows:
         expected = next((step for step in row["inputs"] if step != "ok"), "ok")
