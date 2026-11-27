@@ -1,0 +1,14 @@
+{
+  "id": "003-shared-dateformat-thread-unsafe",
+  "source": "classic real-world Java pitfall (java.text.SimpleDateFormat is documented as not thread-safe)",
+  "language": "java",
+  "scope": "TimestampFormatter.format() + the shared static FMT field",
+  "expected_bug": {
+    "summary": "SimpleDateFormat is mutable and NOT thread-safe (it keeps a Calendar as internal state). Sharing one static instance across concurrent request threads causes interleaved access to that state, producing corrupted/wrong timestamps or ArrayIndexOutOfBoundsException under load. Looks like a harmless caching optimization.",
+    "l_code_hint": "L7 (concurrency — shared mutable state across threads)",
+    "must_mention": ["thread-safe/线程安全", "shared/static/共享", "concurrent/并发", "state/状态"]
+  },
+  "fixed_change": "Switch to java.time.DateTimeFormatter, which is immutable and thread-safe, so the shared static field is safe.",
+  "fixed_should_be_silent": true,
+  "ground_truth_verified_by": "human (documented JDK behavior); single-file scope"
+}

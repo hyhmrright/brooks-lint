@@ -2,7 +2,7 @@
 
 ### Step 1: Identify the source and obligation
 
-Obtain the complete Python module, Bash script or Go file at the revision under discussion. Record its path
+Obtain the complete Python module, Bash script, Go file or Java class at the revision under discussion. Record its path
 and revision when available. A PR is optional. Never extract and rewrite a function
 from a larger module to make it pass the checker's input rules.
 
@@ -160,6 +160,34 @@ Fibonacci specification and every entry remains correct. A negative input
 raises `ValueError` with the same cache. For a counterexample, report both
 the first corrupting write and the subsequent read.
 
+For a Java formatter shared by concurrent callers, use `scripts/verify_date.py`
+with the complete supported `TimestampFormatter` class. Its field initializer,
+imports, method signature, pattern and return statement bind the source to
+the corresponding library model. Other forms yield `unverified`.
+
+```json
+{
+  "kind": "java-date-concurrency-v1",
+  "function": "TimestampFormatter.format",
+  "pattern": "yyyy-MM-dd HH:mm:ss",
+  "result": "own_input_sequential_format",
+  "reference": "Your requirement for per-call results under concurrent access"
+}
+```
+
+Use isolated formatting of each method's own input type as the reference.
+Assume a fixed formatter configuration, standard JDK classes, stable non-null
+inputs in the formatter's domain, and normal completion. The checker trusts
+the whole-source match and the relevant library semantics. In the
+`SimpleDateFormat` witness two calls set the same calendar before the first
+call reads its date fields. This models one possible interleaving. For
+`DateTimeFormatter`, each invocation uses its own print context with the
+immutable shared formatter. For every admitted trace and every call that
+returns, Lean checks equality with the isolated result for that call. The
+contract concerns interference; the calendar conversion and pattern rendering
+are supplied by the sequential JDK formatter. Report scheduling assumptions,
+each call's own input and the expected and observed strings.
+
 ### Step 3: Run the installed checker
 
 From this skill's directory, pass paths to the original module and contract:
@@ -177,6 +205,8 @@ python3 -I scripts/verify_handles.py SOURCE.go CONTRACT.json
 python3 -I scripts/verify_capture.py SOURCE.go CONTRACT.json
 # Fibonacci results and dictionary integrity across sequential Python calls
 python3 -I scripts/verify_cache.py SOURCE.py CONTRACT.json
+# Date formatting under concurrent calls
+python3 -I scripts/verify_date.py SOURCE.java CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and

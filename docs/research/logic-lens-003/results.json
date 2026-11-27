@@ -1,0 +1,75 @@
+{
+  "corpus_revision": "3b158e228127e21bff7be6530e3923de0793a907",
+  "upstream_sha256": {
+    "buggy.java": "30f11fed63bbc5597fb57bbd2e7f18cfcfd034c2186840bd65f89eade37dd01a",
+    "fixed.java": "df0400c777160734f804da385d36569ecc4c4c40560d12adc4efdb650ccb8415",
+    "meta.json": "9b122d699bc3711e74e134783283e1af20c22d1c1a24863bdedaf7b5841938a6"
+  },
+  "checker_sha256": "8b02e7f505ae1bdb01a4bc9a8accf1c6323f4f5e4bcac0cdb047b28b249743c3",
+  "variants": {
+    "buggy": {
+      "report": {
+        "status": "counterexample",
+        "source": "buggy.java",
+        "source_sha256": "30f11fed63bbc5597fb57bbd2e7f18cfcfd034c2186840bd65f89eade37dd01a",
+        "line": 10,
+        "model": "sharedCalendar",
+        "contract": {
+          "kind": "java-date-concurrency-v1",
+          "function": "TimestampFormatter.format",
+          "pattern": "yyyy-MM-dd HH:mm:ss",
+          "result": "own_input_sequential_format",
+          "reference": "logic-lens 003: each concurrent caller receives the sequential rendering of its own input under the same formatter configuration"
+        },
+        "witness": {
+          "inputs": [
+            "2000-01-01 00:00:00",
+            "2000-01-02 00:00:00"
+          ],
+          "outputs": [
+            "2000-01-02 00:00:00",
+            "2000-01-02 00:00:00"
+          ],
+          "schedule": [
+            "begin 0",
+            "begin 1",
+            "finish 1",
+            "finish 0"
+          ]
+        }
+      },
+      "axioms": "'interferes003' does not depend on any axioms",
+      "certificate_sha256": "555217542257de3aa0a0b76287c38b61b8ebaed2910a2f39ce8de8b1fed2bec9",
+      "jvm": [
+        "sequential A 2000-01-01 00:00:00",
+        "sequential B 2000-01-02 00:00:00",
+        "overlap B 2000-01-02 00:00:00",
+        "overlap A 2000-01-02 00:00:00"
+      ]
+    },
+    "fixed": {
+      "report": {
+        "status": "verified",
+        "source": "fixed.java",
+        "source_sha256": "df0400c777160734f804da385d36569ecc4c4c40560d12adc4efdb650ccb8415",
+        "line": 10,
+        "model": "perCall",
+        "contract": {
+          "kind": "java-date-concurrency-v1",
+          "function": "TimestampFormatter.format",
+          "pattern": "yyyy-MM-dd HH:mm:ss",
+          "result": "own_input_sequential_format",
+          "reference": "logic-lens 003: each concurrent caller receives the sequential rendering of its own input under the same formatter configuration"
+        }
+      },
+      "axioms": "'fixed003' depends on axioms: [propext]",
+      "certificate_sha256": "be9cb88fe35c9447688fd9c67f08108bc18d268f4e772edc080b17a4d5cda73a",
+      "jvm": [
+        "sequential A 2000-01-01 00:00:00",
+        "sequential B 2000-01-02 00:00:00",
+        "overlap B 2000-01-02 00:00:00",
+        "overlap A 2000-01-01 00:00:00"
+      ]
+    }
+  }
+}
