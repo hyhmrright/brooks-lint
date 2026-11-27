@@ -5,6 +5,7 @@ export const MODES = {
   debt: { directory: "brooks-debt", guides: ["debt-guide.md"], risks: ["R"], runners: ["eval"] },
   test: { directory: "brooks-test", guides: ["test-guide.md"], risks: ["T"], runners: ["eval"] },
   health: { directory: "brooks-health", guides: ["health-guide.md"], risks: ["R", "T"], runners: ["eval"] },
+  verify: { directory: "brooks-verify", guides: ["verify-guide.md"], risks: [], runners: [] },
   sweep: { directory: "brooks-sweep", guides: ["sweep-guide.md"], risks: ["R", "T"], runners: [] },
 };
 

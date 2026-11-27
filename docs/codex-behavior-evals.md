@@ -1,6 +1,6 @@
 # Real Codex behavioral evaluation
 
-`npm run evals:codex` compares the same natural task with and without the repository's six skills. It runs real, isolated Codex CLI sessions, then grades each final answer in a separate session that does not receive the experimental arm label or execution trace. This is distinct from the 64 structural scenarios, the frozen parser corpus, and the historical Anthropic API runner. It does not require an Anthropic key.
+`npm run evals:codex` compares the same natural task with and without the repository's bundled skills. It runs real, isolated Codex CLI sessions, then grades each final answer in a separate session that does not receive the experimental arm label or execution trace. This is distinct from the 66 structural scenarios, the frozen parser corpus, and the historical Anthropic API runner. It does not require an Anthropic key.
 
 ## Run
 
@@ -19,7 +19,7 @@ Live runs consume the account's Codex allowance. Model selection is mandatory; r
 
 Each answer and judge gets a fresh Git fixture, HOME, and CODEX_HOME. Only fixture files are present in both arms; the treatment additionally gets the checkout's `skills/` under `.agents/skills/`. No project AGENTS.md, parent checkout instructions, user config, installed user skills, plugins, hooks, apps, web search, or subagents are loaded. Bundled skills are disabled. Hosts with admin-installed skills are rejected. Authentication is copied into a private temporary directory and deleted after the session; it is never written into results. Transport proxy and certificate settings are retained, while arbitrary environment credentials are not inherited. SIGINT and SIGTERM cancel the active child process group and clean temporary credentials. Do not terminate the parent runner with SIGKILL: like any abrupt process death, this can prevent temporary-directory cleanup.
 
-The runner captures `debug prompt-input` before execution and compares the complete developer-provided skill catalog with the expected six entries or an empty baseline catalog. Skill names in task or answer text are ignored. Both arms use the same explicit model and reasoning setting, with alternating arm order across cases/repetitions. Runs are serial, so load does not differ by arm. They use read-only sandboxing and approval mode `never`; the implementation negative control asks for code in the answer, not file edits.
+The runner captures `debug prompt-input` before execution and compares the complete developer-provided skill catalog with the expected bundled entries or an empty baseline catalog. Skill names in task or answer text are ignored. Both arms use the same explicit model and reasoning setting, with alternating arm order across cases/repetitions. Runs are serial, so load does not differ by arm. They use read-only sandboxing and approval mode `never`; the implementation negative control asks for code in the answer, not file edits.
 
 Raw run directories contain prompt snapshots, JSONL events, stderr, final answers, judge outputs, `results.json`, and `summary.md`. Results record model, CLI version, fixture/skill/schema digests, trace hashes, observed reads, judgments, and errors. Snapshot paths contain ephemeral directories; inspect and sanitize raw artifacts before sharing. Credentials are excluded, but model-generated commands can still reveal host paths.
 

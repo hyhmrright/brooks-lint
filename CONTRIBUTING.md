@@ -59,7 +59,7 @@ comparisons are opt-in and require explicit authorization and a frozen budget.
 }
 ```
 
-Use the next sequential `id` after the last entry in `evals/evals.json` (currently 64 scenarios). The `mode` field is required — use one of: `"review"`, `"audit"`, `"debt"`, `"test"`, `"health"`, `"sweep"`.
+Use the next sequential `id` after the last entry in `evals/evals.json` (currently 66 scenarios). The `mode` field is required — use one of: `"review"`, `"audit"`, `"debt"`, `"test"`, `"health"`, `"sweep"`, `"verify"`. Contract verification requires a local Lean executable.
 
 Optional boundary settings for special scenarios:
 

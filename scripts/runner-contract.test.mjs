@@ -105,7 +105,7 @@ test('empty diff is skipped without loading SDK or writing SARIF; unsupported mo
   assert.equal(JSON.parse(skipped.stdout).status, 'skipped');
   assert.equal(JSON.parse(skipped.stdout).score, null);
   assert.equal(existsSync(sarif), false);
-  for (const mode of ['audit', 'debt', 'test', 'health', 'sweep']) {
+  for (const mode of ['audit', 'debt', 'test', 'health', 'sweep', 'verify']) {
     const result = f.run('ci-review.mjs', ['--mode', mode]);
     assert.notEqual(result.status, 0, mode);
     assert.match(result.stderr, /not supported/);
@@ -146,9 +146,9 @@ test('gate recomputes custom severities and rejects invalid report envelopes', t
   }
 });
 
-test('API eval rejects explicit sweep and reports excluded sweep scenarios without API calls for them', t => {
+test('API eval excludes interactive-only scenarios and rejects explicit requests for them', t => {
   const f = fixture(t);
-  for (const args of [['--mode', 'sweep'], ['--id', '50']]) {
+  for (const args of [['--mode', 'sweep'], ['--id', '50'], ['--mode', 'verify'], ['--id', '65']]) {
     const result = f.run('run-evals-live.mjs', args);
     assert.notEqual(result.status, 0); assert.match(result.stderr, /not supported/);
   }
@@ -157,9 +157,11 @@ test('API eval rejects explicit sweep and reports excluded sweep scenarios witho
   assert.match(result.stdout, /Skipped #50 \(sweep\)/);
   assert.match(result.stdout, /Skipped #51 \(sweep\)/);
   const cases = JSON.parse(readFileSync(path.join(root, 'evals/evals.json'))).evals;
-  const supported = cases.filter(c => c.mode !== 'sweep').length;
+  const excluded = cases.filter(c => ['sweep', 'verify'].includes(c.mode));
+  for (const scenario of excluded) assert(result.stdout.includes(`Skipped #${scenario.id} (${scenario.mode})`));
+  const supported = cases.length - excluded.length;
   assert.match(result.stdout, new RegExp(`Total\\s+: ${supported}`));
-  assert.match(result.stdout, /Skipped\s+: 2/);
+  assert.match(result.stdout, new RegExp(`Skipped\\s+: ${excluded.length}\\b`));
   const requests = readFileSync(f.capture, 'utf8').trim().split('\n').map(JSON.parse);
   assert.equal(requests.length, supported);
   assert(requests.every(request => !request.system.includes('### Step 0 — Pre-flight consent gate')));

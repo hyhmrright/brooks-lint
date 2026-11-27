@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import path from "node:path";
 import os from "node:os";
+import { MODES } from "./modes.mjs";
 import { assembleSystemPrompt, VALID_MODES } from "./assemble-prompt.mjs";
 import {
   MAX_CONFIG_BYTES,
@@ -1122,7 +1123,9 @@ const BENCH = summarize(CORPUS);
 test("corpus has >= 30 real reports spanning all six modes", () => {
   assert.ok(CORPUS.samples.length >= 30, `expected >=30 samples, got ${CORPUS.samples.length}`);
   const modes = new Set(CORPUS.samples.map((s) => s.mode));
-  for (const m of VALID_MODES) assert.ok(modes.has(m), `corpus is missing mode ${m}`);
+  for (const [mode, { risks }] of Object.entries(MODES)) {
+    if (risks.length) assert.ok(modes.has(mode), `corpus is missing mode ${mode}`);
+  }
 });
 
 test("corpus composition matches the documented numbers (30 total, 9 false-positive)", () => {

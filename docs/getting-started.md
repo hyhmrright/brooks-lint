@@ -1,6 +1,6 @@
 # Getting started
 
-brooks-lint provides six Agent Skills and their shared framework. Diagnosis is
+brooks-lint provides seven Agent Skills and their shared framework. Diagnosis is
 performed by your coding agent; reading, editing and execution capabilities vary
 by host. Current maintainer verification covers Codex. Other integrations are
 retained, but layout tests are not an end-to-end host compatibility claim.
@@ -45,10 +45,11 @@ form clones main. Record the checkout commit if you need reproducibility.
 ├── brooks-test/SKILL.md
 ├── brooks-health/SKILL.md
 ├── brooks-sweep/SKILL.md
+├── brooks-verify/SKILL.md
 └── _shared/common.md
 ```
 
-The guides read `../_shared/`; `_shared` is a resource directory, not a seventh
+The guides read `../_shared/`; `_shared` is a resource directory, not a standalone
 skill. Copying only SKILL.md or nesting all folders under an extra directory may
 break discovery or relative reads. The health folder also contains its Node
 scoring and delivery tools; keep those resources with it.

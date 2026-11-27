@@ -28,7 +28,7 @@ $brooks-review Review the current diff and identify supported maintainability ri
 $brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-현재 소스를 Codex 전역 스킬 디렉터리에 설치합니다. 인식되지 않으면 새 세션을 시작하세요. 프로젝트 설치는 대상 프로젝트에서 스크립트의 절대 경로와 `codex --project`를 사용합니다. `_shared`를 여섯 스킬 폴더와 같은 깊이에 두세요. [Codex 안내](docs/codex-setup.md).
+현재 소스를 Codex 전역 스킬 디렉터리에 설치합니다. 인식되지 않으면 새 세션을 시작하세요. 프로젝트 설치는 대상 프로젝트에서 스크립트의 절대 경로와 `codex --project`를 사용합니다. `_shared`를 각 스킬 폴더와 같은 깊이에 두세요. [Codex 안내](docs/codex-setup.md).
 
 Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@latest install codex`. 다른 설치 대상은 [시작 안내](docs/getting-started.md)를 참고하세요.
 
@@ -42,6 +42,7 @@ Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@late
 | `$brooks-test` | 기존 테스트의 단언이 탐지하거나 놓치는 실패. | 아니요 |
 | `$brooks-health` | 네 차원의 간략 평가와 증거 범위를 명시한 대시보드. | 아니요 |
 | `$brooks-sweep` | 제한한 범위에서 진단 후 승인되고 검증 가능한 수정. | 예 |
+| [`$brooks-verify`](docs/lean-review.md) | 독립적인 계약에 따라 Python 정수 조건식을 Lean 4로 검증. | 아니요 |
 
 Codex에서는 `$brooks-review`를 사용합니다. 자연어 스킬 발견은 호스트와 모델에 달려 있습니다. Health는 네 번의 완전한 감사를 대신하지 않습니다. Sweep은 편집·검증 기능이 필요하며 기존 승인을 존중합니다. 여러 파일이라는 이유만으로 승인을 다시 묻지 않습니다.
 
@@ -89,7 +90,7 @@ Sweep은 최초 및 Critical 전용 라운드를 포함해 기본 **총 세 번�
 
 ## Benchmark: 여섯 스킬이 제공하는 것
 
-이미 해야 할 작업 하나로 시작하세요. 구체적 반례가 있는 리뷰, 의존성 진단, 부채 상환 계획, 테스트 빈틈, 범위를 정한 건강 보고서, 검증을 거친 수정입니다. 동률과 퇴보를 포함해 **여섯 스킬 모두** 공개합니다. 워크플로의 용도와 측정된 개선은 별개입니다.
+이미 해야 할 작업 하나로 시작하세요. 구체적 반례가 있는 리뷰, 의존성 진단, 부채 상환 계획, 테스트 빈틈, 범위를 정한 건강 보고서, 검증을 거친 수정입니다. 동률과 퇴보를 포함해 **평가한 여섯 스킬의 결과를** 공개합니다. 워크플로의 용도와 측정된 개선은 별개입니다.
 
 | 실험 | 스킬과 근거 | 기준 → 스킬 | 관측된 변화 |
 |---|---|---:|---|

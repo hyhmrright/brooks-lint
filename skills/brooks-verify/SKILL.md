@@ -1,0 +1,29 @@
+---
+name: brooks-verify
+description: >
+  Verify whether a Python integer predicate satisfies an independently stated
+  contract using Lean 4. Trigger for explicit requests for formal verification,
+  a proof of contract equivalence, or a checked counterexample to that contract.
+  Explain confirmed defects using the project's finding convention drawn from
+  twelve classic engineering books.
+  Do NOT trigger for: general PR reviews, architecture audits, debt assessments,
+  test-suite reviews, health dashboards, automated fixes, or Lean tutorials.
+metadata:
+  opencode/slash: "true"
+---
+
+# Brooks-Lint — Contract Verification
+
+## Setup
+
+Read `verify-guide.md` in this directory and the Iron Law in
+`../_shared/common.md`. Use the verification result format in the guide.
+Python 3 and a trusted Lean 4 executable on PATH are required to run the checker.
+
+## Process
+
+1. Identify the exact source file and its governing contract (Step 1 of the guide).
+2. Encode the independent predicate and run the bundled checker (Steps 2–3).
+3. Report the kernel result, its scope and any reachable witness (Step 4).
+
+**Mode line in report:** `Contract Verification`

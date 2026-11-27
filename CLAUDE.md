@@ -60,7 +60,7 @@ Guidance for Claude Code when modifying this repository. For repo layout, instal
 
 ## Eval Suite
 
-`evals/evals.json` contains 64 benchmark scenarios covering R1–R6 (code decay) and T1–T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario has `id`, `name`, `prompt`, `expected_output`, `mode`, `files`. Optional boundary settings (mutually exclusive): `no_risk_codes: true` (no findings allowed), `no_health_score: true` (Health Score suppression test), or `forbidden_risk_codes: [R5]` (only those codes are forbidden; other findings are permitted).
+`evals/evals.json` contains 66 benchmark scenarios covering R1–R6 (code decay) and T1–T6 (test decay), including false-positive / tradeoff cases that must NOT be flagged. Each scenario has `id`, `name`, `prompt`, `expected_output`, `mode`, `files`. Optional boundary settings (mutually exclusive): `no_risk_codes: true` (no findings allowed), `no_health_score: true` (Health Score suppression test), or `forbidden_risk_codes: [R5]` (only those codes are forbidden; other findings are permitted).
 
 To add a scenario: append to the `evals` array with the next sequential `id` and the relevant risk code. Validate structure with `npm run evals`; live-test with `npm run evals:live` (requires `ANTHROPIC_API_KEY`).
 

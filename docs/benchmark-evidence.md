@@ -49,12 +49,12 @@ unknowns rather than treating a score as diagnostic truth. For sweep, give an
 authorized scope and a repair budget, then inspect the actual diff and executed
 checks. These are adoption suggestions, not another benchmark dataset.
 
-## Product checks on main
+## Product checks
 
 | Check | Scope | Does not establish |
 | --- | --- | --- |
 | `npm test`, installation/health/delivery regressions | Product behavior, deterministic arithmetic, resource packaging and known report failures | Truth of model diagnoses or general autonomous repair |
-| `npm run evals` | Structure and risk references of 64 scenarios | A live 64-case model pass rate |
+| `npm run evals` | Structure of 66 scenarios, including two interactive contract-verification cases | A live 66-case model pass rate |
 | `npm run benchmark` | Parser/SARIF fidelity on 30 frozen reports | Correctness of the reports' substantive findings |
 | `npm run evals:codex:validate` | Offline validation of seven Codex fixtures | A fresh model run or seven-skill coverage |
 | Opt-in [Codex behavioral collector](codex-behavior-evals.md) | Skill-read evidence and judged answers for review/audit/test plus non-trigger controls | Debt/health/sweep efficacy, independent human truth, arbitrary hosts |

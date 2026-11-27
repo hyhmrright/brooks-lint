@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 CHECKER = (Path(__file__).resolve().parents[1] /
-           "skills/brooks-review/scripts/lean_review.py")
+           "skills/brooks-verify/scripts/lean_review.py")
 LEAN = shutil.which("lean")
 POLICY = {"function": "free_shipping", "parameter": "subtotal",
           "reference": "Shipping policy v2, section 4", "predicate": "subtotal >= 5000"}

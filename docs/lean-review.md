@@ -1,10 +1,12 @@
 # Check a Python review finding with Lean
 
-A shipping policy grants free shipping at a subtotal of 5,000 cents or more. A PR changes the comparison to `>`. Both a 4,999-cent cart and a 5,001-cent cart still produce the expected answer. A 5,000-cent cart distinguishes the implementations. The optional PR review checker uses Lean 4 to check a predicate from the reviewed source against a separately supplied contract.
+A shipping policy grants free shipping at a subtotal of 5,000 cents or more. A PR changes the comparison to `>`. Both a 4,999-cent cart and a 5,001-cent cart still produce the expected answer. A 5,000-cent cart distinguishes the implementations. The standalone `$brooks-verify` skill uses Lean 4 to check a predicate from the reviewed source against a separately supplied contract.
 
 ## Run the check
 
-Use Python 3 and a trusted Lean 4 executable on PATH. Use the checker from your brooks-lint installation and the complete source file from the exact PR revision. The checker reads the Python source as data. It does not import the reviewed module.
+Invoke `$brooks-verify Check shipping.py against shipping.contract.json` in an interactive agent with this branch installed. You can also run its bundled checker directly.
+
+Use Python 3 and a trusted Lean 4 executable on PATH. Use the checker from your brooks-lint installation and the complete source file at the revision to verify. A PR is optional. The checker reads the Python source as data. It does not import the reviewed module.
 
 For a local demonstration, save the following as `shipping.py`.
 
@@ -24,10 +26,10 @@ Save this as `shipping.contract.json`. In a real review, replace the example pol
 }
 ```
 
-From a brooks-lint checkout, run the following command. With an installed skill, use the same script under its `brooks-review/scripts/` directory.
+From a brooks-lint checkout, run the following command. With an installed skill, use the same script under its `brooks-verify/scripts/` directory.
 
 ```sh
-python3 -I skills/brooks-review/scripts/lean_review.py shipping.py shipping.contract.json
+python3 -I skills/brooks-verify/scripts/lean_review.py shipping.py shipping.contract.json
 ```
 
 | JSON status | Exit | Interpretation |

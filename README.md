@@ -28,7 +28,7 @@ $brooks-review Review the current diff and identify supported maintainability ri
 $brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-This installs the current source into the global Codex skills directory. Start a new session if skills are not discovered. To install into another project, run the installer by its absolute path from that project with `codex --project`. Keep `_shared` beside the six skill folders. See the [Codex guide](docs/codex-setup.md) for layout and capability checks.
+This installs the current source into the global Codex skills directory. Start a new session if skills are not discovered. To install into another project, run the installer by its absolute path from that project with `codex --project`. Keep `_shared` beside the skill folders. See the [Codex guide](docs/codex-setup.md) for layout and capability checks.
 
 Install the latest published package with Node.js 20+: `npx brooks-lint@latest install codex`. See [getting started](docs/getting-started.md) for other installation targets.
 
@@ -42,6 +42,7 @@ Install the latest published package with Node.js 20+: `npx brooks-lint@latest i
 | `$brooks-test` | An existing test suite: what failures its assertions do and do not detect. | No |
 | `$brooks-health` | An abbreviated four-dimension assessment and evidence-scoped dashboard. | No |
 | `$brooks-sweep` | Diagnose and apply authorized, verifiable repairs within a bounded scope. | Yes |
+| [`$brooks-verify`](docs/lean-review.md) | Check a Python integer predicate against an independent contract with Lean 4. | No |
 
 Use `$brooks-review` in Codex; other hosts have their own invocation syntax. Natural-language discovery depends on the host and model. Health is a summary, not four exhaustive audits. Sweep requires editing and verification capabilities and respects existing authorization; it does not demand another approval merely because a change spans files.
 
@@ -89,7 +90,7 @@ The detailed [source coverage matrix](skills/_shared/source-coverage.md) records
 
 ## Benchmark: choose a workflow, inspect its results
 
-Try a skill on a task you already need to do: a review with a concrete witness, a dependency diagnosis, a debt plan, a test gap, a scoped dashboard or a verified repair. The table shows **all six skills**, including ties and regressions. Workflow usefulness and measured improvement are separate claims.
+Try a skill on a task you already need to do: a review with a concrete witness, a dependency diagnosis, a debt plan, a test gap, a scoped dashboard or a verified repair. The table shows **the six benchmarked skills**, including ties and regressions. Workflow usefulness and measured improvement are separate claims.
 
 | Experiment | Skill / evidence | Baseline → skill | Observed change |
 |---|---|---:|---|

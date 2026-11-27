@@ -28,7 +28,7 @@ $brooks-review Review the current diff and identify supported maintainability ri
 $brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-Esto instala el código actual en el directorio global de habilidades de Codex. Abre una sesión nueva si no aparecen. Para instalar en otro proyecto, ejecuta el script por su ruta absoluta desde ese proyecto con `codex --project`. Mantén `_shared` al mismo nivel que las seis habilidades. Consulta la [guía de Codex](docs/codex-setup.md).
+Esto instala el código actual en el directorio global de habilidades de Codex. Abre una sesión nueva si no aparecen. Para instalar en otro proyecto, ejecuta el script por su ruta absoluta desde ese proyecto con `codex --project`. Mantén `_shared` al mismo nivel que las habilidades. Consulta la [guía de Codex](docs/codex-setup.md).
 
 Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest install codex`. Consulta [primeros pasos](docs/getting-started.md) para otros destinos.
 
@@ -42,6 +42,7 @@ Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest i
 | `$brooks-test` | Una suite existente: fallos que sus aserciones detectan o dejan pasar. | No |
 | `$brooks-health` | Evaluación abreviada de cuatro dimensiones y un panel limitado por la evidencia. | No |
 | `$brooks-sweep` | Diagnosticar y aplicar reparaciones autorizadas y verificables dentro de un alcance definido. | Sí |
+| [`$brooks-verify`](docs/lean-review.md) | Verificar con Lean 4 un predicado entero de Python frente a un contrato independiente. | No |
 
 Codex usa `$brooks-review`; los demás entornos tienen su propia sintaxis. La activación por lenguaje natural depende del entorno y del modelo. Health no sustituye cuatro auditorías exhaustivas. Sweep necesita herramientas de edición y verificación, respeta la autorización existente y no vuelve a pedir permiso solo porque cambien varios archivos.
 
@@ -89,7 +90,7 @@ La [matriz de fuentes](skills/_shared/source-coverage.md) documenta conceptos, c
 
 ## Benchmark: qué aporta cada una de las seis habilidades
 
-Empieza con una tarea que ya necesitas resolver: una revisión con un ejemplo concreto, un diagnóstico de dependencias, un plan de deuda, una laguna en las pruebas, un informe acotado o una reparación verificada. Mostramos **las seis habilidades**, incluidos empates y retrocesos. La utilidad del flujo y la mejora medida son afirmaciones distintas.
+Empieza con una tarea que ya necesitas resolver: una revisión con un ejemplo concreto, un diagnóstico de dependencias, un plan de deuda, una laguna en las pruebas, un informe acotado o una reparación verificada. Mostramos **las seis habilidades evaluadas**, incluidos empates y retrocesos. La utilidad del flujo y la mejora medida son afirmaciones distintas.
 
 | Experimento | Habilidad y evidencia | Base → habilidad | Cambio observado |
 |---|---|---:|---|

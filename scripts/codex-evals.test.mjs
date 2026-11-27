@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isolatedEnv, runProcess, materialize as materializeRepo, session, discoveredSkills } from './run-codex-evals.mjs';
-import { validateCases, analyzeTrace, judgePrompt, validateJudgment, summarize, renderSummary, digest } from './codex-eval.mjs';
+import { SKILLS, validateCases, analyzeTrace, judgePrompt, validateJudgment, summarize, renderSummary, digest } from './codex-eval.mjs';
 
 const corpus = JSON.parse(readFileSync(new URL('../evals/codex/cases.json', import.meta.url), 'utf8'));
 const judgeSchema = JSON.parse(readFileSync(new URL('../evals/codex/judge-schema.json', import.meta.url), 'utf8'));
@@ -363,7 +363,7 @@ if (args.includes('debug')) {
     const completed = await session({ c: sampleCase, arm, judge, prompt: `Fixture prompt ${name}`, options, destination });
     assert.equal(completed.answer, 'Fixture completed.');
     assert.equal(completed.trace.turn_completed, true);
-    assert.equal(completed.discovered_skills.length, name === 'treatment' ? 6 : 0);
+    assert.deepEqual(completed.discovered_skills, name === 'treatment' ? [...SKILLS].sort() : []);
     assert.ok(existsSync(path.join(destination, 'events.jsonl')));
     assert.equal(readFileSync(path.join(destination, 'answer.txt'), 'utf8'), 'Fixture completed.');
   }
@@ -378,7 +378,7 @@ if (args.includes('debug')) {
     for (const flag of ['--ignore-user-config', '--ignore-rules', '--ephemeral', '--json', 'read-only']) assert.ok(row.args.includes(flag), flag);
     for (const setting of ['features.plugins=false', 'features.apps=false', 'features.hooks=false', 'skills.bundled.enabled=false', 'project_doc_max_bytes=0']) assert.ok(row.args.includes(setting), setting);
   }
-  assert.deepEqual(executions.map(row => row.skills.length), [6, 0, 0]);
+  assert.deepEqual(executions.map(row => row.skills.length), [SKILLS.length, 0, 0]);
   assert.ok(executions[2].args.includes('--output-schema'));
   assert.ok(executions[2].args.includes('features.shell_tool=false'));
   assert.deepEqual(executions[2].files, ['.git'], 'Judge must not inherit task files or local skills');

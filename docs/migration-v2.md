@@ -41,7 +41,7 @@ trusted base-policy behavior were tightened and malformed reports now fail
 closed. Do not treat the latter as guaranteed compatibility for hand-written
 report consumers.
 
-Keep `_shared` beside all six skills and install health's nested resources.
+Keep `_shared` beside the skill directories and install health's nested resources.
 Node is needed for the shipped deterministic tools, but tool availability and
 verification claims remain explicit; this is not a promise that all hosts execute
 them. No migration requires a live benchmark or model account.

@@ -26,11 +26,11 @@ async function skill(root, name, raw) {
   return locator;
 }
 
-test("bundled provider discovers all six skills and loads their bodies and shared resources", async () => {
+test("bundled provider discovers all bundled skills and loads their bodies and shared resources", async () => {
   const source = provider();
   const candidates = await source.list();
   assert.deepEqual(candidates.map((item) => item.name), [
-    "brooks-audit", "brooks-debt", "brooks-health", "brooks-review", "brooks-sweep", "brooks-test",
+    "brooks-audit", "brooks-debt", "brooks-health", "brooks-review", "brooks-sweep", "brooks-test", "brooks-verify",
   ]);
   const root = fileURLToPath(new URL("../skills/", import.meta.url));
   for (const candidate of candidates) {

@@ -5,7 +5,7 @@
 # brooks-lint ships as standard Agent Skills (SKILL.md). Most modern coding
 # agents discover skills from a per-platform folder with a single-level glob
 # (skills/<name>/SKILL.md) and read shared files via the relative path
-# ../_shared/. This script copies the six skills + _shared/ FLAT into the right
+# ../_shared/. This script copies the bundled skills + _shared/ FLAT into the right
 # folder for your platform, so the relative reads always resolve — you can't get
 # the layout wrong.
 #
