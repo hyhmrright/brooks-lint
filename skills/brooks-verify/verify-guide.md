@@ -133,6 +133,33 @@ return; Wait is reached only after the last launch. The claim applies when
 fanOut returns. The contract covers argument delivery and callback completion;
 external work started by the callback needs its own contract.
 
+For Python's supported memoized `fib`, use `scripts/verify_cache.py`. Supply
+the independent contract below. The checker reads the AST of the whole module,
+including the initializer, negative guard, lookup, recursive calls and write.
+It recognizes a write of the returned value and the regression that writes
+`result + 1`. Other executable forms yield `unverified`.
+
+```json
+{
+  "kind": "python-fib-cache-v1",
+  "function": "fib",
+  "cache": "_MEMO",
+  "invariant": "fibonacci_entries",
+  "across_calls": "correct_results",
+  "negative": "ValueError_unchanged",
+  "reference": "Your requirement for Fibonacci results and shared-cache behavior"
+}
+```
+
+Assume sequential calls with plain integers, standard Python builtins, sufficient
+resources and exclusive ownership of the dictionary. The source-to-model match
+is trusted. Lean threads the updated cache through the left recursive call,
+the right recursive call and each subsequent top-level call. Starting from an
+empty cache or any cache of correct entries, each returned value equals the
+Fibonacci specification and every entry remains correct. A negative input
+raises `ValueError` with the same cache. For a counterexample, report both
+the first corrupting write and the subsequent read.
+
 ### Step 3: Run the installed checker
 
 From this skill's directory, pass paths to the original module and contract:
@@ -148,6 +175,8 @@ python3 -I scripts/verify_worker.py SOURCE.sh CONTRACT.json
 python3 -I scripts/verify_handles.py SOURCE.go CONTRACT.json
 # Per-iteration capture and completion in the supported Go 1.22 fanOut
 python3 -I scripts/verify_capture.py SOURCE.go CONTRACT.json
+# Fibonacci results and dictionary integrity across sequential Python calls
+python3 -I scripts/verify_cache.py SOURCE.py CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and

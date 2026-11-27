@@ -1,6 +1,6 @@
 # Remaining logic-lens probes after 001, 002, 005 and 009
 
-The [completed 004 experiment](../../logic-lens-004/README.md) implements the recommendation below. The [008 experiment](../../logic-lens-008/README.md) subsequently added a separate loop-capture contract. The original survey remains reproducible with the predicate checker.
+The [completed 004 experiment](../../logic-lens-004/README.md) implements the recommendation below. The [008 experiment](../../logic-lens-008/README.md) subsequently added a separate loop-capture contract. The original survey remains reproducible with the predicate checker. The [007 experiment](../../logic-lens-007/README.md) verifies the cross-call Fibonacci cache and checks a local wrong-store control.
 
 **Survey recommendation: prototype Go function-scoped resource lifetimes for 004 next.** Four ordinary successful opens separate the two implementations, and the original snippets give a precise event to observe on every iteration. A proof about peak live handles could explain a failure on large batches without depending on a host's file limit.
 

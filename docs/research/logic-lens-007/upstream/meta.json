@@ -1,0 +1,13 @@
+{
+  "id": "007-decoy-intentional-shared-cache",
+  "decoy": true,
+  "source": "precision probe — correct code that resembles the mutable-default / shared-state footgun",
+  "language": "python",
+  "scope": "fib() + module-level _MEMO",
+  "expected": "SILENT — no Critical/Warning",
+  "why_suspicious": "Module-level mutable dict shared across all calls looks like the classic shared-mutable-state / mutable-default-argument bug a reviewer pattern-matches on.",
+  "why_actually_correct": "It is a pure-function memo: keys/values derive only from n, never exposed as a parameter, each n maps to one stable value. Sharing is the intended, correct design (this is how functools.lru_cache works internally).",
+  "fails_if": "Reports a Critical/Warning L4 shared-mutable-state finding → false positive (pattern-matching instead of reasoning about the actual invariant).",
+  "ground_truth_verified_by": "human",
+  "run_note": "2026-05-30 stress run (sonnet-4-6): skill PASSED the decoy target — it explicitly cleared _MEMO as 'correct design, L4 N/A', reasoning about the purity invariant rather than pattern-matching. The original fixed.py also contained an unintended negative-input defect (`n < 2` returns n for n<0, polluting the cache); the skill correctly flagged it [L3 Warning], which is a true find, not a decoy false positive. Added a `n < 0` guard so this probe isolates the cache as the only suspicious element. The recursion-depth note may still surface as a 💡 Suggestion, which is SILENT-compatible."
+}
