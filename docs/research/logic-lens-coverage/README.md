@@ -2,7 +2,7 @@
 
 **Decision. Prototype a cost contract for Python's order-preserving deduplication (009).** The current checker certified both sides of one of seven paired cases, the previously known leap-year case. The six other pairs and both fixed-only controls stopped before a Lean obligation could be generated. Extending integer arithmetic alone would leave all eight other cases outside the checker.
 
-The subsequent [009 experiment](../logic-lens-009/README.md) includes the pinned original files, Lean theorems, and an offline replay. The table below retains the earlier baseline.
+The subsequent [009 experiment](../logic-lens-009/README.md) includes the pinned original files, Lean theorems, and an offline replay. The subsequent [001 experiment](../logic-lens-001/README.md) checks validation failure against actual file writes. The table below retains the earlier baseline.
 
 ## What ran
 

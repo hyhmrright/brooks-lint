@@ -1,0 +1,14 @@
+{
+  "id": "001-nonatomic-multifile-write",
+  "source": "logic-lens self — scripts/bump-version.py @ v0.6.9",
+  "language": "python",
+  "scope": "main() + replace_once()",
+  "expected_bug": {
+    "summary": "Non-atomic multi-file write: replace_once() writes each file immediately; if a later file lacks a version field, sys.exit() leaves the earlier files already bumped, so the repo is left in a half-updated, version-inconsistent state. A drift-prevention tool that creates drift on failure.",
+    "l_code_hint": "L5 (control-flow failure path) / L8 (state consistency)",
+    "must_mention": ["write/落盘", "sys.exit", "partial/部分/半", "inconsistent/不一致"]
+  },
+  "fixed_change": "Two-phase: compute + validate all patches before writing any file (compute_patch writes nothing; main writes the batch only after all match).",
+  "fixed_should_be_silent": true,
+  "ground_truth_verified_by": "human read before skill run (2026-05-30)"
+}

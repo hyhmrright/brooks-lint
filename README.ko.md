@@ -42,7 +42,7 @@ Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@late
 | `$brooks-test` | 기존 테스트의 단언이 탐지하거나 놓치는 실패. | 아니요 |
 | `$brooks-health` | 네 차원의 간략 평가와 증거 범위를 명시한 대시보드. | 아니요 |
 | `$brooks-sweep` | 제한한 범위에서 진단 후 승인되고 검증 가능한 수정. | 예 |
-| [`$brooks-verify`](docs/lean-review.md) | Lean 4로 Python 정수 조건식 또는 중복 제거의 최초 등장 순서와 연산 횟수 상한을 검증. | 아니요 |
+| [`$brooks-verify`](docs/lean-review.md) | Lean 4로 Python 정수 조건식, 순서 보존 중복 제거 비용, 일괄 패치 검증 실패 시 쓰기 부재를 검증. | 아니요 |
 
 Codex에서는 `$brooks-review`를 사용합니다. 자연어 스킬 발견은 호스트와 모델에 달려 있습니다. Health는 네 번의 완전한 감사를 대신하지 않습니다. Sweep은 편집·검증 기능이 필요하며 기존 승인을 존중합니다. 여러 파일이라는 이유만으로 승인을 다시 묻지 않습니다.
 

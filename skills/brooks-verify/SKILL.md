@@ -1,10 +1,10 @@
 ---
 name: brooks-verify
 description: >
-  Use Lean 4 to verify a Python integer predicate or the stable-deduplication
-  order and operation budgets of a supported Python loop against a stated contract. Trigger for explicit requests for formal
-  verification,
-  a proof of contract equivalence, or a checked counterexample to that contract.
+  Verify a supported Python integer predicate, stable deduplication cost, or
+  validate-before-write batch update against an explicit contract with Lean 4.
+  Trigger for requests for formal verification, proof of order or failure
+  behavior, or a certified counterexample to a stated obligation.
   Explain confirmed defects using the project's finding convention drawn from
   twelve classic engineering books.
   Do NOT trigger for: general PR reviews, architecture audits, debt assessments,

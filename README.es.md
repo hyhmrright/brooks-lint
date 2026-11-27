@@ -42,7 +42,7 @@ Instala la última versión publicada con Node.js 20+: `npx brooks-lint@latest i
 | `$brooks-test` | Una suite existente: fallos que sus aserciones detectan o dejan pasar. | No |
 | `$brooks-health` | Evaluación abreviada de cuatro dimensiones y un panel limitado por la evidencia. | No |
 | `$brooks-sweep` | Diagnosticar y aplicar reparaciones autorizadas y verificables dentro de un alcance definido. | Sí |
-| [`$brooks-verify`](docs/lean-review.md) | Verificar con Lean 4 predicados enteros de Python o el orden y los límites de operaciones de la deduplicación estable. | No |
+| [`$brooks-verify`](docs/lean-review.md) | Verificar con Lean 4 predicados enteros de Python, costes de deduplicación estable o ausencia de escrituras al fallar la validación de un parche. | No |
 
 Codex usa `$brooks-review`; los demás entornos tienen su propia sintaxis. La activación por lenguaje natural depende del entorno y del modelo. Health no sustituye cuatro auditorías exhaustivas. Sweep necesita herramientas de edición y verificación, respeta la autorización existente y no vuelve a pedir permiso solo porque cambien varios archivos.
 

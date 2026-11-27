@@ -58,12 +58,25 @@ Use a trusted installation including `scripts/Dedupe.lean`.
 }
 ```
 
+For a multi-file update with the supported field-match and patch workflow, use
+`scripts/verify_batch.py` instead. Supply `kind: validate-before-write-v1`,
+`function: main`, `failure: target_pattern_mismatch`, `required_writes: none`,
+`target_contents: unchanged`, and a `reference` identifying the requirement as
+JSON strings. This backend checks module initialization, helper and caller
+together and never imports the reviewed source. A verified result covers a
+rejected target match before commit. A later external validator failure, a
+write failure and a crash are separate obligations. Preserve the supplied disk
+witness and write trace when reporting a counterexample.
+
 ### Step 3: Run the installed checker
 
 From this skill's directory, pass paths to the original module and contract:
 
 ```sh
+# Integer predicates and stable deduplication
 python3 -I scripts/lean_review.py SOURCE.py CONTRACT.json
+# Target match failure during batch preparation
+python3 -I scripts/verify_batch.py SOURCE.py CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and

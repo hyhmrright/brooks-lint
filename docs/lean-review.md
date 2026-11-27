@@ -4,6 +4,8 @@ A shipping policy grants free shipping at a subtotal of 5,000 cents or more. A P
 
 For list-processing code, the same skill supports a first-occurrence ordering and operation-count contract for two stable-deduplication loops. [Replay the original logic-lens case and inspect the trust assumptions](research/logic-lens-009/README.md).
 
+For multi-file updates, the batch checker can certify a partial-write counterexample or prove that rejecting a target match leaves all targets unchanged. [Replay case 001](research/logic-lens-001/README.md).
+
 ## Run the check
 
 Invoke `$brooks-verify Check shipping.py against shipping.contract.json` in an interactive agent with this branch installed. You can also run its bundled checker directly.
