@@ -33,6 +33,17 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Validate repository consistency
         run: node scripts/validate-repo.mjs
+      - name: Install the pinned Lean kernel for proof replay
+        if: matrix.node-version == 22
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y elan
+          export ELAN_TOOLCHAIN="$(cat docs/research/logic-lens-009/lean-toolchain)"
+          elan toolchain install "$ELAN_TOOLCHAIN"
+          dirname "$(elan which lean)" >> "$GITHUB_PATH"
+      - name: Replay the original deduplication cost contracts
+        if: matrix.node-version == 22
+        run: python3 -I docs/research/logic-lens-009/replay.py
       - name: Unit tests
         run: npm test
       - name: Parser benchmark (frozen corpus)

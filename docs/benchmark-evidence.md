@@ -55,6 +55,7 @@ checks. These are adoption suggestions, not another benchmark dataset.
 | --- | --- | --- |
 | `npm test`, installation/health/delivery regressions | Product behavior, deterministic arithmetic, resource packaging and known report failures | Truth of model diagnoses or general autonomous repair |
 | `npm run evals` | Structure of 66 scenarios, including two interactive contract-verification cases | A live 66-case model pass rate |
+| [Lean deduplication replay](research/logic-lens-009/README.md) | Upstream probe 009, two pinned sources, source-level operation budgets, checked theorem signatures and Python controls | General Python semantics, runtime speedups or accuracy on unseen code |
 | `npm run benchmark` | Parser/SARIF fidelity on 30 frozen reports | Correctness of the reports' substantive findings |
 | `npm run evals:codex:validate` | Offline validation of seven Codex fixtures | A fresh model run or seven-skill coverage |
 | Opt-in [Codex behavioral collector](codex-behavior-evals.md) | Skill-read evidence and judged answers for review/audit/test plus non-trigger controls | Debt/health/sweep efficacy, independent human truth, arbitrary hosts |

@@ -27,7 +27,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 
 ## Project Structure
 - `skills/brooks-{review,audit,debt,test,health,sweep}/`: the six skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — each a `SKILL.md` plus its guide.
-- `skills/brooks-verify/`: independent Lean contract verification for Python integer predicates. Invoke `$brooks-verify` with a source file and its governing contract.
+- `skills/brooks-verify/`: independent Lean contract verification for Python integer predicates and stable-deduplication order and costs. Invoke `$brooks-verify` with a source file and its governing contract.
 - `skills/_shared/`: shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `.codex-plugin/`: Plugin metadata for Codex CLI installation.
 - `hooks/`: SessionStart hook for session-level awareness (not used by Codex CLI).

@@ -11,6 +11,7 @@ import unittest
 
 CHECKER = (Path(__file__).resolve().parents[1] /
            "skills/brooks-verify/scripts/lean_review.py")
+RESEARCH = Path(__file__).resolve().parents[1] / "docs/research/logic-lens-009"
 LEAN = shutil.which("lean")
 POLICY = {"function": "free_shipping", "parameter": "subtotal",
           "reference": "Shipping policy v2, section 4", "predicate": "subtotal >= 5000"}
@@ -69,6 +70,73 @@ class LeanReviewTest(unittest.TestCase):
             with self.subTest(source=source, contract=contract):
                 self.check(source, contract, 2)
                 self.assertFalse(marker.exists())
+
+    def test_dedupe_rejects_out_of_fragment_mutations(self):
+        source = (RESEARCH / "upstream/fixed.py").read_text()
+        contract = json.loads((RESEARCH / "contract.json").read_text())
+        mutations = [
+            ("return result", "return result[::-1]"),
+            ("result.append(x)", "result.insert(0, x)"),
+            ("seen.add(x)", "pass"),
+            ("seen.add(x)", "seen.add('x')"),
+            ("if x not in seen:", "if x in seen:"),
+            ("for x in items:", "for x in reversed(items):"),
+            ("seen.add(x)", "items.append(x)"),
+            ("seen", "items"),
+            ("seen", "set"),
+            ("result", "list"),
+            ("for x in items:", "for str in items:"),
+        ]
+        for old, new in mutations:
+            with self.subTest(old=old, new=new):
+                self.assertIn(old, source)
+                report = self.check(source.replace(old, new), contract, 2)
+                self.assertNotIn("lean_certificate", report)
+
+    def test_dedupe_rejects_changed_contract_or_missing_kernel(self):
+        source = (RESEARCH / "upstream/fixed.py").read_text()
+        contract = json.loads((RESEARCH / "contract.json").read_text())
+        for key, value in [("max_list_comparisons", 0), ("max_set_queries", "unlimited"),
+                           ("output", "sorted"), ("reference", ""), ("lean_certificate", "forged")]:
+            with self.subTest(key=key):
+                self.check(source, {**contract, key: value}, 2)
+        report = self.check(source, contract, 2, path=str(self.work))
+        self.assertIn("lean", report["reason"].lower())
+
+    @unittest.skipUnless(LEAN, "Lean 4 unavailable on PATH; kernel checks skipped")
+    def test_upstream_dedupe_certificates_replay_against_separate_statements(self):
+        contract = json.loads((RESEARCH / "contract.json").read_text())
+        challenges = {
+            "buggy": ('example : (Dedupe.listModel ["a", "b", "c", "d"]).comparisons = 6 ∧ '
+                      '(Dedupe.listModel ["a", "b", "c", "d"]).comparisons > 4 := reviewedContract'),
+            "fixed": ('example (items : List String) : '
+                      '(Dedupe.setModel items).output = items.eraseDups ∧ '
+                      '(Dedupe.setModel items).comparisons ≤ items.length ∧ '
+                      '(Dedupe.setModel items).queries ≤ items.length := reviewedContract items'),
+        }
+        for variant, challenge in challenges.items():
+            with self.subTest(variant=variant):
+                source = (RESEARCH / f"upstream/{variant}.py").read_text()
+                line = next(i for i, text in enumerate(source.splitlines(), 1)
+                            if text.startswith("    for "))
+                report = self.check(source, contract, int(variant == "buggy"), line=line)
+                if variant == "buggy":
+                    self.assertEqual(report["input"], ["a", "b", "c", "d"])
+                    self.assertEqual(report["actual_list_comparisons"], 6)
+                    self.assertEqual(report["max_list_comparisons"], 4)
+                cert = self.work / "Replay.lean"
+                cert.write_text(report["lean_certificate"] + "\n" + challenge + "\n")
+                run = subprocess.run([LEAN, str(cert)], cwd=self.work,
+                                     capture_output=True, text=True, timeout=30)
+                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    @unittest.skipUnless(LEAN, "Lean 4 unavailable on PATH; kernel checks skipped")
+    def test_dedupe_accepts_consistent_local_renames(self):
+        source = (RESEARCH / "upstream/fixed.py").read_text()
+        source = source.replace("items", "names").replace("seen", "known").replace("result", "unique")
+        contract = json.loads((RESEARCH / "contract.json").read_text())
+        line = next(i for i, text in enumerate(source.splitlines(), 1) if text.startswith("    for "))
+        self.check(source, dict(contract, parameter="names"), 0, line=line)
 
     def test_zero_and_variable_divisors_in_either_input(self):
         for divisor in ("0", "subtotal"):

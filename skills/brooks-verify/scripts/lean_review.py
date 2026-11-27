@@ -1,4 +1,4 @@
-"""Check a standalone Python integer predicate against an independent contract."""
+"""Check supported Python predicates and deduplication loops against Lean contracts."""
 import ast
 import hashlib
 import json
@@ -81,11 +81,106 @@ def plain_annotation(node, name):
     return node is None or (isinstance(node, ast.Name) and node.id == name)
 
 
+# These are executable syntax patterns, not fixture hashes. Match the full body,
+# allowing only consistent and injective renaming of local variables.
+DEDUPE_PATTERNS = {
+    "list": """out: list[str] = []
+for item in inputs:
+    if item not in out:
+        out.append(item)
+return out""",
+    "set": """seen: set[str] = set()
+out: list[str] = []
+for item in inputs:
+    if item not in seen:
+        seen.add(item)
+        out.append(item)
+return out""",
+}
+
+
+def matches_pattern(pattern, subject, names):
+    if type(pattern) is not type(subject):
+        return False
+    if isinstance(pattern, ast.Name) and pattern.id in {"inputs", "seen", "out", "item"}:
+        if pattern.id not in names:
+            if subject.id in names.values() or subject.id in {"list", "set", "str"}:
+                return False
+            names[pattern.id] = subject.id
+        return names[pattern.id] == subject.id and type(pattern.ctx) is type(subject.ctx)
+    if isinstance(pattern, list):
+        return len(pattern) == len(subject) and all(
+            matches_pattern(a, b, names) for a, b in zip(pattern, subject))
+    if isinstance(pattern, ast.AST):
+        return all(matches_pattern(value, getattr(subject, field), names)
+                   for field, value in ast.iter_fields(pattern))
+    return pattern == subject
+
+
+def dedupe_check(tree, contract):
+    policy = {"kind": "stable-dedupe-v1", "output": "first_occurrences",
+              "max_list_comparisons": "input_length", "max_set_queries": "input_length"}
+    if (set(contract) != set(policy) | {"function", "parameter", "reference"} or
+            any(contract.get(key) != value for key, value in policy.items()) or
+            not all(isinstance(value, str) and value.strip() for value in contract.values())):
+        raise ValueError("Invalid stable-dedupe-v1 contract or unsupported operation budget")
+    module = statements(tree.body)
+    if len(module) != 1 or not isinstance(module[0], ast.FunctionDef):
+        raise ValueError("Expected a standalone deduplication function")
+    fn = module[0]
+    args = fn.args
+    param = contract["parameter"]
+    annotation = ast.parse("list[str]", mode="eval").body
+    if (fn.name != contract["function"] or fn.decorator_list or getattr(fn, "type_params", []) or
+            args.posonlyargs or args.kwonlyargs or args.defaults or args.vararg or args.kwarg or
+            len(args.args) != 1 or args.args[0].arg != param or
+            any(name in {"list", "set", "str"} for name in (fn.name, param)) or
+            not matches_pattern(annotation, fn.returns, {}) or
+            not matches_pattern(annotation, args.args[0].annotation, {})):
+        raise ValueError("Expected a plain list[str] to list[str] function with built-in bindings")
+    body = statements(fn.body)
+    model = next((name for name, code in DEDUPE_PATTERNS.items()
+                  if matches_pattern(ast.parse(code).body, body, {"inputs": param})), None)
+    if model is None:
+        raise ValueError("Unsupported deduplication loop; cannot bind source to a cost model")
+    program = Path(__file__).with_name("Dedupe.lean").read_text(encoding="utf-8")
+    if model == "list":
+        goal = """let xs : List String := ["a", "b", "c", "d"]
+  (Dedupe.listModel xs).comparisons = 6 ∧ (Dedupe.listModel xs).comparisons > xs.length"""
+        proof = "Dedupe.listBudgetWitness"
+        result = {"status": "counterexample", "input": ["a", "b", "c", "d"],
+                  "actual_list_comparisons": 6, "max_list_comparisons": 4}
+    else:
+        goal = """∀ xs : List String,
+  (Dedupe.setModel xs).output = xs.eraseDups ∧
+  (Dedupe.setModel xs).comparisons ≤ xs.length ∧ (Dedupe.setModel xs).queries ≤ xs.length"""
+        proof = """by
+  intro xs
+  obtain ⟨ordered, scans, queries, _⟩ := Dedupe.setContract xs
+  exact ⟨ordered, by omega, by omega⟩"""
+        result = {"status": "verified"}
+    program += f"\n-- Obligation selected from the checked source and explicit contract.\ntheorem reviewedContract : {goal} := {proof}\n"
+    result.update(model=model, line=next(stmt.lineno for stmt in body if isinstance(stmt, ast.For)),
+                  domain="plain list of built-in str values", lean_certificate=program)
+    return result
+
+
 def check(source, contract_path):
     raw = read_small(source)
     tree = ast.parse(raw, filename=str(source))
     compile(tree, str(source), "exec")  # Enforce Python syntax rules without importing the file.
     contract = json.loads(read_small(contract_path))
+    if isinstance(contract, dict) and contract.get("kind") == "stable-dedupe-v1":
+        report = dedupe_check(tree, contract)
+    else:
+        report = integer_check(tree, contract)
+    certify(report["lean_certificate"])
+    report.update(source=str(source), function=contract["function"], contract=contract,
+                  source_sha256=hashlib.sha256(raw).hexdigest())
+    return report
+
+
+def integer_check(tree, contract):
     fields = {"function", "parameter", "predicate", "reference"}
     if (not isinstance(contract, dict) or set(contract) != fields or
             not all(isinstance(v, str) and v.strip() for v in contract.values())):
@@ -120,6 +215,14 @@ def check(source, contract_path):
             return prop if truth else f"(¬ {prop})"
         pair = claim("impl", evaluate(witness)) + " ∧ " + claim("spec", accepts(witness))
         program += f"example : {pair} := by\n  unfold impl spec\n  decide\n"
+    report = {"status": "verified" if witness is None else "counterexample",
+              "line": body[0].lineno, "domain": "plain Python int", "lean_certificate": program}
+    if witness is not None:
+        report.update(input=witness, actual=evaluate(witness), expected=accepts(witness))
+    return report
+
+
+def certify(program):
     # Resolve the trusted installed binary outside the reviewed project's environment.
     binary = shutil.which("lean")
     if not binary:
@@ -134,13 +237,6 @@ def check(source, contract_path):
         if result.returncode or result.stderr.strip() or result.stdout.strip():
             raise ValueError("Lean did not certify the obligation: " +
                              (result.stdout + result.stderr).strip()[:1000])
-    report = {"status": "verified" if witness is None else "counterexample",
-              "source": str(source), "line": body[0].lineno, "function": fn.name,
-              "source_sha256": hashlib.sha256(raw).hexdigest(), "contract": contract,
-              "domain": "plain Python int", "lean_certificate": program}
-    if witness is not None:
-        report.update(input=witness, actual=evaluate(witness), expected=accepts(witness))
-    return report
 
 
 if __name__ == "__main__":

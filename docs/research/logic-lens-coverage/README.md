@@ -2,6 +2,8 @@
 
 **Decision. Prototype a cost contract for Python's order-preserving deduplication (009).** The current checker certified both sides of one of seven paired cases, the previously known leap-year case. The six other pairs and both fixed-only controls stopped before a Lean obligation could be generated. Extending integer arithmetic alone would leave all eight other cases outside the checker.
 
+The subsequent [009 experiment](../logic-lens-009/README.md) includes the pinned original files, Lean theorems, and an offline replay. The table below retains the earlier baseline.
+
 ## What ran
 
 We installed brooks-lint from commit `3eb17fb` in a clean directory and invoked its checker once on each original file at logic-lens commit `3b158e228127e21bff7be6530e3923de0793a907`. The corpus combines examples taken from the upstream project and curated examples of engineering failures. Its labels describe the intended defect or control. They do not establish general accuracy on third-party projects. [Source corpus and methodology](https://github.com/hyhmrright/logic-lens/tree/3b158e228127e21bff7be6530e3923de0793a907/evals/real-world)
@@ -35,13 +37,13 @@ The formulas and acceptance criteria above are proposals. This run generated no 
 
 ## Replay
 
-Point `LOGIC_LENS` at a clean checkout of the corpus revision above, with Python 3 and Lean 4.19.0 on PATH. From this research branch:
+Point `LOGIC_LENS` at a clean checkout of the corpus revision above, with Python 3 and Lean 4.19.0 on PATH. Use the historical checker to reproduce this baseline. From this research branch:
 
 ```sh
 dest=$(mktemp -d)
-node bin/brooks-lint.mjs install --dir "$dest"
+git archive 3eb17fb skills/brooks-verify | tar -x -C "$dest"
 python3 -I docs/research/logic-lens-coverage/replay.py \
-  "$dest/brooks-verify/scripts/lean_review.py" "$LOGIC_LENS" > replay.json
+  "$dest/skills/brooks-verify/scripts/lean_review.py" "$LOGIC_LENS" > replay.json
 ```
 
 The JSON records each file hash and exit status. Text of Python syntax errors and Lean's platform/version banner can vary across environments.

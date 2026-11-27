@@ -14,7 +14,7 @@ the contract cannot establish that the implementation satisfies its owner's inte
 
 ### Step 2: Encode the contract
 
-The checker accepts a module containing one plain function with one positional
+For integer predicates, the checker accepts a module containing one plain function with one positional
 parameter and one return statement. Module and function docstrings and plain
 `int` and `bool` annotations are allowed. Compare either the parameter or `parameter % divisor`
 with an integer literal on the right. The divisor must be a positive or negative
@@ -23,7 +23,7 @@ remainder semantics. A nonzero remainder has the sign of the divisor. Combine
 comparisons with Boolean constants, parentheses, and `and`, `or` and `not`. The mathematical domain is all plain
 Python integers. Record any narrower application preconditions separately.
 
-Save an independent JSON contract with exactly four string fields. For example,
+Save an independent integer contract with exactly four string fields. For example,
 a shipping policy that grants free shipping at 5,000 cents or more might yield:
 
 ```json
@@ -32,6 +32,29 @@ a shipping policy that grants free shipping at 5,000 cents or more might yield:
   "parameter": "subtotal",
   "reference": "Shipping policy v2, section 4 (amount in cents)",
   "predicate": "subtotal >= 5000"
+}
+```
+
+For a standalone typed Python `list[str] -> list[str]` deduplication function,
+use the named contract below when the requirement calls for first-occurrence
+order and both operation budgets. A string comparison unit is one visited
+element in a list membership scan. A set membership query is one source-level
+probe regardless of its hash-table implementation. The supported patterns
+initialize empty local containers, iterate the input once, guard an append by
+membership, and return the output. The set variant also adds unseen values
+to the set. The checker matches every AST node, up to local renaming and an
+optional docstring. A variant outside these patterns yields `unverified`.
+Use a trusted installation including `scripts/Dedupe.lean`.
+
+```json
+{
+  "kind": "stable-dedupe-v1",
+  "function": "dedupe",
+  "parameter": "items",
+  "reference": "Your source of the ordering requirement and operation budgets",
+  "output": "first_occurrences",
+  "max_list_comparisons": "input_length",
+  "max_set_queries": "input_length"
 }
 ```
 
@@ -44,7 +67,7 @@ python3 -I scripts/lean_review.py SOURCE.py CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and
-translates its supported syntax to Lean. A bounded search proposes a candidate
+translates its supported syntax to Lean. A bounded search proposes a candidate integer
 witness when it finds a mismatch. Lean must certify the conflicting outputs at
 that input. When the search finds no witness, `verified` requires a Lean proof
 of equivalence over all integers. An inconclusive proof yields `unverified`. If execution is unavailable or the process fails without a
@@ -60,8 +83,8 @@ and the generated Lean certificate or its artifact path. The decoded
 
 | Status | Exit | What the evidence supports |
 |---|---:|---|
-| `verified` | 0 | Lean checked equivalence of the translated implementation and contract on every plain integer input. |
-| `counterexample` | 1 | Lean checked the conflicting outputs at the reported integer. Include input, expected and actual values, then establish whether that input can reach the function under the stated contract. |
+| `verified` | 0 | Lean certified the selected typed obligation for every input in the reported domain. |
+| `counterexample` | 1 | Lean checked the conflicting outputs at the reported input. Include expected and actual outputs or operation counts, then establish whether that input can reach the function under the stated contract. |
 | `unverified` | 2 | Report the diagnostic, such as unsupported syntax, a missing executable or an uncertified obligation. |
 
 For a reachable mismatch, explain the defect using the Iron Law:

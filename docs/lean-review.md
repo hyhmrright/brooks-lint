@@ -2,6 +2,8 @@
 
 A shipping policy grants free shipping at a subtotal of 5,000 cents or more. A PR changes the comparison to `>`. Both a 4,999-cent cart and a 5,001-cent cart still produce the expected answer. A 5,000-cent cart distinguishes the implementations. The standalone `$brooks-verify` skill uses Lean 4 to check a predicate from the reviewed source against a separately supplied contract.
 
+For list-processing code, the same skill supports a first-occurrence ordering and operation-count contract for two stable-deduplication loops. [Replay the original logic-lens case and inspect the trust assumptions](research/logic-lens-009/README.md).
+
 ## Run the check
 
 Invoke `$brooks-verify Check shipping.py against shipping.contract.json` in an interactive agent with this branch installed. You can also run its bundled checker directly.
