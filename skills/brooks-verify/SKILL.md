@@ -2,7 +2,8 @@
 name: brooks-verify
 description: >
   Verify a supported Python integer predicate, stable deduplication cost,
-  validate-before-write batch update, or Bash/xargs worker exit propagation against an explicit contract with Lean 4.
+  validate-before-write batch update, Bash/xargs worker exit propagation,
+  or Go file handle lifetime against an explicit contract with Lean 4.
   Trigger for requests for formal verification, proof of order or failure
   behavior, or a certified counterexample to a stated obligation.
   Explain confirmed defects using the project's finding convention drawn from

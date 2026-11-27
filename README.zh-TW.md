@@ -42,7 +42,7 @@ $brooks-health Assess this repository; distinguish missing evidence from clean d
 | `$brooks-test` | 審查現有測試：斷言能偵測和遺漏哪些失敗。 | 否 |
 | `$brooks-health` | 四個維度的簡要評估和有證據範圍限制的看板。 | 否 |
 | `$brooks-sweep` | 在限定範圍內診斷並執行已授權、可驗證的修復。 | 是 |
-| [`$brooks-verify`](docs/lean-review.md) | 用 Lean 4 檢查 Python 整數謂詞、保序去重成本，或證明批次補丁比對失敗時沒有寫入，以及 Bash worker 的失敗能傳到呼叫端。 | 否 |
+| [`$brooks-verify`](docs/lean-review.md) | 用 Lean 4 檢查 Python 整數謂詞、保序去重成本，或證明批次補丁比對失敗時沒有寫入，檢查 Bash worker 的失敗傳遞和 Go 檔案控制代碼的峰值與返回時狀態。 | 否 |
 
 Codex 使用 `$brooks-review`；其他宿主使用自己的呼叫方式。自然語言觸發取決於宿主和模型。Health 是摘要，不是四次窮盡式審計。Sweep 需要編輯和驗證能力，並沿用現有授權；不會僅因修改多個檔案就再次要求確認。
 

@@ -7,7 +7,7 @@ is used by prompt assembly, scenario validation, and runner admission checks.
 | Entry point | Supported modes | Evidence and execution |
 |---|---|---|
 | Interactive agent | `review`, `audit`, `debt`, `test`, `health`, `sweep` | Uses the agent's project-reading tools; Full Sweep additionally requires editing and verification tools and established edit authorization. |
-| Interactive `verify` | `verify` | Checks a contract for a Python integer predicate, stable deduplication, multi-file patch validation failure or Bash worker exit propagation using the bundled translator and local Lean 4. Returns a certificate or a reason verification was incomplete. |
+| Interactive `verify` | `verify` | Checks a contract for a Python integer predicate, stable deduplication, multi-file patch validation failure, Bash worker exit propagation or Go file handle lifetimes using the bundled translator and local Lean 4. Returns a certificate or a reason verification was incomplete. |
 | GitHub Action / `scripts/ci-review.mjs` | `review` | Reviews the collected Git diff only. No model-side file access, test execution, or edits. |
 | `scripts/run-codex-evals.mjs` | `review`, `audit`, `test`, plus non-trigger controls | Real isolated Codex sessions with paired skill/no-skill fixtures and a separate semantic judge; see [behavioral evaluation](codex-behavior-evals.md). |
 | `scripts/run-evals-live.mjs` | `review`, `audit`, `debt`, `test`, `health` | Diagnoses the supplied scenario prompt and fixtures only. Does not exercise repository discovery or file edits. |

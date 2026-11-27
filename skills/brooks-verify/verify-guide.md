@@ -2,7 +2,7 @@
 
 ### Step 1: Identify the source and obligation
 
-Obtain the complete Python module or Bash script at the revision under discussion. Record its path
+Obtain the complete Python module, Bash script or Go file at the revision under discussion. Record its path
 and revision when available. A PR is optional. Never extract and rewrite a function
 from a larger module to make it pass the checker's input rules.
 
@@ -77,6 +77,28 @@ worker bodies and invocations yield `unverified`. The proof concerns commands
 that executed and exited normally. It assumes successful setup, cleanup and
 diagnostics, and xargs returning nonzero when any completed child fails.
 
+For a Go batch that opens and scans each path in sequence, use
+`scripts/verify_handles.py` with the following contract. Count only handles
+opened by this invocation. The checker matches the full supported source
+form with the defer in the outer function or in a single-path helper.
+It preserves line boundaries and rejects unknown statements and directives.
+The source-to-model match is trusted. For the isolated file, assume
+`os.Open` returns a fresh handle on success and none on failure, `scan`
+borrows the handle and returns normally with success or an error, and each
+deferred close releases its handle. The proof covers arbitrary finite batches
+including early returns from open and scan errors. Record the open-handle
+peak and the count remaining at function return as separate obligations.
+
+```json
+{
+  "kind": "go-file-lifetime-v1",
+  "function": "processFiles",
+  "max_live": 1,
+  "live_at_return": 0,
+  "reference": "Your requirement for the batch's peak and final handle counts"
+}
+```
+
 ### Step 3: Run the installed checker
 
 From this skill's directory, pass paths to the original module and contract:
@@ -88,6 +110,8 @@ python3 -I scripts/lean_review.py SOURCE.py CONTRACT.json
 python3 -I scripts/verify_batch.py SOURCE.py CONTRACT.json
 # Exit status of an exported Bash worker and xargs pipeline
 python3 -I scripts/verify_worker.py SOURCE.sh CONTRACT.json
+# Peak and final count of handles owned by a Go batch
+python3 -I scripts/verify_handles.py SOURCE.go CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and
@@ -100,7 +124,7 @@ valid result, report the reason and mark verification incomplete.
 ### Step 4: Interpret and report the result
 
 Report the mode, checker status, source path, function, contract reference and
-input domain. For a certified result, include the return line, source SHA-256,
+input domain. For a certified result, include the relevant source line, source SHA-256,
 and the generated Lean certificate or its artifact path. The decoded
 `lean_certificate` text can be saved as `Review.lean` and replayed with
 `lean Review.lean`.

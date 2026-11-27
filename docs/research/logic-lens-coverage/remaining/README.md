@@ -1,6 +1,8 @@
 # Remaining logic-lens probes after 001, 002, 005 and 009
 
-**Prototype Go function-scoped resource lifetimes for 004 next.** Four ordinary successful opens separate the two implementations, and the original snippets give a precise event to observe on every iteration. A proof about peak live handles could explain a failure on large batches without depending on a host's file limit.
+The [completed 004 experiment](../../logic-lens-004/README.md) implements the recommendation below. The original survey remains reproducible with the predicate checker.
+
+**Survey recommendation: prototype Go function-scoped resource lifetimes for 004 next.** Four ordinary successful opens separate the two implementations, and the original snippets give a precise event to observe on every iteration. A proof about peak live handles could explain a failure on large batches without depending on a host's file limit.
 
 The pinned corpus has nine probes. Cases 001, 002, 005 and 009 already have a certified counterexample and fix within their respective models. The remaining three pairs and two fixed-only controls account for eight original files. All eight returned exit 2 (`unverified`) from the installed checker; none reached Lean. This survey adds process evidence and leaves two-sided certification at 4/7 paired cases. [Historical baseline](../README.md) · [Per-file hashes, obligations, diagnostics, tool versions and observations](results.json)
 

@@ -8,11 +8,13 @@ For multi-file updates, the batch checker can certify a partial-write counterexa
 
 For the supported Bash worker, the checker traces the command status through the exported function, child shell and parallel xargs pipeline. The replay checks both original scripts against real processes. [Replay case 002](research/logic-lens-002/README.md).
 
+For the supported Go batch scanner, the checker models which function owns each deferred close. Lean checks peak live handles and the count at return. [Replay case 004](research/logic-lens-004/README.md).
+
 ## Run the check
 
 Invoke `$brooks-verify Check shipping.py against shipping.contract.json` in an interactive agent with this branch installed. You can also run its bundled checker directly.
 
-Use Python 3 and a trusted Lean 4 executable on PATH. Use the checker from your brooks-lint installation and the complete source file at the revision to verify. A PR is optional. The checker reads the complete Python or Bash source as data. The separate process replays execute only the pinned fixtures.
+Use Python 3 and a trusted Lean 4 executable on PATH. Use the checker from your brooks-lint installation and the complete source file at the revision to verify. A PR is optional. The checker reads the complete Python, Bash or Go source as data. The separate process replays execute only the pinned fixtures.
 
 For a local demonstration, save the following as `shipping.py`.
 
