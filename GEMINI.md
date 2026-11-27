@@ -34,7 +34,7 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 
 ## Project Structure
 - `skills/brooks-{review,audit,debt,test,health,sweep}/`: the six skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — each a `SKILL.md` plus its guide.
-- `skills/brooks-verify/`: independent Lean contract verification for Python integer predicates, stable-deduplication costs and batch patch validation failure. Invoke `$brooks-verify` with a source file and its governing contract.
+- `skills/brooks-verify/`: independent Lean contract verification for Python integer predicates, stable-deduplication costs, batch patch validation failure and Bash worker exit propagation. Invoke `$brooks-verify` with a source file and its governing contract.
 - `skills/_shared/`: shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `commands/`: Short-form command wrappers (used by Claude Code, not Gemini CLI).
 - `hooks/`: SessionStart hook for Claude Code session-level awareness.

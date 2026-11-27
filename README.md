@@ -42,7 +42,7 @@ Install the latest published package with Node.js 20+: `npx brooks-lint@latest i
 | `$brooks-test` | An existing test suite: what failures its assertions do and do not detect. | No |
 | `$brooks-health` | An abbreviated four-dimension assessment and evidence-scoped dashboard. | No |
 | `$brooks-sweep` | Diagnose and apply authorized, verifiable repairs within a bounded scope. | Yes |
-| [`$brooks-verify`](docs/lean-review.md) | Check Python integer predicates, stable deduplication costs or a multi-file patch validation failure with Lean 4. | No |
+| [`$brooks-verify`](docs/lean-review.md) | Check Python integer predicates, stable deduplication costs, multi-file patch validation failure or Bash worker exit propagation with Lean 4. | No |
 
 Use `$brooks-review` in Codex; other hosts have their own invocation syntax. Natural-language discovery depends on the host and model. Health is a summary, not four exhaustive audits. Sweep requires editing and verification capabilities and respects existing authorization; it does not demand another approval merely because a change spans files.
 

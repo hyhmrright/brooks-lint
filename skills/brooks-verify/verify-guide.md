@@ -2,7 +2,7 @@
 
 ### Step 1: Identify the source and obligation
 
-Obtain the complete Python module at the revision under discussion. Record its path
+Obtain the complete Python module or Bash script at the revision under discussion. Record its path
 and revision when available. A PR is optional. Never extract and rewrite a function
 from a larger module to make it pass the checker's input rules.
 
@@ -68,6 +68,15 @@ rejected target match before commit. A later external validator failure, a
 write failure and a crash are separate obligations. Preserve the supplied disk
 witness and write trace when reporting a counterexample.
 
+For the supported exported Bash worker and its parallel xargs pipeline, use
+`scripts/verify_worker.py`. Supply the contract kind
+`bash-xargs-worker-exit-v1`, function `run_case`, command `claude`, failure
+`executed_command_nonzero`, required_pipeline_status `nonzero`, and an independent
+`reference`. The checker recognizes the two complete probe workflows. Other
+worker bodies and invocations yield `unverified`. The proof concerns commands
+that executed and exited normally. It assumes successful setup, cleanup and
+diagnostics, and xargs returning nonzero when any completed child fails.
+
 ### Step 3: Run the installed checker
 
 From this skill's directory, pass paths to the original module and contract:
@@ -77,6 +86,8 @@ From this skill's directory, pass paths to the original module and contract:
 python3 -I scripts/lean_review.py SOURCE.py CONTRACT.json
 # Target match failure during batch preparation
 python3 -I scripts/verify_batch.py SOURCE.py CONTRACT.json
+# Exit status of an exported Bash worker and xargs pipeline
+python3 -I scripts/verify_worker.py SOURCE.sh CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and

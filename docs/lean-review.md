@@ -6,11 +6,13 @@ For list-processing code, the same skill supports a first-occurrence ordering an
 
 For multi-file updates, the batch checker can certify a partial-write counterexample or prove that rejecting a target match leaves all targets unchanged. [Replay case 001](research/logic-lens-001/README.md).
 
+For the supported Bash worker, the checker traces the command status through the exported function, child shell and parallel xargs pipeline. The replay checks both original scripts against real processes. [Replay case 002](research/logic-lens-002/README.md).
+
 ## Run the check
 
 Invoke `$brooks-verify Check shipping.py against shipping.contract.json` in an interactive agent with this branch installed. You can also run its bundled checker directly.
 
-Use Python 3 and a trusted Lean 4 executable on PATH. Use the checker from your brooks-lint installation and the complete source file at the revision to verify. A PR is optional. The checker reads the Python source as data. It does not import the reviewed module.
+Use Python 3 and a trusted Lean 4 executable on PATH. Use the checker from your brooks-lint installation and the complete source file at the revision to verify. A PR is optional. The checker reads the complete Python or Bash source as data. The separate process replays execute only the pinned fixtures.
 
 For a local demonstration, save the following as `shipping.py`.
 
