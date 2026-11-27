@@ -16,9 +16,11 @@ the contract cannot establish that the implementation satisfies its owner's inte
 
 The checker accepts a module containing one plain function with one positional
 parameter and one return statement. Module and function docstrings and plain
-`int` and `bool` annotations are allowed. Both predicates may use comparisons
-of the parameter on the left with integer literals on the right, Boolean constants,
-parentheses, and `and`, `or` and `not`. The mathematical domain is all plain
+`int` and `bool` annotations are allowed. Compare either the parameter or `parameter % divisor`
+with an integer literal on the right. The divisor must be a positive or negative
+integer literal. Zero and variable divisors yield `unverified`. Use Python floor
+remainder semantics. A nonzero remainder has the sign of the divisor. Combine
+comparisons with Boolean constants, parentheses, and `and`, `or` and `not`. The mathematical domain is all plain
 Python integers. Record any narrower application preconditions separately.
 
 Save an independent JSON contract with exactly four string fields. For example,
@@ -42,8 +44,10 @@ python3 -I scripts/lean_review.py SOURCE.py CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and
-translates its supported syntax to Lean. A trusted Lean executable checks the
-generated statement. If execution is unavailable or the process fails without a
+translates its supported syntax to Lean. A bounded search proposes a candidate
+witness when it finds a mismatch. Lean must certify the conflicting outputs at
+that input. When the search finds no witness, `verified` requires a Lean proof
+of equivalence over all integers. An inconclusive proof yields `unverified`. If execution is unavailable or the process fails without a
 valid result, report the reason and mark verification incomplete.
 
 ### Step 4: Interpret and report the result

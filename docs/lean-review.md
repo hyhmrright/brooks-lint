@@ -44,9 +44,42 @@ Attach the PR revision, file and line, independent contract reference and witnes
 
 ## Coverage and trust
 
-Use a standalone module containing one plain function with one positional parameter and one return statement. The supported fragment represents Boolean predicates built from integer comparisons against literals, Boolean constants, parentheses, and `and`, `or` and `not`. Plain int and bool annotations and module or function docstrings are accepted. Comparisons take the parameter on the left and an integer literal on the right. The input domain is plain Python integers. Calls, decorators, arithmetic, side effects, floating point, overloaded operators and module initialization require a different analysis. Retain a complete revision and an attributable source for the expected behavior so another reviewer can reproduce the check.
+Use a standalone module containing one plain function with one positional parameter and one return statement. The supported fragment represents Boolean predicates built from integer comparisons against literals, Boolean constants, parentheses, and `and`, `or` and `not`. Plain int and bool annotations and module or function docstrings are accepted. Comparisons accept the parameter itself or its remainder modulo a nonzero integer literal on the left, and an integer literal on the right. For example, `year % 100 == 0` identifies century years. The input domain is plain Python integers. Calls, decorators, other arithmetic, side effects, floating point, overloaded operators and module initialization require a different analysis. Retain a complete revision and an attributable source for the expected behavior so another reviewer can reproduce the check.
+
+For signed divisors the checker follows Python floor division. For example, `-5 % 4 == 3` and `5 % -4 == -3`. A zero or variable divisor yields `unverified`. The witness search examines a bounded set of inputs. Lean certifies a witness at a specific integer or proves equivalence over all integers. If neither obligation is discharged, the result is `unverified`.
 
 The evidence chain has three owners. The reviewer establishes that the policy applies to this function and that the predicate captures it. The translator maps the accepted Python syntax to Lean. Lean checks the resulting mathematical statement. A proof therefore covers the selected predicate and the translator's interpretation. Callers that pass other types, unit conversions upstream and the business policy itself remain separate review questions.
+
+## Reproduce the logic-lens leap-year check
+
+Use the original `buggy.py` and `fixed.py` under
+`evals/real-world/probes/005-leap-year-incomplete-rule/` in logic-lens
+revision `3b158e228127e21bff7be6530e3923de0793a907`. Its
+`meta.json` states the Gregorian rule independently of the two implementations.
+Save this contract as `gregorian.json`:
+
+```json
+{
+  "function": "is_leap_year",
+  "parameter": "year",
+  "reference": "logic-lens probe 005 meta.json, expected_bug.summary",
+  "predicate": "year % 4 == 0 and not (year % 100 == 0 and year % 400 != 0)"
+}
+```
+
+With `PROBE` set to that probe directory, run from the brooks-lint checkout:
+
+```sh
+python3 -I skills/brooks-verify/scripts/lean_review.py "$PROBE/buggy.py" gregorian.json
+python3 -I skills/brooks-verify/scripts/lean_review.py "$PROBE/fixed.py" gregorian.json
+```
+
+Using the installed skill with Lean 4.19.0, the first command returned
+`counterexample` at 100 (implementation true, contract false). The second
+returned `verified` over all plain integers. Both generated certificates
+replayed with Lean. Direct Python execution also reproduced the bug at 1900
+and 2100, while both versions accepted 2000. Here the calendar rule is applied
+arithmetically across years, without modeling historical calendar adoption.
 
 ## Research behind the design
 

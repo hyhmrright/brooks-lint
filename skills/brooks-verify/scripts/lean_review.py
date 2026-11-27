@@ -14,6 +14,7 @@ OPS = {ast.Lt: ("<", operator.lt), ast.LtE: ("≤", operator.le),
        ast.Eq: ("=", operator.eq), ast.NotEq: ("≠", operator.ne),
        ast.GtE: ("≥", operator.ge), ast.Gt: (">", operator.gt)}
 LIMIT = 32_768
+MODULO_SEARCH_RADIUS = 256
 
 
 def read_small(path):
@@ -44,12 +45,28 @@ def predicate(node, param, cuts):
         text, evaluate = predicate(node.operand, param, cuts)
         return "(¬ " + text + ")", lambda x: not evaluate(x)
     if isinstance(node, ast.Compare) and len(node.ops) == 1 and type(node.ops[0]) in OPS:
-        if not isinstance(node.left, ast.Name) or node.left.id != param:
-            raise ValueError("Comparisons must have the parameter on the left")
+        left = node.left
         value = integer(node.comparators[0])
-        cuts.update([value - 1, value, value + 1])
         symbol, compare = OPS[type(node.ops[0])]
-        return f"(x {symbol} ({value} : Int))", lambda x: compare(x, value)
+        if isinstance(left, ast.Name) and left.id == param:
+            cuts.update((value - 1, value, value + 1))
+            return f"(x {symbol} ({value} : Int))", lambda x: compare(x, value)
+        if (isinstance(left, ast.BinOp) and isinstance(left.op, ast.Mod)
+                and isinstance(left.left, ast.Name) and left.left.id == param):
+            divisor = integer(left.right)
+            if divisor == 0:
+                raise ValueError("Modulo requires a nonzero integer literal divisor")
+            # Python's remainder has the divisor's sign. Lean's % is Euclidean.
+            term = (f"(x % ({divisor} : Int))" if divisor > 0
+                    else f"(-((-x) % ({-divisor} : Int)))")
+            # Probe the comparison boundary in adjacent periods, plus nearby
+            # integers for intersections of several congruences. Lean decides
+            # whether a candidate or a universal equivalence can be certified.
+            for offset in (-abs(divisor), 0, abs(divisor)):
+                cuts.update(offset + value + delta for delta in (-1, 0, 1))
+            cuts.update(range(-MODULO_SEARCH_RADIUS, MODULO_SEARCH_RADIUS + 1))
+            return f"({term} {symbol} ({value} : Int))", lambda x: compare(x % divisor, value)
+        raise ValueError("Expected the parameter or parameter % integer literal on the left")
     raise ValueError("Unsupported predicate expression")
 
 
@@ -92,7 +109,7 @@ def check(source, contract_path):
         raise ValueError("Expression exceeds the review complexity limit")
     actual, evaluate = predicate(body[0].value, contract["parameter"], cuts)
     expected, accepts = predicate(reference, contract["parameter"], cuts)
-    witness = next((x for x in sorted(cuts, key=lambda x: (abs(x), x))
+    witness = next((x for x in sorted(cuts, key=lambda x: (abs(x), -x))
                     if evaluate(x) != accepts(x)), None)
     program = f"set_option linter.unusedVariables false\ndef impl (x : Int) : Prop := {actual}\ndef spec (x : Int) : Prop := {expected}\n"
     if witness is None:

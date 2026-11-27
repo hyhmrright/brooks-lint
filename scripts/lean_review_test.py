@@ -70,6 +70,46 @@ class LeanReviewTest(unittest.TestCase):
                 self.check(source, contract, 2)
                 self.assertFalse(marker.exists())
 
+    def test_zero_and_variable_divisors_in_either_input(self):
+        for divisor in ("0", "subtotal"):
+            expression = f"subtotal % {divisor} == 0"
+            for actual, spec in ((expression, "True"), ("True", expression)):
+                with self.subTest(actual=actual, spec=spec):
+                    self.check(implementation(actual), dict(POLICY, predicate=spec), 2)
+
+    @unittest.skipUnless(LEAN, "Lean 4 unavailable on PATH; kernel checks skipped")
+    def test_signed_remainders_match_python(self):
+        for dividend in (-7, 7):
+            for divisor in (-3, 3):
+                with self.subTest(dividend=dividend, divisor=divisor):
+                    remainder = dividend % divisor
+                    impl = f"subtotal == {dividend} and subtotal % {divisor} == {remainder}"
+                    result = self.check(implementation(impl), dict(POLICY, predicate="False"), 1)
+                    self.assertEqual(result["input"], dividend)
+                    self.assertIs(result["actual"], True)
+                    self.assertIs(result["expected"], False)
+
+    @unittest.skipUnless(LEAN, "Lean 4 unavailable on PATH; kernel checks skipped")
+    def test_gregorian_century_exception_and_full_rule(self):
+        contract = dict(function="leap", parameter="year", reference="Gregorian calendar",
+                        predicate="not (year % 4 != 0 or (year % 100 == 0 and year % 400 != 0))")
+        incomplete = "def leap(year):\n    return year % 4 == 0\n"
+        report = self.check(incomplete, contract, 1)
+        year = report["input"]
+        self.assertEqual(year % 100, 0)
+        self.assertNotEqual(year % 400, 0)
+        self.assertIs(report["actual"], True)
+        self.assertIs(report["expected"], False)
+        full = "def leap(year):\n    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)\n"
+        self.check(full, contract, 0)
+
+    @unittest.skipUnless(LEAN, "Lean 4 unavailable on PATH; kernel checks skipped")
+    def test_missing_a_periodic_witness_does_not_certify_equivalence(self):
+        # The first positive solution, 4087, exceeds the local search radius.
+        expression = "subtotal > 0 and subtotal % 61 == 0 and subtotal % 67 == 0"
+        report = self.check(implementation(expression), dict(POLICY, predicate="False"), 2)
+        self.assertNotIn("lean_certificate", report)
+
     @unittest.skipUnless(LEAN, "Lean 4 unavailable on PATH; kernel checks skipped")
     def test_shipping_boundary_and_fixed_implementation(self):
         report = self.check(implementation("subtotal > 5000"), POLICY, 1)
