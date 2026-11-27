@@ -79,6 +79,27 @@ See the full [Darwin system xargs log](runtime-darwin.json) and
 The [GNU xargs manual](https://www.gnu.org/software/findutils/manual/html_node/find_html/Invoking-xargs.html)
 documents its aggregate statuses.
 
+## Single-line regression
+
+The replay removes only the failure branch’s `return "$rc"` from a temporary
+copy of the hash-checked fixed script. The empty-output guard and child shell
+options still apply. The contract file and installed checker are the same for
+all three scripts. The two process logs above include the mutant digest,
+checker verdict and measured statuses under `removed_return`.
+
+| Script | Worker command | Child Bash | GNU xargs | Caller | Checker verdict for the failure contract |
+|---|---:|---:|---:|---:|---|
+| Original buggy | 23 | 0 | 0 | 0 | counterexample |
+| Original fixed | 23 | 23 | 123 | 123 | verified |
+| Fixed with return removed | 23 | 0 | 0 | 0 | unverified |
+| All three, successful command with output | 0 | 0 | 0 | 0 | Same verdicts per script |
+
+The mutant falls outside the checker’s two recognized worker shapes. The
+regression requires the unsupported-source diagnostic, CLI exit 2 and absence
+of a certificate. The failing execution itself supplies the mutant witness.
+On Linux the replay requires GNU xargs and checks its exact aggregate for every
+scenario, including 124 for a child exiting 255.
+
 ## Reproduce from the repository root
 
 Use Python 3, Node.js 22, Bash, xargs supporting `-P` and `-I`, and Lean 4.19.0
@@ -87,10 +108,17 @@ on PATH. With elan installed, select the same kernel as cases 009 and 001.
 ```sh
 export ELAN_TOOLCHAIN="$(cat docs/research/logic-lens-009/lean-toolchain)"
 elan toolchain install "$ELAN_TOOLCHAIN"
-python3 -I docs/research/logic-lens-002/replay.py --runtime-output /tmp/002-runtime.json
-lean docs/research/logic-lens-002/certificates/buggy.lean
-lean docs/research/logic-lens-002/certificates/fixed.lean
 ```
+
+From a clean checkout with those tools available, run the entire check with one command.
+
+```sh
+python3 -I docs/research/logic-lens-002/replay.py --runtime-output /tmp/002-runtime.json
+```
+
+The [Validate workflow](../../../.github/workflows/validate.yml) runs this replay on
+Ubuntu in the Node.js 22 job on every research-branch push and prints the
+exact process record in the job log.
 
 The replay installs the skill in a temporary directory, verifies the source
 hashes, requires checker exits 1 and 0, compares regenerated certificate bytes,

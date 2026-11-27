@@ -2,7 +2,7 @@ name: Validate
 
 on:
   push:
-    branches: [main]
+    branches: [main, research/flt-reliability]
   pull_request:
     branches: [main]
 
@@ -49,7 +49,9 @@ jobs:
         run: python3 -I docs/research/logic-lens-001/replay.py
       - name: Replay Bash worker failure propagation
         if: matrix.node-version == 22
-        run: python3 -I docs/research/logic-lens-002/replay.py
+        run: |
+          python3 -I docs/research/logic-lens-002/replay.py --runtime-output "$RUNNER_TEMP/002-runtime.json"
+          cat "$RUNNER_TEMP/002-runtime.json"
       - name: Unit tests
         run: npm test
       - name: Parser benchmark (frozen corpus)

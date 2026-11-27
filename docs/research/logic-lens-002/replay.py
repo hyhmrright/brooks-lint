@@ -105,20 +105,45 @@ def exercise(source, jobs, work, bash, xargs, observe):
             return [(int(p.read_text()) if p.exists() else None) for i in ids
                     for p in [box / f"{name}-{i}"]]
         commands = trace("command")
-        fixed = source.name == "fixed.sh"
         expected_commands = [None if skip else rc for rc, _, skip in jobs]
-        expected_children = [0 if skip else rc if fixed and rc else 1 if fixed and not emit else 0
-                             for rc, emit, skip in jobs]
         require(commands == expected_commands, f"Missing command or unintended skip: {commands} {proc.stderr}")
-        require((proc.returncode != 0) == any(expected_children), f"Wrong caller status: {proc.returncode}")
         record = {"command": commands, "caller": proc.returncode}
         if observe:
             children = trace("child")
-            require(children == expected_children, f"Unexpected bash child statuses: {children}")
+            require(None not in children, f"Missing bash child statuses: {children}")
             stages = [int(s) for s in (box / "pipeline").read_text().splitlines()]
             require(stages == [0, proc.returncode], f"Unexpected PIPESTATUS: {stages}")
             record.update(child=children, producer=stages[0], xargs=stages[1])
         return record
+
+
+def measure(source, jobs, work, bash, xargs, gnu):
+    measured = exercise(source, jobs, work, bash, xargs, True)
+    plain = exercise(source, jobs, work, bash, xargs, False)
+    require(all(measured[k] == v for k, v in plain.items()), "Observation altered the outcome")
+    children = measured["child"]
+    if gnu:
+        expected = 124 if 255 in children else 123 if any(children) else 0
+        require(measured["xargs"] == expected, f"Wrong GNU xargs status: {measured}")
+    return measured
+
+
+def check_removed_return(corpus, checker, work, bash, xargs, gnu):
+    original = (corpus / "fixed.sh").read_bytes()
+    line = b'    return "$rc"\n'
+    require(original.count(line) == 1, "Expected exactly one failure return")
+    mutant = work / "removed-return.sh"
+    mutant.write_bytes(original.replace(line, b""))
+    report = json.loads(run([sys.executable, "-I", checker, mutant, HERE / "contract.json"], work, 2))
+    require(report["status"] == "unverified" and report["reason"].startswith("Unsupported worker or pipeline")
+            and "lean_certificate" not in report, f"Unexpected mutant verdict: {report}")
+    observations = {}
+    for label in ("failure-23", "success"):
+        observed = measure(mutant, CASES[label], work, bash, xargs, gnu)
+        require(observed["child"] == [0] and observed["caller"] == 0,
+                f"Unexpected mutant {label}: {observed}")
+        observations[label] = observed
+    return dict(source_sha256=sha(mutant.read_bytes()), report=report, observations=observations)
 
 
 def replay(corpus, work, bash, xargs):
@@ -131,6 +156,12 @@ def replay(corpus, work, bash, xargs):
                     source_sha256=HASHES, checker_sha256=sha(checker.read_bytes()), variants={})
     runtime = dict(system=platform.system(), bash=run([bash, "--version"], work).splitlines()[0],
                    xargs_path=xargs, xargs_sha256=sha(Path(xargs).read_bytes()), variants={})
+    version = subprocess.run([xargs, "--version"], stdin=subprocess.DEVNULL, capture_output=True, text=True)
+    gnu = version.returncode == 0 and "GNU findutils" in version.stdout
+    if gnu:
+        runtime["xargs_version"] = version.stdout.splitlines()[0]
+    if platform.system() == "Linux":
+        require(gnu, "The Linux replay requires GNU xargs for the exact exit-code checks")
     for variant, status in [("buggy", "counterexample"), ("fixed", "verified")]:
         source = corpus / f"{variant}.sh"
         result = json.loads(run([sys.executable, "-I", checker, source.name, HERE / "contract.json"],
@@ -150,9 +181,7 @@ def replay(corpus, work, bash, xargs):
                 f"Unexpected axiom set: {audit}")
         portable, local = {}, {}
         for label, jobs in CASES.items():
-            measured = exercise(source, jobs, work, bash, xargs, True)
-            plain = exercise(source, jobs, work, bash, xargs, False)
-            require(all(measured[k] == v for k, v in plain.items()), "Observation altered the outcome")
+            measured = measure(source, jobs, work, bash, xargs, gnu)
             local[label] = measured
             portable[label] = {"command": measured["command"], "child": measured["child"],
                                "producer": measured["producer"], "xargs_nonzero": bool(measured["xargs"]),
@@ -160,6 +189,7 @@ def replay(corpus, work, bash, xargs):
         runtime["variants"][variant] = local
         evidence["variants"][variant] = dict(report=result, certificate_sha256=sha(certificate.encode()),
                                              axioms=audit, observations=portable)
+    runtime["removed_return"] = check_removed_return(corpus, checker, work, bash, xargs, gnu)
     return evidence, runtime
 
 
@@ -177,11 +207,12 @@ if __name__ == "__main__":
     require(bash and xargs, "Bash and xargs are required")
     with tempfile.TemporaryDirectory() as tmp:
         evidence, runtime = replay(args.corpus.resolve(), Path(tmp), bash, xargs)
+    require(evidence == json.loads((HERE / "results.json").read_text()), "Portable measurement differs")
     if args.output:
         args.output.write_text(json.dumps(evidence, indent=2) + "\n")
-    else:
-        require(evidence == json.loads((HERE / "results.json").read_text()), "Portable measurement differs")
     if args.runtime_output:
         args.runtime_output.write_text(json.dumps(runtime, indent=2) + "\n")
     print("002 replay passed. Command 23: buggy", runtime["variants"]["buggy"]["failure-23"],
           "fixed", runtime["variants"]["fixed"]["failure-23"])
+    print("Removed return:", json.dumps(runtime["removed_return"], sort_keys=True))
+    print("Success controls:", {v: rows["success"] for v, rows in runtime["variants"].items()})
