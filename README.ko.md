@@ -7,7 +7,7 @@
 ![Source version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-코드 리뷰, 아키텍처, 기술 부채, 테스트 품질, 상태 대시보드, 범위를 제한한 수정까지 여섯 워크플로를 제공합니다. 열두 권의 소프트웨어 공학 고전에 기반합니다.
+코드 리뷰, 아키텍처, 기술 부채, 테스트 품질, 상태 대시보드, 범위를 제한한 수정까지 여섯 워크플로를 제공합니다. 열두 권의 소프트웨어 공학 고전에 기반합니다. 일곱 번째 스킬은 Lean 4로 명시적인 코드 계약을 검증합니다.
 
 공개 버전: [npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
@@ -28,9 +28,11 @@ $brooks-review Review the current diff and identify supported maintainability ri
 $brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-현재 소스를 Codex 전역 스킬 디렉터리에 설치합니다. 인식되지 않으면 새 세션을 시작하세요. 프로젝트 설치는 대상 프로젝트에서 스크립트의 절대 경로와 `codex --project`를 사용합니다. `_shared`를 여섯 스킬 폴더와 같은 깊이에 두세요. [Codex 안내](docs/codex-setup.md).
+현재 소스를 Codex 전역 스킬 디렉터리에 설치합니다. 인식되지 않으면 새 세션을 시작하세요. 프로젝트 설치는 대상 프로젝트에서 스크립트의 절대 경로와 `codex --project`를 사용합니다. `_shared`를 각 스킬 폴더와 같은 깊이에 두세요. [Codex 안내](docs/codex-setup.md).
 
 Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@latest install codex`. 다른 설치 대상은 [시작 안내](docs/getting-started.md)를 참고하세요.
+
+`brooks-verify`를 사용하려면 main 브랜치에서 설치하세요. 배포된 2.0.0 패키지에는 분석 스킬 여섯 개가 들어 있습니다.
 
 ## 작업 범위에 맞는 스킬 선택
 
@@ -42,6 +44,7 @@ Node.js 20+에서 최신 공개 버전을 설치하려면: `npx brooks-lint@late
 | `$brooks-test` | 기존 테스트의 단언이 탐지하거나 놓치는 실패. | 아니요 |
 | `$brooks-health` | 네 차원의 간략 평가와 증거 범위를 명시한 대시보드. | 아니요 |
 | `$brooks-sweep` | 제한한 범위에서 진단 후 승인되고 검증 가능한 수정. | 예 |
+| [`$brooks-verify`](docs/lean-review.md) | 지원되는 소스 파일을 독립적인 계약과 대조하여 Lean 4로 재검증할 수 있는 증명, 검증된 반례 또는 검증하지 못한 이유를 제시합니다. | 아니요 |
 
 Codex에서는 `$brooks-review`를 사용합니다. 자연어 스킬 발견은 호스트와 모델에 달려 있습니다. Health는 네 번의 완전한 감사를 대신하지 않습니다. Sweep은 편집·검증 기능이 필요하며 기존 승인을 존중합니다. 여러 파일이라는 이유만으로 승인을 다시 묻지 않습니다.
 
@@ -89,7 +92,7 @@ Sweep은 최초 및 Critical 전용 라운드를 포함해 기본 **총 세 번�
 
 ## Benchmark: 여섯 스킬이 제공하는 것
 
-이미 해야 할 작업 하나로 시작하세요. 구체적 반례가 있는 리뷰, 의존성 진단, 부채 상환 계획, 테스트 빈틈, 범위를 정한 건강 보고서, 검증을 거친 수정입니다. 동률과 퇴보를 포함해 **여섯 스킬 모두** 공개합니다. 워크플로의 용도와 측정된 개선은 별개입니다.
+이미 해야 할 작업 하나로 시작하세요. 구체적 반례가 있는 리뷰, 의존성 진단, 부채 상환 계획, 테스트 빈틈, 범위를 정한 건강 보고서, 검증을 거친 수정입니다. 동률과 퇴보를 포함해 **평가한 여섯 스킬의 결과를** 공개합니다. 워크플로의 용도와 측정된 개선은 별개입니다.
 
 | 실험 | 스킬과 근거 | 기준 → 스킬 | 관측된 변화 |
 |---|---|---:|---|

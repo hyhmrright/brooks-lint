@@ -1,0 +1,14 @@
+{
+  "id": "004-defer-in-loop-fd-exhaustion",
+  "source": "classic real-world Go pitfall (defer inside a loop)",
+  "language": "go",
+  "scope": "processFiles()",
+  "expected_bug": {
+    "summary": "defer f.Close() inside the for loop does NOT run per iteration — deferred calls run when the enclosing FUNCTION returns. So every opened file stays open until processFiles returns; on a large batch this accumulates thousands of open descriptors and exhausts the fd limit (too many open files).",
+    "l_code_hint": "L8 (resource — descriptor not released on the expected path)",
+    "must_mention": ["defer", "loop/循环", "function return/函数返回", "descriptor/fd/句柄/泄漏"]
+  },
+  "fixed_change": "Extract processOne(p): the defer now runs at each call's return, so at most one descriptor is open at a time.",
+  "fixed_should_be_silent": true,
+  "ground_truth_verified_by": "human (Go defer semantics); single-file scope"
+}

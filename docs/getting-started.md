@@ -1,6 +1,6 @@
 # Getting started
 
-brooks-lint provides six Agent Skills and their shared framework. Diagnosis is
+brooks-lint provides seven Agent Skills and their shared framework. Diagnosis is
 performed by your coding agent; reading, editing and execution capabilities vary
 by host. Current maintainer verification covers Codex. Other integrations are
 retained, but layout tests are not an end-to-end host compatibility claim.
@@ -45,10 +45,11 @@ form clones main. Record the checkout commit if you need reproducibility.
 ├── brooks-test/SKILL.md
 ├── brooks-health/SKILL.md
 ├── brooks-sweep/SKILL.md
+├── brooks-verify/SKILL.md
 └── _shared/common.md
 ```
 
-The guides read `../_shared/`; `_shared` is a resource directory, not a seventh
+The guides read `../_shared/`; `_shared` is a resource directory, not a standalone
 skill. Copying only SKILL.md or nesting all folders under an extra directory may
 break discovery or relative reads. The health folder also contains its Node
 scoring and delivery tools; keep those resources with it.
@@ -60,6 +61,11 @@ debt for priorities, or test for an existing suite. Health provides an abbreviat
 four-dimension dashboard. Sweep additionally edits within an authorized scope
 and requires verification tools; it has a default limit of three total repair
 rounds, including Critical-only rounds. No host is promised identical behavior.
+
+For an explicit behavior contract, invoke `$brooks-verify` with the source file
+and an independently derived contract. Keep the bundled Python checker and Lean
+templates in the installed skill directory. Install Python 3 and put Lean 4.19.0
+on PATH to reproduce the release checks. [Worked example and supported contracts](lean-review.md).
 
 In Codex, try `$brooks-review` with a concrete scope. Use the host's native skill
 syntax elsewhere. Natural-language auto-discovery depends on the host and model.

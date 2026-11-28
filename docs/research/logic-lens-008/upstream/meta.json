@@ -1,0 +1,13 @@
+{
+  "id": "008-decoy-go122-loopvar-safe",
+  "decoy": true,
+  "source": "precision + knowledge-currency probe — correct under Go 1.22+, resembles the classic loop-variable capture bug",
+  "language": "go",
+  "scope": "fanOut()",
+  "expected": "SILENT — no Critical/Warning",
+  "why_suspicious": "`go func(){ ...handle(id)... }()` capturing the loop variable `id` is the textbook pre-1.22 goroutine-loop-variable race; a reviewer trained on that pattern flags it on sight.",
+  "why_actually_correct": "Go 1.22 changed loop semantics: each iteration gets a fresh `id`. The //go:build go1.22 constraint pins this, so the capture is safe. Reporting a race here is a stale-knowledge false positive.",
+  "fails_if": "Reports a Critical/Warning L7 loop-variable race → false positive AND a knowledge-currency miss (unaware of the Go 1.22 semantics change).",
+  "acceptable": "A Suggestion noting the version dependency / advising care is fine and does not break SILENT.",
+  "ground_truth_verified_by": "human (Go 1.22 loop-var semantics change)"
+}

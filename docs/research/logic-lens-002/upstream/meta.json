@@ -1,0 +1,15 @@
+{
+  "id": "002-exit-code-swallowed",
+  "source": "logic-lens self — scripts/run-content-evals.sh @ v0.6.9 (run_case + xargs block)",
+  "language": "bash",
+  "scope": "run_case() worker + printf | xargs pipeline",
+  "expected_bug": {
+    "summary": "Exit code swallowed: on claude failure the else-branch ends with `echo >&2` (returns 0) and there is no `return $rc`, so run_case returns 0; the child bash, xargs, and the pipefail pipeline all exit 0 — the caller cannot detect a failed case via $?. Also contradicts the comment claiming set -euo pipefail prevents silent per-case failure (it covers unexpected failures, not claude's handled non-zero exit).",
+    "l_code_hint": "L5 (control flow / error suppression)",
+    "must_mention": ["return", "exit code/退出码", "0", "xargs/pipeline/管道"]
+  },
+  "fixed_change": "Add `return $rc` in the else-branch so the failure propagates through xargs to the caller; comment updated to state claude failures are explicitly propagated.",
+  "fixed_should_be_silent": true,
+  "ground_truth_verified_by": "skill probe on 2026-05-30 surfaced this; human re-verified the exit-code path is real (else-branch ends on echo, no return, pipefail propagates 0)",
+  "note": "This is partly an intent/contract issue: if log-and-continue were intended, the buggy form is a documentation-vs-behavior mismatch rather than a crash. The skill correctly flagged it as Warning and named the contradiction with the comment — that is a valid finding, not a false positive. The fixed version removes the ambiguity."
+}

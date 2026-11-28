@@ -1,18 +1,19 @@
 # Runner Contracts
 
-The six interactive skills and the API runners share diagnostic rules, but they do
+The interactive diagnostic skills and the API runners share diagnostic rules, but they do
 not have the same execution capabilities. The canonical executable mode registry
 is used by prompt assembly, scenario validation, and runner admission checks.
 
 | Entry point | Supported modes | Evidence and execution |
 |---|---|---|
 | Interactive agent | `review`, `audit`, `debt`, `test`, `health`, `sweep` | Uses the agent's project-reading tools; Full Sweep additionally requires editing and verification tools and established edit authorization. |
+| Interactive `verify` | `verify` | Checks the supported Python, Bash, Go, Java and JavaScript contracts with the bundled translators and local Lean 4. See the [contract inventory and replay instructions](lean-review.md). Returns a certificate or a reason verification was incomplete. |
 | GitHub Action / `scripts/ci-review.mjs` | `review` | Reviews the collected Git diff only. No model-side file access, test execution, or edits. |
 | `scripts/run-codex-evals.mjs` | `review`, `audit`, `test`, plus non-trigger controls | Real isolated Codex sessions with paired skill/no-skill fixtures and a separate semantic judge; see [behavioral evaluation](codex-behavior-evals.md). |
 | `scripts/run-evals-live.mjs` | `review`, `audit`, `debt`, `test`, `health` | Diagnoses the supplied scenario prompt and fixtures only. Does not exercise repository discovery or file edits. |
 
 Unsupported CI modes fail before the model request. The API eval runner explicitly
-reports skipped `sweep` scenarios in an unfiltered run and excludes them from its
+reports skipped `sweep` and `verify` scenarios in an unfiltered run and excludes them from its
 pass-rate denominator. Explicitly selecting an unsupported scenario or mode is an
 error. The scenarios remain in the structural suite for interactive evaluation;
 API results must not be presented as Full Sweep execution coverage.

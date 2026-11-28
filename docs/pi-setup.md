@@ -34,6 +34,6 @@ Ask naturally ("review this PR", "audit the architecture"), or use the auto-regi
 
 - **Flat layout** is mandatory (the installer guarantees it): `../_shared/` only resolves when
   `_shared/` is a sibling of the `brooks-*` folders.
-- pi caps `description` at 1024 chars; brooks-lint's longest is ~920, so all six skills load cleanly.
+- pi caps `description` at 1024 chars; brooks-lint's longest is ~920, so the diagnostic skills load cleanly.
 - 🧪 Documented per the official [skills docs](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md);
   community end-to-end verification welcome — [open an issue](https://github.com/hyhmrright/brooks-lint/issues/new).

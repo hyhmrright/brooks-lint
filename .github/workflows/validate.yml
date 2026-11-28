@@ -2,7 +2,7 @@ name: Validate
 
 on:
   push:
-    branches: [main]
+    branches: [main, research/flt-reliability]
   pull_request:
     branches: [main]
 
@@ -33,6 +33,30 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Validate repository consistency
         run: node scripts/validate-repo.mjs
+      - name: Install the pinned Lean kernel for proof replay
+        if: matrix.node-version == 22
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y elan
+          export ELAN_TOOLCHAIN="$(cat docs/research/logic-lens-009/lean-toolchain)"
+          elan toolchain install "$ELAN_TOOLCHAIN"
+          dirname "$(elan which lean)" >> "$GITHUB_PATH"
+      - name: Replay all nine installed-skill cases and the independent transfer check
+        if: matrix.node-version == 22
+        run: |
+          export PATH="$JAVA_HOME_17_X64/bin:$PATH"
+          python3 -I docs/research/replay-verify.py
+      - name: Check out pinned logic-lens sources for the remaining probes
+        if: matrix.node-version == 22
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: hyhmrright/logic-lens
+          ref: 3b158e228127e21bff7be6530e3923de0793a907
+          path: _workspace/logic-lens-corpus
+          persist-credentials: false
+      - name: Replay remaining probe admissions and native observations
+        if: matrix.node-version == 22
+        run: python3 -I docs/research/logic-lens-coverage/remaining/replay.py _workspace/logic-lens-corpus
       - name: Unit tests
         run: npm test
       - name: Parser benchmark (frozen corpus)

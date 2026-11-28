@@ -11,7 +11,8 @@ description: >
   DDD / SOLID principles / Hyrum's Law / deep modules / tactical programming /
   conceptual integrity / Brooks's Law / Mythical Man-Month / second system effect.
   Do NOT trigger for: questions about how to write code from scratch, language syntax
-  questions, or framework/tool questions where no existing code is shared.
+  questions, framework/tool questions where no existing code is shared, or a
+  standalone request to formally verify a function against a stated contract.
 metadata:
   opencode/slash: "true"
 ---

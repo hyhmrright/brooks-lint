@@ -7,7 +7,7 @@
 ![Source version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-六個工作流程，覆蓋程式碼審查、架構、技術債、測試品質、健康看板與限定範圍的修復，以十二本經典軟體工程書籍為基礎。
+六個工作流程，覆蓋程式碼審查、架構、技術債、測試品質、健康看板與限定範圍的修復，以十二本經典軟體工程書籍為基礎。 第七個技能使用 Lean 4 驗證明確寫出的程式碼契約。
 
 已發布版本：[npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
@@ -28,9 +28,11 @@ $brooks-review Review the current diff and identify supported maintainability ri
 $brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-以上命令將目前原始碼安裝到 Codex 的全域技能目錄。如果沒有發現技能，請啟動新會話。專案級安裝應在目標專案中通過絕對路徑執行安裝指令稿，並使用 `codex --project`。保留 `_shared` 與六個技能目錄的同級關係。詳見 [Codex 指南](docs/codex-setup.md)。
+以上命令將目前原始碼安裝到 Codex 的全域技能目錄。如果沒有發現技能，請啟動新會話。專案級安裝應在目標專案中通過絕對路徑執行安裝指令稿，並使用 `codex --project`。保留 `_shared` 與技能目錄的同級關係。詳見 [Codex 指南](docs/codex-setup.md)。
 
 使用 Node.js 20+ 安裝最新發布版本：`npx brooks-lint@latest install codex`。其他安裝目標見[入門指南](docs/getting-started.md)。
+
+使用 `brooks-verify` 請從 main 分支安裝。已發布的 2.0.0 包含六個分析技能。
 
 ## 選擇符合任務範圍的技能
 
@@ -42,6 +44,7 @@ $brooks-health Assess this repository; distinguish missing evidence from clean d
 | `$brooks-test` | 審查現有測試：斷言能偵測和遺漏哪些失敗。 | 否 |
 | `$brooks-health` | 四個維度的簡要評估和有證據範圍限制的看板。 | 否 |
 | `$brooks-sweep` | 在限定範圍內診斷並執行已授權、可驗證的修復。 | 是 |
+| [`$brooks-verify`](docs/lean-review.md) | 使用 Lean 4 核對支援的原始檔與獨立契約，提供可重驗的證明、經驗證的反例，或無法驗證的原因。 | 否 |
 
 Codex 使用 `$brooks-review`；其他宿主使用自己的呼叫方式。自然語言觸發取決於宿主和模型。Health 是摘要，不是四次窮盡式審計。Sweep 需要編輯和驗證能力，並沿用現有授權；不會僅因修改多個檔案就再次要求確認。
 
@@ -89,7 +92,7 @@ Sweep 預設最多 **三輪修復總計**，包括首輪及僅處理 Critical �
 
 ## Benchmark：六個技能，分別帶來什麼
 
-從一件你本來就要做的事開始：帶反例的程式碼審查、依賴診斷、債務償還計畫、測試缺口分析、有範圍的健康報告或經過驗證的修復。下表直接展示**全部六個技能**，包括持平和退步。工作流程的用途與實測提升分開說明。
+從一件你本來就要做的事開始：帶反例的程式碼審查、依賴診斷、債務償還計畫、測試缺口分析、有範圍的健康報告或經過驗證的修復。下表直接展示**參評的六個技能**，包括持平和退步。工作流程的用途與實測提升分開說明。
 
 | 實驗 | 技能與證據 | 基線 → 技能 | 觀察到的變化 |
 |---|---|---:|---|

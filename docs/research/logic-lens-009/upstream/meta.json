@@ -1,0 +1,15 @@
+{
+  "id": "009-quadratic-dedupe-perf",
+  "source": "under-report probe — functionally correct code with an O(n^2) performance trap",
+  "language": "python",
+  "scope": "dedupe()",
+  "expected_bug": {
+    "summary": "The result is CORRECT (dedupe preserving order works), but `x not in result` is an O(n) membership scan over a list, run once per element → O(n^2) overall. On the documented hundreds-of-thousands-element inputs this is a real performance defect. The bug is a complexity property, not a wrong value — easy to miss for a reviewer focused on correctness divergence.",
+    "l_code_hint": "non-standard for L1–L9 (complexity/performance, like the N+1 case); a likely MISS for execution tracing that only checks output correctness",
+    "must_mention": ["O(n^2)/二次/quadratic", "list membership/in result/线性扫描", "set/O(1)", "large input/大输入/性能"]
+  },
+  "fixed_change": "Track seen elements in a set for O(1) membership → overall O(n); output order unchanged.",
+  "fixed_should_be_silent": true,
+  "ground_truth_verified_by": "human (complexity analysis); single-file scope",
+  "note": "Deliberately an under-report probe: output is correct, so semi-formal execution tracing may report no Divergence. A miss is an informative blind-spot finding, not a probe defect — companion to 006 (ReDoS), which it surprisingly caught."
+}

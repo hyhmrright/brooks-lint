@@ -4,6 +4,11 @@ All notable changes to brooks-lint are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Add the independent `brooks-verify` Agent Skill. Its Python frontends recognize bounded Python, Bash, Go, Java and JavaScript source forms and submit explicit contract obligations to Lean 4. Reports include a proof or counterexample for the recognized model, or explain why verification stopped.
+- Include original logic-lens inputs, contracts, certificate evidence, native runtime comparisons and Linux CI replays. The [current evidence table](docs/research/verify-evidence.md) distinguishes the original defects from narrower properties, fixed-only controls and an independent transfer experiment.
+
 ### Changed
 
 - Diagnose the six skills' limited comparative evidence and add bounded causal checks for change attribution, graph edge types, test witnesses, debt priority uncertainty, capped dashboard completeness and sweep repair verification. These offline improvements do not establish new model efficacy (#50).

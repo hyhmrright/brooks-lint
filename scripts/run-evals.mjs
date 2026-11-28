@@ -93,7 +93,7 @@ for (const ev of evals) {
     // scan here would let the two disagree about what a scenario expects.
     const referencedCodes = [...extractRiskCodes(ev.expected_output)];
     const isBoundaryScenario = ev.no_risk_codes || ev.no_health_score || ev.forbidden_risk_codes;
-    if (referencedCodes.length === 0 && !isBoundaryScenario) {
+    if (MODES[ev.mode]?.risks?.length && referencedCodes.length === 0 && !isBoundaryScenario) {
       warnings.push(`${label}: expected_output does not reference any risk code (${RISK_CODES.join(", ")})`);
     }
 

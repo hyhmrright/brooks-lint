@@ -18,7 +18,7 @@ npm installer supports the same target and custom `--dir` destinations. For the
 latest published package, use `npx brooks-lint@latest install codex` with Node.js 20+.
 See [npm](https://www.npmjs.com/package/brooks-lint) and [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases) for available versions.
 
-Keep `_shared` beside the six `brooks-*` directories. Preserve health's
+Keep `_shared` beside the `brooks-*` directories. Preserve health's
 `score-ledger.md` and `scripts/` resources. This repository's own maintenance
 checkout exposes skills under `.agents/skills/` through symlinks; that is distinct
 from the installer's copied layout. See [getting started](getting-started.md).
@@ -26,10 +26,13 @@ from the installer's copied layout. See [getting started](getting-started.md).
 ## Invoke and verify scope
 
 Start a new Codex session after installation if discovery has not refreshed.
+For a Lean check, install Python 3 and a trusted Lean executable on PATH. The release fixtures use Lean 4.19.0. [Runnable shipping-policy example](lean-review.md).
+
 Ask for a concrete scope:
 
 ```text
 $brooks-review Review the current diff against its caller contract.
+$brooks-verify Check shipping.py against shipping.contract.json with Lean.
 $brooks-test Review the existing tests in tests/payments/ for lost protection.
 $brooks-health Assess this repository and state unassessed dimensions explicitly.
 ```

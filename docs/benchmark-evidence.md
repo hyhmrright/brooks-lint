@@ -49,12 +49,17 @@ unknowns rather than treating a score as diagnostic truth. For sweep, give an
 authorized scope and a repair budget, then inspect the actual diff and executed
 checks. These are adoption suggestions, not another benchmark dataset.
 
-## Product checks on main
+## Product checks
 
 | Check | Scope | Does not establish |
 | --- | --- | --- |
 | `npm test`, installation/health/delivery regressions | Product behavior, deterministic arithmetic, resource packaging and known report failures | Truth of model diagnoses or general autonomous repair |
-| `npm run evals` | Structure and risk references of 64 scenarios | A live 64-case model pass rate |
+| `npm run evals` | Structure of 66 scenarios, including two interactive contract-verification cases | A live 66-case model pass rate |
+| [Lean Bash worker replay](research/logic-lens-002/README.md) | Original 002 scripts, a swallowed-failure witness, a conditional propagation theorem and real Bash/xargs exit codes | Arbitrary shell scripts, scheduling guarantees or interpreter correctness |
+| [Lean Go file lifetime replay](research/logic-lens-004/README.md) | Original 004 sources, a two-handle witness, a universal peak and return bound, and real handle observations | General Go programs, close failures or process-wide descriptor use |
+| [Lean Go iteration capture replay](research/logic-lens-008/README.md) | Upstream fixed-only 008 control, indexed completions at return, and a synthetic shared-variable witness with real Go callbacks | General goroutine safety, execution order or termination of callbacks |
+| [Lean multi-file update replay](research/logic-lens-001/README.md) | Pinned 001 sources, a partial-write witness, a universal preparation-failure proof and 18 disk runs | Crash durability, write-failure rollback or unseen workflows |
+| [Lean deduplication replay](research/logic-lens-009/README.md) | Upstream probe 009, two pinned sources, source-level operation budgets, checked theorem signatures and Python controls | General Python semantics, runtime speedups or accuracy on unseen code |
 | `npm run benchmark` | Parser/SARIF fidelity on 30 frozen reports | Correctness of the reports' substantive findings |
 | `npm run evals:codex:validate` | Offline validation of seven Codex fixtures | A fresh model run or seven-skill coverage |
 | Opt-in [Codex behavioral collector](codex-behavior-evals.md) | Skill-read evidence and judged answers for review/audit/test plus non-trigger controls | Debt/health/sweep efficacy, independent human truth, arbitrary hosts |

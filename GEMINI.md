@@ -33,15 +33,16 @@ This repository is an AI-powered code quality tool grounded in twelve classic en
 - **OpenCode slash opt-in:** Every `SKILL.md` frontmatter must also carry `metadata:` › `opencode/slash: "true"` — OpenCode v2 lists a skill in its `/` menu only when that key is set, and no other platform reads it. Automated: `npm run validate`.
 
 ## Project Structure
-- `skills/brooks-{review,audit,debt,test,health,sweep}/`: the six skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — each a `SKILL.md` plus its guide.
+- `skills/brooks-{review,audit,debt,test,health,sweep}/`: the six code quality skills — PR Review, Architecture Audit, Tech Debt, Test Quality, Health Dashboard, Full Sweep — each a `SKILL.md` plus its guide.
+- `skills/brooks-verify/`: independent Lean verification of supported contracts in Python, Bash, Go, Java and JavaScript. See [coverage and replay instructions](docs/lean-review.md). Invoke `$brooks-verify` with a source file and its governing contract.
 - `skills/_shared/`: shared framework (common.md, source-coverage.md, decay-risks.md, test-decay-risks.md, remedy-guide.md, custom-risks-guide.md).
 - `commands/`: Short-form command wrappers (used by Claude Code, not Gemini CLI).
 - `hooks/`: SessionStart hook for Claude Code session-level awareness.
-- `evals/`: 64 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks — `npm run evals` (structural), `npm run evals:live` (against the AI, needs `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
+- `evals/`: 66 scenarios across R1–R6 and T1–T6, including false-positive and tradeoff checks — `npm run evals` (structural), `npm run evals:live` (against the AI, needs `ANTHROPIC_API_KEY`). `evals/benchmark-corpus.json` is a frozen corpus of 30 real model-generated reports for the deterministic parser-fidelity benchmark: `npm run benchmark`.
 
 ## Runner Boundaries
 
-All six skills remain available to interactive agents with the necessary project
+The six diagnostic skills remain available to interactive agents with the necessary project
 access. The tool-less CI runner supports only `review` on a collected diff. API evals
 cover supplied fixtures in the five read-only modes; `sweep` requires interactive
 execution and is explicitly excluded from API eval pass rates. Deterministic eval

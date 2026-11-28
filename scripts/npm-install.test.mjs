@@ -107,7 +107,15 @@ test('npm packed artifact can install without repository files or network', asyn
   const result = spawnSync(process.execPath, [path.join(unpack, 'package/bin/brooks-lint.mjs'), 'install', 'agents'], { cwd: f.cwd, env: f.env, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr); await verifySkills(path.join(f.home, '.agents/skills'));
   await rm(unpack, { recursive: true, force: true });
-  await verifyInstalledHealthHelper(path.join(f.home, '.agents/skills'), f);
+  const installed = path.join(f.home, '.agents/skills');
+  await verifyInstalledHealthHelper(installed, f);
+  // Verify the packaged checker, models and proof templates after removing the unpacked source.
+  const scripts = 'brooks-verify/scripts';
+  for (const file of await readdir(path.join(root, 'skills', scripts), { withFileTypes: true })) {
+    if (!file.isFile()) continue;
+    assert.deepEqual(await readFile(path.join(installed, scripts, file.name)),
+      await readFile(path.join(root, 'skills', scripts, file.name)), file.name);
+  }
 });
 test('shell-installed health helper works in a standalone skill directory', async t => {
   const f = await fixture(t), destination = path.join(f.dir, 'shell-skills');

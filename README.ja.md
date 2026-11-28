@@ -7,7 +7,7 @@
 ![Source version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-コードレビュー、アーキテクチャ、技術的負債、テスト品質、ヘルスダッシュボード、範囲を限定した修正の六つのワークフロー。十二冊のソフトウェア工学の古典に基づきます。
+コードレビュー、アーキテクチャ、技術的負債、テスト品質、ヘルスダッシュボード、範囲を限定した修正の六つのワークフロー。十二冊のソフトウェア工学の古典に基づきます。 7 番目のスキルは、明示したコードの契約を Lean 4 で検証します。
 
 公開済みバージョン：[npm](https://www.npmjs.com/package/brooks-lint) · [GitHub Releases](https://github.com/hyhmrright/brooks-lint/releases)
 
@@ -28,9 +28,11 @@ $brooks-review Review the current diff and identify supported maintainability ri
 $brooks-health Assess this repository; distinguish missing evidence from clean dimensions.
 ```
 
-現在のソースを Codex のグローバルなスキルディレクトリにインストールします。認識されなければ新しいセッションを開始してください。プロジェクトへのインストールは対象プロジェクトからスクリプトの絶対パスを使い `codex --project` を指定します。`_shared` は六つのスキルと同じ階層に置きます。[Codex ガイド](docs/codex-setup.md)。
+現在のソースを Codex のグローバルなスキルディレクトリにインストールします。認識されなければ新しいセッションを開始してください。プロジェクトへのインストールは対象プロジェクトからスクリプトの絶対パスを使い `codex --project` を指定します。`_shared` は各スキルと同じ階層に置きます。[Codex ガイド](docs/codex-setup.md)。
 
 Node.js 20+ で公開済みの最新版をインストール：`npx brooks-lint@latest install codex`。詳しくは[入門ガイド](docs/getting-started.md)を参照してください。
+
+`brooks-verify` を使うには main ブランチからインストールしてください。公開済みの 2.0.0 パッケージには六つの分析スキルが含まれています。
 
 ## 目的に合う最小のワークフローを選ぶ
 
@@ -42,6 +44,7 @@ Node.js 20+ で公開済みの最新版をインストール：`npx brooks-lint@
 | `$brooks-test` | 既存テストのアサーションが検出できる失敗と見逃す失敗。 | なし |
 | `$brooks-health` | 四つの観点を簡潔に評価し、証拠の範囲を明示したダッシュボード。 | なし |
 | `$brooks-sweep` | 限定した範囲で診断し、許可済みかつ検証可能な修正を実施。 | あり |
+| [`$brooks-verify`](docs/lean-review.md) | 対応するソースファイルを独立した契約と照合し、Lean 4 で再検証できる証明、検証済みの反例、または検証できなかった理由を示します。 | なし |
 
 Codex は `$brooks-review` を使用します。自然言語による起動はホストとモデルに依存します。Health は四つの完全な監査の代替ではありません。Sweep は編集・検証機能を必要とし、既存の許可を尊重します。複数ファイルという理由だけで再確認しません。
 
@@ -89,7 +92,7 @@ Sweep は初回と Critical のみの回も含めて、既定で**合計三回�
 
 ## Benchmark：6つのスキルで何が変わるか
 
-まず必要な作業を1つ選んでください。具体例を伴うレビュー、依存関係の診断、技術的負債の返済計画、テストの盲点、範囲を限定した健康診断、検証付きの修復です。**全6スキル**の結果を、同等・悪化も含めて示します。用途と実測した改善は別の主張です。
+まず必要な作業を1つ選んでください。具体例を伴うレビュー、依存関係の診断、技術的負債の返済計画、テストの盲点、範囲を限定した健康診断、検証付きの修復です。**評価対象の6スキル**の結果を、同等・悪化も含めて示します。用途と実測した改善は別の主張です。
 
 | 実験 | スキルと証拠 | 基準 → スキル | 観測した変化 |
 |---|---|---:|---|
