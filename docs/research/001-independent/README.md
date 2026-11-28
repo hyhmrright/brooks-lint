@@ -1,5 +1,58 @@
 # Can 001 gate multi-file updates?
 
+## Expanded checker, same seven samples
+
+The installed checker now proves the explicit collection loop and certifies the
+two targeted faulty rewrites. The experiment compares each source with the
+frozen checker from `cb7fd52` and the installed checker on identical inputs.
+All seven success controls and 46 failed preparations reproduced the original
+exit codes, target bytes and write traces. Of the 18 failures with a target
+write, zero received `verified` from either checker. Both verified samples
+had zero target writes and zero byte changes in their 16 failure runs.
+
+| Sample | Frozen | Expanded | Native observation at the witness or control |
+|---|---|---|---|
+| Released bump2version 1.0.1 | unverified | unverified | Three missing-version cases left all targets unchanged. |
+| Eager bump2version mutant | unverified | unverified | A later missing version left earlier files changed. |
+| Staged layout edit | verified | verified | All eight failed preparations left every target untouched. |
+| Eager layout edit | counterexample | counterexample | The second manifest failed after the first was written. |
+| Staged explicit loop | unverified | verified | All eight failed preparations left every target untouched. |
+| Early metadata flush | unverified | counterexample | At README badge failure all five JSON files contained the new version. |
+| Lazy commit | unverified | counterexample | At the second JSON failure the first file already contained the new version. |
+
+The explicit loop accumulates pure patches before any write, so it uses the
+[universal staged theorem](../logic-lens-001/certificates/fixed.lean).
+The lazy consumer computes a patch, writes it, then requests the next one;
+that order uses the [per-target eager witness](../logic-lens-001/certificates/buggy.lean).
+The [early-flush certificate](expanded/early-flush.lean) models two separate
+staged batches. The first commits the five named files, then the second rejects
+the README. All three obligations are rechecked against independent Lean type
+statements with no axiom dependencies. The source recognizer and its
+correspondence to those models remain trusted.
+
+**Gate decision.** Keep 001 advisory for general updaters. A reachable
+certified counterexample can block the specific change under this contract.
+The three newly recognized samples were known during this extension, so the
+improvement measures regression coverage. The independent external program
+and its faulty mutant still receive `unverified`; mapping that outcome to
+success would allow the observed partial update.
+
+With a full Git checkout, CPython 3.11, Node 22, Lean 4.19.0, Bash and touch
+on PATH, run both revisions and the native oracle from the repository root:
+
+```sh
+python3.11 -I -B docs/research/001-independent/compare.py
+```
+
+The replay installs the candidate skill into a temporary directory, matches each
+source hash and all native observations to the [frozen record](results.json),
+checks the candidate certificates and witness bytes, and fails if a verified
+sample wrote a target on rejection (including a same-byte write). The
+[comparison record](expanded/results.json) names each reusable certificate and
+its digest. Use `--output-dir /tmp/001-comparison` for a separate measurement.
+
+## Frozen study
+
 **Decision. Keep the checker advisory for general multi-file updaters.** On seven
 samples the frozen checker issued one universal certificate and one certified
 counterexample. Both matched observed behavior. It abstained on the independently

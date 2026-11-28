@@ -28,7 +28,7 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def measure(work):
+def measure(work, samples=None):
     version = subprocess.check_output(["lean", "--version"], text=True)
     if "version 4.19.0," not in version:
         raise RuntimeError("Expected Lean 4.19.0")
@@ -38,7 +38,8 @@ def measure(work):
     contract = work / "contract.json"
     contract.write_bytes(frozen(CASE + contract.name))
     results = {}
-    samples = itertools.chain(observe_released(work), observe_variants(work))
+    if samples is None:
+        samples = itertools.chain(observe_released(work), observe_variants(work))
     for name, source, observations in samples:
         proc = subprocess.run([sys.executable, "-I", checker, source, contract], cwd=work,
                               text=True, capture_output=True, timeout=60)

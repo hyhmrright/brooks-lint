@@ -36,6 +36,11 @@ sys.exit(subprocess.run(["bash", "scripts/validate-repo.sh"], cwd=REPO).returnco
 ENTRY = '''if __name__ == "__main__":
     main()'''
 
+# The early-flush certificate gives an exact trace and byte changes for this inventory.
+METADATA_WITNESS = ["package.json", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
+                    ".codex-plugin/plugin.json", "gemini-extension.json"]
+DRAIN = "for path, new_text in patches:\n    path.write_text(new_text)"
+
 CONTRACT = {"kind": "validate-before-write-v1", "function": "main",
             "failure": "target_pattern_mismatch", "required_writes": "none",
             "target_contents": "unchanged"}
@@ -53,8 +58,39 @@ def function_shape(fn, signature):
     return same([skeleton], signature + "\n    pass")
 
 
+def update_model(main, helper, writes_in_helper, lazy_import):
+    """Match the entire main body, including exactly when each patch is evaluated."""
+    json_call = JSON_PATCH.replace("HELPER", helper)
+    badge_call = README_PATCH.replace("HELPER", helper)
+    badge = f"patches.append({badge_call})"
+    if lazy_import and not writes_in_helper:
+        # Pulling one value from chain computes one pure patch. The consumer
+        # writes that value before requesting the next one: eager disk semantics.
+        lazy = (f"metadata = ({json_call} for rel in JSON_FILES)\n"
+                f"def badge():\n    yield {badge_call}\n"
+                "for path, new_text in chain(metadata, badge()):\n    path.write_text(new_text)")
+        candidates = [("lazy", lazy)]
+    elif writes_in_helper and not lazy_import:
+        candidates = [("eager", f"for rel in JSON_FILES:\n    {json_call}\n{badge_call}")]
+    elif not writes_in_helper:
+        collect = f"patches = []\nfor rel in JSON_FILES:\n    patch = {json_call}\n    patches.append(patch)"
+        comprehension = f"patches = [{json_call} for rel in JSON_FILES]"
+        candidates = [("staged", "\n".join([comprehension, badge, DRAIN])),
+                      ("staged", "\n".join([collect, badge, DRAIN])),
+                      ("early-flush", "\n".join([collect, DRAIN, "patches = []", badge, DRAIN]))]
+    else:
+        candidates = []
+    for model, updates in candidates:
+        if same(statements(main.body), "\n".join((ARGUMENTS, updates, POST_COMMIT))):
+            return model
+    raise ValueError("Unsupported call order, validation phase or write phase")
+
+
 def source_model(tree):
     nodes = statements(tree.body)
+    lazy_import = same(nodes[:1], "from itertools import chain")
+    if lazy_import:
+        nodes = nodes[1:]
     header_len = len(ast.parse(HEADER).body)
     if len(nodes) != header_len + 4 or not same(nodes[:header_len], HEADER):
         raise ValueError("Unsupported module initialization or imports")
@@ -78,24 +114,21 @@ def source_model(tree):
     if not isinstance(helper, ast.FunctionDef) or helper.name not in {"replace_once", "compute_patch"}:
         raise ValueError("Unsupported patch helper")
     signature = f"def {helper.name}(path: Path, pattern: str, replacement: str, what: str) -> "
-    for model, annotation, effect in [("eager", "None", "path.write_text(new_text)"),
-                                      ("staged", "tuple[Path, str]", "return path, new_text")]:
+    for writes_in_helper, annotation, effect in [(True, "None", "path.write_text(new_text)"),
+                                                (False, "tuple[Path, str]", "return path, new_text")]:
         if (function_shape(helper, signature + annotation + ":") and
                 same(statements(helper.body), HELPER + effect)):
             break
     else:
         raise ValueError("Unsupported helper validation or write effect")
-    json_call = JSON_PATCH.replace("HELPER", helper.name)
-    readme_call = README_PATCH.replace("HELPER", helper.name)
-    if model == "eager":
-        updates = f"for rel in JSON_FILES:\n    {json_call}\n{readme_call}"
+    model = update_model(main, helper.name, writes_in_helper, lazy_import)
+    if model in {"lazy", "early-flush"}:
+        # The first write is in the caller (the helper only computes a patch).
+        line = next(loop.body[0].lineno for loop in statements(main.body)
+                    if isinstance(loop, ast.For) and isinstance(loop.target, ast.Tuple))
     else:
-        updates = ("patches = [\n    " + json_call + "\n    for rel in JSON_FILES\n]\n"
-                   + f"patches.append({readme_call})\n"
-                   + "for path, new_text in patches:\n    path.write_text(new_text)")
-    if not same(statements(main.body), "\n".join((ARGUMENTS, updates, POST_COMMIT))):
-        raise ValueError("Unsupported call order, validation phase or write phase")
-    return model, paths + ["README.md"], helper.body[-1].lineno
+        line = helper.body[-1].lineno
+    return model, paths + ["README.md"], line
 
 
 def check(source, contract_path):
@@ -108,18 +141,23 @@ def check(source, contract_path):
     tree = ast.parse(raw, filename=str(source))
     compile(tree, str(source), "exec")
     model, paths, line = source_model(tree)
-    if model == "eager" and paths[:2] != ["package.json", ".claude-plugin/plugin.json"]:
+    if model == "early-flush" and paths[:-1] != METADATA_WITNESS:
+        raise ValueError("Certified metadata-flush witness requires the five named metadata targets")
+    if model in {"eager", "lazy"} and paths[:2] != ["package.json", ".claude-plugin/plugin.json"]:
         raise ValueError("Certified concrete witness requires the two named initial targets")
     folder = Path(__file__).resolve().parent
-    program = (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{model}.lean.inc").read_text()
+    template = "eager" if model == "lazy" else model
+    program = (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{template}.lean.inc").read_text()
     certify(program)
     report = dict(status="verified" if model == "staged" else "counterexample",
                   source=str(source), source_sha256=hashlib.sha256(raw).hexdigest(),
                   line=line, model=model, targets=paths, contract=contract, lean_certificate=program)
-    if model == "eager":
-        report.update(requested_version="2.0.0", failed_target=paths[1], writes=[paths[0]],
+    if model != "staged":
+        early_flush = model == "early-flush"
+        report.update(requested_version="2.0.0", failed_target=paths[-1] if early_flush else paths[1],
+                      writes=paths[:-1] if early_flush else [paths[0]],
                       before='{"version": "1.0.0"}\n', after='{"version": "2.0.0"}\n',
-                      failed_target_contents="{}\n")
+                      failed_target_contents="missing badge\n" if early_flush else "{}\n")
     return report
 
 

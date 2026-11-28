@@ -74,7 +74,7 @@ The command returns the complete certificate in `lean_certificate`.
   successful preparation commits its patches in order. The checked witness and
   universal failure theorem both have **zero axiom dependencies** in Lean 4.19.0.
 * **Source bridge.** The [checker](../../../skills/brooks-verify/scripts/verify_batch.py)
-  admits two narrow Python workflows. It checks imports, initialization, literal
+  originally admitted two narrow Python workflows. The [follow-up study](../001-independent/README.md) extends recognition to three related source forms. It checks imports, initialization, literal
   path inventory, helper validation and effects, both loops, the main guard and
   the post-write command. It selects semantics from the helper body and its
   call sites. Comments and formatting may vary. Extra side effects or unknown

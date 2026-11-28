@@ -64,7 +64,13 @@ For a multi-file update with the supported field-match and patch workflow, use
 `target_contents: unchanged`, and a `reference` identifying the requirement as
 JSON strings. This backend checks module initialization, helper and caller
 together and never imports the reviewed source. A verified result covers a
-rejected target match before commit. A later external validator failure, a
+rejected target match when a list comprehension or explicit append loop collects
+every patch before writing. The supported early-flush form commits all metadata
+before checking the README badge. The supported chained generators compute one
+patch per pull, and the consumer writes it before the next pull. Both can leave
+earlier files updated on a later mismatch. Check the reported failing target,
+write order and byte changes against reachable inputs. Unknown workflows yield
+`unverified`. A later external validator failure, a
 write failure and a crash are separate obligations. Preserve the supplied disk
 witness and write trace when reporting a counterexample.
 
