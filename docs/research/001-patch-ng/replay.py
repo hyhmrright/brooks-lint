@@ -5,7 +5,6 @@ import json
 import os
 from pathlib import Path
 import runpy
-import subprocess
 import sys
 import tempfile
 
@@ -13,40 +12,14 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 PIN = "be2dda5aac7a709041ec80481c604be576d2673c"
 HOLDOUT = HERE.parent / "001-independent/holdout"
+sys.path.insert(0, str(HOLDOUT.parent))
+from checker_replay import baseline, check, invoke, require
+
 SOURCE = HOLDOUT / "samples/patch-ng/patch_ng.py"
 CONTRACT = HERE / "contract.json"
 LEGACY = HERE.parent / "logic-lens-001/contract.json"
 SCENARIOS = ("success", "first-mismatch", "last-mismatch")
 TARGETS = ["first.txt", "last.txt"]
-
-
-def require(condition, detail):
-    if not condition:
-        raise ValueError(detail)
-
-
-def invoke(argv, cwd, check=True):
-    return subprocess.run(argv, cwd=cwd, check=check, capture_output=True, text=True, timeout=60)
-
-
-def check(checker, source, contract, cwd, verdict):
-    result = invoke([sys.executable, "-I", checker, source, contract], cwd, check=False)
-    report = json.loads(result.stdout)
-    require(report["status"] == verdict and result.returncode ==
-            {"unverified": 2, "counterexample": 1}[verdict], report)
-    if verdict == "unverified":
-        require("lean_certificate" not in report, report)
-    return report
-
-
-def baseline(work):
-    folder = work / "frozen"
-    folder.mkdir()
-    # The frozen checker imports lean_review. Neither refusal reaches proof generation.
-    for name in ("verify_batch.py", "lean_review.py"):
-        (folder / name).write_bytes(subprocess.check_output(
-            ["git", "show", f"{PIN}:skills/brooks-verify/scripts/{name}"], cwd=ROOT))
-    return folder / "verify_batch.py"
 
 
 def observe(work):
@@ -89,7 +62,7 @@ def audit(work, program):
 def replay(work, record):
     require(sys.version_info[:2] == (3, 11) and os.name == "posix", "Use POSIX Python 3.11")
     require("version 4.19.0," in invoke(["lean", "--version"], work).stdout, "Use Lean 4.19.0")
-    old = baseline(work)
+    old = baseline(work, ROOT, PIN)
     size_refusal = check(old, SOURCE, LEGACY, work, "unverified")
     require(size_refusal["reason"] == "File exceeds the 32 KiB review limit", size_refusal)
     old_contract_result = check(old, SOURCE, CONTRACT, work, "unverified")

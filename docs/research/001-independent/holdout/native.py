@@ -33,7 +33,8 @@ sys.addaudithook(record)
 sys.argv = [source, *sys.argv[3:]]
 try:
     if Path(source).name == "release.py":
-        runpy.run_path(source)["update_version_files"]("2.0.0", "2026.1.1")
+        value = runpy.run_path(source)["update_version_files"]("2.0.0", "2026.1.1")
+        Path("return.json").write_text(json.dumps({"outcome": "returned", "value": value}))
     else:
         runpy.run_path(source, run_name="__main__")
 finally:

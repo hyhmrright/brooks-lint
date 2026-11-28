@@ -75,3 +75,6 @@ replays the pre-extension checker.
 
 The [patch-ng extension](../../001-patch-ng/README.md) checks both mismatch
 positions for the exact 1.18.1 module that exceeded the frozen size limit.
+
+The [Hermes extension](../../001-hermes/README.md) checks the missing-field
+error and no-write obligation on the final upstream updater in this cohort.

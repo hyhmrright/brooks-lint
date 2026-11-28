@@ -104,6 +104,19 @@ including the exit status, ordered target mutation events and final bytes.
 The source binding trusts the reviewed correspondence between this release
 and the Lean model for the two concrete inputs.
 
+For the pinned Hermes Agent release helper, use `scripts/verify_batch.py`
+with `kind: hermes-required-version-before-write-v1`, `function: update_version_files`,
+`failure: missing_version_field`, `required_outcome: raise`, `required_writes: none`,
+`target_contents: unchanged` and a nonempty `reference`. The two witnesses call
+the helper with version `2.0.0` and release date `2026.1.1`. Exactly one
+existing regular file lacks its version assignment. Both fixtures retain the
+requested release date in the Python file. An unmatched substitution leaves
+its input unchanged, but both files are still opened for writing and the
+matching assignment changes. Record the helper's normal Python return value
+(`None`), the ordered write events and the before/after bytes. The certificate
+assumes successful I/O and binds the reviewed whole module to these two calls.
+Other release steps and arbitrary Python/TOML syntax are outside this model.
+
 For the supported exported Bash worker and its parallel xargs pipeline, use
 `scripts/verify_worker.py`. Supply the contract kind
 `bash-xargs-worker-exit-v1`, function `run_case`, command `claude`, failure

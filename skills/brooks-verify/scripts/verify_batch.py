@@ -196,6 +196,35 @@ def patch_ng_report(source, contract):
                 contract=contract, lean_certificate=program)
 
 
+HERMES_CONTRACT = {**CONTRACT, "kind": "hermes-required-version-before-write-v1",
+                   "function": "update_version_files", "failure": "missing_version_field",
+                   "required_outcome": "raise"}
+HERMES_SHA256 = "e242a523047b148ae757e0fd3a23a658fd5851beb67f187ac90f4e333abad994"
+
+
+def hermes_report(source, contract):
+    raw = read_small(source)
+    if hashlib.sha256(raw).hexdigest() != HERMES_SHA256:
+        raise ValueError("Unsupported Hermes release source: expected the reviewed module")
+    program = batch_program("hermes")
+    certify(program)
+    first, last = "hermes_cli/__init__.py", "pyproject.toml"
+    targets = [first, last]
+    date = '__release_date__ = "2026.1.1"\n'
+    old = {first: '__version__ = "1.0.0"\n' + date, last: '[project]\nversion = "1.0.0"\n'}
+    missing = {first: "# no version field\n" + date, last: "[project]\n# no version field\n"}
+    witnesses = []
+    for scenario, bad, good in [("first-missing", first, last), ("last-missing", last, first)]:
+        before = {**old, bad: missing[bad]}
+        witnesses.append(dict(scenario=scenario, missing_target=bad, returned=None,
+                              mutations=[["open", p] for p in targets], before=before,
+                              after={**before, good: old[good].replace("1.0.0", "2.0.0")}))
+    line = raw[:raw.index(b"VERSION_FILE.write_text(content)")].count(b"\n") + 1
+    return dict(status="counterexample", source=str(source), source_sha256=HERMES_SHA256,
+                model="hermes-version-update", line=line, targets=targets, witnesses=witnesses,
+                contract=contract, lean_certificate=program)
+
+
 def batch_program(template):
     folder = Path(__file__).resolve().parent
     return (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{template}.lean.inc").read_text()
@@ -204,7 +233,9 @@ def batch_program(template):
 def check(source, contract_path):
     contract = json.loads(read_small(contract_path))
     kind = contract.get("kind") if isinstance(contract, dict) else None
-    if kind == PATCH_NG_CONTRACT["kind"]:
+    if kind == HERMES_CONTRACT["kind"]:
+        expected = HERMES_CONTRACT
+    elif kind == PATCH_NG_CONTRACT["kind"]:
         expected = PATCH_NG_CONTRACT
     elif kind == COOKBOOK_CONTRACT["kind"]:
         expected = COOKBOOK_CONTRACT
@@ -214,6 +245,8 @@ def check(source, contract_path):
             or not isinstance(contract["reference"], str) or not contract["reference"].strip()
             or any(contract[key] != value for key, value in expected.items())):
         raise ValueError("Expected " + expected["kind"] + " contract with the required failure and effects")
+    if expected == HERMES_CONTRACT:
+        return hermes_report(source, contract)
     if expected == PATCH_NG_CONTRACT:
         return patch_ng_report(source, contract)
     raw = read_small(source)
