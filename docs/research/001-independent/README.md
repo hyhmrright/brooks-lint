@@ -141,3 +141,6 @@ justify blocking the specific change after confirming the contract with its
 owner. For a broader mandatory gate, first qualify additional independent
 implementations and challenge the source-to-model translation on nearby changes
 in validation and write order. Preserve a distinct outcome for abstention.
+
+The [second independent cohort](holdout/README.md) freezes the expanded checker
+at c05c01a and measures three additional upstream programs on real target files.
