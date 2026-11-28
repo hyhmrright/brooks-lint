@@ -1,4 +1,4 @@
-"""Bind a supported version-update workflow to its Lean validation/write model."""
+"""Bind a supported file-update workflow to its Lean validation/write model."""
 import ast
 import hashlib
 import json
@@ -36,6 +36,11 @@ sys.exit(subprocess.run(["bash", "scripts/validate-repo.sh"], cwd=REPO).returnco
 ENTRY = '''if __name__ == "__main__":
     main()'''
 
+# The early-flush certificate gives an exact trace and byte changes for this inventory.
+METADATA_WITNESS = ["package.json", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
+                    ".codex-plugin/plugin.json", "gemini-extension.json"]
+DRAIN = "for path, new_text in patches:\n    path.write_text(new_text)"
+
 CONTRACT = {"kind": "validate-before-write-v1", "function": "main",
             "failure": "target_pattern_mismatch", "required_writes": "none",
             "target_contents": "unchanged"}
@@ -53,8 +58,39 @@ def function_shape(fn, signature):
     return same([skeleton], signature + "\n    pass")
 
 
+def update_model(main, helper, writes_in_helper, lazy_import):
+    """Match the entire main body, including exactly when each patch is evaluated."""
+    json_call = JSON_PATCH.replace("HELPER", helper)
+    badge_call = README_PATCH.replace("HELPER", helper)
+    badge = f"patches.append({badge_call})"
+    if lazy_import and not writes_in_helper:
+        # Pulling one value from chain computes one pure patch. The consumer
+        # writes that value before requesting the next one: eager disk semantics.
+        lazy = (f"metadata = ({json_call} for rel in JSON_FILES)\n"
+                f"def badge():\n    yield {badge_call}\n"
+                "for path, new_text in chain(metadata, badge()):\n    path.write_text(new_text)")
+        candidates = [("lazy", lazy)]
+    elif writes_in_helper and not lazy_import:
+        candidates = [("eager", f"for rel in JSON_FILES:\n    {json_call}\n{badge_call}")]
+    elif not writes_in_helper:
+        collect = f"patches = []\nfor rel in JSON_FILES:\n    patch = {json_call}\n    patches.append(patch)"
+        comprehension = f"patches = [{json_call} for rel in JSON_FILES]"
+        candidates = [("staged", "\n".join([comprehension, badge, DRAIN])),
+                      ("staged", "\n".join([collect, badge, DRAIN])),
+                      ("early-flush", "\n".join([collect, DRAIN, "patches = []", badge, DRAIN]))]
+    else:
+        candidates = []
+    for model, updates in candidates:
+        if same(statements(main.body), "\n".join((ARGUMENTS, updates, POST_COMMIT))):
+            return model
+    raise ValueError("Unsupported call order, validation phase or write phase")
+
+
 def source_model(tree):
     nodes = statements(tree.body)
+    lazy_import = same(nodes[:1], "from itertools import chain")
+    if lazy_import:
+        nodes = nodes[1:]
     header_len = len(ast.parse(HEADER).body)
     if len(nodes) != header_len + 4 or not same(nodes[:header_len], HEADER):
         raise ValueError("Unsupported module initialization or imports")
@@ -78,48 +114,169 @@ def source_model(tree):
     if not isinstance(helper, ast.FunctionDef) or helper.name not in {"replace_once", "compute_patch"}:
         raise ValueError("Unsupported patch helper")
     signature = f"def {helper.name}(path: Path, pattern: str, replacement: str, what: str) -> "
-    for model, annotation, effect in [("eager", "None", "path.write_text(new_text)"),
-                                      ("staged", "tuple[Path, str]", "return path, new_text")]:
+    for writes_in_helper, annotation, effect in [(True, "None", "path.write_text(new_text)"),
+                                                (False, "tuple[Path, str]", "return path, new_text")]:
         if (function_shape(helper, signature + annotation + ":") and
                 same(statements(helper.body), HELPER + effect)):
             break
     else:
         raise ValueError("Unsupported helper validation or write effect")
-    json_call = JSON_PATCH.replace("HELPER", helper.name)
-    readme_call = README_PATCH.replace("HELPER", helper.name)
-    if model == "eager":
-        updates = f"for rel in JSON_FILES:\n    {json_call}\n{readme_call}"
+    model = update_model(main, helper.name, writes_in_helper, lazy_import)
+    if model in {"lazy", "early-flush"}:
+        # The first write is in the caller (the helper only computes a patch).
+        line = next(loop.body[0].lineno for loop in statements(main.body)
+                    if isinstance(loop, ast.For) and isinstance(loop.target, ast.Tuple))
     else:
-        updates = ("patches = [\n    " + json_call + "\n    for rel in JSON_FILES\n]\n"
-                   + f"patches.append({readme_call})\n"
-                   + "for path, new_text in patches:\n    path.write_text(new_text)")
-    if not same(statements(main.body), "\n".join((ARGUMENTS, updates, POST_COMMIT))):
-        raise ValueError("Unsupported call order, validation phase or write phase")
-    return model, paths + ["README.md"], helper.body[-1].lineno
+        line = helper.body[-1].lineno
+    return model, paths + ["README.md"], line
+
+
+COOKBOOK_CONTRACT = {**CONTRACT, "kind": "cookbook-context-before-write-v1",
+                     "failure": "target_context_mismatch"}
+# Every byte outside this single process_patch block, including imports, parser,
+# callbacks, and the CLI exception handler, must match the reviewed cell.
+COOKBOOK_SHA256 = "4ede4c81d0eeaf870b0bfc94fa00324f97f555743d1e8cf14eadaaff41aa0d62"
+COOKBOOK_STAGED = b'''    paths = identify_files_needed(text)
+    orig = load_files(paths, open_fn)
+    patch, _fuzz = text_to_patch(text, orig)
+    commit = patch_to_commit(patch, orig)
+    apply_commit(commit, write_fn, remove_fn)
+'''
+COOKBOOK_PER_FILE = rb'''    lines = text.splitlines()
+    if len(lines) < 2 or lines[-1] != "*** End Patch":
+        raise DiffError("Missing *** End Patch sentinel")
+    headers = ("*** Update File: ", "*** Add File: ", "*** Delete File: ")
+    starts = [i for i in range(1, len(lines) - 1) if lines[i].startswith(headers)]
+    starts.append(len(lines) - 1)
+    for start, end in zip(starts, starts[1:]):
+        section = "\n".join(["*** Begin Patch", *lines[start:end], "*** End Patch"])
+        paths = identify_files_needed(section)
+        orig = load_files(paths, open_fn)
+        patch, _fuzz = text_to_patch(section, orig)
+        commit = patch_to_commit(patch, orig)
+        apply_commit(commit, write_fn, remove_fn)
+'''
+
+
+def cookbook_model(raw):
+    for model, block in [("cookbook-staged", COOKBOOK_STAGED), ("cookbook-per-file", COOKBOOK_PER_FILE)]:
+        if raw.count(block) == 1:
+            canonical = raw.replace(block, COOKBOOK_STAGED, 1)
+            if hashlib.sha256(canonical).hexdigest() == COOKBOOK_SHA256:
+                write_call = raw.index(b"apply_commit(commit, write_fn, remove_fn)", raw.index(block))
+                return model, raw.count(b"\n", 0, write_call) + 1
+    raise ValueError("Unsupported Cookbook parser, CLI, callbacks or patch schedule")
+
+
+PATCH_NG_CONTRACT = {**COOKBOOK_CONTRACT, "kind": "patch-ng-context-before-write-v1"}
+PATCH_NG_SIZE = 44_933
+PATCH_NG_SHA256 = "a6308eef215a2c9ae75489faa48eef2798da40172d234404a5fea22ba06f14f4"
+
+
+def patch_ng_report(source, contract):
+    # Admit only the complete reviewed release. Never parse arbitrary larger Python inputs.
+    with open(source, "rb") as stream:
+        raw = stream.read(PATCH_NG_SIZE + 1)
+    if len(raw) != PATCH_NG_SIZE or hashlib.sha256(raw).hexdigest() != PATCH_NG_SHA256:
+        raise ValueError("Unsupported patch-ng source: expected the exact 1.18.1 release file")
+    program = batch_program("patch-ng")
+    certify(program)
+    targets = ["first.txt", "last.txt"]
+    witnesses = []
+    first, last = targets
+    for scenario, bad, good in [("first-mismatch", first, last), ("last-mismatch", last, first)]:
+        before = {bad: "unmatched\n", good: "old\n"}
+        witnesses.append(dict(scenario=scenario, failed_target=bad, exit=255,
+                              mutations=[["os.rename", good], ["open", good]],
+                              before=before, after={**before, good: "new\n"}))
+    # First target mutation on the successful single-hunk path.
+    line = raw[:raw.index(b"shutil.move(filenamen, backupname)")].count(b"\n") + 1
+    return dict(status="counterexample", source=str(source), source_sha256=PATCH_NG_SHA256,
+                model="patch-ng-1.18.1", line=line, targets=targets, witnesses=witnesses,
+                contract=contract, lean_certificate=program)
+
+
+HERMES_CONTRACT = {**CONTRACT, "kind": "hermes-required-version-before-write-v1",
+                   "function": "update_version_files", "failure": "missing_version_field",
+                   "required_outcome": "raise"}
+HERMES_SHA256 = "e242a523047b148ae757e0fd3a23a658fd5851beb67f187ac90f4e333abad994"
+
+
+def hermes_report(source, contract):
+    raw = read_small(source)
+    if hashlib.sha256(raw).hexdigest() != HERMES_SHA256:
+        raise ValueError("Unsupported Hermes release source: expected the reviewed module")
+    program = batch_program("hermes")
+    certify(program)
+    first, last = "hermes_cli/__init__.py", "pyproject.toml"
+    targets = [first, last]
+    date = '__release_date__ = "2026.1.1"\n'
+    old = {first: '__version__ = "1.0.0"\n' + date, last: '[project]\nversion = "1.0.0"\n'}
+    missing = {first: "# no version field\n" + date, last: "[project]\n# no version field\n"}
+    witnesses = []
+    for scenario, bad, good in [("first-missing", first, last), ("last-missing", last, first)]:
+        before = {**old, bad: missing[bad]}
+        witnesses.append(dict(scenario=scenario, missing_target=bad, returned=None,
+                              mutations=[["open", p] for p in targets], before=before,
+                              after={**before, good: old[good].replace("1.0.0", "2.0.0")}))
+    line = raw[:raw.index(b"VERSION_FILE.write_text(content)")].count(b"\n") + 1
+    return dict(status="counterexample", source=str(source), source_sha256=HERMES_SHA256,
+                model="hermes-version-update", line=line, targets=targets, witnesses=witnesses,
+                contract=contract, lean_certificate=program)
+
+
+def batch_program(template):
+    folder = Path(__file__).resolve().parent
+    return (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{template}.lean.inc").read_text()
 
 
 def check(source, contract_path):
     contract = json.loads(read_small(contract_path))
-    if (not isinstance(contract, dict) or set(contract) != set(CONTRACT) | {"reference"}
+    kind = contract.get("kind") if isinstance(contract, dict) else None
+    if kind == HERMES_CONTRACT["kind"]:
+        expected = HERMES_CONTRACT
+    elif kind == PATCH_NG_CONTRACT["kind"]:
+        expected = PATCH_NG_CONTRACT
+    elif kind == COOKBOOK_CONTRACT["kind"]:
+        expected = COOKBOOK_CONTRACT
+    else:
+        expected = CONTRACT
+    if (not isinstance(contract, dict) or set(contract) != set(expected) | {"reference"}
             or not isinstance(contract["reference"], str) or not contract["reference"].strip()
-            or any(contract[key] != value for key, value in CONTRACT.items())):
-        raise ValueError("Expected validate-before-write-v1 target-pattern failure contract")
+            or any(contract[key] != value for key, value in expected.items())):
+        raise ValueError("Expected " + expected["kind"] + " contract with the required failure and effects")
+    if expected == HERMES_CONTRACT:
+        return hermes_report(source, contract)
+    if expected == PATCH_NG_CONTRACT:
+        return patch_ng_report(source, contract)
     raw = read_small(source)
     tree = ast.parse(raw, filename=str(source))
     compile(tree, str(source), "exec")
-    model, paths, line = source_model(tree)
-    if model == "eager" and paths[:2] != ["package.json", ".claude-plugin/plugin.json"]:
+    if expected == COOKBOOK_CONTRACT:
+        model, line = cookbook_model(raw)
+        # Successful certificates quantify over input-dependent inventories.
+        paths = None if model == "cookbook-staged" else ["first.txt", "last.txt"]
+    else:
+        model, paths, line = source_model(tree)
+    if model == "early-flush" and paths[:-1] != METADATA_WITNESS:
+        raise ValueError("Certified metadata-flush witness requires the five named metadata targets")
+    if model in {"eager", "lazy"} and paths[:2] != ["package.json", ".claude-plugin/plugin.json"]:
         raise ValueError("Certified concrete witness requires the two named initial targets")
-    folder = Path(__file__).resolve().parent
-    program = (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{model}.lean.inc").read_text()
+    template = "eager" if model == "lazy" else model
+    program = batch_program(template)
     certify(program)
-    report = dict(status="verified" if model == "staged" else "counterexample",
+    report = dict(status="verified" if model in {"staged", "cookbook-staged"} else "counterexample",
                   source=str(source), source_sha256=hashlib.sha256(raw).hexdigest(),
                   line=line, model=model, targets=paths, contract=contract, lean_certificate=program)
-    if model == "eager":
-        report.update(requested_version="2.0.0", failed_target=paths[1], writes=[paths[0]],
+    if model == "cookbook-per-file":
+        report.update(failed_target="last.txt", writes=["first.txt"], before="old\n",
+                      after="new\n", failed_target_contents="unmatched\n")
+    elif model not in {"staged", "cookbook-staged"}:
+        early_flush = model == "early-flush"
+        report.update(requested_version="2.0.0", failed_target=paths[-1] if early_flush else paths[1],
+                      writes=paths[:-1] if early_flush else [paths[0]],
                       before='{"version": "1.0.0"}\n', after='{"version": "2.0.0"}\n',
-                      failed_target_contents="{}\n")
+                      failed_target_contents="missing badge\n" if early_flush else "{}\n")
     return report
 
 

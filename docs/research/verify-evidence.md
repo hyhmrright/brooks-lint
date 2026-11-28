@@ -31,3 +31,7 @@ python3 -I docs/research/replay-verify.py
 ```
 
 The command stops at the first discrepancy. Run `python3 -I docs/research/verify-transfer/replay.py` alone for the independent trial. It needs only Git, Node and Python and writes exclusively to a temporary directory.
+
+The [independent 001 validation study](001-independent/README.md) compares the
+frozen batch verifier with target write opens and final bytes on a released
+third-party Python updater, equivalent rewrites and faulty edits.

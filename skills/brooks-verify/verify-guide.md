@@ -64,9 +64,58 @@ For a multi-file update with the supported field-match and patch workflow, use
 `target_contents: unchanged`, and a `reference` identifying the requirement as
 JSON strings. This backend checks module initialization, helper and caller
 together and never imports the reviewed source. A verified result covers a
-rejected target match before commit. A later external validator failure, a
+rejected target match when a list comprehension or explicit append loop collects
+every patch before writing. The supported early-flush form commits all metadata
+before checking the README badge. The supported chained generators compute one
+patch per pull, and the consumer writes it before the next pull. Both can leave
+earlier files updated on a later mismatch. Check the reported failing target,
+write order and byte changes against reachable inputs. Unknown workflows yield
+`unverified`. A later external validator failure, a
 write failure and a crash are separate obligations. Preserve the supplied disk
 witness and write trace when reporting a counterexample.
+
+For the pinned OpenAI Cookbook patch CLI, use the same checker with
+`kind: cookbook-context-before-write-v1`, `function: main`,
+`failure: target_context_mismatch`, `required_writes: none`,
+`target_contents: unchanged` and a nonempty `reference`. The source binding
+recognizes the exact reviewed cell and one per-file regression schedule. Any
+other edit requires a fresh review. In the original CLI, target reads use
+the built-in read-only callback. Context matching and commit construction
+operate in memory before `apply_commit` receives the write and remove callbacks.
+Lean proves that a rejection at any position in this phase yields no target
+writes and preserves the input disk. The frontend trusts the reviewed mapping
+of the pinned Python phases to the model. A mismatch means the actual parser
+rejected the context after its whitespace fallback rules. Check the diagnostic
+when reproducing a rejection because the CLI can exit zero. The claim assumes
+ordinary regular files, standard Python callbacks, a separate diagnostic stream
+and no concurrent modification. Commit-time exceptions, crashes, and callers
+supplying their own callbacks require separate contracts.
+
+For python-patch-ng 1.18.1, supply `kind: patch-ng-context-before-write-v1`
+with the same `main`, context mismatch and target-effect requirements as the
+Cookbook contract. This backend reads at most 44,934 bytes to check the size
+and digest of the reviewed 44,933-byte release file. The generic source limit
+remains 32 KiB. The certificate covers two existing LF-terminated regular
+files, each addressed by a single one-line replacement hunk, with default
+options and successful filesystem operations on POSIX. On a mismatch,
+`PatchSet.apply` records an error and keeps processing. A matching target is
+renamed to its backup and opened for writing. Preserve both witnesses,
+including the exit status, ordered target mutation events and final bytes.
+The source binding trusts the reviewed correspondence between this release
+and the Lean model for the two concrete inputs.
+
+For the pinned Hermes Agent release helper, use `scripts/verify_batch.py`
+with `kind: hermes-required-version-before-write-v1`, `function: update_version_files`,
+`failure: missing_version_field`, `required_outcome: raise`, `required_writes: none`,
+`target_contents: unchanged` and a nonempty `reference`. The two witnesses call
+the helper with version `2.0.0` and release date `2026.1.1`. Exactly one
+existing regular file lacks its version assignment. Both fixtures retain the
+requested release date in the Python file. An unmatched substitution leaves
+its input unchanged, but both files are still opened for writing and the
+matching assignment changes. Record the helper's normal Python return value
+(`None`), the ordered write events and the before/after bytes. The certificate
+assumes successful I/O and binds the reviewed whole module to these two calls.
+Other release steps and arbitrary Python/TOML syntax are outside this model.
 
 For the supported exported Bash worker and its parallel xargs pipeline, use
 `scripts/verify_worker.py`. Supply the contract kind

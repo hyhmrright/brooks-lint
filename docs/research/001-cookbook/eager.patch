@@ -1,0 +1,23 @@
+--- a/apply_patch.py
++++ b/apply_patch.py
+@@ -485,7 +485,15 @@
+         raise DiffError("Patch text must start with *** Begin Patch")
+-    paths = identify_files_needed(text)
+-    orig = load_files(paths, open_fn)
+-    patch, _fuzz = text_to_patch(text, orig)
+-    commit = patch_to_commit(patch, orig)
+-    apply_commit(commit, write_fn, remove_fn)
++    lines = text.splitlines()
++    if len(lines) < 2 or lines[-1] != "*** End Patch":
++        raise DiffError("Missing *** End Patch sentinel")
++    headers = ("*** Update File: ", "*** Add File: ", "*** Delete File: ")
++    starts = [i for i in range(1, len(lines) - 1) if lines[i].startswith(headers)]
++    starts.append(len(lines) - 1)
++    for start, end in zip(starts, starts[1:]):
++        section = "\n".join(["*** Begin Patch", *lines[start:end], "*** End Patch"])
++        paths = identify_files_needed(section)
++        orig = load_files(paths, open_fn)
++        patch, _fuzz = text_to_patch(section, orig)
++        commit = patch_to_commit(patch, orig)
++        apply_commit(commit, write_fn, remove_fn)
+     return "Done!"

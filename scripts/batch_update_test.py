@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import runpy
 import shutil
 import subprocess
 import sys
@@ -67,6 +68,27 @@ class BatchUpdateTest(unittest.TestCase):
             with self.subTest(old=old, new=new):
                 self.assertIn(old, FIXED)
                 self.assert_unverified(FIXED.replace(old, new))
+
+    def test_expanded_shapes_reject_unmodeled_effects_and_unreachable_witnesses(self):
+        fixtures = runpy.run_path(str(PROBE.parent / "001-independent/variants.py"))
+        samples = dict(fixtures["source_variants"]())
+        cases = [
+            ("staged-explicit-loop", "        patches.append(patch)",
+             "        patch[0].write_text(patch[1])\n        patches.append(patch)"),
+            ("staged-explicit-loop", "    return path, new_text",
+             "    path.write_text(new_text)\n    return path, new_text"),
+            ("early-metadata-flush", '"package.json",\n    ".claude-plugin/plugin.json",',
+             '".claude-plugin/plugin.json",\n    "package.json",'),
+            ("early-metadata-flush", '    "gemini-extension.json",\n', ""),
+            ("lazy-commit", '    ".claude-plugin/plugin.json",', '    "other.json",'),
+            # Materialization forces the last match before the consumer can write.
+            ("lazy-commit", "in chain(metadata, badge()):", "in list(chain(metadata, badge())):"),
+        ]
+        for sample, old, new in cases:
+            with self.subTest(sample=sample, old=old):
+                source = samples[sample]
+                self.assertEqual(source.count(old), 1)
+                self.assert_unverified(source.replace(old, new))
 
     def test_top_level_effect_is_rejected_without_evaluation(self):
         marker = self.work / "should-not-exist"
