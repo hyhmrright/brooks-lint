@@ -2,7 +2,7 @@
 
 ### Step 1: Identify the source and obligation
 
-Obtain the complete Python module, Bash script, Go file or Java class at the revision under discussion. Record its path
+Obtain the complete Python module, Bash script, Go file, Java class or CommonJS module at the revision under discussion. Record its path
 and revision when available. A PR is optional. Never extract and rewrite a function
 from a larger module to make it pass the checker's input rules.
 
@@ -188,6 +188,29 @@ contract concerns interference; the calendar conversion and pattern rendering
 are supplied by the sequential JDK formatter. Report scheduling assumptions,
 each call's own input and the expected and observed strings.
 
+For the supported JavaScript `isValidList` module, use `scripts/verify_list.py`
+with the language contract below. Each input is a primitive JavaScript string.
+A word contains one or more ASCII letters, digits or underscores. A valid list
+contains at least one word. Each later word follows one comma and zero or more
+ECMAScript whitespace or line-terminator units. The entire string must match.
+
+```json
+{
+  "kind": "js-word-list-language-v1",
+  "function": "isValidList",
+  "language": "nonempty_comma_separated_words",
+  "reference": "Your requirement for the accepted list syntax"
+}
+```
+
+The checker binds the complete module to one of two anchored, flagless
+expressions. Lean interprets concatenation, optional matching and repetition
+over classified UTF-16 units. It compares that language with an independent
+grammar that builds lists from word lengths and separator padding. The
+source matcher, the classification table and the correspondence between
+these regex operators and standard JavaScript builtins are trusted. The
+result concerns Boolean acceptance only. Matching cost remains unverified.
+
 ### Step 3: Run the installed checker
 
 From this skill's directory, pass paths to the original module and contract:
@@ -207,6 +230,8 @@ python3 -I scripts/verify_capture.py SOURCE.go CONTRACT.json
 python3 -I scripts/verify_cache.py SOURCE.py CONTRACT.json
 # Date formatting under concurrent calls
 python3 -I scripts/verify_date.py SOURCE.java CONTRACT.json
+# Whole-string acceptance for a comma-separated list of words
+python3 -I scripts/verify_list.py SOURCE.js CONTRACT.json
 ```
 
 Capture stdout and the exit code. The checker reads the module as data and

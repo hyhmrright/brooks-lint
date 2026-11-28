@@ -4,7 +4,8 @@ description: >
   Verify a supported Python integer predicate, stable deduplication cost,
   validate-before-write batch update, Bash/xargs worker exit propagation,
   Go file handle lifetimes, Go 1.22 loop capture and callback completion,
-  Python cross-call Fibonacci cache correctness, or Java date formatter concurrency
+  Python cross-call Fibonacci cache correctness, Java date formatter concurrency,
+  or JavaScript comma-separated word-list acceptance
   against an explicit contract with Lean 4.
   Trigger for requests for formal verification, proof of order or failure
   behavior, or a certified counterexample to a stated obligation.
