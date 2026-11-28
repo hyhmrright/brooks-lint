@@ -72,3 +72,6 @@ and Lean's empty axiom reports. Those certificates apply only to the controls.
 The [Cookbook extension](../../001-cookbook/README.md) subsequently certified
 the pinned Cookbook source and a per-file counterexample. This holdout still
 replays the pre-extension checker.
+
+The [patch-ng extension](../../001-patch-ng/README.md) checks both mismatch
+positions for the exact 1.18.1 module that exceeded the frozen size limit.

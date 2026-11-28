@@ -91,6 +91,19 @@ ordinary regular files, standard Python callbacks, a separate diagnostic stream
 and no concurrent modification. Commit-time exceptions, crashes, and callers
 supplying their own callbacks require separate contracts.
 
+For python-patch-ng 1.18.1, supply `kind: patch-ng-context-before-write-v1`
+with the same `main`, context mismatch and target-effect requirements as the
+Cookbook contract. This backend reads at most 44,934 bytes to check the size
+and digest of the reviewed 44,933-byte release file. The generic source limit
+remains 32 KiB. The certificate covers two existing LF-terminated regular
+files, each addressed by a single one-line replacement hunk, with default
+options and successful filesystem operations on POSIX. On a mismatch,
+`PatchSet.apply` records an error and keeps processing. A matching target is
+renamed to its backup and opened for writing. Preserve both witnesses,
+including the exit status, ordered target mutation events and final bytes.
+The source binding trusts the reviewed correspondence between this release
+and the Lean model for the two concrete inputs.
+
 For the supported exported Bash worker and its parallel xargs pipeline, use
 `scripts/verify_worker.py`. Supply the contract kind
 `bash-xargs-worker-exit-v1`, function `run_case`, command `claude`, failure

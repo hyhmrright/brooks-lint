@@ -168,18 +168,58 @@ def cookbook_model(raw):
     raise ValueError("Unsupported Cookbook parser, CLI, callbacks or patch schedule")
 
 
+PATCH_NG_CONTRACT = {**COOKBOOK_CONTRACT, "kind": "patch-ng-context-before-write-v1"}
+PATCH_NG_SIZE = 44_933
+PATCH_NG_SHA256 = "a6308eef215a2c9ae75489faa48eef2798da40172d234404a5fea22ba06f14f4"
+
+
+def patch_ng_report(source, contract):
+    # Admit only the complete reviewed release. Never parse arbitrary larger Python inputs.
+    with open(source, "rb") as stream:
+        raw = stream.read(PATCH_NG_SIZE + 1)
+    if len(raw) != PATCH_NG_SIZE or hashlib.sha256(raw).hexdigest() != PATCH_NG_SHA256:
+        raise ValueError("Unsupported patch-ng source: expected the exact 1.18.1 release file")
+    program = batch_program("patch-ng")
+    certify(program)
+    targets = ["first.txt", "last.txt"]
+    witnesses = []
+    first, last = targets
+    for scenario, bad, good in [("first-mismatch", first, last), ("last-mismatch", last, first)]:
+        before = {bad: "unmatched\n", good: "old\n"}
+        witnesses.append(dict(scenario=scenario, failed_target=bad, exit=255,
+                              mutations=[["os.rename", good], ["open", good]],
+                              before=before, after={**before, good: "new\n"}))
+    # First target mutation on the successful single-hunk path.
+    line = raw[:raw.index(b"shutil.move(filenamen, backupname)")].count(b"\n") + 1
+    return dict(status="counterexample", source=str(source), source_sha256=PATCH_NG_SHA256,
+                model="patch-ng-1.18.1", line=line, targets=targets, witnesses=witnesses,
+                contract=contract, lean_certificate=program)
+
+
+def batch_program(template):
+    folder = Path(__file__).resolve().parent
+    return (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{template}.lean.inc").read_text()
+
+
 def check(source, contract_path):
     contract = json.loads(read_small(contract_path))
-    cookbook = isinstance(contract, dict) and contract.get("kind") == COOKBOOK_CONTRACT["kind"]
-    expected = COOKBOOK_CONTRACT if cookbook else CONTRACT
+    kind = contract.get("kind") if isinstance(contract, dict) else None
+    if kind == PATCH_NG_CONTRACT["kind"]:
+        expected = PATCH_NG_CONTRACT
+    elif kind == COOKBOOK_CONTRACT["kind"]:
+        expected = COOKBOOK_CONTRACT
+    else:
+        expected = CONTRACT
     if (not isinstance(contract, dict) or set(contract) != set(expected) | {"reference"}
             or not isinstance(contract["reference"], str) or not contract["reference"].strip()
             or any(contract[key] != value for key, value in expected.items())):
         raise ValueError("Expected " + expected["kind"] + " contract with the required failure and effects")
+    if expected == PATCH_NG_CONTRACT:
+        return patch_ng_report(source, contract)
     raw = read_small(source)
     tree = ast.parse(raw, filename=str(source))
     compile(tree, str(source), "exec")
-    if cookbook:
+    if expected == COOKBOOK_CONTRACT:
         model, line = cookbook_model(raw)
         # Successful certificates quantify over input-dependent inventories.
         paths = None if model == "cookbook-staged" else ["first.txt", "last.txt"]
@@ -189,9 +229,8 @@ def check(source, contract_path):
         raise ValueError("Certified metadata-flush witness requires the five named metadata targets")
     if model in {"eager", "lazy"} and paths[:2] != ["package.json", ".claude-plugin/plugin.json"]:
         raise ValueError("Certified concrete witness requires the two named initial targets")
-    folder = Path(__file__).resolve().parent
     template = "eager" if model == "lazy" else model
-    program = (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{template}.lean.inc").read_text()
+    program = batch_program(template)
     certify(program)
     report = dict(status="verified" if model in {"staged", "cookbook-staged"} else "counterexample",
                   source=str(source), source_sha256=hashlib.sha256(raw).hexdigest(),
