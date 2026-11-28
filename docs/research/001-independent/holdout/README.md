@@ -68,3 +68,7 @@ re-emits the [staged proof](../../logic-lens-001/certificates/fixed.lean),
 [lazy/eager witness](../../logic-lens-001/certificates/buggy.lean) for previously
 supported inputs. It checks their bytes, the independently stated theorem types
 and Lean's empty axiom reports. Those certificates apply only to the controls.
+
+The [Cookbook extension](../../001-cookbook/README.md) subsequently certified
+the pinned Cookbook source and a per-file counterexample. This holdout still
+replays the pre-extension checker.

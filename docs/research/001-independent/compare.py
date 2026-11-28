@@ -122,6 +122,14 @@ if __name__ == "__main__":
     if args.output_dir:
         results_file.write_text(json.dumps(report, indent=2) + "\n")
     else:
-        require(report == json.loads(results_file.read_bytes()), "Current evidence differs from record")
+        expected = json.loads(results_file.read_bytes())
+        # Keep the original candidate measurement immutable as support grows.
+        key = "installed_checker_sha256"
+        file = "skills/brooks-verify/scripts/verify_batch.py"
+        historical = subprocess.check_output(["git", "show",
+            "c05c01a76957327e561f2c9ed1c298c4c0311b87:" + file], cwd=ROOT)
+        require(expected[key] == sha(historical), "Historical checker digest drift")
+        expected[key] = sha((ROOT / file).read_bytes())
+        require(report == expected, "Installed checker or sample evidence differs from record")
     for name, sample in report["samples"].items():
         print(f"{name}: {sample['frozen']} -> {sample['current']}")

@@ -1,4 +1,4 @@
-"""Bind a supported version-update workflow to its Lean validation/write model."""
+"""Bind a supported file-update workflow to its Lean validation/write model."""
 import ast
 import hashlib
 import json
@@ -131,16 +131,60 @@ def source_model(tree):
     return model, paths + ["README.md"], line
 
 
+COOKBOOK_CONTRACT = {**CONTRACT, "kind": "cookbook-context-before-write-v1",
+                     "failure": "target_context_mismatch"}
+# Every byte outside this single process_patch block, including imports, parser,
+# callbacks, and the CLI exception handler, must match the reviewed cell.
+COOKBOOK_SHA256 = "4ede4c81d0eeaf870b0bfc94fa00324f97f555743d1e8cf14eadaaff41aa0d62"
+COOKBOOK_STAGED = b'''    paths = identify_files_needed(text)
+    orig = load_files(paths, open_fn)
+    patch, _fuzz = text_to_patch(text, orig)
+    commit = patch_to_commit(patch, orig)
+    apply_commit(commit, write_fn, remove_fn)
+'''
+COOKBOOK_PER_FILE = rb'''    lines = text.splitlines()
+    if len(lines) < 2 or lines[-1] != "*** End Patch":
+        raise DiffError("Missing *** End Patch sentinel")
+    headers = ("*** Update File: ", "*** Add File: ", "*** Delete File: ")
+    starts = [i for i in range(1, len(lines) - 1) if lines[i].startswith(headers)]
+    starts.append(len(lines) - 1)
+    for start, end in zip(starts, starts[1:]):
+        section = "\n".join(["*** Begin Patch", *lines[start:end], "*** End Patch"])
+        paths = identify_files_needed(section)
+        orig = load_files(paths, open_fn)
+        patch, _fuzz = text_to_patch(section, orig)
+        commit = patch_to_commit(patch, orig)
+        apply_commit(commit, write_fn, remove_fn)
+'''
+
+
+def cookbook_model(raw):
+    for model, block in [("cookbook-staged", COOKBOOK_STAGED), ("cookbook-per-file", COOKBOOK_PER_FILE)]:
+        if raw.count(block) == 1:
+            canonical = raw.replace(block, COOKBOOK_STAGED, 1)
+            if hashlib.sha256(canonical).hexdigest() == COOKBOOK_SHA256:
+                write_call = raw.index(b"apply_commit(commit, write_fn, remove_fn)", raw.index(block))
+                return model, raw.count(b"\n", 0, write_call) + 1
+    raise ValueError("Unsupported Cookbook parser, CLI, callbacks or patch schedule")
+
+
 def check(source, contract_path):
     contract = json.loads(read_small(contract_path))
-    if (not isinstance(contract, dict) or set(contract) != set(CONTRACT) | {"reference"}
+    cookbook = isinstance(contract, dict) and contract.get("kind") == COOKBOOK_CONTRACT["kind"]
+    expected = COOKBOOK_CONTRACT if cookbook else CONTRACT
+    if (not isinstance(contract, dict) or set(contract) != set(expected) | {"reference"}
             or not isinstance(contract["reference"], str) or not contract["reference"].strip()
-            or any(contract[key] != value for key, value in CONTRACT.items())):
-        raise ValueError("Expected validate-before-write-v1 target-pattern failure contract")
+            or any(contract[key] != value for key, value in expected.items())):
+        raise ValueError("Expected " + expected["kind"] + " contract with the required failure and effects")
     raw = read_small(source)
     tree = ast.parse(raw, filename=str(source))
     compile(tree, str(source), "exec")
-    model, paths, line = source_model(tree)
+    if cookbook:
+        model, line = cookbook_model(raw)
+        # Successful certificates quantify over input-dependent inventories.
+        paths = None if model == "cookbook-staged" else ["first.txt", "last.txt"]
+    else:
+        model, paths, line = source_model(tree)
     if model == "early-flush" and paths[:-1] != METADATA_WITNESS:
         raise ValueError("Certified metadata-flush witness requires the five named metadata targets")
     if model in {"eager", "lazy"} and paths[:2] != ["package.json", ".claude-plugin/plugin.json"]:
@@ -149,10 +193,13 @@ def check(source, contract_path):
     template = "eager" if model == "lazy" else model
     program = (folder / "BatchUpdate.lean").read_text() + "\n" + (folder / f"batch-{template}.lean.inc").read_text()
     certify(program)
-    report = dict(status="verified" if model == "staged" else "counterexample",
+    report = dict(status="verified" if model in {"staged", "cookbook-staged"} else "counterexample",
                   source=str(source), source_sha256=hashlib.sha256(raw).hexdigest(),
                   line=line, model=model, targets=paths, contract=contract, lean_certificate=program)
-    if model != "staged":
+    if model == "cookbook-per-file":
+        report.update(failed_target="last.txt", writes=["first.txt"], before="old\n",
+                      after="new\n", failed_target_contents="unmatched\n")
+    elif model not in {"staged", "cookbook-staged"}:
         early_flush = model == "early-flush"
         report.update(requested_version="2.0.0", failed_target=paths[-1] if early_flush else paths[1],
                       writes=paths[:-1] if early_flush else [paths[0]],

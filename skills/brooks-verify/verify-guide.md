@@ -74,6 +74,23 @@ write order and byte changes against reachable inputs. Unknown workflows yield
 write failure and a crash are separate obligations. Preserve the supplied disk
 witness and write trace when reporting a counterexample.
 
+For the pinned OpenAI Cookbook patch CLI, use the same checker with
+`kind: cookbook-context-before-write-v1`, `function: main`,
+`failure: target_context_mismatch`, `required_writes: none`,
+`target_contents: unchanged` and a nonempty `reference`. The source binding
+recognizes the exact reviewed cell and one per-file regression schedule. Any
+other edit requires a fresh review. In the original CLI, target reads use
+the built-in read-only callback. Context matching and commit construction
+operate in memory before `apply_commit` receives the write and remove callbacks.
+Lean proves that a rejection at any position in this phase yields no target
+writes and preserves the input disk. The frontend trusts the reviewed mapping
+of the pinned Python phases to the model. A mismatch means the actual parser
+rejected the context after its whitespace fallback rules. Check the diagnostic
+when reproducing a rejection because the CLI can exit zero. The claim assumes
+ordinary regular files, standard Python callbacks, a separate diagnostic stream
+and no concurrent modification. Commit-time exceptions, crashes, and callers
+supplying their own callbacks require separate contracts.
+
 For the supported exported Bash worker and its parallel xargs pipeline, use
 `scripts/verify_worker.py`. Supply the contract kind
 `bash-xargs-worker-exit-v1`, function `run_case`, command `claude`, failure
